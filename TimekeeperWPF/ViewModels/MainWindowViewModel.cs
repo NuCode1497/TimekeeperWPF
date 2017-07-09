@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TimekeeperWPF.Models;
-using TimekeeperWPF.Repos;
+using TimekeeperDAL.Models;
+using TimekeeperDAL.Repos;
 
 namespace TimekeeperWPF.ViewModels
 {

@@ -1,4 +1,4 @@
-namespace TimekeeperWPF.Models
+namespace TimekeeperDAL.Models
 {
     using System;
     using System.Collections.Generic;
@@ -16,8 +16,5 @@ namespace TimekeeperWPF.Models
         [Required]
         [StringLength(150)]
         public string NoteText { get; set; }
-
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
     }
 }

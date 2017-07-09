@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimekeeperWPF", "TimekeeperWPF\TimekeeperWPF.csproj", "{601FFF8C-89E1-4F95-8451-7F4CC04A5118}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BBD36DBC-634B-48DE-8487-D0E4E07EA7DD} = {BBD36DBC-634B-48DE-8487-D0E4E07EA7DD}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimekeeperDAL", "TimekeeperDAL\TimekeeperDAL.csproj", "{BBD36DBC-634B-48DE-8487-D0E4E07EA7DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{601FFF8C-89E1-4F95-8451-7F4CC04A5118}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{601FFF8C-89E1-4F95-8451-7F4CC04A5118}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{601FFF8C-89E1-4F95-8451-7F4CC04A5118}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BBD36DBC-634B-48DE-8487-D0E4E07EA7DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BBD36DBC-634B-48DE-8487-D0E4E07EA7DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BBD36DBC-634B-48DE-8487-D0E4E07EA7DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BBD36DBC-634B-48DE-8487-D0E4E07EA7DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

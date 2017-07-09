@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.Entity.Infrastructure.Interception;
 using System.Data.Common;
+using static System.Console;
 
-namespace TimekeeperWPF.Interception
+namespace TimekeeperDAL.Interception
 {
     public class Interceptor : IDbCommandInterceptor
     {

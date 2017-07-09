@@ -1,4 +1,4 @@
-namespace TimekeeperWPF.Migrations
+namespace TimekeeperDAL.Migrations
 {
     using System;
     using System.Data.Entity.Migrations;

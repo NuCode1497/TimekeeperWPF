@@ -1,18 +1,18 @@
-namespace TimekeeperWPF.Migrations
+namespace TimekeeperDAL.Migrations
 {
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<TimekeeperWPF.EF.TimeKeeperEntities>
+    internal sealed class Configuration : DbMigrationsConfiguration<TimekeeperDAL.EF.TimeKeeperEntities>
     {
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(TimekeeperWPF.EF.TimeKeeperEntities context)
+        protected override void Seed(TimekeeperDAL.EF.TimeKeeperEntities context)
         {
             //  This method will be called after migrating to the latest version.
 

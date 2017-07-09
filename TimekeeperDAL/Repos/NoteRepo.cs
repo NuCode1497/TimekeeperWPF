@@ -4,9 +4,9 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TimekeeperWPF.Models;
+using TimekeeperDAL.Models;
 
-namespace TimekeeperWPF.Repos
+namespace TimekeeperDAL.Repos
 {
     public class NoteRepo : BaseRepo<Note>, IRepo<Note>
     {

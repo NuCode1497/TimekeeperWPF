@@ -54,6 +54,9 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="TimekeeperDAL">
+      <HintPath>..\TimekeeperDAL\bin\Debug\TimekeeperDAL.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -63,23 +66,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Interception\Interceptor.cs" />
-    <Compile Include="Migrations\201707090352301_Initial.cs" />
-    <Compile Include="Migrations\201707090352301_Initial.Designer.cs">
-      <DependentUpon>201707090352301_Initial.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201707090356462_RowVersions.cs" />
-    <Compile Include="Migrations\201707090356462_RowVersions.Designer.cs">
-      <DependentUpon>201707090356462_RowVersions.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Models\Base\ModelBase.cs" />
-    <Compile Include="Models\Note.cs" />
-    <Compile Include="EF\TimeKeeperEntities.cs" />
-    <Compile Include="Models\Partial\NotePartial.cs" />
-    <Compile Include="Repos\BaseRepo.cs" />
-    <Compile Include="Repos\IRepo.cs" />
-    <Compile Include="Repos\NoteRepo.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -109,12 +95,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <EmbeddedResource Include="Migrations\201707090352301_Initial.resx">
-      <DependentUpon>201707090352301_Initial.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201707090356462_RowVersions.resx">
-      <DependentUpon>201707090356462_RowVersions.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -5,9 +5,9 @@ using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TimekeeperWPF.EF;
+using TimekeeperDAL.EF;
 
-namespace TimekeeperWPF.Repos
+namespace TimekeeperDAL.Repos
 {
     public abstract class BaseRepo<T> : IDisposable where T : class, new()
     {
@@ -29,7 +29,7 @@ namespace TimekeeperWPF.Repos
             catch (DbUpdateException ex)
             {
                 //Thrown when db update fails
-                //Examine the intter exceptions for more details and affected objects
+                //Examine the inner exceptions for more details and affected objects
                 //for now, just rethrow
                 throw ex;
             }
