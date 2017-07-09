@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TimekeeperWPF.Models.Base
+namespace TimekeeperWPF.Models
 {
     public abstract class ModelBase
     {
