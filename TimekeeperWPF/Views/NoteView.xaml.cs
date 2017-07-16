@@ -12,16 +12,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using TimekeeperWPF.ViewModels;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for NoteView.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class NoteView : UserControl
     {
-        public MainWindow()
+        public NoteView()
         {
             InitializeComponent();
         }

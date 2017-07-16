@@ -11,11 +11,5 @@ namespace TimekeeperWPF.ViewModels
 {
     public class MainWindowViewModel
     {
-        public IList<Note> Notes { get; set; }
-
-        public MainWindowViewModel()
-        {
-            Notes = new ObservableCollection<Note>(new NoteRepo().GetAll());
-        }
     }
 }

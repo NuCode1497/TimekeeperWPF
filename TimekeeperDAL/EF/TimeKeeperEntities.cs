@@ -12,9 +12,9 @@ namespace TimekeeperDAL.EF
 
     public partial class TimeKeeperEntities : DbContext
     {
-        static readonly DatabaseLogger loggo = new DatabaseLogger("sqllog.txt", true);
+        //static readonly DatabaseLogger loggo = new DatabaseLogger("sqllog.txt", true);
         public TimeKeeperEntities()
-            : base("name=TimeKeeperEntities")
+            : base("TimeKeeperEntities")
         {
             //print sql queries to the console
             //DbInterception.Add(new Interceptor());
@@ -68,8 +68,8 @@ namespace TimekeeperDAL.EF
 
         protected override void Dispose(bool disposing)
         {
-            DbInterception.Remove(loggo);
-            loggo.StopLogging();
+            //DbInterception.Remove(loggo);
+            //loggo.StopLogging();
             base.Dispose(disposing);
         }
     }
