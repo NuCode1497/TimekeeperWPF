@@ -3,10 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:TimekeeperWPF.Views"
         xmlns:vms="clr-namespace:TimekeeperWPF.ViewModels"
-        Title="Time Keeper" Height="378" Width="456" Background="#FF48CD7E" WindowStartupLocation="CenterScreen" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        Title="Time Keeper" Height="378" Width="456"
+        Style="{StaticResource WindowStyle}"
+        WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <vms:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+    </Window.Resources>
     <Grid>
         <views:NoteView x:Name="NoteViewControl" />
     </Grid>

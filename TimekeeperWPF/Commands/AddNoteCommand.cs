@@ -12,13 +12,9 @@ namespace TimekeeperWPF.Commands
     public class AddNoteCommand : TKCommand
     {
         private readonly IList<Note> _notes;
-        private readonly DateTime _noteDateTime;
-        private readonly string _noteText = "local";
-        public AddNoteCommand(IList<Note> notes, DateTime noteDateTime, string noteText)
+        public AddNoteCommand(IList<Note> notes)
         {
             _notes = notes;
-            _noteDateTime = noteDateTime;
-            _noteText = noteText;
         }
         public override bool CanExecute(object parameter) => true;
 
@@ -30,8 +26,8 @@ namespace TimekeeperWPF.Commands
             _notes?.Add(new Note
             {
                 NoteID = ++maxCount,
-                NoteDateTime = _noteDateTime,
-                NoteText = _noteText,
+                NoteDateTime = DateTime.Now,
+                NoteText = "Your text here.",
                 IsChanged = false
             });
         }

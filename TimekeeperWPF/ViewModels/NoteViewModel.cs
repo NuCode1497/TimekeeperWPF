@@ -14,17 +14,15 @@ namespace TimekeeperWPF.ViewModels
     public class NoteViewModel
     {
         public IList<Note> Notes { get; set; }
-        public DateTime NoteDateTime { get; set; }
-        public string NoteText { get; set; }
         public NoteViewModel()
         {
             //Notes = new ObservableCollection<Note>(new NoteRepo().GetAll());
             Notes = new ObservableCollection<Note>();
-            NoteDateTime = DateTime.Now;
-            NoteText = "Something.";
         }
 
         private ICommand _AddNoteCommand = null;
-        public ICommand AddNoteCmd => _AddNoteCommand ?? (_AddNoteCommand = new AddNoteCommand(Notes, NoteDateTime, NoteText));
+        public ICommand AddNoteCmd => _AddNoteCommand ?? (_AddNoteCommand = new AddNoteCommand(Notes));
+        private ICommand _GetDataCommand = null;
+        public ICommand GetDataCmd => _GetDataCommand ?? (_GetDataCommand = new GetDataCommand(this));
     }
 }

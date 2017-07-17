@@ -17,16 +17,10 @@ namespace TimekeeperDAL.Models
                 bool hasError = false;
                 switch (columnName)
                 {
+                    case nameof(NoteID):
+                        errors = GetErrorsFromAnnotations(nameof(NoteID), NoteID);
+                        break;
                     case nameof(NoteDateTime):
-                        // Add validation logic here
-                        //hasError = CheckMakeAndColor();
-                        //if (Make == "ModelT")
-                        //{
-                        //    AddError(nameof(Make), "Too Old");
-                        //    hasError = true;
-                        //}
-                        //if (!hasError) ClearErrors(nameof(Make));
-
                         errors = GetErrorsFromAnnotations(nameof(NoteDateTime), NoteDateTime);
                         break;
                     case nameof(NoteText):

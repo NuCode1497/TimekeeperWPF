@@ -12,17 +12,9 @@ namespace TimekeeperDAL.EF
 
     public partial class TimeKeeperEntities : DbContext
     {
-        //static readonly DatabaseLogger loggo = new DatabaseLogger("sqllog.txt", true);
         public TimeKeeperEntities()
             : base("TimeKeeperEntities")
         {
-            //print sql queries to the console
-            //DbInterception.Add(new Interceptor());
-
-            //loggo.StartLogging();
-            //DbInterception.Add(loggo);
-
-            //These can save me from having to create an interceptor?
             var context = (this as IObjectContextAdapter).ObjectContext;
             context.ObjectMaterialized += Context_ObjectMaterialized;
             context.SavingChanges += Context_SavingChanges;
