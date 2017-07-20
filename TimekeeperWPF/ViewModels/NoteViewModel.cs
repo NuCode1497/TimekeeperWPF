@@ -14,15 +14,26 @@ namespace TimekeeperWPF.ViewModels
     public class NoteViewModel
     {
         public IList<Note> Notes { get; set; }
-        public NoteViewModel()
-        {
-            //Notes = new ObservableCollection<Note>(new NoteRepo().GetAll());
-            Notes = new ObservableCollection<Note>();
-        }
 
         private ICommand _AddNoteCommand = null;
-        public ICommand AddNoteCmd => _AddNoteCommand ?? (_AddNoteCommand = new AddNoteCommand(Notes));
         private ICommand _GetDataCommand = null;
-        public ICommand GetDataCmd => _GetDataCommand ?? (_GetDataCommand = new GetDataCommand(this));
+        public ICommand AddNoteCmd => _AddNoteCommand ?? (_AddNoteCommand = new RelayCommand(
+            x => AddNote(), x => Notes != null));
+        public ICommand GetDataCmd => _GetDataCommand ?? (_GetDataCommand = new RelayCommand(
+            x => { Notes = new ObservableCollection<Note>(new NoteRepo().GetAll()); }, x => true));
+
+        private void AddNote()
+        {
+            //Get the last ID
+            var maxCount = Notes?.Select(x => x.NoteID).DefaultIfEmpty().Max() ?? 0;
+            //Add after last ID
+            Notes?.Add(new Note
+            {
+                NoteID = ++maxCount,
+                NoteDateTime = DateTime.Now,
+                NoteText = "Your text here.",
+                IsChanged = false
+            });
+        }
     }
 }
