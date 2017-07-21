@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using TimekeeperDAL.Models;
 using TimekeeperDAL.Repos;
-using TimekeeperWPF.Commands;
 
-namespace TimekeeperWPF.ViewModels
+namespace TimekeeperWPF
 {
-    public class NoteViewModel
+    public class NotesViewModel
     {
         public IList<Note> Notes { get; set; }
 

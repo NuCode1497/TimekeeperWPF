@@ -10,10 +10,10 @@ namespace TimekeeperDAL.EF
     using TimekeeperDAL.Interception;
     using System.Data.Entity.Core.Objects;
 
-    public partial class TimeKeeperEntities : DbContext
+    public partial class TimeKeeperContext : DbContext
     {
-        public TimeKeeperEntities()
-            : base("TimeKeeperEntities")
+        public TimeKeeperContext()
+            : base("TimeKeeperConnection")
         {
             var context = (this as IObjectContextAdapter).ObjectContext;
             context.ObjectMaterialized += Context_ObjectMaterialized;

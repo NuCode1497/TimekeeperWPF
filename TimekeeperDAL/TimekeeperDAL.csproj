@@ -53,7 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EF\TimeKeeperEntities.cs" />
+    <Compile Include="EF\TimeKeeperContext.cs" />
     <Compile Include="Interception\Interceptor.cs" />
     <Compile Include="Migrations\201707090352301_Initial.cs" />
     <Compile Include="Migrations\201707090352301_Initial.Designer.cs">

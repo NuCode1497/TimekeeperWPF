@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace TimekeeperWPF.Commands
+namespace TimekeeperWPF
 {
     public class RelayCommand : ICommand
     {

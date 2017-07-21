@@ -11,7 +11,7 @@ namespace TimekeeperDAL.Repos
 {
     public abstract class BaseRepo<T> : IDisposable where T : class, new()
     {
-        public TimeKeeperEntities Context { get; } = new TimeKeeperEntities();
+        public TimeKeeperContext Context { get; } = new TimeKeeperContext();
         protected DbSet<T> Table;
 
         internal int SaveChanges()

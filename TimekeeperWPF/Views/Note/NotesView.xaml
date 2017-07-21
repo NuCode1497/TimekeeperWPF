@@ -1,0 +1,49 @@
+﻿<UserControl x:Class="TimekeeperWPF.NotesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600"
+             d:DesignWidth="600">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Button Margin="1" Content="Get Data" x:Name="GetDataButton" 
+                Command="{Binding GetDataCmd}" Width="100"/>
+            <Button Margin="1" Content="Add Note" x:Name="AddNoteButton" 
+                Command="{Binding AddNoteCmd}" Width="100"/>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <DataGrid Grid.Column="1" x:Name="NotesGrid" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="1"
+                  IsReadOnly="True"
+                  ItemsSource="{Binding Notes}"
+                  HeadersVisibility="Column"
+                  SelectionMode="Single"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel Grid.Row="1" Margin="1" DataContext="{Binding SelectedItem, ElementName=NotesGrid}" >
+                <Label Content="Date Time"/>
+                <TextBox x:Name="DateTextBox" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                         Text="{Binding NoteDateTime, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
+                         Margin="5" />
+                <Label Content="Note"/>
+                <TextBox x:Name="NoteTextBox" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" 
+                         TextWrapping="Wrap"
+                         Text="{Binding NoteText, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
+                         Margin="5" Height="128" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

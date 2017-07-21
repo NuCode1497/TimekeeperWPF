@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TimekeeperDAL.Models;
 using TimekeeperDAL.Repos;
 
-namespace TimekeeperWPF.ViewModels
+namespace TimekeeperWPF
 {
     public class MainWindowViewModel
     {

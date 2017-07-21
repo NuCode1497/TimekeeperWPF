@@ -8,7 +8,6 @@ namespace TimekeeperDAL.Models
 {
     public partial class Note : EntityBase
     {
-        //Validation code
         public override string this[string columnName]
         {
             get
@@ -18,15 +17,16 @@ namespace TimekeeperDAL.Models
                 switch (columnName)
                 {
                     case nameof(NoteID):
-                        errors = GetErrorsFromAnnotations(nameof(NoteID), NoteID);
+                        //Add Validation code here
                         break;
                     case nameof(NoteDateTime):
-                        errors = GetErrorsFromAnnotations(nameof(NoteDateTime), NoteDateTime);
+                        //hasError = CheckHolidays();
+                        //if (!hasError) ClearErrors(nameof(NoteDateTime));
                         break;
                     case nameof(NoteText):
-                        errors = GetErrorsFromAnnotations(nameof(NoteText), NoteText);
                         break;
                 }
+                errors = GetErrorsFromAnnotations(columnName, Type.GetType(columnName));
                 if (errors != null && errors.Length != 0)
                 {
                     AddErrors(columnName, errors);
