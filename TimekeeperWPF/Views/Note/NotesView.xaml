@@ -22,20 +22,9 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <DataGrid Grid.Column="1" x:Name="NotesGrid" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="1"
-                  IsReadOnly="True"
-                  ItemsSource="{Binding Notes}"
-                  HeadersVisibility="Column"
-                  SelectionMode="Single"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  AutoGenerateColumns="False">
-                <DataGrid.Columns>
-                </DataGrid.Columns>
-            </DataGrid>
-            <StackPanel Grid.Row="1" Margin="1" DataContext="{Binding SelectedItem, ElementName=NotesGrid}" >
+            <StackPanel x:Name="NoteEditPanel" Margin="1" DataContext="{Binding SelectedItem, ElementName=NotesGrid}" >
                 <Label Content="Date Time"/>
-                <TextBox x:Name="DateTextBox" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                <TextBox x:Name="NoteDateTextBox" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                          Text="{Binding NoteDateTime, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
                          Margin="5" />
                 <Label Content="Note"/>
@@ -44,6 +33,30 @@
                          Text="{Binding NoteText, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
                          Margin="5" Height="128" />
             </StackPanel>
+            <DataGrid Grid.Column="1" x:Name="NotesGrid" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="1"
+                      IsReadOnly="True"
+                      ItemsSource="{Binding Notes}"
+                      SelectedItem="{Binding SelectedNote, Mode=TwoWay}"
+                      HeadersVisibility="Column"
+                      SelectionMode="Single"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding NoteDateTime, Mode=TwoWay}" Header="Date&amp;Time" />
+                    <DataGridTextColumn Binding="{Binding NoteText, Mode=TwoWay}" Header="Text" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style>
+                                <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+                                <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+                                <Setter Property="TextBlock.FontSize" Value="24"/>
+                                <Setter Property="TextBlock.LineHeight" Value="28"/>
+                                <Setter Property="TextBlock.MaxHeight" Value="84"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
     </Grid>
 </UserControl>

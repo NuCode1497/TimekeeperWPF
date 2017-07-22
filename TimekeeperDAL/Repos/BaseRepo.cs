@@ -9,6 +9,11 @@ using TimekeeperDAL.EF;
 
 namespace TimekeeperDAL.Repos
 {
+    /// <summary>
+    /// The Repository Pattern is helpful in eliminating duplicate code.
+    /// We concentrate query logic here. See https://martinfowler.com/eaaCatalog/repository.html
+    /// </summary>
+    /// <typeparam name="T">Table</typeparam>
     public abstract class BaseRepo<T> : IDisposable where T : class, new()
     {
         public TimeKeeperContext Context { get; } = new TimeKeeperContext();
