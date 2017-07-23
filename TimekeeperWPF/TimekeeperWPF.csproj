@@ -66,12 +66,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Tools\IPage.cs" />
     <Compile Include="Views\Main\MainWindowViewModel.cs" />
     <Compile Include="Views\Note\NotesViewModel.cs" />
-    <Compile Include="Views\Main\RelayCommand.cs" />
+    <Compile Include="Tools\RelayCommand.cs" />
     <Compile Include="Views\Note\NotesView.xaml.cs">
       <DependentUpon>NotesView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\ObservableObject.cs" />
     <Page Include="Views\Main\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

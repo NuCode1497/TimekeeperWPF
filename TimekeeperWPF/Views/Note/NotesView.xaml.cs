@@ -23,7 +23,6 @@ namespace TimekeeperWPF
         public NotesView()
         {
             InitializeComponent();
-            DataContext = new NotesViewModel();
         }
     }
 }

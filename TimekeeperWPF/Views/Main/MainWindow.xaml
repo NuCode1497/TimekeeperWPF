@@ -2,10 +2,20 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:l="clr-namespace:TimekeeperWPF"
-        Title="Time Keeper" Height="378" Width="456"
+        Title="Time Keeper" Height="420.142" Width="766.318"
         Style="{StaticResource WindowStyle}"
         WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <l:MainWindowViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <!--Data of type WhateverViewModel will be displayed as WhateverView-->
+        <DataTemplate DataType="{x:Type l:NotesViewModel}">
+            <l:NotesView/>
+        </DataTemplate>
+    </Window.Resources>
     <Grid>
-        <l:NotesView x:Name="NoteViewControl" />
+        <ContentControl x:Name="ViewHolder" Margin="5"
+                        Content="{Binding Path=CurrentView}"/>
     </Grid>
 </Window>

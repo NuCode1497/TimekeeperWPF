@@ -23,7 +23,6 @@ namespace TimekeeperWPF
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainWindowViewModel();
         }
     }
 }
