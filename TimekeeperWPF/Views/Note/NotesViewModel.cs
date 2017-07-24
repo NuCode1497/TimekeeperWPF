@@ -25,18 +25,7 @@ namespace TimekeeperWPF
 
         public string Name => nameof(Notes);
 
-        public ObservableCollection<Note> Notes
-        {
-            get
-            {
-                return _notes;
-            }
-            set
-            {
-                _notes = value;
-                OnPropertyChanged();
-            }
-        }
+        public ObservableCollection<Note> Notes { get; set; }
         public Note SelectedNote
         {
             get
@@ -73,6 +62,7 @@ namespace TimekeeperWPF
         {
             //Show a busy signal
             Notes = new ObservableCollection<Note>(await new NoteRepo().GetAllAsync());
+            OnPropertyChanged(nameof(Notes));
             //Hide the busy signal
         }
     }

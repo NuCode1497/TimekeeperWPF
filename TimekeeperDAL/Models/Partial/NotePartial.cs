@@ -22,11 +22,11 @@ namespace TimekeeperDAL.Models
                     case nameof(NoteDateTime):
                         //hasError = CheckHolidays();
                         //if (!hasError) ClearErrors(nameof(NoteDateTime));
+                        errors = GetErrorsFromAnnotations(nameof(NoteDateTime), NoteDateTime);
                         break;
                     case nameof(NoteText):
                         break;
                 }
-                errors = GetErrorsFromAnnotations(columnName, Type.GetType(columnName));
                 if (errors != null && errors.Length != 0)
                 {
                     AddErrors(columnName, errors);

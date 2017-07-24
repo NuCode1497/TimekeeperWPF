@@ -9,7 +9,6 @@
         <l:MainWindowViewModel/>
     </Window.DataContext>
     <Window.Resources>
-        <!--Data of type WhateverViewModel will be displayed as WhateverView-->
         <DataTemplate DataType="{x:Type l:NotesViewModel}">
             <l:NotesView/>
         </DataTemplate>

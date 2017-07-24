@@ -13,9 +13,9 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="1">
             <Button Margin="1" Content="Get Data" x:Name="GetDataButton" 
-                Command="{Binding GetDataCmd}" Width="100"/>
+                Command="{Binding GetDataCommand}" Width="100"/>
             <Button Margin="1" Content="Add Note" x:Name="AddNoteButton" 
-                Command="{Binding AddNoteCmd}" Width="100"/>
+                Command="{Binding AddNoteCommand}" Width="100"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -36,8 +36,8 @@
             <DataGrid x:Name="NotesGrid" Grid.Column="1"  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                       Margin="1"
                       IsReadOnly="True"
-                      ItemsSource="{Binding Notes}"
-                      SelectedItem="{Binding SelectedNote, Mode=TwoWay}"
+                      ItemsSource="{Binding Path=Notes}"
+                      SelectedItem="{Binding Path=SelectedNote, Mode=TwoWay}"
                       HeadersVisibility="Column"
                       SelectionMode="Single"
                       CanUserAddRows="False"
