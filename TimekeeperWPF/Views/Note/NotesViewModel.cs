@@ -11,6 +11,7 @@ using TimekeeperDAL.Models;
 using TimekeeperDAL.EF;
 using TimekeeperWPF.Tools;
 using System.Data.Entity;
+using System.Diagnostics;
 
 namespace TimekeeperWPF
 {
@@ -37,14 +38,14 @@ namespace TimekeeperWPF
             }
             set
             {
-                if(value != _selectedNote) _selectedNote = value;
+                if (value != _selectedNote) _selectedNote = value;
                 OnPropertyChanged();
             }
         }
-        public ICommand AddNoteCommand => _AddNoteCommand 
-            ?? (_AddNoteCommand = new RelayCommand( ap => AddNote(), pp => Notes != null));
-        public ICommand GetDataCommand => _GetDataCommand 
-            ?? (_GetDataCommand = new RelayCommand( ap => GetData(), pp => true));
+        public ICommand AddNoteCommand => _AddNoteCommand
+            ?? (_AddNoteCommand = new RelayCommand(ap => AddNote(), pp => Notes != null));
+        public ICommand GetDataCommand => _GetDataCommand
+            ?? (_GetDataCommand = new RelayCommand(ap => GetData(), pp => true));
         public ICommand CommitUpdatesCommand => _CommitUpdatesCommand
             ?? (_CommitUpdatesCommand = new RelayCommand(ap => CommitUpdates(), pp => true));
 
@@ -55,7 +56,7 @@ namespace TimekeeperWPF
         private void AddNote()
         {
             //Get the last ID
-            var maxCount = Notes.?.Select(sp => sp.NoteID).DefaultIfEmpty().Max() ?? 0;
+            var maxCount = Notes?.Select(sp => sp.NoteID).DefaultIfEmpty().Max() ?? 0;
             //Add after last ID
             Notes?.Add(new Note
             {
@@ -69,22 +70,11 @@ namespace TimekeeperWPF
         private async void GetData()
         {
             //Show a busy signal
-
-            //Whats fastest?
-            //1)
-            await Context.Notes.LoadAsync();
-            Notes.Source = Context.Notes.Local;
-            Notes.SortDescriptions.Add(new SortDescription(nameof(Note.NoteDateTime), ListSortDirection.Ascending));
-
-            //2)
-            //Notes = CollectionViewSource.GetDefaultView(Context.Notes.Local) as ListCollectionView;
-            //Notes.CustomSort = new NoteSorter();
-
-            //3)
-            Notes = await (from n in Context.Notes
-                           orderby n.NoteDateTime
-                           select n)
-                           .ToListAsync();
+            Notes = new ObservableCollection<Note>(
+                await (from n in Context.Notes
+                       orderby n.NoteDateTime
+                       select n)
+                       .ToListAsync());
 
             OnPropertyChanged(nameof(Notes));
             //Hide the busy signal
