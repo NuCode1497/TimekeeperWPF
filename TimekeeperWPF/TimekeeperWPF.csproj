@@ -68,6 +68,7 @@
     </ApplicationDefinition>
     <Compile Include="Tools\IPage.cs" />
     <Compile Include="Views\Main\MainWindowViewModel.cs" />
+    <Compile Include="Views\Note\NoteSorter.cs" />
     <Compile Include="Views\Note\NotesViewModel.cs" />
     <Compile Include="Tools\RelayCommand.cs" />
     <Compile Include="Views\Note\NotesView.xaml.cs">

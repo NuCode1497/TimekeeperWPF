@@ -64,7 +64,7 @@ namespace TimekeeperDAL.Repos
             catch (DbUpdateException ex)
             {
                 //Thrown when db update fails
-                //Examine the intter exceptions for more details and affected objects
+                //Examine the inneer exceptions for more details and affected objects
                 //for now, just rethrow
                 throw ex;
             }
