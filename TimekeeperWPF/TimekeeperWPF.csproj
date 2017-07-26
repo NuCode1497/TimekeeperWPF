@@ -75,6 +75,7 @@
       <DependentUpon>NotesView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
+    <Compile Include="Views\ViewModel.cs" />
     <Page Include="Views\Main\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

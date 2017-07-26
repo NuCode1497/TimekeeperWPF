@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TimekeeperDAL.Models;
-using TimekeeperDAL.Repos;
-using TimekeeperWPF.Tools;
-using System.Windows.Input;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
+using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {

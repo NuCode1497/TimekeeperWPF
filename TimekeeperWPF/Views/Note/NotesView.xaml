@@ -6,48 +6,65 @@
              mc:Ignorable="d"
              d:DesignHeight="500"
              d:DesignWidth="800">
-             <!--d:DataContext="{d:DesignData testData.xaml}"-->
+    <!--d:DataContext="{d:DesignData testData.xaml}"-->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="1">
+            <Button Margin="1" Content="New Note" x:Name="AddNoteButton" 
+                    Command="{Binding Path=NewNoteCommand}" Width="100"/>
             <Button Margin="1" Content="Get Data" x:Name="GetDataButton" 
-                Command="{Binding GetDataCommand}" Width="100"/>
-            <Button Margin="1" Content="Add Note" x:Name="AddNoteButton" 
-                Command="{Binding AddNoteCommand}" Width="100"/>
-            <Button Margin="1" Content="Commit" x:Name="CommitButton" 
-                Command="{Binding CommitUpdatesCommand}" Width="100"/>
+                    Command="{Binding Path=GetDataCommand}" Width="100"/>
+            <TextBlock Margin="1" Text="{Binding Path=Status, Mode=TwoWay}" x:Name="StatusTextBlock"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <StackPanel x:Name="NoteEditPanel" Margin="1" DataContext="{Binding SelectedItem, ElementName=NotesGrid}" >
-                <Label Content="Date Time"/>
-                <TextBox x:Name="NoteDateTextBox" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-                         Text="{Binding NoteDateTime, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
-                         Margin="5" />
-                <Label Content="Note"/>
-                <TextBox x:Name="NoteTextBox" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch" 
-                         TextWrapping="Wrap"
-                         Text="{Binding NoteText, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, Mode=OneWay}" 
-                         Margin="5" Height="128" />
-                <Grid>
+            <StackPanel>
+                <StackPanel x:Name="NoteEditPanel" Margin="1" 
+                        DataContext="{Binding Path=SelectedNote}" >
+                    <Label Content="Date Time"/>
+                    <TextBox x:Name="NoteDateTextBox"
+                         Margin="5" Height="26" VerticalContentAlignment="Center"
+                         Text="{Binding Path=NoteDateTime, 
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
+                        UpdateSourceTrigger=PropertyChanged}" />
+                    <Label Content="Note"/>
+                    <TextBox x:Name="NoteTextBox"
+                         Margin="5" Height="100" TextWrapping="Wrap"
+                         Text="{Binding Path=NoteText, 
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
+                        UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <Grid Margin="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="NoteEditCancelButton" Grid.Column="0" Content="Cancel" Width="100" />
-                    <Button x:Name="NoteEditCommitButton" Grid.Column="1" Content="Commit" Width="100" />
+                    <Button x:Name="NoteEditCancelButton" Grid.Column="0" Content="Cancel" Width="70"
+                            Command="{Binding Path=CancelCommand}"/>
+                    <Button x:Name="NoteEditDeleteButton" Grid.Column="1" Content="Delete" Width="70"
+                            Command="{Binding Path=DeleteCommand}"/>
+                    <Button x:Name="NoteEditSaveButton" Grid.Column="2" Content="Save" Width="70"
+                            Command="{Binding Path=SaveCommand}"/>
                 </Grid>
+                <ListBox Margin="2" ItemsSource="{Binding ElementName=NoteEditPanel, Path=(Validation.Errors)}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <ListBox ItemsSource="{Binding Path=ErrorContent}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </StackPanel>
             <DataGrid x:Name="NotesGrid" Grid.Column="1"  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                       Margin="1"
                       IsReadOnly="True"
-                      ItemsSource="{Binding Path=Notes}"
+                      ItemsSource="{Binding Path=View}"
                       SelectedItem="{Binding Path=SelectedNote, Mode=TwoWay}"
                       HeadersVisibility="Column"
                       SelectionMode="Single"
@@ -55,8 +72,8 @@
                       CanUserDeleteRows="False"
                       AutoGenerateColumns="False">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Binding="{Binding NoteDateTime, Mode=TwoWay}" Header="Date &amp; Time" />
-                    <DataGridTextColumn Binding="{Binding NoteText, Mode=TwoWay}" Header="Text" Width="*">
+                    <DataGridTextColumn Binding="{Binding Path=NoteDateTime, Mode=TwoWay}" Header="Date &amp; Time" />
+                    <DataGridTextColumn Binding="{Binding Path=NoteText, Mode=TwoWay}" Header="Text" Width="*">
                         <DataGridTextColumn.ElementStyle>
                             <Style>
                                 <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>

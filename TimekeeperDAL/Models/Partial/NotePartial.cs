@@ -25,6 +25,7 @@ namespace TimekeeperDAL.Models
                         errors = GetErrorsFromAnnotations(nameof(NoteDateTime), NoteDateTime);
                         break;
                     case nameof(NoteText):
+                        errors = GetErrorsFromAnnotations(nameof(NoteText), NoteText);
                         break;
                 }
                 if (errors != null && errors.Length != 0)
