@@ -19,27 +19,31 @@ namespace TimekeeperWPF
 {
     public class NotesViewModel : ViewModel<Note>
     {
-        private Note _selectedNote;
-        private ICommand _NewNoteCommand = null;
-        private ICommand _GetDataCommand = null;
-        private ICommand _SaveCommand = null;
-        private ICommand _CancelCommand = null;
-        private ICommand _DeleteCommand = null;
-        private String _status = "Ready";
+        private bool _IsEnabled = true;
+        private bool _IsLoading = false;
+        private bool _IsEditing = false;
+        private bool _HasSelected = false;
+        private Note _SelectedNote;
+        private Note _EditingNote;
+        private EditMode _editMode = EditMode.None;
         private enum EditMode
         {
-            Update,
-            New,
-            None
+            New, Update, None
         }
-        private EditMode _editMode = EditMode.None;
+        private ICommand _NewNoteCommand = null;
+        private ICommand _GetDataCommand = null;
+        private ICommand _SaveEditCommand = null;
+        private ICommand _CancelEditCommand = null;
+        private ICommand _EditSelectedCommand = null;
+        private ICommand _DeleteSelectedCommand = null;
+        private ICommand _UnSelectCommand = null;
+
 
         public NotesViewModel()
         {
-            Context = new TimeKeeperContext();
             GetData();
         }
-        public override string Name => nameof(Notes);
+        public override string Name => "Notes";
         public CollectionViewSource Notes { get; private set; } = new CollectionViewSource();
         public ObservableCollection<Note> Source => Notes.Source as ObservableCollection<Note>;
         public ListCollectionView View => Notes.View as ListCollectionView;
@@ -47,68 +51,209 @@ namespace TimekeeperWPF
         {
             get
             {
-                return _selectedNote;
+                return _SelectedNote;
             }
             set
             {
-                if (value == _selectedNote) return;
-                _selectedNote = value;
-                if (SelectedNote == null) _editMode = EditMode.None;
-                else _editMode = EditMode.Update;
-                Status = "Ready";
+                //Item must not be itself and must be in Source
+                if ((value == _SelectedNote) || (!Source?.Contains(value) ?? false)) return;
+                _SelectedNote = value;
+                if (SelectedNote == null)
+                {
+                    HasSelected = false;
+                }
+                else
+                {
+                    HasSelected = true;
+                    Status = nameof(Note) + " Selected";
+                }
                 OnPropertyChanged();
             }
         }
-        public String Status
+        public Note EditingNote
         {
             get
             {
-                return _status;
+                return _EditingNote;
             }
-            set
+            private set
             {
-                _status = value;
+                if (value == _EditingNote) return;
+                _EditingNote = value;
+                if (EditingNote == null)
+                {
+                    IsEditing = false;
+                    _editMode = EditMode.None;
+                }
+                else
+                {
+                    IsEditing = true;
+                    _editMode = EditMode.Update;
+                    Status = "Editing " + nameof(Note);
+                }
                 OnPropertyChanged();
             }
         }
-        public ICommand NewNoteCommand => _NewNoteCommand
-            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(), pp => Notes != null));
-        public ICommand GetDataCommand => _GetDataCommand
-            ?? (_GetDataCommand = new RelayCommand(ap => GetData(), pp => true));
-        public ICommand SaveCommand => _SaveCommand
-            ?? (_SaveCommand = new RelayCommand(ap => Save(), pp => CanSave()));
-        public ICommand CancelCommand => _CancelCommand
-            ?? (_CancelCommand = new RelayCommand(ap => SelectedNote = null, pp => _editMode != EditMode.None));
-        public ICommand DeleteCommand => _DeleteCommand
-            ?? (_DeleteCommand = new RelayCommand(ap => Delete(), pp => _editMode == EditMode.Update));
-
-        private void Delete()
+        public bool IsEnabled
         {
-            Context.Notes.Remove(SelectedNote);
-            Save();
+            get
+            {
+                return _IsEnabled;
+            }
+            private set
+            {
+                _IsEnabled = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotEnabled));
+            }
         }
-        private void Save()
+        public bool IsLoading
+        {
+            get
+            {
+                return _IsLoading;
+            }
+            private set
+            {
+                _IsLoading = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotLoading));
+            }
+        }
+        public bool IsEditing
+        {
+            get
+            {
+                return _IsEditing;
+            }
+            private set
+            {
+                _IsEditing = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotEditing));
+            }
+        }
+        public bool HasSelected
+        {
+            get
+            {
+                return _HasSelected;
+            }
+            set
+            {
+                _HasSelected = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasNotSelected));
+            }
+        }
+        public bool IsNotEnabled => !IsEnabled;
+        public bool IsNotLoading => !IsLoading;
+        public bool IsNotEditing => !IsEditing;
+        public bool HasNotSelected => !HasSelected;
+        public ICommand GetDataCommand => _GetDataCommand
+            ?? (_GetDataCommand = new RelayCommand(ap => GetData(), pp => CanGetData()));
+        public ICommand NewNoteCommand => _NewNoteCommand
+            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(), pp => CanCreateNew()));
+        public ICommand SaveEditCommand => _SaveEditCommand
+            ?? (_SaveEditCommand = new RelayCommand(ap => SaveEdit(), pp => CanSave()));
+        public ICommand CancelEditCommand => _CancelEditCommand
+            ?? (_CancelEditCommand = new RelayCommand(ap => StopEditing(), pp => CanCancelEdit()));
+        public ICommand EditSelectedCommand => _EditSelectedCommand
+            ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected()));
+        public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
+            ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanEditSelected()));
+        public ICommand UnSelectCommand => _UnSelectCommand
+            ?? (_UnSelectCommand = new RelayCommand(ap => StopSelecting(), pp => CanUnSelect()));
+
+        private bool CanGetData()
+        {
+            return IsNotLoading;
+        }
+        private bool CanCreateNew()
+        {
+            return IsEnabled && IsNotEditing && IsNotLoading && Source != null;
+        }
+        private bool CanSave()
+        {
+            return IsEnabled && IsEditing && IsNotLoading && !EditingNote.HasErrors;
+        }
+        private bool CanCancelEdit()
+        {
+            return IsEnabled && IsEditing;
+        }
+        private bool CanEditSelected()
+        {
+            return HasSelected && IsEnabled && IsNotEditing && IsNotLoading;
+        }
+        private bool CanUnSelect()
+        {
+            return IsEnabled && HasSelected;
+        }
+        private async void GetData()
+        {
+            //TODO: Show a busy signal
+            IsEnabled = false;
+            IsLoading = true;
+            StopSelecting();
+            StopEditing();
+            Notes = new CollectionViewSource();
+            OnPropertyChanged(nameof(View));
+            Context?.Dispose();
+            try
+            {
+                //await Task.Delay(3000);
+                //throw new Exception("testing get data error");
+                Context = new TimeKeeperContext();
+                await Context.Notes.LoadAsync();
+                Notes.Source = Context.Notes.Local;
+                //Notes.SortDescriptions.Add(new SortDescription(nameof(Note.NoteDateTime), ListSortDirection.Ascending));
+                View.CustomSort = new NoteDateTimeSorter();
+                OnPropertyChanged(nameof(View));
+                StopSelecting();
+                IsEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error Loading Data",MessageBoxButton.OK,MessageBoxImage.Error);
+                Status = "Failed to get data!";
+            }
+            IsLoading = false;
+            //TODO: Hide the busy signal
+        }
+        private void NewNote()
+        {
+            StopSelecting();
+            //Get the last ID
+            var maxCount = Source?.Select(sp => sp.NoteID).DefaultIfEmpty().Max() ?? 0;
+            EditingNote = new Note
+            {
+                NoteID = ++maxCount,
+                IsChanged = false
+            };
+            _editMode = EditMode.New;
+        }
+        private void SaveEdit()
         {
             switch (_editMode)
             {
                 case EditMode.New:
-                    Context.Notes.Add(SelectedNote);
+                    Context.Entry(EditingNote).State = EntityState.Added;
                     SaveChanges();
                     break;
                 case EditMode.Update:
+                    Context.Entry(EditingNote).State = EntityState.Modified;
                     SaveChanges();
                     break;
                 case EditMode.None:
                     break;
             }
-            SelectedNote = null;
+            SelectedNote = Context.Entry(EditingNote).Entity;
+            StopEditing();
         }
-        private bool CanSave()
+        private void StopEditing()
         {
-            if (_editMode != EditMode.None && !SelectedNote.HasErrors) return true;
-            else return false;
+            EditingNote = null;
         }
-
         private async void SaveChanges()
         {
             try
@@ -146,40 +291,33 @@ namespace TimekeeperWPF
                 }
                 MessageBox.Show(result,"Validation Error",MessageBoxButton.OK,MessageBoxImage.Error);
                 Status = "There was a problem updating the database.";
-                _editMode = EditMode.None;
             }
             catch(Exception ex)
             {
                 Status = "There was a problem updating the database.";
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                _editMode = EditMode.None;
             }
         }
-
-        private void NewNote(string text = "Your text here.")
+        private void EditSelected()
         {
-            //Get the last ID
-            var maxCount = Source?.Select(sp => sp.NoteID).DefaultIfEmpty().Max() ?? 0;
-            SelectedNote = new Note
-            {
-                NoteID = ++maxCount,
-                NoteDateTime = DateTime.Now,
-                NoteText = text,
-                IsChanged = false
-            };
-            _editMode = EditMode.New;
+            EditingNote = new Note();
+            EditingNote.NoteID = SelectedNote.NoteID;
+            EditingNote.NoteDateTime = SelectedNote.NoteDateTime;
+            EditingNote.NoteText = SelectedNote.NoteText;
+            EditingNote.RowVersion = SelectedNote.RowVersion;
+            EditingNote.IsChanged = false;
+            _editMode = EditMode.Update;
         }
-
-        private async void GetData()
+        private void DeleteSelected()
         {
-            //TODO: Show a busy signal
-            await Context.Notes.LoadAsync();
-            Notes.Source = Context.Notes.Local;
-            //Notes.SortDescriptions.Add(new SortDescription(nameof(Note.NoteDateTime), ListSortDirection.Ascending));
-            View.CustomSort = new NoteSorter();
-            var a = Context.Notes.ToList();
-            OnPropertyChanged(nameof(Notes));
-            //TODO: Hide the busy signal
+            //Context.Notes.Remove(SelectedNote);
+            Context.Entry(SelectedNote).State = EntityState.Deleted;
+            StopSelecting();
+            SaveChanges();
+        }
+        private void StopSelecting()
+        {
+            SelectedNote = null;
         }
     }
 }

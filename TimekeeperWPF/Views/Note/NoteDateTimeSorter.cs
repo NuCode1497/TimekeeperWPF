@@ -3,7 +3,7 @@ using TimekeeperDAL.Models;
 
 namespace TimekeeperWPF
 {
-    public class NoteSorter : IComparer
+    public class NoteDateTimeSorter : IComparer
     {
         public int Compare(object x, object y)
         {

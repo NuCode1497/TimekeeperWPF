@@ -8,6 +8,11 @@ namespace TimekeeperDAL.Models
 {
     public partial class Note : EntityBase
     {
+        public Note()
+        {
+            NoteDateTime = DateTime.Now;
+            NoteText = "Your text here.";
+        }
         public override string this[string columnName]
         {
             get

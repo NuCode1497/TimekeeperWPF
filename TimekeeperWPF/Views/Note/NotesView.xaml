@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              mc:Ignorable="d"
              d:DesignHeight="500"
              d:DesignWidth="800">
@@ -15,18 +16,19 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="1">
             <Button Margin="1" Content="New Note" x:Name="AddNoteButton" 
                     Command="{Binding Path=NewNoteCommand}" Width="100"/>
-            <Button Margin="1" Content="Get Data" x:Name="GetDataButton" 
+            <Button Margin="1" Content="Refresh" x:Name="GetDataButton" 
                     Command="{Binding Path=GetDataCommand}" Width="100"/>
             <TextBlock Margin="1" Text="{Binding Path=Status, Mode=TwoWay}" x:Name="StatusTextBlock"/>
         </StackPanel>
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" x:Name="NotesControlPanel" IsEnabled="{Binding Path=IsNotLoading}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <StackPanel>
                 <StackPanel x:Name="NoteEditPanel" Margin="1" 
-                        DataContext="{Binding Path=SelectedNote}" >
+                        DataContext="{Binding Path=EditingNote}"
+                            IsEnabled="{Binding ElementName=NoteEditCancelButton, Path=IsEnabled}">
                     <Label Content="Date Time"/>
                     <TextBox x:Name="NoteDateTextBox"
                          Margin="5" Height="26" VerticalContentAlignment="Center"
@@ -63,9 +65,8 @@
             </StackPanel>
             <DataGrid x:Name="NotesGrid" Grid.Column="1"  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                       Margin="1"
-                      IsReadOnly="True"
                       ItemsSource="{Binding Path=View}"
-                      SelectedItem="{Binding Path=SelectedNote, Mode=TwoWay}"
+                      IsSynchronizedWithCurrentItem="True"
                       HeadersVisibility="Column"
                       SelectionMode="Single"
                       CanUserAddRows="False"
