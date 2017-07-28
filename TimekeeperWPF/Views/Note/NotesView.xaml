@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              mc:Ignorable="d"
-             d:DesignHeight="500"
-             d:DesignWidth="800">
+             d:DesignHeight="300"
+             d:DesignWidth="600">
     <!--d:DataContext="{d:DesignData testData.xaml}"-->
     <Grid>
         <Grid.RowDefinitions>
@@ -14,21 +14,27 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="1">
-            <Button Margin="1" Content="New Note" x:Name="AddNoteButton" 
-                    Command="{Binding Path=NewNoteCommand}" Width="100"/>
-            <Button Margin="1" Content="Refresh" x:Name="GetDataButton" 
+            <Button Margin="2" Content="New Note" x:Name="NewNoteButton" 
+                    Command="{Binding Path=NewItemCommand}" Width="100"/>
+            <Button Margin="2" Content="Refresh" x:Name="GetDataButton" 
                     Command="{Binding Path=GetDataCommand}" Width="100"/>
-            <TextBlock Margin="1" Text="{Binding Path=Status, Mode=TwoWay}" x:Name="StatusTextBlock"/>
+            <Button Margin="2" Content="Edit Selected" x:Name="EditSelectedButton" 
+                    Command="{Binding Path=EditSelectedCommand}" Width="100"/>
+            <Button Margin="2" Content="Delete Selected" x:Name="DeleteSelectedButton" 
+                    Command="{Binding Path=DeleteSelectedCommand}" Width="100"/>
+            <Button Margin="2" Content="Clear Selection" x:Name="UnSelectButton" 
+                    Command="{Binding Path=UnSelectCommand}" Width="100"/>
+            <TextBlock Margin="2" Text="{Binding Path=Status, Mode=TwoWay}" x:Name="StatusTextBlock"/>
         </StackPanel>
-        <Grid Grid.Row="1" x:Name="NotesControlPanel" IsEnabled="{Binding Path=IsNotLoading}">
+        <Grid Grid.Row="1" x:Name="NotesControlPanel" IsEnabled="{Binding Path=IsEnabled}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <StackPanel>
-                <StackPanel x:Name="NoteEditPanel" Margin="1" 
-                        DataContext="{Binding Path=EditingNote}"
-                            IsEnabled="{Binding ElementName=NoteEditCancelButton, Path=IsEnabled}">
+            <StackPanel x:Name="NoteEditPanel" 
+                        IsEnabled="{Binding Path=IsEditing}">
+                <StackPanel x:Name="NoteEditDataPanel"
+                            DataContext="{Binding Path=EditingItem}">
                     <Label Content="Date Time"/>
                     <TextBox x:Name="NoteDateTextBox"
                          Margin="5" Height="26" VerticalContentAlignment="Center"
@@ -49,11 +55,9 @@
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Button x:Name="NoteEditCancelButton" Grid.Column="0" Content="Cancel" Width="70"
-                            Command="{Binding Path=CancelCommand}"/>
-                    <Button x:Name="NoteEditDeleteButton" Grid.Column="1" Content="Delete" Width="70"
-                            Command="{Binding Path=DeleteCommand}"/>
+                            Command="{Binding Path=CancelEditCommand}"/>
                     <Button x:Name="NoteEditSaveButton" Grid.Column="2" Content="Save" Width="70"
-                            Command="{Binding Path=SaveCommand}"/>
+                            Command="{Binding Path=SaveEditCommand}"/>
                 </Grid>
                 <ListBox Margin="2" ItemsSource="{Binding ElementName=NoteEditPanel, Path=(Validation.Errors)}">
                     <ListBox.ItemTemplate>
@@ -66,11 +70,13 @@
             <DataGrid x:Name="NotesGrid" Grid.Column="1"  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                       Margin="1"
                       ItemsSource="{Binding Path=View}"
+                      SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}"
                       IsSynchronizedWithCurrentItem="True"
                       HeadersVisibility="Column"
+                      IsReadOnly="True"
                       SelectionMode="Single"
                       CanUserAddRows="False"
-                      CanUserDeleteRows="False"
+                      CanUserDeleteRows="True"
                       AutoGenerateColumns="False">
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=NoteDateTime, Mode=TwoWay}" Header="Date &amp; Time" />

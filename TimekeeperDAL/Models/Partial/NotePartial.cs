@@ -12,6 +12,11 @@ namespace TimekeeperDAL.Models
         {
             NoteDateTime = DateTime.Now;
             NoteText = "Your text here.";
+            IsChanged = false;
+        }
+        public override string ToString()
+        {
+            return NoteDateTime.ToString() + " " + NoteText;
         }
         public override string this[string columnName]
         {

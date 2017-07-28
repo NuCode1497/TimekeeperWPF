@@ -14,7 +14,7 @@ namespace TimekeeperDAL.Models
     //This annotation from PropertyChanged.Fody weaver injects INotifyPropertyChanged into each model.
     //Implementing INotifyProperyChanged creates an Observable Model that lets the UI update when data changes.
     [AddINotifyPropertyChangedInterface]
-    public abstract class EntityBase : IDataErrorInfo, INotifyDataErrorInfo
+    public abstract class EntityBase : IDataErrorInfo, INotifyDataErrorInfo, IEditableObject
     {
         /// <summary>
         /// Every table will have a RowVersion column to handle concurrency.
@@ -128,6 +128,41 @@ namespace TimekeeperDAL.Models
             // if not, returns false and populates results list with errors
             var isValid = Validator.TryValidateProperty(value, vc, results);
             return (isValid) ? null : Array.ConvertAll(results.ToArray(), o => o.ErrorMessage);
+        }
+        #endregion
+
+        #region IEditableObject
+        private EntityBase ShadowClone;
+        private bool _isEditing = false;
+        public void BeginEdit()
+        {
+            //Kage Bunshin no Jutsu
+            if(!_isEditing)
+            {
+                ShadowClone = MemberwiseClone() as EntityBase;
+                _isEditing = true;
+            }
+        }
+        public void EndEdit()
+        {
+            if(_isEditing)
+            {
+                ShadowClone = null;
+            }
+        }
+        public void CancelEdit()
+        {
+            if(_isEditing)
+            {
+                Type t = GetType();
+                var properties = from p in GetType().GetProperties() select p.Name;
+                foreach (var name in properties)
+                {
+                    var experience = GetType().GetProperty(name).GetValue(ShadowClone);
+                    GetType().GetProperty(name).SetValue(this, experience);
+                }
+            }
+            IsChanged = false;
         }
         #endregion
     }

@@ -5,11 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TimekeeperDAL.EF;
+using TimekeeperDAL.Models;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public abstract class ViewModel<T> : ObservableObject, IPage, IDisposable where T : class, new()
+    public abstract class ViewModel<T> : ObservableObject, IPage, IDisposable where T : EntityBase, new()
     {
         private String _status = "Ready";
         protected TimeKeeperContext Context;
