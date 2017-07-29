@@ -69,7 +69,9 @@
                         <!--Properties Editor-->
                         <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" Margin="12"/>
                         <!--Validations-->
-                        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto"
+                                      IsTabStop="False"
+                                      DataContext="{Binding Path=DataEditor}">
                             <ItemsControl Margin="8" Foreground="Red" ItemsSource="{Binding Path=(Validation.Errors)}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>

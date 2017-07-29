@@ -28,7 +28,6 @@ namespace TimekeeperWPF
         private bool _HasSelected = false;
         private Note _SelectedItem;
         private Note _CurrentEditItem;
-        private Note _CurrentAddItem;
         private ICommand _GetDataCommand = null;
         private ICommand _NewItemCommand = null;
         private ICommand _CancelCommand = null;
@@ -56,6 +55,7 @@ namespace TimekeeperWPF
             }
             set
             {
+                //Selecting something else is allowed while editing, however the CurrentEditItem will not change
                 //Item must not be itself and must be in Source
                 if ((value == _SelectedItem) || (value != null && (!Source?.Contains(value) ?? false))) return;
                 _SelectedItem = value;
@@ -71,6 +71,9 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
+        /// <summary>
+        /// Bind EditView to this property
+        /// </summary>
         public Note CurrentEditItem
         {
             get
@@ -81,44 +84,6 @@ namespace TimekeeperWPF
             {
                 if (value == _CurrentEditItem) return;
                 _CurrentEditItem = value;
-                if (CurrentEditItem == null)
-                {
-                    //Exit Edit Mode
-                    View.CancelEdit();
-                    IsEditingItem = false;
-                }
-                else
-                {
-                    //Enter Edit Mode
-                    IsEditingItem = true;
-                    View.EditItem(CurrentEditItem);
-                    Status = "Editing " + nameof(Note);
-                }
-                OnPropertyChanged();
-            }
-        }
-        public Note CurrentAddItem
-        {
-            get
-            {
-                return _CurrentAddItem;
-            }
-            private set
-            {
-                if (value == _CurrentAddItem) return;
-                _CurrentAddItem = value;
-                if (CurrentAddItem == null)
-                {
-                    //Exit AddNew Mode
-                    View.CancelNew();
-                    IsAddingNew = false;
-                }
-                else
-                {
-                    //Enter AddNew Mode
-                    IsAddingNew = true;
-                    Status = "Adding new " + nameof(Note);
-                }
                 OnPropertyChanged();
             }
         }
@@ -220,8 +185,8 @@ namespace TimekeeperWPF
         #region Predicates
         private bool CanGetData => IsNotLoading && IsNotEditingItemOrAddingNew;
         private bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
-        private bool CanCancel => IsEnabled && (IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false))); //CanCancelEdit requires IEditableItem on model
-        private bool CanCommit => IsEnabled && ((IsAddingNew && !CurrentAddItem.HasErrors) || (IsEditingItem && !CurrentEditItem.HasErrors));
+        private bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
+        private bool CanCommit => IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
         private bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
         private bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
         private bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
@@ -261,25 +226,35 @@ namespace TimekeeperWPF
         }
         private void AddNew()
         {
-            Deselect();
-            CurrentAddItem = View.AddNew() as Note;
+            CurrentEditItem = View.AddNew() as Note;
+            IsAddingNew = true;
+            Status = "Adding new " + nameof(Note);
         }
         private void Cancel()
         {
-            if (IsAddingNew) CurrentAddItem = null;
-            if (IsEditingItem) CurrentEditItem = null;
+            if(IsEditingItem)
+            {
+                View?.CancelEdit();
+                IsEditingItem = false;
+            }
+            if(IsAddingNew)
+            {
+                View?.CancelNew();
+                IsAddingNew = false;
+            }
+            CurrentEditItem = null;
             Status = "Cancelled";
         }
         private async void Commit()
         {
             if(IsAddingNew)
             {
-                Context.Entry(CurrentAddItem).State = EntityState.Added;
+                Context.Entry(CurrentEditItem).State = EntityState.Added;
                 if (await SaveChangesAsync())
                 {
                     View.CommitNew();
-                    SelectedItem = Context.Entry(CurrentAddItem).Entity;
-                    CurrentAddItem = null;
+                    CurrentEditItem = null;
+                    IsAddingNew = false;
                     Status = nameof(Note) + " Added";
                 }
             }
@@ -289,11 +264,12 @@ namespace TimekeeperWPF
                 if (await SaveChangesAsync())
                 {
                     View.CommitEdit();
-                    SelectedItem = Context.Entry(CurrentEditItem).Entity;
                     CurrentEditItem = null;
+                    IsEditingItem = false;
                     Status = nameof(Note) + " Modified";
                 }
             }
+            CommandManager.InvalidateRequerySuggested();
         }
         private async Task<bool> SaveChangesAsync()
         {
@@ -350,12 +326,18 @@ namespace TimekeeperWPF
         private void EditSelected()
         {
             CurrentEditItem = SelectedItem;
+            View.EditItem(CurrentEditItem);
+            IsEditingItem = true;
+            Status = "Editing " + nameof(Note);
         }
         private async void DeleteSelected()
         {
             Context.Entry(SelectedItem).State = EntityState.Deleted;
-            Deselect();
-            if (await SaveChangesAsync()) Status = nameof(Note) + " Deleted";
+            if (await SaveChangesAsync())
+            {
+                Deselect();
+                Status = nameof(Note) + " Deleted";
+            }
         }
         #endregion
     }

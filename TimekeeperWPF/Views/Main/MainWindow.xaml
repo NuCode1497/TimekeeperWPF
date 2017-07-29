@@ -37,7 +37,7 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <ContentControl x:Name="ViewHolder" Margin="5"
+        <ContentControl x:Name="ViewHolder" Margin="5" IsTabStop="False"
                         Content="{Binding Path=CurrentView}"/>
     </Grid>
 </Window>

@@ -148,19 +148,25 @@ namespace TimekeeperDAL.Models
             if(_isEditing)
             {
                 ShadowClone = null;
+                _isEditing = false;
             }
         }
         public void CancelEdit()
         {
             if(_isEditing)
             {
-                Type t = GetType();
                 var properties = from p in GetType().GetProperties() select p.Name;
                 foreach (var name in properties)
                 {
+                    if (name == "Item" || 
+                        name == nameof(HasErrors) ||
+                        name == nameof(Error) ||
+                        name == nameof(IsChanged))
+                        continue;
                     var experience = GetType().GetProperty(name).GetValue(ShadowClone);
                     GetType().GetProperty(name).SetValue(this, experience);
                 }
+                _isEditing = false;
             }
             IsChanged = false;
         }
