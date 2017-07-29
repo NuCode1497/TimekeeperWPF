@@ -3,9 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="/Views/Main/MainWindow.xaml">
     <Application.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="WindowStyle" TargetType="Window">
             <Setter Property="Background" Value="#FF48CD7E"/>
         </Style>
+        <!--Present validation errors on any TextBox-->
         <Style TargetType="{x:Type TextBox}">
             <Style.Triggers>
                 <Trigger Property="Validation.HasError" Value="true">
@@ -28,6 +30,62 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+            <Setter Property="FontFamily" Value="Wasco Sans"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
+        <Style TargetType="{x:Type DataGrid}">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="AlternatingRowBackground" Value="#FFCCFFDC"/>
+            <Setter Property="RowBackground" Value="#FFD0D2FF"/>
+            <Setter Property="AlternationCount" Value="1"/>
+        </Style>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="FontFamily" Value="Wasco Sans"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="FontFamily" Value="Wasco Sans"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <ControlTemplate x:Key="EditPopUp" TargetType="ContentControl">
+            <!--Grey out background content-->
+            <Grid Background="#9980B0A0"
+                  Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
+                  Width="{Binding ElementName=DG, Path=ActualWidth}"
+                  Height="{Binding ElementName=DG, Path=ActualHeight}">
+                <Border BorderBrush="Gray" Padding="1" Margin="6" CornerRadius="4" BorderThickness="2,2,4,4" Width="400">
+                    <Grid Background="#FFBDFFD8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="12"/>
+                        </Grid.RowDefinitions>
+                        <!--Properties Editor-->
+                        <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" Margin="12"/>
+                        <!--Validations-->
+                        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto">
+                            <ItemsControl Margin="8" Foreground="Red" ItemsSource="{Binding Path=(Validation.Errors)}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextWrapping="Wrap" Text="{Binding Path=ErrorContent}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <!--Cancel Save Buttons-->
+                        <Button Grid.Column="0" Grid.Row="2" x:Name="CancelButton" Content="Cancel" Width="70"
+                            Command="{Binding Path=CancelCommand}"/>
+                        <Button Grid.Column="1" Grid.Row="2" x:Name="SaveButton" Content="Save" Width="70"
+                            Command="{Binding Path=CommitCommand}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ControlTemplate>
     </Application.Resources>
 </Application>

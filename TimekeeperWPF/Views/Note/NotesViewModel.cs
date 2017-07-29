@@ -31,13 +31,11 @@ namespace TimekeeperWPF
         private Note _CurrentAddItem;
         private ICommand _GetDataCommand = null;
         private ICommand _NewItemCommand = null;
-        private ICommand _CancelNewCommand = null;
-        private ICommand _CommitNewCommand = null;
-        private ICommand _DeleteSelectedCommand = null;
-        private ICommand _EditSelectedCommand = null;
-        private ICommand _CommitEditCommand = null;
-        private ICommand _CancelEditCommand = null;
+        private ICommand _CancelCommand = null;
+        private ICommand _CommitCommand = null;
         private ICommand _DeselectCommand = null;
+        private ICommand _EditSelectedCommand = null;
+        private ICommand _DeleteSelectedCommand = null;
         #endregion
         protected IComparer Sorter = new Comparer(System.Globalization.CultureInfo.CurrentCulture);
         public NotesViewModel()
@@ -163,6 +161,8 @@ namespace TimekeeperWPF
                 _IsEditingItem = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsNotEditingItem));
+                OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
+                OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
             }
         }
         public bool IsAddingNew
@@ -176,6 +176,8 @@ namespace TimekeeperWPF
                 _IsAddingNew = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsNotAddingNew));
+                OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
+                OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
             }
         }
         public bool HasSelected
@@ -191,6 +193,8 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(HasNotSelected));
             }
         }
+        public bool IsEditingItemOrAddingNew => IsEditingItem || IsAddingNew;
+        public bool IsNotEditingItemOrAddingNew => !IsEditingItemOrAddingNew;
         public bool IsNotEnabled => !IsEnabled;
         public bool IsNotLoading => !IsLoading;
         public bool IsNotEditingItem => !IsEditingItem;
@@ -200,32 +204,27 @@ namespace TimekeeperWPF
         #region Commands
         public ICommand GetDataCommand => _GetDataCommand
             ?? (_GetDataCommand = new RelayCommand(ap => GetData(), pp => CanGetData));
-        public ICommand NewNoteCommand => _NewItemCommand
+        public ICommand NewItemCommand => _NewItemCommand
             ?? (_NewItemCommand = new RelayCommand(ap => AddNew(), pp => CanAddNew));
-        public ICommand CancelNewCommand => _CancelNewCommand
-            ?? (_CancelNewCommand = new RelayCommand(ap => CancelNew(), pp => true));
-        public ICommand CommitNewCommand => _CommitNewCommand
-            ?? (_CommitNewCommand = new RelayCommand(ap => CommitNew(), pp => CanCommitNew));
-        public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
-            ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanDeleteSelected));
-        public ICommand EditSelectedCommand => _EditSelectedCommand
-            ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
-        public ICommand CommitEditCommand => _CommitEditCommand
-            ?? (_CommitEditCommand = new RelayCommand(ap => CommitEdit(), pp => CanCommitEdit));
-        public ICommand CancelEditCommand => _CancelEditCommand
-            ?? (_CancelEditCommand = new RelayCommand(ap => CancelEdit(), pp => CanCancelEdit));
+        public ICommand CancelCommand => _CancelCommand
+            ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
+        public ICommand CommitCommand => _CommitCommand
+            ?? (_CommitCommand = new RelayCommand(ap => Commit(), pp => CanCommit));
         public ICommand DeselectCommand => _DeselectCommand
             ?? (_DeselectCommand = new RelayCommand(ap => Deselect(), pp => CanDeselect));
+        public ICommand EditSelectedCommand => _EditSelectedCommand
+            ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
+        public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
+            ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanDeleteSelected));
         #endregion
         #region Predicates
-        private bool CanGetData => IsNotLoading && IsNotEditingItem && IsNotAddingNew;
-        private bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItem && IsNotAddingNew && (View?.CanAddNew ?? false);
-        private bool CanCommitNew => IsEnabled && IsAddingNew && !CurrentAddItem.HasErrors;
-        private bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItem && IsNotAddingNew && (View?.CanRemove ?? false);
-        private bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItem && IsNotAddingNew;
-        private bool CanCommitEdit => IsEnabled && IsEditingItem && !CurrentEditItem.HasErrors;
-        private bool CanCancelEdit => IsEnabled && IsEditingItem && (View?.CanCancelEdit ?? false); //Requires IEditableItem
-        private bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItem && IsNotAddingNew;
+        private bool CanGetData => IsNotLoading && IsNotEditingItemOrAddingNew;
+        private bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
+        private bool CanCancel => IsEnabled && (IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false))); //CanCancelEdit requires IEditableItem on model
+        private bool CanCommit => IsEnabled && ((IsAddingNew && !CurrentAddItem.HasErrors) || (IsEditingItem && !CurrentEditItem.HasErrors));
+        private bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
+        private bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
+        private bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
         #endregion
         #region Actions
         private async void GetData()
@@ -233,8 +232,7 @@ namespace TimekeeperWPF
             //TODO: Show a busy signal
             IsEnabled = false;
             IsLoading = true;
-            CancelNew();
-            CancelEdit();
+            Cancel();
             Deselect();
             Status = "Loading Data...";
             Items = new CollectionViewSource();
@@ -266,20 +264,35 @@ namespace TimekeeperWPF
             Deselect();
             CurrentAddItem = View.AddNew() as Note;
         }
-        private void CancelNew()
+        private void Cancel()
         {
-            CurrentAddItem = null;
+            if (IsAddingNew) CurrentAddItem = null;
+            if (IsEditingItem) CurrentEditItem = null;
             Status = "Cancelled";
         }
-        private async void CommitNew()
+        private async void Commit()
         {
-            Context.Entry(CurrentAddItem).State = EntityState.Added;
-            if (await SaveChangesAsync())
+            if(IsAddingNew)
             {
-                View.CommitNew();
-                SelectedItem = Context.Entry(CurrentAddItem).Entity;
-                CurrentAddItem = null;
-                Status = nameof(Note) + " Added";
+                Context.Entry(CurrentAddItem).State = EntityState.Added;
+                if (await SaveChangesAsync())
+                {
+                    View.CommitNew();
+                    SelectedItem = Context.Entry(CurrentAddItem).Entity;
+                    CurrentAddItem = null;
+                    Status = nameof(Note) + " Added";
+                }
+            }
+            if(IsEditingItem)
+            {
+                Context.Entry(CurrentEditItem).State = EntityState.Modified;
+                if (await SaveChangesAsync())
+                {
+                    View.CommitEdit();
+                    SelectedItem = Context.Entry(CurrentEditItem).Entity;
+                    CurrentEditItem = null;
+                    Status = nameof(Note) + " Modified";
+                }
             }
         }
         private async Task<bool> SaveChangesAsync()
@@ -329,36 +342,20 @@ namespace TimekeeperWPF
             }
             return success;
         }
-        private async void DeleteSelected()
+        private void Deselect()
         {
-            Context.Entry(SelectedItem).State = EntityState.Deleted;
-            Deselect();
-            if (await SaveChangesAsync()) Status = nameof(Note) + " Deleted";
+            SelectedItem = null;
+            Status = "Ready";
         }
         private void EditSelected()
         {
             CurrentEditItem = SelectedItem;
         }
-        private async void CommitEdit()
+        private async void DeleteSelected()
         {
-            Context.Entry(CurrentEditItem).State = EntityState.Modified;
-            if (await SaveChangesAsync())
-            {
-                View.CommitEdit();
-                SelectedItem = Context.Entry(CurrentEditItem).Entity;
-                CurrentEditItem = null;
-                Status = nameof(Note) + " Modified";
-            }
-        }
-        private void CancelEdit()
-        {
-            CurrentEditItem = null;
-            Status = "Cancelled";
-        }
-        private void Deselect()
-        {
-            SelectedItem = null;
-            Status = "Ready";
+            Context.Entry(SelectedItem).State = EntityState.Deleted;
+            Deselect();
+            if (await SaveChangesAsync()) Status = nameof(Note) + " Deleted";
         }
         #endregion
     }

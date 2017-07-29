@@ -74,6 +74,9 @@
     </ApplicationDefinition>
     <Compile Include="Tools\IPage.cs" />
     <Compile Include="Views\Main\MainWindowViewModel.cs" />
+    <Compile Include="Views\Note\EditNoteView.xaml.cs">
+      <DependentUpon>EditNoteView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Note\NoteDateTimeSorter.cs" />
     <Compile Include="Views\Note\NotesViewModel.cs" />
     <Compile Include="Tools\RelayCommand.cs" />
@@ -94,6 +97,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\Note\EditNoteView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Note\NotesView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
