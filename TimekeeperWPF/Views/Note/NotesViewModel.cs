@@ -1,6 +1,9 @@
-﻿using TimekeeperDAL.EF;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Data.Entity;
+using System.Threading.Tasks;
+using TimekeeperDAL.EF;
 using TimekeeperDAL.Models;
-
 namespace TimekeeperWPF
 {
     public class NotesViewModel : ViewModel<Note,TimeKeeperContext>
@@ -8,8 +11,12 @@ namespace TimekeeperWPF
         public NotesViewModel() : base()
         {
             Sorter = new NoteDateTimeSorter();
-            GetData();
         }
         public override string Name => "Notes";
+        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        {
+            await Context.Notes.LoadAsync();
+            return Context.Notes.Local;
+        }
     }
 }

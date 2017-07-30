@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data.Entity;
-using System.Data.Entity.Design.PluralizationServices;
 using System.Threading.Tasks;
 
 namespace TimekeeperDAL.EF
@@ -20,20 +19,7 @@ namespace TimekeeperDAL.EF
                 return 0;
             });
         }
-
-        public DbSet Set(Type entityType)
-        {
-            //Assuming the set is named by default as the plural form of the entity name,
-            //using reflection to get the property by name
-            PluralizationService PS = PluralizationService.CreateService(System.Globalization.CultureInfo.CurrentCulture);
-            return GetType().GetProperty(PS.Pluralize(entityType.Name)).GetValue(this) as DbSet;
-        }
-
-        public DbSet<TEntity> Set<TEntity>() where TEntity : class
-        {
-            return Set(typeof(TEntity)) as DbSet<TEntity>;
-        }
-
+        
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 

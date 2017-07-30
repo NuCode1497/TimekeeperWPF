@@ -16,7 +16,5 @@ namespace TimekeeperDAL.EF
         IDbSet<Note> Notes { get; }
         int SaveChanges();
         Task<int> SaveChangesAsync();
-        DbSet Set(Type entityType);
-        DbSet<TEntity> Set<TEntity>() where TEntity : class;
     }
 }
