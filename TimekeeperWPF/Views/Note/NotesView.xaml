@@ -33,7 +33,7 @@
                     Command="{Binding Path=DeleteSelectedCommand}" Width="100"/>
             <Button Grid.Column="2" Grid.Row="1" Margin="2" Content="Deselect" x:Name="DeselectButton" 
                     Command="{Binding Path=DeselectCommand}" Width="100" HorizontalAlignment="Left"/>
-            <TextBlock Grid.Column="2" Grid.Row="0" Margin="2" Text="{Binding Path=Status, Mode=TwoWay}" x:Name="StatusTextBlock"/>
+            <TextBlock Grid.Column="2" Grid.Row="0" Margin="2" Text="{Binding Path=Status}" x:Name="StatusTextBlock"/>
         </Grid>
         <DataGrid x:Name="DG" Grid.Row="1"  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   Margin="1"

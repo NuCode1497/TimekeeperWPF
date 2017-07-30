@@ -15,11 +15,12 @@ namespace TimekeeperWPF
 {
     public abstract class ViewModel<ModelType,ContextType> : ObservableObject, IPage, IDisposable 
         where ModelType: EntityBase, new() 
-        where ContextType: DbContext, new()
+        where ContextType: ITimeKeeperContext, new()
     {
         #region Fields
-        private String _status = "Ready";
         protected ContextType Context;
+        protected IComparer Sorter;
+        private String _status = "Ready";
         private bool _IsEnabled = true;
         private bool _IsLoading = false;
         private bool _IsEditingItem = false;
@@ -34,7 +35,6 @@ namespace TimekeeperWPF
         private ICommand _DeselectCommand = null;
         private ICommand _EditSelectedCommand = null;
         private ICommand _DeleteSelectedCommand = null;
-        protected IComparer Sorter;
         #endregion
         public ViewModel()
         {
@@ -47,13 +47,13 @@ namespace TimekeeperWPF
             {
                 return _status;
             }
-            set
+            protected set
             {
                 _status = value;
                 OnPropertyChanged();
             }
         }
-        public CollectionViewSource Items { get; private set; } = new CollectionViewSource();
+        public CollectionViewSource Items { get; protected set; } = new CollectionViewSource();
         public ObservableCollection<ModelType> Source => Items.Source as ObservableCollection<ModelType>;
         public ListCollectionView View => Items.View as ListCollectionView;
         public ModelType SelectedItem
@@ -75,7 +75,7 @@ namespace TimekeeperWPF
                 else
                 {
                     HasSelected = true;
-                    Status = nameof(ModelType) + " Selected";
+                    Status = SelectedItem.GetType().Name + " Selected";
                 }
                 OnPropertyChanged();
             }
@@ -89,7 +89,7 @@ namespace TimekeeperWPF
             {
                 return _CurrentEditItem;
             }
-            private set
+            protected set
             {
                 if (value == _CurrentEditItem) return;
                 _CurrentEditItem = value;
@@ -104,7 +104,7 @@ namespace TimekeeperWPF
             {
                 return _IsEnabled;
             }
-            private set
+            protected set
             {
                 _IsEnabled = value;
                 OnPropertyChanged();
@@ -117,7 +117,7 @@ namespace TimekeeperWPF
             {
                 return _IsLoading;
             }
-            private set
+            protected set
             {
                 _IsLoading = value;
                 OnPropertyChanged();
@@ -130,7 +130,7 @@ namespace TimekeeperWPF
             {
                 return _IsEditingItem;
             }
-            private set
+            protected set
             {
                 _IsEditingItem = value;
                 OnPropertyChanged();
@@ -145,7 +145,7 @@ namespace TimekeeperWPF
             {
                 return _IsAddingNew;
             }
-            private set
+            protected set
             {
                 _IsAddingNew = value;
                 OnPropertyChanged();
@@ -160,7 +160,7 @@ namespace TimekeeperWPF
             {
                 return _HasSelected;
             }
-            set
+            protected set
             {
                 _HasSelected = value;
                 OnPropertyChanged();
@@ -201,7 +201,7 @@ namespace TimekeeperWPF
         protected bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
         #endregion
         #region Actions
-        protected async void GetData()
+        protected virtual async void GetData()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -210,7 +210,7 @@ namespace TimekeeperWPF
             Status = "Loading Data...";
             Items = new CollectionViewSource();
             OnPropertyChanged(nameof(View));
-            Context?.Dispose();
+            Dispose();
             try
             {
                 //await Task.Delay(3000);
@@ -231,13 +231,13 @@ namespace TimekeeperWPF
             }
             IsLoading = false;
         }
-        protected void AddNew()
+        protected virtual void AddNew()
         {
             CurrentEditItem = View.AddNew() as ModelType;
             IsAddingNew = true;
-            Status = "Adding new " + nameof(ModelType);
+            Status = "Adding new " + CurrentEditItem.GetType().Name;
         }
-        protected void Cancel()
+        protected virtual void Cancel()
         {
             if(IsEditingItem)
             {
@@ -252,33 +252,28 @@ namespace TimekeeperWPF
             CurrentEditItem = null;
             Status = "Cancelled";
         }
-        protected async void Commit()
+        protected virtual async void Commit()
         {
-            if(IsAddingNew)
+            if (await SaveChangesAsync())
             {
-                Context.Entry(CurrentEditItem).State = EntityState.Added;
-                if (await SaveChangesAsync())
+                if (IsAddingNew)
                 {
+                    Status = CurrentEditItem.GetType().Name + " Added";
                     View.CommitNew();
                     CurrentEditItem = null;
                     IsAddingNew = false;
-                    Status = nameof(ModelType) + " Added";
                 }
-            }
-            if(IsEditingItem)
-            {
-                Context.Entry(CurrentEditItem).State = EntityState.Modified;
-                if (await SaveChangesAsync())
+                if (IsEditingItem)
                 {
+                    Status = CurrentEditItem.GetType().Name + " Modified";
                     View.CommitEdit();
                     CurrentEditItem = null;
                     IsEditingItem = false;
-                    Status = nameof(ModelType) + " Modified";
                 }
             }
             CommandManager.InvalidateRequerySuggested();
         }
-        protected async Task<bool> SaveChangesAsync()
+        protected virtual async Task<bool> SaveChangesAsync()
         {
             bool success = false;
             try
@@ -325,25 +320,25 @@ namespace TimekeeperWPF
             }
             return success;
         }
-        protected void Deselect()
+        protected virtual void Deselect()
         {
-            SelectedItem = null;
             Status = "Ready";
+            SelectedItem = null;
         }
-        protected void EditSelected()
+        protected virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
             View.EditItem(CurrentEditItem);
             IsEditingItem = true;
-            Status = "Editing " + nameof(ModelType);
+            Status = "Editing " + CurrentEditItem.GetType().Name;
         }
-        protected async void DeleteSelected()
+        protected virtual async void DeleteSelected()
         {
-            Context.Entry(SelectedItem).State = EntityState.Deleted;
+            View.Remove(SelectedItem);
             if (await SaveChangesAsync())
             {
+                Status = SelectedItem.GetType().Name + " Deleted";
                 Deselect();
-                Status = nameof(ModelType) + " Deleted";
             }
         }
         #endregion
@@ -356,7 +351,10 @@ namespace TimekeeperWPF
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    Context.Dispose();
+                    if(Context is IDisposable)
+                    {
+                        ((IDisposable)Context).Dispose();
+                    }
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

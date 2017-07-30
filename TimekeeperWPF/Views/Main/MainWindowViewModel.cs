@@ -15,7 +15,8 @@ namespace TimekeeperWPF
         {
             if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject())) return;
 
-            Views.Add(new NotesViewModel());
+            //Views.Add(new NotesViewModel());
+            Views.Add(new FakeNotesViewModel());
             CurrentView = Views[0];
         }
 

@@ -45,6 +45,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity.Design" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +54,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EF\Fake\FakeDbContext.cs" />
+    <Compile Include="EF\Fake\FakeDbSet.cs" />
+    <Compile Include="EF\Fake\FakeNoteSet.cs" />
+    <Compile Include="EF\Fake\FakeTimeKeeperContext.cs" />
+    <Compile Include="EF\Fake\ITimeKeeperContext.cs" />
     <Compile Include="EF\TimeKeeperContext.cs" />
     <Compile Include="Interception\Interceptor.cs" />
     <Compile Include="Migrations\201707090352301_Initial.cs" />

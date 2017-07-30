@@ -1,16 +1,16 @@
+using System;
+using System.Data.Entity;
+using TimekeeperDAL.Models;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Core.Objects;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Data.Entity.Infrastructure.Interception;
+using TimekeeperDAL.Interception;
+
 namespace TimekeeperDAL.EF
 {
-    using System;
-    using System.Data.Entity;
-    using System.ComponentModel.DataAnnotations.Schema;
-    using System.Linq;
-    using TimekeeperDAL.Models;
-    using System.Data.Entity.Infrastructure;
-    using System.Data.Entity.Infrastructure.Interception;
-    using TimekeeperDAL.Interception;
-    using System.Data.Entity.Core.Objects;
-
-    public partial class TimeKeeperContext : DbContext
+    public partial class TimeKeeperContext : DbContext, ITimeKeeperContext
     {
         public TimeKeeperContext()
             : base("TimeKeeperConnection")
@@ -19,6 +19,8 @@ namespace TimekeeperDAL.EF
             context.ObjectMaterialized += Context_ObjectMaterialized;
             context.SavingChanges += Context_SavingChanges;
         }
+
+        public IDbSet<Note> Notes { get; set; }
 
         private void Context_SavingChanges(object sender, EventArgs e)
         {
@@ -40,7 +42,6 @@ namespace TimekeeperDAL.EF
 
             }
         }
-
         private void Context_ObjectMaterialized(object sender, System.Data.Entity.Core.Objects.ObjectMaterializedEventArgs e)
         {
             //EF materializes each record by setting the properties, which fires PropertyChanged, 
@@ -48,16 +49,12 @@ namespace TimekeeperDAL.EF
             var model = (e.Entity as EntityBase);
             if (model != null) model.IsChanged = false;
         }
-
-        public virtual DbSet<Note> Notes { get; set; }
-
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Note>()
                 .Property(e => e.NoteText)
                 .IsUnicode(false);
         }
-
         protected override void Dispose(bool disposing)
         {
             //DbInterception.Remove(loggo);
