@@ -67,15 +67,15 @@
                             <RowDefinition Height="12"/>
                         </Grid.RowDefinitions>
                         <!--Properties Editor-->
-                        <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" Margin="12"/>
-                        <!--Validations-->
+                        <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" Margin="12,12,12,6"/>
+                        <!--Validations List-->
                         <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto"
-                                      IsTabStop="False"
-                                      DataContext="{Binding Path=DataEditor}">
-                            <ItemsControl Margin="8" Foreground="Red" ItemsSource="{Binding Path=(Validation.Errors)}">
+                                      IsTabStop="False" Margin="12,0,12,6">
+                            <ItemsControl Margin="8" Foreground="Red" 
+                                          ItemsSource="{Binding ElementName=DataEditor, Path=(Validation.Errors)}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <TextBlock TextWrapping="Wrap" Text="{Binding Path=ErrorContent}"/>
+                                        <ItemsControl ItemsSource="{Binding Path=ErrorContent}"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

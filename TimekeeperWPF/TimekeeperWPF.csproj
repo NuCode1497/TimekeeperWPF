@@ -72,11 +72,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="LoadingView.xaml.cs">
+      <DependentUpon>LoadingView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\IPage.cs" />
     <Compile Include="Views\Main\MainWindowViewModel.cs" />
     <Compile Include="Views\Note\EditNoteView.xaml.cs">
       <DependentUpon>EditNoteView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Note\FakeNotesViewModel.cs" />
     <Compile Include="Views\Note\NoteDateTimeSorter.cs" />
     <Compile Include="Views\Note\NotesViewModel.cs" />
     <Compile Include="Tools\RelayCommand.cs" />
@@ -85,6 +89,10 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
+    <Page Include="LoadingView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Main\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
