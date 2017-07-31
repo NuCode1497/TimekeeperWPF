@@ -8,7 +8,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
         <Storyboard x:Key="Storyboard1">
-            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="label" RepeatBehavior="Forever">
+            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="LoadyMcLoadFace" RepeatBehavior="Forever">
                 <EasingColorKeyFrame KeyTime="0" Value="Red"/>
                 <EasingColorKeyFrame KeyTime="0:0:1" Value="Yellow"/>
                 <EasingColorKeyFrame KeyTime="0:0:2" Value="Lime"/>
@@ -17,7 +17,7 @@
                 <EasingColorKeyFrame KeyTime="0:0:5" Value="Magenta"/>
                 <EasingColorKeyFrame KeyTime="0:0:6" Value="Red"/>
             </ColorAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(ContentControl.Content)" Storyboard.TargetName="label" RepeatBehavior="Forever">
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(ContentControl.Content)" Storyboard.TargetName="LoadyMcLoadFace" RepeatBehavior="Forever">
                 <DiscreteObjectKeyFrame KeyTime="0" Value="Loading"/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.2" Value="Loading."/>
                 <DiscreteObjectKeyFrame KeyTime="0:0:0.4" Value="Loading.."/>
@@ -53,15 +53,15 @@
         </Storyboard>
     </UserControl.Resources>
     <UserControl.Triggers>
-        <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+        <EventTrigger RoutedEvent="FrameworkElement.Loaded" SourceName="LoadyMcLoadFace">
             <BeginStoryboard Storyboard="{StaticResource Storyboard1}"/>
         </EventTrigger>
     </UserControl.Triggers>
     <Grid>
         <ContentControl Width="300" Height="300" >
-            <Label x:Name="label" Content="Loading..." HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="48" FontWeight="Bold" FontStyle="Italic" Foreground="Red">
+            <Label x:Name="LoadyMcLoadFace" Content="Loading..." HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="48" FontWeight="Bold" FontStyle="Italic" Foreground="Red">
                 <Label.Effect>
-                    <DropShadowEffect BlurRadius="10" Opacity="0.85" ShadowDepth="3" Color="{Binding ElementName=label, Path=Foreground.Color}"/>
+                    <DropShadowEffect BlurRadius="10" Opacity="0.85" ShadowDepth="3" Color="{Binding ElementName=LoadyMcLoadFace, Path=Foreground.Color}"/>
                 </Label.Effect>
             </Label>
         </ContentControl>
