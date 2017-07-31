@@ -26,6 +26,7 @@ namespace TimekeeperWPF
                         new Note { NoteDateTime = DateTime.Now, NoteText = "This is fake test data."},
                         new Note { NoteDateTime = DateTime.Now, NoteText = "Testing 1 2 3."},
                         new Note { NoteDateTime = DateTime.Now, NoteText = "Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It’s not a story the Jedi would tell you. It’s a Sith legend."},
+                        new Note { NoteDateTime = DateTime.Now, NoteText = "Testing 4 5 6."},
                     }
                 };
             }
