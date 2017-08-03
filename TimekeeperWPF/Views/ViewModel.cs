@@ -224,7 +224,7 @@ namespace TimekeeperWPF
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error Loading Data", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, String.Format("Error Loading {0} Data", Name), MessageBoxButton.OK, MessageBoxImage.Error);
                 Status = "Failed to get data!";
             }
             IsLoading = false;

@@ -11,6 +11,8 @@ namespace TimekeeperWPF
         public NotesViewModel() : base()
         {
             Sorter = new NoteDateTimeSorter();
+            Note n = new Note();
+            n.NoteDateTime.
         }
         public override string Name => "Notes";
         protected override async Task<ObservableCollection<Note>> GetDataAsync()
