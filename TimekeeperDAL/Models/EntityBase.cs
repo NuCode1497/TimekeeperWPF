@@ -8,20 +8,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PropertyChanged;
+using System.Reflection;
 
-namespace TimekeeperDAL.Models
+namespace TimekeeperDAL.EF
 {
     //This annotation from PropertyChanged.Fody weaver injects INotifyPropertyChanged into each model.
     //Implementing INotifyProperyChanged creates an Observable Model that lets the UI update when data changes.
     [AddINotifyPropertyChangedInterface]
     public abstract class EntityBase : IDataErrorInfo, INotifyDataErrorInfo, IEditableObject
     {
-        /// <summary>
-        /// Every table will have a RowVersion column to handle concurrency.
-        /// </summary>
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
-
         /// <summary>
         /// Implemented with INotifyPropertyChanged. Flagged true when a property is changed. You must manually flag false.
         /// </summary>
@@ -35,6 +30,7 @@ namespace TimekeeperDAL.Models
         /// Gets a value that indicates whether the entity has validation errors.
         /// <returns> Returns true if the entity currently has validation errors; otherwise, false. </returns>
         /// </summary>
+        [NotMapped]
         public bool HasErrors => _errors.Count != 0;
 
         /// <summary>
@@ -60,6 +56,7 @@ namespace TimekeeperDAL.Models
         }
         
         // WPF binding engine doesn't use Error
+        [NotMapped]
         public string Error { get; }
 
         // Gets the error message for the property with the given name. 
@@ -136,9 +133,9 @@ namespace TimekeeperDAL.Models
         private bool _isEditing = false;
         public void BeginEdit()
         {
-            //Kage Bunshin no Jutsu
             if(!_isEditing)
             {
+                //Kage Bunshin no Jutsu
                 ShadowClone = MemberwiseClone() as EntityBase;
                 _isEditing = true;
             }
@@ -147,6 +144,7 @@ namespace TimekeeperDAL.Models
         {
             if(_isEditing)
             {
+                //Kage Bunshin Release
                 ShadowClone = null;
                 _isEditing = false;
             }
@@ -158,14 +156,14 @@ namespace TimekeeperDAL.Models
                 var properties = from p in GetType().GetProperties() select p.Name;
                 foreach (var name in properties)
                 {
-                    if (name == "Item" || 
-                        name == nameof(HasErrors) ||
-                        name == nameof(Error) ||
-                        name == nameof(IsChanged))
-                        continue;
-                    var experience = GetType().GetProperty(name).GetValue(ShadowClone);
-                    GetType().GetProperty(name).SetValue(this, experience);
+                    PropertyInfo property = GetType().GetProperty(name);
+                    bool notMapped = property.GetCustomAttributes(typeof(NotMappedAttribute), false).Length > 0;
+                    if (name == "Item" || notMapped) continue;
+                    var experience = property.GetValue(ShadowClone);
+                    property.SetValue(this, experience);
                 }
+                //Kage Bunshin Release
+                ShadowClone = null;
                 _isEditing = false;
             }
             IsChanged = false;

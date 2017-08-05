@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Threading.Tasks;
 using TimekeeperDAL.EF;
-using TimekeeperDAL.Models;
 namespace TimekeeperWPF
 {
     public class FakeNotesViewModel : ViewModel<Note, FakeTimeKeeperContext>
@@ -23,10 +22,10 @@ namespace TimekeeperWPF
                 {
                     Notes =
                     {
-                        new Note { NoteDateTime = DateTime.Now, NoteText = "This is fake test data."},
-                        new Note { NoteDateTime = DateTime.Now, NoteText = "Testing 1 2 3."},
-                        new Note { NoteDateTime = DateTime.Now, NoteText = "Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It’s not a story the Jedi would tell you. It’s a Sith legend."},
-                        new Note { NoteDateTime = DateTime.Now, NoteText = "Testing 4 5 6."},
+                        new Note { DateTime = DateTime.Now, Text = "This is fake test data."},
+                        new Note { DateTime = DateTime.Now, Text = "Testing 1 2 3."},
+                        new Note { DateTime = DateTime.Now, Text = "Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It’s not a story the Jedi would tell you. It’s a Sith legend."},
+                        new Note { DateTime = DateTime.Now, Text = "Testing 4 5 6."},
                     }
                 };
             }

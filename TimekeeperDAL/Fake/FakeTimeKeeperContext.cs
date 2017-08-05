@@ -1,5 +1,4 @@
 ﻿using System.Data.Entity;
-using TimekeeperDAL.Models;
 
 namespace TimekeeperDAL.EF
 {
@@ -7,8 +6,8 @@ namespace TimekeeperDAL.EF
     {
         public FakeTimeKeeperContext()
         {
-            this.Notes = new FakeNoteSet();
         }
-        public IDbSet<Note> Notes { get; private set; }
+        public virtual IDbSet<Note> Notes { get; set; }
+        public virtual IDbSet<TaskType> TaskTypes { get; set; }
     }
 }

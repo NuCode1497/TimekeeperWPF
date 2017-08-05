@@ -5,16 +5,32 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <StackPanel>
-        <Label Content="Date &amp; Time"/>
-        <TextBox x:Name="NoteDateTextBox" Margin="5" Height="26" 
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time"/>
+        <TextBox Grid.Column="1" Grid.Row="0" x:Name="NoteDateTextBox" Margin="2" Height="26" 
                  VerticalContentAlignment="Center" 
-                 Text="{Binding Path=NoteDateTime, ValidatesOnDataErrors=True, 
+                 Text="{Binding Path=CurrentEditItem.DateTime, ValidatesOnDataErrors=True, 
             ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
-        <Label Content="Note"/>
-        <TextBox x:Name="NoteTextBox" Margin="5" MaxHeight="100" MinHeight="52"
-                 TextWrapping="Wrap" 
-                 Text="{Binding Path=NoteText, ValidatesOnDataErrors=True, 
-            ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
-    </StackPanel>
+        <Label Grid.Column="0" Grid.Row="1" Content="Note"/>
+        <TextBox Grid.Column="1" Grid.Row="1" x:Name="TextBox" Margin="2" MinHeight="26"
+                 TextWrapping="Wrap"
+                 Text="{Binding Path=CurrentEditItem.Text, ValidatesOnDataErrors=True, 
+            ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" MaxLines="2" MaxLength="160" />
+        <Label Grid.Column="0" Grid.Row="2" Content="Task Type"/>
+        <ComboBox x:Name="NoteTypeComboBox" Grid.Column="1" Grid.Row="2" 
+                  DisplayMemberPath="Type"
+                  IsSynchronizedWithCurrentItem="True"
+                  SelectedItem="{Binding Path=CurrentEditItem.Type, Mode=TwoWay}"
+                  ItemsSource="{Binding Path=NoteTypesView}" />
+    </Grid>
 </UserControl>

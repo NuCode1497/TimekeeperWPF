@@ -50,8 +50,9 @@
                   CanUserDeleteRows="True"
                   AutoGenerateColumns="False" AlternatingRowBackground="#FFBDFFD8" RowBackground="White">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Path=NoteDateTime, Mode=TwoWay}" Header="Date &amp; Time" />
-                <DataGridTextColumn Binding="{Binding Path=NoteText, Mode=TwoWay}" Header="Text" Width="*">
+                <DataGridTextColumn Binding="{Binding Path=DateTime, Mode=TwoWay}" Header="Date &amp; Time" />
+                <DataGridTextColumn Binding="{Binding Path=Type, Mode=TwoWay}" Header="Type" />
+                <DataGridTextColumn Binding="{Binding Path=Text, Mode=TwoWay}" Header="Text" Width="*">
                     <DataGridTextColumn.ElementStyle>
                         <Style>
                             <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
@@ -66,7 +67,7 @@
         </DataGrid>
         <ContentControl Grid.Row="1" Template="{StaticResource EditPopUp}" x:Name="PopUpControl" IsTabStop="False">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
+                <local:EditNoteView x:Name="DataEditor"/>
             </ScrollViewer>
         </ContentControl>
         <local:LoadingView Grid.Row="1" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>

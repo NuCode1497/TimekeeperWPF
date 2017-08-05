@@ -30,8 +30,8 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Setter Property="FontFamily" Value="Wasco Sans"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style TargetType="{x:Type DataGrid}">
             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -41,11 +41,11 @@
             <Setter Property="AlternationCount" Value="1"/>
         </Style>
         <Style TargetType="{x:Type Label}">
-            <Setter Property="FontFamily" Value="Wasco Sans"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
         </Style>
         <Style TargetType="{x:Type Button}">
-            <Setter Property="FontFamily" Value="Wasco Sans"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="12"/>
         </Style>
         <ControlTemplate x:Key="EditPopUp" TargetType="ContentControl">

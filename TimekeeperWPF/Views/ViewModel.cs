@@ -8,7 +8,6 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using TimekeeperDAL.EF;
-using TimekeeperDAL.Models;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
@@ -38,7 +37,6 @@ namespace TimekeeperWPF
         #endregion
         public ViewModel()
         {
-            LoadData();
         }
         public abstract string Name { get; }
         protected abstract Task<ObservableCollection<ModelType>> GetDataAsync();
@@ -56,8 +54,8 @@ namespace TimekeeperWPF
             }
         }
         public CollectionViewSource Items { get; protected set; } = new CollectionViewSource();
-        public ObservableCollection<ModelType> Source => Items.Source as ObservableCollection<ModelType>;
-        public ListCollectionView View => Items.View as ListCollectionView;
+        public ObservableCollection<ModelType> Source => Items?.Source as ObservableCollection<ModelType>;
+        public ListCollectionView View => Items?.View as ListCollectionView;
         public ModelType SelectedItem
         {
             get
@@ -203,7 +201,7 @@ namespace TimekeeperWPF
         private bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
         #endregion
         #region Actions
-        private async void LoadData()
+        protected virtual async void LoadData()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -229,13 +227,13 @@ namespace TimekeeperWPF
             }
             IsLoading = false;
         }
-        private void AddNew()
+        protected virtual void AddNew()
         {
             CurrentEditItem = View.AddNew() as ModelType;
             IsAddingNew = true;
             Status = "Adding new " + CurrentEditItem.GetType().Name;
         }
-        private void Cancel()
+        protected virtual void Cancel()
         {
             if(IsEditingItem)
             {
@@ -250,7 +248,7 @@ namespace TimekeeperWPF
             CurrentEditItem = null;
             Status = "Cancelled";
         }
-        private async void Commit()
+        protected virtual async void Commit()
         {
             if (await SaveChangesAsync())
             {
@@ -271,7 +269,7 @@ namespace TimekeeperWPF
             }
             CommandManager.InvalidateRequerySuggested();
         }
-        private async Task<bool> SaveChangesAsync()
+        protected virtual async Task<bool> SaveChangesAsync()
         {
             bool success = false;
             try
@@ -318,26 +316,24 @@ namespace TimekeeperWPF
             }
             return success;
         }
-        private void Deselect()
+        protected virtual void Deselect()
         {
             Status = "Ready";
             SelectedItem = null;
         }
-        private void EditSelected()
+        protected virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
             View.EditItem(CurrentEditItem);
             IsEditingItem = true;
             Status = "Editing " + CurrentEditItem.GetType().Name;
         }
-        private async void DeleteSelected()
+        protected virtual async void DeleteSelected()
         {
+            Status = SelectedItem?.GetType().Name + " Deleted";
             View.Remove(SelectedItem);
-            if (await SaveChangesAsync())
-            {
-                Status = SelectedItem.GetType().Name + " Deleted";
-                Deselect();
-            }
+            await SaveChangesAsync();
+            SelectedItem = null;
         }
         #endregion
         #region IDisposable Support

@@ -4,19 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TimekeeperDAL.Models
+namespace TimekeeperDAL.EF
 {
     public partial class Note : EntityBase
     {
         public Note()
         {
-            NoteDateTime = DateTime.Now;
-            NoteText = "Your text here.";
+            DateTime = DateTime.Now;
+            Text = "Your text here.";
+            Type = "Note";
             IsChanged = false;
-        }
-        public override string ToString()
-        {
-            return NoteDateTime.ToString() + " " + NoteText;
         }
         public override string this[string columnName]
         {
@@ -26,16 +23,16 @@ namespace TimekeeperDAL.Models
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(NoteID):
+                    case nameof(Id):
                         //Add Validation code here
                         break;
-                    case nameof(NoteDateTime):
+                    case nameof(DateTime):
                         //hasError = CheckHolidays();
-                        //if (!hasError) ClearErrors(nameof(NoteDateTime));
-                        errors = GetErrorsFromAnnotations(nameof(NoteDateTime), NoteDateTime);
+                        //if (!hasError) ClearErrors(nameof(DateTime));
+                        errors = GetErrorsFromAnnotations(nameof(DateTime), DateTime);
                         break;
-                    case nameof(NoteText):
-                        errors = GetErrorsFromAnnotations(nameof(NoteText), NoteText);
+                    case nameof(Text):
+                        errors = GetErrorsFromAnnotations(nameof(Text), Text);
                         break;
                 }
                 if (errors != null && errors.Length != 0)
@@ -46,6 +43,10 @@ namespace TimekeeperDAL.Models
                 if (!hasError) ClearErrors(columnName);
                 return string.Empty;
             }
+        }
+        public override string ToString()
+        {
+            return DateTime.ToString() + " " + Text;
         }
     }
 }
