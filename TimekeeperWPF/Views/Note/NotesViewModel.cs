@@ -8,7 +8,7 @@ using System.Windows.Data;
 using TimekeeperDAL.EF;
 namespace TimekeeperWPF
 {
-    public class NotesViewModel : ViewModel<Note,TimeKeeperContext>
+    public class NotesViewModel : ViewModel<Note>
     {
         public NotesViewModel() : base()
         {

@@ -12,12 +12,11 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public abstract class ViewModel<ModelType,ContextType> : ObservableObject, IPage, IDisposable 
+    public abstract class ViewModel<ModelType> : ObservableObject, IPage, IDisposable 
         where ModelType: EntityBase, new() 
-        where ContextType: ITimeKeeperContext, new()
     {
         #region Fields
-        protected ContextType Context;
+        protected ITimeKeeperContext Context;
         protected IComparer Sorter;
         private String _status = "Ready";
         private bool _IsEnabled = true;

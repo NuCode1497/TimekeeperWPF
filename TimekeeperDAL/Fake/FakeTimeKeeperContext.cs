@@ -1,4 +1,5 @@
-﻿using System.Data.Entity;
+﻿using System;
+using System.Data.Entity;
 
 namespace TimekeeperDAL.EF
 {
@@ -6,6 +7,22 @@ namespace TimekeeperDAL.EF
     {
         public FakeTimeKeeperContext()
         {
+            Notes = new FakeNoteSet()
+            {
+                new Note { DateTime = DateTime.Now, Type = "Note", Text = "This is fake test data." },
+                new Note { DateTime = DateTime.Now, Type = "Work", Text = "Testing 1 2 3." },
+                new Note { DateTime = DateTime.Now, Type = "Chore", Text = "Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It’s not a story the Jedi would tell you. It’s a Sith legend." },
+                new Note { DateTime = DateTime.Now, Type = "Play", Text = "Testing 4 5 6." }
+            };
+            TaskTypes = new FakeTaskTypeSet()
+            {
+                new TaskType { Type = "Note" },
+                new TaskType { Type = "Work" },
+                new TaskType { Type = "Play" },
+                new TaskType { Type = "Chore" },
+                new TaskType { Type = "Eat" },
+                new TaskType { Type = "Sleep" },
+            };
         }
         public virtual IDbSet<Note> Notes { get; set; }
         public virtual IDbSet<TaskType> TaskTypes { get; set; }

@@ -19,6 +19,7 @@ namespace TimekeeperWPF
                 CurrentView = Views[0];
                 return;
             }
+            Views.Add(new FakeNotesViewModel());
             Views.Add(new MonthViewModel());
             Views.Add(new NotesViewModel());
             CurrentView = Views[0];
@@ -41,6 +42,6 @@ namespace TimekeeperWPF
         }
 
         public ICommand NavigateViewCommand => _navigateViewCommand 
-            ?? (_navigateViewCommand = new RelayCommand(ap => CurrentView = (IPage)ap, pp => pp is IPage));
+            ?? (_navigateViewCommand = new RelayCommand(ap => CurrentView = ap as IPage, pp => pp is IPage));
     }
 }

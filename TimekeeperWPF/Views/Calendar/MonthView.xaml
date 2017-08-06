@@ -22,13 +22,13 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="Sunday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
-            <Label Grid.Column="1" Content="Monday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
-            <Label Grid.Column="2" Content="Tuesday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
-            <Label Grid.Column="3" Content="Wednesday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
-            <Label Grid.Column="4" Content="Thursday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
-            <Label Grid.Column="5" Content="Friday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
-            <Label Grid.Column="6" Content="Saturday" BorderBrush="Black" BorderThickness="0,0,0,1"/>
+            <Label Grid.Column="0" Content="Sunday" BorderBrush="Black" BorderThickness="1"/>
+            <Label Grid.Column="1" Content="Monday" BorderBrush="Black" BorderThickness="1"/>
+            <Label Grid.Column="2" Content="Tuesday" BorderBrush="Black" BorderThickness="1"/>
+            <Label Grid.Column="3" Content="Wednesday" BorderBrush="Black" BorderThickness="1"/>
+            <Label Grid.Column="4" Content="Thursday" BorderBrush="Black" BorderThickness="1"/>
+            <Label Grid.Column="5" Content="Friday" BorderBrush="Black" BorderThickness="1"/>
+            <Label Grid.Column="6" Content="Saturday" BorderBrush="Black" BorderThickness="1"/>
         </Grid>
         <ItemsControl Grid.Row="1" x:Name="MonthWeekList" ItemsSource="{Binding Path=Weeks}">
             <ItemsControl.ItemTemplate>

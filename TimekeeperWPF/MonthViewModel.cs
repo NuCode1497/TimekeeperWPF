@@ -10,7 +10,7 @@ using System.Data.Entity;
 
 namespace TimekeeperWPF
 {
-    public class MonthViewModel : ViewModel<Note, TimeKeeperContext>
+    public class MonthViewModel : ViewModel<Note>
     {
         private Calendar _Calendar => CultureInfo.CurrentCulture.Calendar;
         private int _DaysInMonth;
