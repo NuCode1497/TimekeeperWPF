@@ -15,9 +15,24 @@
         <DataTemplate DataType="{x:Type l:FakeNotesViewModel}">
             <l:NotesView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type l:MonthViewModel}">
+            <l:MonthView/>
+        </DataTemplate>
     </Window.Resources>
-    <Grid>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                
+            </MenuItem>
+            <MenuItem Header="_View" ItemsSource="{Binding Path=Views}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <MenuItem/>
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+        </Menu>
         <ContentControl x:Name="ViewHolder" Margin="5" IsTabStop="False"
                         Content="{Binding Path=CurrentView}"/>
-    </Grid>
+    </DockPanel>
 </Window>

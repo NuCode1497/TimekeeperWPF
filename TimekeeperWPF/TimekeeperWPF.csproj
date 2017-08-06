@@ -76,7 +76,14 @@
     <Compile Include="BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\LoadingView.xaml.cs">
+    <Compile Include="MonthViewModel.cs" />
+    <Compile Include="Tools\BoolTo50OpacityConverter.cs" />
+    <Compile Include="Views\Calendar\Day.cs" />
+    <Compile Include="Views\Calendar\MonthView.xaml.cs">
+      <DependentUpon>MonthView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\Week.cs" />
+    <Compile Include="Views\LoadingView.xaml.cs">
       <DependentUpon>LoadingView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\IPage.cs" />
@@ -97,7 +104,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Tools\LoadingView.xaml">
+    <Page Include="Views\Calendar\MonthView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LoadingView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

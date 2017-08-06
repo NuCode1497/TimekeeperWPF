@@ -19,6 +19,7 @@ namespace TimekeeperWPF
                 CurrentView = Views[0];
                 return;
             }
+            Views.Add(new MonthViewModel());
             Views.Add(new NotesViewModel());
             CurrentView = Views[0];
         }
