@@ -6,11 +6,11 @@ using System.Windows.Media;
 
 namespace TimekeeperWPF.Tools
 {
-    public class BoolToGrayConverter : MarkupExtension, IValueConverter
+    public class BoolToGreenConverter : MarkupExtension, IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if ((bool)value) return Brushes.Gray;
+            if ((bool)value) return Brushes.Green;
             else return parameter;
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

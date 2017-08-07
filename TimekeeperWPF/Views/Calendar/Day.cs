@@ -29,5 +29,6 @@ namespace TimekeeperWPF
             }
         }
         public bool IsNotInMonth { get; set; }
+        public bool IsToday => _dateTime.Date == DateTime.Today;
     }
 }
