@@ -10,9 +10,17 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" x:Name="WeekDayTitlesGrid">
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Button Content="&lt;--" Width="30" Margin="2" Command="{Binding Path=PrevMonthCommand}"/>
+            <Button Content="--&gt;" Width="30" Margin="2" Command="{Binding Path=NextMonthCommand}"/>
+            <TextBlock Text="{Binding Path=SelectedMonthString}" Margin="2" FontFamily="Segoe UI Black" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Path=SelectedYearString}" Margin="2" FontFamily="Segoe UI Black" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Path=SelectedDateTime}" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Grid Margin="2" Grid.Row="1" x:Name="WeekDayTitlesGrid">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
@@ -30,22 +38,25 @@
             <Label Grid.Column="5" Content="Friday" BorderBrush="Black" BorderThickness="1"/>
             <Label Grid.Column="6" Content="Saturday" BorderBrush="Black" BorderThickness="1"/>
         </Grid>
-        <ItemsControl Grid.Row="1" x:Name="MonthWeekList" ItemsSource="{Binding Path=Weeks}">
+        <ItemsControl Grid.Row="2" x:Name="MonthWeekList" ItemsSource="{Binding Path=Weeks}" Margin="2">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="1"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <ItemsControl x:Name="WeekDayList" ItemsSource="{Binding Path=Days}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Rows="1"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock x:Name="DayTextBlock" Text="{Binding Path=DayOfMonth}"
-                                               Opacity="{Binding Path=IsNotInMonth, Converter={t:BoolTo50OpacityConverter}}"/>
-                                </Grid>
+                                <Label x:Name="DayTextBlock" Content="{Binding Path=DayOfMonth}"
+                                       Foreground="{Binding Path=IsNotInMonth, Converter={t:BoolToGrayConverter}, ConverterParameter=Foreground}" 
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" FontWeight="Bold"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

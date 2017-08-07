@@ -1,25 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Data;
 using TimekeeperDAL.EF;
+
 namespace TimekeeperWPF
 {
-    public class FakeNotesViewModel : NotesViewModel
+    public class FakeMonthViewModel : MonthViewModel
     {
-        public FakeNotesViewModel() : base()
+        public FakeMonthViewModel() : base()
         {
+
         }
         public override string Name => "Fake " + base.Name;
         protected override async Task<ObservableCollection<Note>> GetDataAsync()
         {
-            //await Task.Delay(3000);
-            //throw new Exception("testing get data error");
             Context = new FakeTimeKeeperContext();
-            NoteTypesCollection = new CollectionViewSource();
-            NoteTypesCollection.Source = Context.TaskTypes.Local;
-            OnPropertyChanged(nameof(NoteTypesView));
             return Context.Notes.Local;
         }
     }

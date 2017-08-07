@@ -7,56 +7,72 @@ using System.Globalization;
 using TimekeeperDAL.EF;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Windows.Input;
 
 namespace TimekeeperWPF
 {
     public class MonthViewModel : ViewModel<Note>
     {
+        #region Fields
         private Calendar _Calendar => CultureInfo.CurrentCulture.Calendar;
-        private int _DaysInMonth;
-        private int _DaysOffset;
-        private int _WeekRowsInMonth;
-        private int _SelectedYear;
-        private int _SelectedMonth;
-        private int _SelectedDay;
-        private List<Week> _Weeks;
         private DateTime _SelectedDateTime;
+        private ICommand _NextMonthCommand;
+        private ICommand _PrevMonthCommand;
+        #endregion
         public MonthViewModel() : base()
         {
             _SelectedDateTime = DateTime.Now;
             Sorter = new DateTimeSorter();
             LoadData();
+            BuildMonth();
         }
         public override string Name => "Month";
+        #region Properties
+        public DateTime SelectedDateTime
+        {
+            get
+            {
+                return _SelectedDateTime;
+            }
+            set
+            {
+                _SelectedDateTime = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SelectedYear));
+                OnPropertyChanged(nameof(SelectedMonth));
+                OnPropertyChanged(nameof(SelectedDay));
+                OnPropertyChanged(nameof(DaysInMonth));
+                OnPropertyChanged(nameof(SelectedMonthString));
+                OnPropertyChanged(nameof(SelectedYearString));
+            }
+        }
         public int DaysInMonth => _Calendar.GetDaysInMonth(SelectedYear, SelectedMonth);
-        public int DaysOffset
-        {
-            get
-            {
-                return _DaysOffset;
-            }
-            private set
-            {
-                _DaysOffset = value;
-                OnPropertyChanged();
-            }
-        }
-        public int WeekRowsInMonth
-        {
-            get
-            {
-                return _WeekRowsInMonth;
-            }
-            private set
-            {
-                _WeekRowsInMonth = value;
-                OnPropertyChanged();
-            }
-        }
         public int SelectedYear => _SelectedDateTime.Year;
         public int SelectedMonth => _SelectedDateTime.Month;
+        public string SelectedMonthString => SelectedDateTime.ToString("MMMM");
+        public string SelectedYearString => SelectedDateTime.ToString("yyy");
         public int SelectedDay => _SelectedDateTime.Day;
+        #endregion
         public List<Week> Weeks { get; set; }
+        #region Commands
+        public ICommand NextMonthCommand => _NextMonthCommand
+            ?? (_NextMonthCommand = new RelayCommand(ap => NextMonth(), pp => true));
+        public ICommand PrevMonthCommand => _PrevMonthCommand
+            ?? (_PrevMonthCommand = new RelayCommand(ap => PrevMonth(), pp => true));
+        #endregion
+        #region Actions
+        private void NextMonth()
+        {
+            SelectedDateTime = SelectedDateTime.AddMonths(1);
+            BuildMonth();
+        }
+        private void PrevMonth()
+        {
+            SelectedDateTime = SelectedDateTime.AddMonths(-1);
+            BuildMonth();
+        }
+        #endregion
+
         protected override async Task<ObservableCollection<Note>> GetDataAsync()
         {
             Context = new TimeKeeperContext();
@@ -70,9 +86,8 @@ namespace TimekeeperWPF
             //Every week starts on Sunday. We need to find the first Sunday of the first week that may or may not be in the month.
             //Starting from the first Sunday, we fill each week with successive days until we run out of days of the month
             //and the last week is filled.
-
-            Weeks.Clear();
-            DateTime firstDay = new DateTime(_SelectedYear, _SelectedMonth, 1);
+            Weeks = new List<Week>();
+            DateTime firstDay = new DateTime(SelectedYear, SelectedMonth, 1);
             DateTime lastDay = firstDay.AddMonths(1).AddDays(-1);
             DayOfWeek firstDayWeekday = _Calendar.GetDayOfWeek(firstDay);
             DayOfWeek lastDayWeekday = _Calendar.GetDayOfWeek(lastDay);
@@ -84,7 +99,7 @@ namespace TimekeeperWPF
                 {
                     Day day = new Day()
                     {
-                        DateTime = firstSunday.AddDays(d),
+                        DateTime = firstDay.AddDays(d),
                         IsNotInMonth = d < 0 || d >= DaysInMonth
                     };
                     week.Days.Add(day);

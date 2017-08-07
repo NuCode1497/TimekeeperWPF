@@ -18,6 +18,9 @@
         <DataTemplate DataType="{x:Type l:MonthViewModel}">
             <l:MonthView/>
         </DataTemplate>
+        <DataTemplate DataType="{x:Type l:FakeMonthViewModel}">
+            <l:MonthView/>
+        </DataTemplate>
     </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -25,14 +28,6 @@
                 
             </MenuItem>
             <MenuItem Header="_View" ItemsSource="{Binding Path=Views}">
-                <!--<MenuItem.ItemTemplate>
-                    <DataTemplate>
-                        <MenuItem Header="{Binding Path=Name}" 
-                                  Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type DockPanel}}, Path=DataContext.NavigateViewCommand}"
-                                  CommandParameter="{Binding}"/>
-                        <TextBlock Text="{Binding Path=Name}"/>
-                    </DataTemplate>
-                </MenuItem.ItemTemplate>-->
                 <MenuItem.ItemContainerStyle>
                     <Style TargetType="MenuItem">
                         <Setter Property="Header" Value="{Binding Path=Name}"/>

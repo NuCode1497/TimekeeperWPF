@@ -10,6 +10,11 @@ namespace TimekeeperWPF
     public class Day : ObservableObject
     {
         private DateTime _dateTime;
+        public Day()
+        {
+            _dateTime = DateTime.Now;
+            IsNotInMonth = false;
+        }
         public int DayOfMonth => CultureInfo.CurrentCulture.Calendar.GetDayOfMonth(_dateTime);
         public DateTime DateTime
         {

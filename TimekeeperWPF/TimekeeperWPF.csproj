@@ -76,8 +76,9 @@
     <Compile Include="BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MonthViewModel.cs" />
-    <Compile Include="Tools\BoolTo50OpacityConverter.cs" />
+    <Compile Include="Views\Calendar\FakeMonthViewModel.cs" />
+    <Compile Include="Views\Calendar\MonthViewModel.cs" />
+    <Compile Include="Tools\BoolToGrayConverter.cs" />
     <Compile Include="Views\Calendar\Day.cs" />
     <Compile Include="Views\Calendar\MonthView.xaml.cs">
       <DependentUpon>MonthView.xaml</DependentUpon>
