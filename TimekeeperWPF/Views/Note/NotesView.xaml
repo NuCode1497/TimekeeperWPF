@@ -8,7 +8,7 @@
              mc:Ignorable="d"
              d:DesignHeight="400"
              d:DesignWidth="600">
-    <Grid>
+    <Grid x:Name="SV">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -65,11 +65,12 @@
                 </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <ContentControl Grid.Row="1" Template="{StaticResource EditPopUp}" x:Name="PopUpControl" IsTabStop="False">
+        <ContentControl Grid.Row="0" Grid.RowSpan="2" Template="{StaticResource EditPopUpTemplate}" x:Name="NotesViewEditPopUp" IsTabStop="False">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView x:Name="DataEditor"/>
+                <local:EditNoteView x:Name="DataEditor" Margin="1"
+                                    DataContext="{Binding Path=CurrentEditItem}"/>
             </ScrollViewer>
         </ContentControl>
-        <local:LoadingView Grid.Row="1" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

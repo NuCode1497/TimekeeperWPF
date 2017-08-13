@@ -7,16 +7,7 @@
         <Style x:Key="WindowStyle" TargetType="Window">
             <Setter Property="Background" Value="#FF48CD7E"/>
         </Style>
-        <!--Present validation errors on any TextBox-->
-        <Style TargetType="{x:Type TextBox}">
-            <Style.Triggers>
-                <Trigger Property="Validation.HasError" Value="true">
-                    <Setter Property="Background" Value="Pink"/>
-                    <Setter Property="Foreground" Value="Black"/>
-                    <Setter Property="ToolTip" 
-                            Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
-                </Trigger>
-            </Style.Triggers>
+        <Style x:Key="BasicErrorTemplate" TargetType="Control">
             <Setter Property="Validation.ErrorTemplate">
                 <Setter.Value>
                     <ControlTemplate>
@@ -30,30 +21,59 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="Background" Value="Pink"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
+        <Style x:Key="EllipsyErrorTemplate" TargetType="Control">
+            <!--https://stackoverflow.com/questions/41892898/how-to-avoid-error-icon-from-wpf-validation-overlapping-other-elements-->
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <DockPanel LastChildFill="True">
+                            <Ellipse DockPanel.Dock="Right" Width="15" Height="15" Margin="-25,0,0,0" StrokeThickness="1" Fill="Red" 
+                                         ToolTip="{Binding RelativeSource={RelativeSource Self}, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}">
+                                <Ellipse.Stroke>
+                                    <LinearGradientBrush EndPoint="1,0.5" StartPoint="0,0.5">
+                                        <GradientStop Color="#FFFA0404" Offset="0"/>
+                                        <GradientStop Color="#FFC9C7C7" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Stroke>
+                            </Ellipse>
+                            <TextBlock DockPanel.Dock="Right" Foreground="White" FontSize="11pt" Margin="-15,5,0,0" FontWeight="Bold" Text="!"
+                                           ToolTip="{Binding ElementName=controlWithError, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
+                            <Border BorderBrush="Red" BorderThickness="1">
+                                <AdornedElementPlaceholder Name="controlWithErrror"/>
+                            </Border>
+                        </DockPanel>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="true">
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+        <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+        <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
         <Style TargetType="{x:Type DataGrid}">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
             <Setter Property="AlternatingRowBackground" Value="#FFCCFFDC"/>
             <Setter Property="RowBackground" Value="#FFD0D2FF"/>
             <Setter Property="AlternationCount" Value="1"/>
         </Style>
-        <Style TargetType="{x:Type Label}">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-        <Style TargetType="{x:Type Button}">
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-        <ControlTemplate x:Key="EditPopUp" TargetType="ContentControl">
+        <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl">
             <!--Grey out background content-->
             <Grid Background="#9980B0A0"
                   Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
-                  Width="{Binding ElementName=DG, Path=ActualWidth}"
-                  Height="{Binding ElementName=DG, Path=ActualHeight}">
+                  Width="{Binding ElementName=SV, Path=ActualWidth}"
+                  Height="{Binding ElementName=SV, Path=ActualHeight}">
                 <Border BorderBrush="Gray" Padding="1" Margin="6" CornerRadius="4" BorderThickness="2,2,4,4" Width="400">
                     <Grid Background="#FFBDFFD8">
                         <Grid.ColumnDefinitions>
@@ -69,13 +89,14 @@
                         <!--Properties Editor-->
                         <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" Margin="12,12,12,6"/>
                         <!--Validations List-->
-                        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto"
+                        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller"
+                                      VerticalScrollBarVisibility="Auto"
                                       IsTabStop="False" Margin="12,0,12,6">
-                            <ItemsControl Margin="8" Foreground="Red" 
+                            <ItemsControl Margin="8" Foreground="Red" Name="ValidationsItemsControl"
                                           ItemsSource="{Binding ElementName=DataEditor, Path=(Validation.Errors)}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <ItemsControl ItemsSource="{Binding Path=ErrorContent}"/>
+                                        <ItemsControl Name="ValidationsItem" ItemsSource="{Binding Path=ErrorContent}"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>

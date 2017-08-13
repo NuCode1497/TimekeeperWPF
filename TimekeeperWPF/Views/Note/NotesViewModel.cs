@@ -36,7 +36,7 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task<ObservableCollection<Note>> GetDataAsync()
         {
-            await Task.Delay(2000);
+            //await Task.Delay(2000);
             Context = new TimeKeeperContext();
             NoteTypesCollection = new CollectionViewSource();
             await Context.Notes.LoadAsync();
