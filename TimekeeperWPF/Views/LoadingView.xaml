@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
-        <Storyboard x:Key="Storyboard1">
+        <Storyboard x:Key="RGBCycle">
             <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextElement.Foreground).(SolidColorBrush.Color)" Storyboard.TargetName="LoadyMcLoadFace" RepeatBehavior="Forever">
                 <EasingColorKeyFrame KeyTime="0" Value="Red"/>
                 <EasingColorKeyFrame KeyTime="0:0:1" Value="Yellow"/>
@@ -54,7 +54,7 @@
     </UserControl.Resources>
     <UserControl.Triggers>
         <EventTrigger RoutedEvent="FrameworkElement.Loaded" SourceName="LoadyMcLoadFace">
-            <BeginStoryboard Storyboard="{StaticResource Storyboard1}"/>
+            <BeginStoryboard Name="BeginRGBCycle" Storyboard="{StaticResource RGBCycle}"/>
         </EventTrigger>
     </UserControl.Triggers>
     <Grid>

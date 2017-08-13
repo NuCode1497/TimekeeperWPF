@@ -15,13 +15,13 @@ namespace TimekeeperWPF
         {
             if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
             {
-                Views.Add(new FakeMonthViewModel());
                 Views.Add(new FakeNotesViewModel());
+                Views.Add(new FakeMonthViewModel());
                 CurrentView = Views[0];
                 return;
             }
-            Views.Add(new MonthViewModel());
             Views.Add(new NotesViewModel());
+            Views.Add(new MonthViewModel());
             CurrentView = Views[0];
         }
 

@@ -25,7 +25,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                
+                <MenuItem Header="_Save View As..." Command="{Binding Path=CurrentView.SaveAsCommand}"/>
             </MenuItem>
             <MenuItem Header="_View" ItemsSource="{Binding Path=Views}">
                 <MenuItem.ItemContainerStyle>

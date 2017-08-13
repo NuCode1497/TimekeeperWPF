@@ -76,7 +76,7 @@
     <Compile Include="BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MonthDayView.xaml.cs">
+    <Compile Include="Views\Calendar\MonthDayView.xaml.cs">
       <DependentUpon>MonthDayView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\BoolToGreenConverter.cs" />
@@ -109,7 +109,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MonthDayView.xaml">
+    <Page Include="Views\Calendar\MonthDayView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

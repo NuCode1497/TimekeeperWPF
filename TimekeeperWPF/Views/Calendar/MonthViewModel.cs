@@ -18,6 +18,7 @@ namespace TimekeeperWPF
         private DateTime _SelectedDateTime;
         private ICommand _NextMonthCommand;
         private ICommand _PrevMonthCommand;
+        private ICommand _SaveAsCommand;
         #endregion
         public MonthViewModel() : base()
         {
@@ -60,7 +61,20 @@ namespace TimekeeperWPF
         public ICommand PrevMonthCommand => _PrevMonthCommand
             ?? (_PrevMonthCommand = new RelayCommand(ap => PrevMonth(), pp => true));
         #endregion
+        #region Predicates
+        protected override bool CanSave => false;
+        #endregion
         #region Actions
+        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        {
+            Context = new TimeKeeperContext();
+            await Context.Notes.LoadAsync();
+            return Context.Notes.Local;
+        }
+        protected override void SaveAs()
+        {
+            throw new NotImplementedException();
+        }
         private void NextMonth()
         {
             SelectedDateTime = SelectedDateTime.AddMonths(1);
@@ -70,14 +84,6 @@ namespace TimekeeperWPF
         {
             SelectedDateTime = SelectedDateTime.AddMonths(-1);
             BuildMonth();
-        }
-        #endregion
-
-        protected override async Task<ObservableCollection<Note>> GetDataAsync()
-        {
-            Context = new TimeKeeperContext();
-            await Context.Notes.LoadAsync();
-            return Context.Notes.Local;
         }
         private void BuildMonth()
         {
@@ -109,5 +115,6 @@ namespace TimekeeperWPF
             }
             OnPropertyChanged(nameof(Weeks));
         }
+        #endregion
     }
 }

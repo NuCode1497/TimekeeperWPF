@@ -33,13 +33,13 @@ namespace TimekeeperWPF
         private ICommand _DeselectCommand = null;
         private ICommand _EditSelectedCommand = null;
         private ICommand _DeleteSelectedCommand = null;
+        private ICommand _SaveAsCommand;
         #endregion
         public ViewModel()
         {
         }
-        public abstract string Name { get; }
-        protected abstract Task<ObservableCollection<ModelType>> GetDataAsync();
         #region Properties
+        public abstract string Name { get; }
         public String Status
         {
             get
@@ -189,6 +189,8 @@ namespace TimekeeperWPF
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
             ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanDeleteSelected));
+        public ICommand SaveAsCommand => _SaveAsCommand
+            ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         #endregion
         #region Predicates
         private bool CanGetData => IsNotLoading && IsNotEditingItemOrAddingNew;
@@ -198,8 +200,11 @@ namespace TimekeeperWPF
         private bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
         private bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
         private bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
+        protected abstract bool CanSave { get; }
         #endregion
         #region Actions
+        protected abstract Task<ObservableCollection<ModelType>> GetDataAsync();
+        protected abstract void SaveAs();
         protected virtual async void LoadData()
         {
             IsEnabled = false;
