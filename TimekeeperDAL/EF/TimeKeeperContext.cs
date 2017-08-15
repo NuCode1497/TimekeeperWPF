@@ -14,6 +14,7 @@ namespace TimekeeperDAL.EF
 
         public virtual IDbSet<Note> Notes { get; set; }
         public virtual IDbSet<TaskType> TaskTypes { get; set; }
+        public virtual IDbSet<Task> Tasks { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

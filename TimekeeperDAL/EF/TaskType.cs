@@ -8,9 +8,10 @@ namespace TimekeeperDAL.EF
 
     public partial class TaskType
     {
+        [Key]
         public int Id { get; set; }
-
-        [Required]
+        
+        [Index(IsUnique = true)]
         [StringLength(50)]
         public string Type { get; set; }
 

@@ -8,6 +8,7 @@ namespace TimekeeperDAL.EF
 
     public partial class Note
     {
+        [Key]
         public int Id { get; set; }
 
         [Column(TypeName = "datetime2")]
@@ -18,8 +19,10 @@ namespace TimekeeperDAL.EF
         public string Text { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Type { get; set; }
+        public int TaskTypeId { get; set; }
+
+        [ForeignKey("TaskTypeId")]
+        public virtual TaskType TaskType { get; set; }
 
         [Column(TypeName = "timestamp")]
         [MaxLength(8)]
