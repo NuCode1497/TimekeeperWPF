@@ -30,7 +30,6 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="EllipsyErrorTemplate" TargetType="Control">
-            <!--https://stackoverflow.com/questions/41892898/how-to-avoid-error-icon-from-wpf-validation-overlapping-other-elements-->
             <Setter Property="Validation.ErrorTemplate">
                 <Setter.Value>
                     <ControlTemplate>
@@ -64,9 +63,16 @@
         <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
         <Style TargetType="{x:Type DataGrid}">
             <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
-            <Setter Property="AlternatingRowBackground" Value="#FFCCFFDC"/>
-            <Setter Property="RowBackground" Value="#FFD0D2FF"/>
+            <Setter Property="AlternatingRowBackground" Value="#FFBDFFD8"/>
+            <Setter Property="RowBackground" Value="White"/>
             <Setter Property="AlternationCount" Value="1"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
+            <Setter Property="IsSynchronizedWithCurrentItem" Value="True"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
         </Style>
         <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl">
             <!--Grey out background content-->

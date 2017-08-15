@@ -43,5 +43,9 @@ namespace TimekeeperWPF
 
         public ICommand NavigateViewCommand => _navigateViewCommand 
             ?? (_navigateViewCommand = new RelayCommand(ap => CurrentView = ap as IPage, pp => pp is IPage));
+        private void Navigate(IPage page)
+        {
+            CurrentView = page;
+        }
     }
 }
