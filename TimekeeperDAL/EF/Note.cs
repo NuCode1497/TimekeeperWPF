@@ -11,6 +11,11 @@ namespace TimekeeperDAL.EF
         [Key]
         public int Id { get; set; }
 
+        [Column(TypeName = "timestamp")]
+        [MaxLength(8)]
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
 
@@ -24,9 +29,5 @@ namespace TimekeeperDAL.EF
         [ForeignKey("TaskTypeId")]
         public virtual TaskType TaskType { get; set; }
 
-        [Column(TypeName = "timestamp")]
-        [MaxLength(8)]
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
     }
 }

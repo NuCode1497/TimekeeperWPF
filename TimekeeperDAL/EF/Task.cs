@@ -20,6 +20,11 @@ namespace TimekeeperDAL.EF
         [Key]
         public int Id { get; set; }
 
+        [Column(TypeName = "timestamp")]
+        [MaxLength(8)]
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
         [Required]
         [StringLength(50)]
         public string Name { get; set; }
@@ -70,11 +75,6 @@ namespace TimekeeperDAL.EF
         public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
 
         public virtual ICollection<TimePattern> ExcludedPatterns { get; set; }
-
-        [Column(TypeName = "timestamp")]
-        [MaxLength(8)]
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
 
         [NotMapped]
         public TimeSpan Duration => End - Start;

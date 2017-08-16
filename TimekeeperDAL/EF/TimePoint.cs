@@ -8,15 +8,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Label
+    public partial class TimePoint
     {
         [Key]
         public int Id { get; set; }
-
-        [Column(TypeName = "timestamp")]
-        [MaxLength(8)]
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
 
         [Required]
         [StringLength(50)]

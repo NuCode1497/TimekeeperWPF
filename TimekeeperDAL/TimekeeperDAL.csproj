@@ -63,6 +63,7 @@
     <Compile Include="EF\TaskIncluding.cs" />
     <Compile Include="EF\TaskLabelling.cs" />
     <Compile Include="EF\TimePattern.cs" />
+    <Compile Include="EF\TimePoint.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />
     <Compile Include="Fake\FakeDbContext.cs" />
     <Compile Include="Fake\FakeDbSet.cs" />
