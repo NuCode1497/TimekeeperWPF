@@ -8,14 +8,22 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TimePattern
+    public partial class TaskIncluding
     {
         [Key]
         public int Id { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
+        public int TaskId { get; set; }
+
+        [Required]
+        public int TimePatternId { get; set; }
+
+        [ForeignKey("TaskId")]
+        public virtual Task Task { get; set; }
+
+        [ForeignKey("TimePatternId")]
+        public virtual TimePattern TimePattern { get; set; }
 
         [Column(TypeName = "timestamp")]
         [MaxLength(8)]

@@ -23,10 +23,6 @@ namespace TimekeeperDAL.EF
                 .IsUnicode(false);
 
             modelBuilder.Entity<Note>()
-                .Property(e => e.Type)
-                .IsUnicode(false);
-
-            modelBuilder.Entity<Note>()
                 .Property(e => e.RowVersion)
                 .IsFixedLength();
 

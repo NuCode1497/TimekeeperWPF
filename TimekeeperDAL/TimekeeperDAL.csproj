@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="EF\Label.cs" />
     <Compile Include="EF\Task.cs" />
+    <Compile Include="EF\TaskIncluding.cs" />
     <Compile Include="EF\TaskLabelling.cs" />
     <Compile Include="EF\TimePattern.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />

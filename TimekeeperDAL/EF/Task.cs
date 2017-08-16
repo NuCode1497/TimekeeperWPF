@@ -10,6 +10,13 @@ namespace TimekeeperDAL.EF
 {
     public partial class Task
     {
+        public Task()
+        {
+            Labels = new HashSet<Label>();
+            IncludedPatterns = new HashSet<TimePattern>();
+            ExcludedPatterns = new HashSet<TimePattern>();
+        }
+
         [Key]
         public int Id { get; set; }
 
@@ -56,7 +63,7 @@ namespace TimekeeperDAL.EF
 
         public int Dimension { get; set; }
 
-
+        public int PowerLevel { get; set; }
 
         public virtual ICollection<Label> Labels { get; set; }
 
