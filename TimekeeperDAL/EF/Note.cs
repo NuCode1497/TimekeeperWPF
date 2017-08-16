@@ -7,11 +7,6 @@ namespace TimekeeperDAL.EF
 
     public partial class Note
     {
-        public Note()
-        {
-            NoteLabelings = new HashSet<NoteLabeling>();
-        }
-
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
 
@@ -23,9 +18,8 @@ namespace TimekeeperDAL.EF
         public int TaskTypeId { get; set; }
 
         [ForeignKey("TaskTypeId")]
-        public virtual TaskType TaskType { get; set; }
+        public TaskType TaskType { get; set; }
 
-        public virtual ICollection<NoteLabeling> NoteLabelings { get; set; }
-
+        public ICollection<Label> Labels { get; set; }
     }
 }

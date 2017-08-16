@@ -18,13 +18,9 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<NoteLabeling> NoteLabelings { get; set; }
         public virtual IDbSet<TaskLabeling> TaskLabelings { get; set; }
         public virtual IDbSet<TimePatternLabeling> TimePatternLabelings { get; set; }
-        public virtual IDbSet<TaskIncluding> TaskIncludings { get; set; }
-        public virtual IDbSet<TaskExcluding> TaskExcludings { get; set; }
+        public virtual IDbSet<TaskInclusion> TaskIncludings { get; set; }
+        public virtual IDbSet<TaskExclusion> TaskExcludings { get; set; }
         public virtual IDbSet<Allocation> Allocations { get; set; }
         public virtual IDbSet<Resource> Resources { get; set; }
-
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
-        {
-        }
     }
 }

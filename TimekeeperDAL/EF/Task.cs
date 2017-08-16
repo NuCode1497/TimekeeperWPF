@@ -10,13 +10,6 @@ namespace TimekeeperDAL.EF
 {
     public partial class Task
     {
-        public Task()
-        {
-            TaskLabelings = new HashSet<TaskLabeling>();
-            TaskIncludings = new HashSet<TaskIncluding>();
-            TaskExcludings = new HashSet<TaskExcluding>();
-        }
-
         [Required]
         [StringLength(50)]
         public string Name { get; set; }
@@ -62,11 +55,6 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
-        public virtual ICollection<TaskLabeling> TaskLabelings { get; set; }
-
-        public virtual ICollection<TaskIncluding> TaskIncludings { get; set; }
-
-        public virtual ICollection<TaskExcluding> TaskExcludings { get; set; }
-
+        public ICollection<Label> Labels { get; set; }
     }
 }

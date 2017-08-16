@@ -13,7 +13,5 @@ namespace TimekeeperDAL.EF
         [Required]
         [StringLength(50)]
         public string Name { get; set; }
-
-        public virtual ICollection<NoteLabeling> NoteLabelings { get; set; }
     }
 }
