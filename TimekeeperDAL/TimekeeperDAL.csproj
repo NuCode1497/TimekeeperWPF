@@ -58,11 +58,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EF\Allocation.cs" />
     <Compile Include="EF\Label.cs" />
+    <Compile Include="EF\NoteLabeling.cs" />
+    <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\Task.cs" />
+    <Compile Include="EF\TaskExcluding.cs" />
     <Compile Include="EF\TaskIncluding.cs" />
-    <Compile Include="EF\TaskLabelling.cs" />
+    <Compile Include="Models\Allocation.cs" />
+    <Compile Include="Models\Label.cs" />
+    <Compile Include="Models\Resource.cs" />
+    <Compile Include="EF\TaskLabeling.cs" />
     <Compile Include="EF\TimePattern.cs" />
+    <Compile Include="EF\TimePatternLabeling.cs" />
     <Compile Include="EF\TimePoint.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />
     <Compile Include="Fake\FakeDbContext.cs" />
@@ -80,8 +88,15 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\EntityBase.cs" />
-    <Compile Include="Models\NotePartial.cs" />
-    <Compile Include="Models\TaskTypePartial.cs" />
+    <Compile Include="Models\Note.cs" />
+    <Compile Include="Models\NoteLabeling.cs" />
+    <Compile Include="Models\Task.cs" />
+    <Compile Include="Models\TaskLabeling.cs" />
+    <Compile Include="Models\TaskIncluding.cs" />
+    <Compile Include="Models\TaskType.cs" />
+    <Compile Include="Models\TimePattern.cs" />
+    <Compile Include="Models\TimePatternLabeling.cs" />
+    <Compile Include="Models\TimePoint.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

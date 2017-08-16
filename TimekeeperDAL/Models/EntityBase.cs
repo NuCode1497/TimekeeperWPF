@@ -17,6 +17,14 @@ namespace TimekeeperDAL.EF
     [AddINotifyPropertyChangedInterface]
     public abstract class EntityBase : IDataErrorInfo, INotifyDataErrorInfo, IEditableObject
     {
+        [Key]
+        public int Id { get; set; }
+
+        [Timestamp]
+        [MaxLength(8)]
+        [Column(TypeName = "rowversion")]
+        public byte[] RowVersion { get; set; }
+
         /// <summary>
         /// Implemented with INotifyPropertyChanged. Flagged true when a property is changed. You must manually flag false.
         /// </summary>

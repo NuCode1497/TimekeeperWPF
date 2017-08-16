@@ -16,12 +16,12 @@ namespace TimekeeperDAL.EF
             };
             TaskTypes = new FakeTaskTypeSet()
             {
-                new TaskType { Type = "Note" },
-                new TaskType { Type = "Work" },
-                new TaskType { Type = "Play" },
-                new TaskType { Type = "Chore" },
-                new TaskType { Type = "Eat" },
-                new TaskType { Type = "Sleep" },
+                new TaskType { Name = "Note" },
+                new TaskType { Name = "Work" },
+                new TaskType { Name = "Play" },
+                new TaskType { Name = "Chore" },
+                new TaskType { Name = "Eat" },
+                new TaskType { Name = "Sleep" },
             };
         }
         public virtual IDbSet<Note> Notes { get; set; }

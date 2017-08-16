@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TimekeeperDAL.EF;
-
-namespace TimekeeperDAL.EF
+﻿namespace TimekeeperDAL.EF
 {
     public partial class TaskType : EntityBase
     {
-        public TaskType()
+        public override string ToString()
         {
-            Type = "Change Me";
+            return Name;
         }
         public override string this[string columnName]
         {
@@ -21,8 +14,8 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(Type):
-                        errors = GetErrorsFromAnnotations(nameof(Type), Type);
+                    case nameof(Name):
+                        errors = GetErrorsFromAnnotations(nameof(Name), Name);
                         break;
                 }
                 if (errors != null && errors.Length != 0)
@@ -33,10 +26,6 @@ namespace TimekeeperDAL.EF
                 if (!hasError) ClearErrors(columnName);
                 return string.Empty;
             }
-        }
-        public override string ToString()
-        {
-            return Type;
         }
     }
 }

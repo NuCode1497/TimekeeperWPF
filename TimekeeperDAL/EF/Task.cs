@@ -12,18 +12,10 @@ namespace TimekeeperDAL.EF
     {
         public Task()
         {
-            Labels = new HashSet<Label>();
-            IncludedPatterns = new HashSet<TimePattern>();
-            ExcludedPatterns = new HashSet<TimePattern>();
+            TaskLabelings = new HashSet<TaskLabeling>();
+            TaskIncludings = new HashSet<TaskIncluding>();
+            TaskExcludings = new HashSet<TaskExcluding>();
         }
-
-        [Key]
-        public int Id { get; set; }
-
-        [Column(TypeName = "timestamp")]
-        [MaxLength(8)]
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -70,13 +62,11 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
-        public virtual ICollection<Label> Labels { get; set; }
+        public virtual ICollection<TaskLabeling> TaskLabelings { get; set; }
 
-        public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
+        public virtual ICollection<TaskIncluding> TaskIncludings { get; set; }
 
-        public virtual ICollection<TimePattern> ExcludedPatterns { get; set; }
+        public virtual ICollection<TaskExcluding> TaskExcludings { get; set; }
 
-        [NotMapped]
-        public TimeSpan Duration => End - Start;
     }
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TaskIncluding
+    public partial class TaskExcluding
     {
         [Required]
         public int TaskId { get; set; }

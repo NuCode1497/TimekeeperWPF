@@ -8,12 +8,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Label
+    public partial class NoteLabeling : EntityBase
     {
-        [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
-
-        public virtual ICollection<NoteLabeling> NoteLabelings { get; set; }
+        public override string this[string columnName] => string.Empty;
     }
 }

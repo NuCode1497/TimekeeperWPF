@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TaskLabelling
+    public partial class TaskLabeling
     {
         [Key]
         public int Id { get; set; }

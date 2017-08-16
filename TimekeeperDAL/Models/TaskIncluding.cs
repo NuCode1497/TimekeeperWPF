@@ -8,12 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Label
+    public partial class TaskIncluding
     {
-        [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
-
-        public virtual ICollection<NoteLabeling> NoteLabelings { get; set; }
     }
 }

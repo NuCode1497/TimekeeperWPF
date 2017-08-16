@@ -1,19 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TimekeeperDAL.EF
 {
     public partial class Note : EntityBase
     {
-        public Note()
+        public override string ToString()
         {
-            DateTime = DateTime.Now;
-            Text = "Your text here.";
-            Type = "Note";
-            IsChanged = false;
+            return DateTime.ToString() + " " + Text;
         }
         public override string this[string columnName]
         {
@@ -24,9 +17,9 @@ namespace TimekeeperDAL.EF
                 switch (columnName)
                 {
                     case nameof(Id):
-                        //Add Validation code here
                         break;
                     case nameof(DateTime):
+                        //Add Validation code here
                         //hasError = CheckHolidays();
                         //if (!hasError) ClearErrors(nameof(DateTime));
                         errors = GetErrorsFromAnnotations(nameof(DateTime), DateTime);
@@ -43,10 +36,6 @@ namespace TimekeeperDAL.EF
                 if (!hasError) ClearErrors(columnName);
                 return string.Empty;
             }
-        }
-        public override string ToString()
-        {
-            return DateTime.ToString() + " " + Text;
         }
     }
 }

@@ -99,7 +99,7 @@ namespace TimekeeperWPF
         private void PreSelectNoteType()
         {
             NoteTypesView?.MoveCurrentTo(NoteTypesSource.DefaultIfEmpty(NoteTypesSource[0])
-                .First(t => t.Type == CurrentEditItem?.Type));
+                .First(t => t.Name == CurrentEditItem?.Type));
         }
         #endregion
     }
