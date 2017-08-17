@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Task
+    public partial class TimeTask
     {
         [Required]
         [StringLength(50)]

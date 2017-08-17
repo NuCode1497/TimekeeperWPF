@@ -22,7 +22,7 @@ namespace TimekeeperDAL.EF
 
         [Timestamp]
         [MaxLength(8)]
-        [Column(TypeName = "rowversion")]
+        [Column(TypeName = "timestamp")]
         public byte[] RowVersion { get; set; }
 
         /// <summary>

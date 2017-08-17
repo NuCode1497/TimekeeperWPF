@@ -26,12 +26,6 @@ namespace TimekeeperDAL.Migrations
             //      new Person { FullName = "Rowan Miller" }
             //    );
             //
-            context.Notes.AddOrUpdate( n => new { n.DateTime, n.Text, n.Type }, new EF.Note()
-            {
-                DateTime = DateTime.Now,
-                Text = "The database model was updated. Please ignore.",
-                Type = "Note"
-            });
         }
     }
 }

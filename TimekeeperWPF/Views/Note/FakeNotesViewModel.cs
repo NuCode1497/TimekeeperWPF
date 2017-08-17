@@ -12,9 +12,9 @@ namespace TimekeeperWPF
         {
         }
         public override string Name => "Fake " + base.Name;
-        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
         {
-            //await Task.Delay(3000);
+            await System.Threading.Tasks.Task.Delay(0);
             //throw new Exception("testing get data error");
             Context = new FakeTimeKeeperContext();
             NoteTypesCollection = new CollectionViewSource();

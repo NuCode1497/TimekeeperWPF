@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF
@@ -16,8 +15,9 @@ namespace TimekeeperWPF
 
         }
         public override string Name => "Fake " + base.Name;
-        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
         {
+            await System.Threading.Tasks.Task.Delay(0);
             Context = new FakeTimeKeeperContext();
             return Context.Notes.Local;
         }

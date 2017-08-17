@@ -18,7 +18,6 @@ namespace TimekeeperWPF
         private DateTime _SelectedDateTime;
         private ICommand _NextMonthCommand;
         private ICommand _PrevMonthCommand;
-        private ICommand _SaveAsCommand;
         #endregion
         public MonthViewModel() : base()
         {

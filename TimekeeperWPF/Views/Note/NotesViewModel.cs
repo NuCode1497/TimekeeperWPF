@@ -6,7 +6,6 @@ using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -34,9 +33,9 @@ namespace TimekeeperWPF
         #region Commands
         #endregion
         #region Actions
-        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
         {
-            //await Task.Delay(2000);
+            //await System.Threading.Tasks.Task.Delay(2000);
             Context = new TimeKeeperContext();
             NoteTypesCollection = new CollectionViewSource();
             await Context.Notes.LoadAsync();
@@ -49,7 +48,7 @@ namespace TimekeeperWPF
         {
             DateTime selectedDate = DateTime.Today;
             var selection = from n in Source
-                            where n.DateTime.Date == selectedDate.Date && n.Type != "Test"
+                            where n.DateTime.Date == selectedDate.Date && n.TaskType.Name != "Test"
                             orderby n.DateTime
                             select n;
 
@@ -64,7 +63,7 @@ namespace TimekeeperWPF
             text += "------------------------------------------------------------------\n";
             foreach (var n in selection)
             {
-                text += String.Format("{0,12} | {1,-7} | ", n.DateTime.ToLongTimeString(), n.Type);
+                text += String.Format("{0,12} | {1,-7} | ", n.DateTime.ToLongTimeString(), n.TaskType.Name);
                 var charCount = 0;
                 var lineLength = 51;
                 var words = n.Text.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -99,7 +98,7 @@ namespace TimekeeperWPF
         private void PreSelectNoteType()
         {
             NoteTypesView?.MoveCurrentTo(NoteTypesSource.DefaultIfEmpty(NoteTypesSource[0])
-                .First(t => t.Name == CurrentEditItem?.Type));
+                .First(t => t.Name == CurrentEditItem?.TaskType.Name));
         }
         #endregion
     }

@@ -13,7 +13,7 @@ namespace TimekeeperDAL.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201708040446328_InitialCreate"; }
+            get { return "201708170355231_InitialCreate"; }
         }
         
         string IMigrationMetadata.Source
