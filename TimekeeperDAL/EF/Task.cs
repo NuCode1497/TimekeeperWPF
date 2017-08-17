@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,9 +12,6 @@ namespace TimekeeperDAL.EF
         public string Name { get; set; }
 
         [Required]
-        public int TaskTypeId { get; set; }
-
-        [ForeignKey("TaskTypeId")]
         public virtual TaskType TaskType { get; set; }
 
         [Column(TypeName = "datetime2")]
@@ -55,6 +49,10 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
-        public ICollection<Label> Labels { get; set; }
+        public virtual ICollection<Label> Labels { get; set; }
+
+        public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
+
+        public virtual ICollection<TimePattern> ExcludedPatterns { get; set; }
     }
 }

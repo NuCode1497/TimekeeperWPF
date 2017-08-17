@@ -16,12 +16,7 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(Id):
-                        break;
                     case nameof(DateTime):
-                        //Add Validation code here
-                        //hasError = CheckHolidays();
-                        //if (!hasError) ClearErrors(nameof(DateTime));
                         errors = GetErrorsFromAnnotations(nameof(DateTime), DateTime);
                         break;
                     case nameof(Text):
