@@ -63,7 +63,6 @@ namespace TimekeeperWPF
             }
             set
             {
-                //Selecting something else is allowed while editing, however the CurrentEditItem will not change
                 //Item must not be itself and must be in Source
                 if ((value == _SelectedItem) || (value != null && (!Source?.Contains(value) ?? false))) return;
                 _SelectedItem = value;
@@ -193,14 +192,14 @@ namespace TimekeeperWPF
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         #endregion
         #region Predicates
-        private bool CanGetData => IsNotLoading && IsNotEditingItemOrAddingNew;
-        private bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
-        private bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
-        private bool CanCommit => IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
-        private bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
-        private bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
-        private bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
-        protected abstract bool CanSave { get; }
+        protected virtual bool CanGetData => IsNotLoading && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
+        protected virtual bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
+        protected virtual bool CanCommit => IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
+        protected virtual bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
+        protected virtual bool CanSave => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
         #endregion
         #region Actions
         protected abstract Task<ObservableCollection<ModelType>> GetDataAsync();

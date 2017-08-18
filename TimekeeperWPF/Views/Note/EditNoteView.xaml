@@ -20,28 +20,20 @@
         <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time"/>
         <TextBox Grid.Column="1" Grid.Row="0" Margin="2" Height="26" 
                  VerticalContentAlignment="Center" 
-                 Text="{Binding Path=DateTime, ValidatesOnDataErrors=True, 
+                 Text="{Binding Path=CurrentEditItem.DateTime, ValidatesOnDataErrors=True, 
             ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         <Label Grid.Column="0" Grid.Row="1" Content="Note"/>
         <TextBox Grid.Column="1" Grid.Row="1" Margin="2" MinHeight="26"
                  TextWrapping="Wrap"
-                 Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
+                 Text="{Binding Path=CurrentEditItem.Text, ValidatesOnDataErrors=True, 
             ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" MaxLines="2" MaxLength="160" />
         <Label Grid.Column="0" Grid.Row="2" Content="Task Type"/>
-        <ComboBox Grid.Column="1" Grid.Row="2" 
+        <ComboBox Grid.Column="1" Grid.Row="2" Width="130" HorizontalAlignment="Left"
                   DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True"
-                  SelectedItem="{Binding Path=TaskType, Mode=TwoWay}"
-                  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type Grid}, AncestorLevel=2}, Path=DataContext.NoteTypesView}" />
+                  SelectedItem="{Binding Path=CurrentEditItem.TaskType, Mode=TwoWay}"
+                  ItemsSource="{Binding Path=NoteTypesView}" />
         <Label Grid.Column="0" Grid.Row="3" Content="Labels"/>
-        <StackPanel Grid.Column="1" Grid.Row="3" x:Name="LabelsStackPanel" Orientation="Horizontal">
-            <ItemsControl ItemsSource="{Binding Path=Labels}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <local:LabelView/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
+        <local:EditLabelsView Grid.Column="1" Grid.Row="3"/>
     </Grid>
 </UserControl>

@@ -58,8 +58,7 @@
         </DataGrid>
         <ContentControl Grid.Row="0" Grid.RowSpan="2" Template="{StaticResource EditPopUpTemplate}" x:Name="NotesViewEditPopUp" IsTabStop="False">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView x:Name="DataEditor" Margin="1"
-                                    DataContext="{Binding Path=CurrentEditItem}"/>
+                <local:EditNoteView x:Name="DataEditor" Margin="1"/>
             </ScrollViewer>
         </ContentControl>
         <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>

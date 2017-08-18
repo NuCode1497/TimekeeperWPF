@@ -76,6 +76,9 @@
     <Compile Include="BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Label\EditLabelsView.xaml.cs">
+      <DependentUpon>EditLabelsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\Extensions.cs" />
     <Compile Include="Views\Calendar\MonthDayView.xaml.cs">
       <DependentUpon>MonthDayView.xaml</DependentUpon>
@@ -98,7 +101,7 @@
       <DependentUpon>EditNoteView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Note\FakeNotesViewModel.cs" />
-    <Compile Include="Views\Note\LabelView.xaml.cs">
+    <Compile Include="Views\Label\LabelView.xaml.cs">
       <DependentUpon>LabelView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Note\NoteDateTimeSorter.cs" />
@@ -110,6 +113,10 @@
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
     <Page Include="BindingsExample.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Label\EditLabelsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -141,7 +148,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Note\LabelView.xaml">
+    <Page Include="Views\Label\LabelView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -177,8 +184,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\Label\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

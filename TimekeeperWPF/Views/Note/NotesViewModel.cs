@@ -10,12 +10,17 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using TimekeeperDAL.EF;
+using TimekeeperWPF.Tools;
+
 namespace TimekeeperWPF
 {
     public class NotesViewModel : ViewModel<Note>
     {
         #region Fields
-        private ICommand _DeleteLabelCommand;
+        private bool _HasSelectedLabel = false;
+        private Label _SelectedLabel;
+        private ICommand _DeleteLabelFromNoteCommand;
+        private ICommand _AddLabelToNoteCommand;
         #endregion
         public NotesViewModel() : base()
         {
@@ -25,34 +30,89 @@ namespace TimekeeperWPF
         #region Properties
         public override string Name => nameof(Context.Notes);
         public CollectionViewSource NoteTypesCollection { get; set; }
+        public CollectionViewSource LabelsCollection { get; set; }
         public ObservableCollection<TaskType> NoteTypesSource => NoteTypesCollection?.Source as ObservableCollection<TaskType>;
+        public ObservableCollection<Label> LabelsSource => LabelsCollection?.Source as ObservableCollection<Label>;
         public ListCollectionView NoteTypesView => NoteTypesCollection?.View as ListCollectionView;
+        public ListCollectionView LabelsView => LabelsCollection?.View as ListCollectionView;
+        public Label SelectedLabel
+        {
+            get
+            {
+                return _SelectedLabel;
+            }
+            set
+            {
+                //Label must not be itself and must be in LabelsSource
+                if ((value == _SelectedLabel) || (value != null && (!LabelsSource?.Contains(value) ?? false))) return;
+                _SelectedLabel = value;
+                if (SelectedLabel == null)
+                {
+                    HasSelectedLabel = false;
+                }
+                else
+                {
+                    HasSelectedLabel = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        #endregion
+        #region Conditions
+        public bool HasSelectedLabel
+        {
+            get
+            {
+                return _HasSelectedLabel;
+            }
+            protected set
+            {
+                _HasSelectedLabel = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasNotSelectedLabel));
+            }
+        }
+        public bool HasNotSelectedLabel => !HasSelectedLabel;
         #endregion
         #region Predicates
         private bool CanDeleteLabel(object o)
         {
             return o is Label;
         }
-        protected override bool CanSave => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
+        private bool CanAddLabel => HasSelectedLabel;
         #endregion
         #region Commands
-        public ICommand DeleteLabelCommand => _DeleteLabelCommand
-            ?? (_DeleteLabelCommand = new RelayCommand(ap => DeleteLabel(ap as Label), pp => CanDeleteLabel(pp)));
+        public ICommand DeleteLabelFromNoteCommand => _DeleteLabelFromNoteCommand
+            ?? (_DeleteLabelFromNoteCommand = new RelayCommand(ap => DeleteLabel(ap as Label), pp => CanDeleteLabel(pp)));
+        public ICommand AddLabelToNoteCommand => _AddLabelToNoteCommand
+            ?? (_AddLabelToNoteCommand = new RelayCommand(ap => AddLabel(), pp => CanAddLabel));
         #endregion
         #region Actions
+        private void AddLabel()
+        {
+            //add label to current note label list
+            //update filter to not show this item in label list
+            OnPropertyChanged(nameof(LabelsView));
+        }
         private void DeleteLabel(Label ap)
         {
-
+            //remove label from current note label list
+            //update filter to show this item in label list
+            OnPropertyChanged(nameof(LabelsView));
         }
         protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
         {
             //await System.Threading.Tasks.Task.Delay(2000);
             Context = new TimeKeeperContext();
             NoteTypesCollection = new CollectionViewSource();
+            LabelsCollection = new CollectionViewSource();
             await Context.Notes.LoadAsync();
             await Context.TaskTypes.LoadAsync();
+            await Context.Labels.LoadAsync();
             NoteTypesCollection.Source = Context.TaskTypes.Local;
+            LabelsCollection.Source = Context.Labels.Local;
             OnPropertyChanged(nameof(NoteTypesView));
+            OnPropertyChanged(nameof(LabelsView));
             return Context.Notes.Local;
         }
         protected override void SaveAs()
@@ -100,9 +160,11 @@ namespace TimekeeperWPF
         {
             base.EditSelected();
             PreSelectNoteType();
+            //create filter on labelscollection that excludes CurrentEditItem.Labels
         }
         protected override void AddNew()
         {
+            //clear labels filter
             base.AddNew();
             CurrentEditItem.DateTime = DateTime.Now;
             CurrentEditItem.Text = "Your text here.";
@@ -112,6 +174,8 @@ namespace TimekeeperWPF
                  select t).DefaultIfEmpty(NoteTypesSource[0]).First();
             PreSelectNoteType();
         }
+        #endregion
+        #region Functions
         private void PreSelectNoteType()
         {
             NoteTypesView.MoveCurrentTo(
