@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
@@ -12,18 +13,28 @@ namespace TimekeeperDAL.EF
         [Required]
         public long Duration { get; set; }
 
+        public int ForX { get; set; }
+
+        public int ForNth { get; set; }
+
+        public long ForSkipDuration { get; set; }
+
+        #region Navigation.
+        public virtual TimePoint ForTimePoint { get; set; }
+
         public virtual TimePattern Child { get; set; }
 
         public virtual ICollection<Allocation> Allocations { get; set; }
 
         public virtual ICollection<Label> Labels { get; set; }
 
-        public int ForX { get; set; }
+        [InverseProperty("IncludedPatterns")]
+        public virtual ICollection<TimeTask> Inclusions { get; set; }
 
-        public virtual TimePoint ForTimePoint { get; set; }
+        [InverseProperty("ExcludedPatterns")]
+        public virtual ICollection<TimeTask> Exclusions { get; set; }
 
-        public int ForNth { get; set; }
+        #endregion
 
-        public long ForSkipDuration { get; set; }
     }
 }

@@ -11,9 +11,6 @@ namespace TimekeeperDAL.EF
         [StringLength(50)]
         public string Name { get; set; }
 
-        [Required]
-        public virtual TaskType TaskType { get; set; }
-
         [Column(TypeName = "datetime2")]
         public DateTime Start { get; set; }
 
@@ -49,10 +46,19 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
+        #region Navigation
+
+        [Required]
+        public virtual TaskType TaskType { get; set; }
+
         public virtual ICollection<Label> Labels { get; set; }
 
+        [InverseProperty("Inclusions")]
         public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
 
+        [InverseProperty("Exclusions")]
         public virtual ICollection<TimePattern> ExcludedPatterns { get; set; }
+
+        #endregion
     }
 }

@@ -116,5 +116,54 @@
                 </Border>
             </Grid>
         </ControlTemplate>
+        <Style x:Key="LabelDeleteButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="13"/>
+            <Setter Property="Height" Value="13"/>
+            <Setter Property="Content" Value="X"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid x:Name="controlLayout">
+                            <Ellipse x:Name="buttonSurface">
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="Red" Offset="0.432"/>
+                                        <GradientStop Color="Black" Offset="0.932"/>
+                                        <GradientStop Color="DarkRed" Offset="0.911"/>
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <Label x:Name="buttonCaption" Width="20" Height="20"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Wheat"
+                                   FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="8" 
+                                   Content="{TemplateBinding Content}" Margin="0,-2,-3,0"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="buttonSurface" Property="Fill" Value="Cyan"/>
+                                <Setter TargetName="buttonCaption" Property="Foreground" Value="Black"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="controlLayout" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                                <Setter TargetName="controlLayout" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="buttonSurface" Property="Fill">
+                                    <Setter.Value>
+                                        <RadialGradientBrush>
+                                            <GradientStop Color="MediumVioletRed" Offset="0.432"/>
+                                            <GradientStop Color="Black" Offset="0.932"/>
+                                            <GradientStop Color="PaleVioletRed" Offset="0.911"/>
+                                        </RadialGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

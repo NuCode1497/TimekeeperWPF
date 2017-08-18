@@ -73,6 +73,7 @@ namespace TimekeeperDAL.EF
         // We aren't using IDataErrorInfo for validation, therefore we should always return string.Empty. 
         // We are using IDataErrorInfo to make sure validation code leveraged by INotifyDataErrorInfo gets 
         // called every time PropertyChanged is raised.
+        [NotMapped]
         public abstract string this[string columnName] { get; }
 
         protected void ClearErrors(string propertyName = "")
@@ -137,44 +138,54 @@ namespace TimekeeperDAL.EF
         #endregion
 
         #region IEditableObject
-        private EntityBase ShadowClone;
+        //These functions are used in a collection that implements IEditableObject for change tracking.
+        //For example, a CollectionView wrapper on the entity collection.
+        private object ShadowClone;
         private bool _isEditing = false;
         public void BeginEdit()
         {
             if(!_isEditing)
             {
-                //Kage Bunshin no Jutsu
-                ShadowClone = MemberwiseClone() as EntityBase;
                 _isEditing = true;
+                //Kage Bunshin no Jutsu
+                //Create an object that looks like this object by copying mapped public properties
+                ShadowClone = Activator.CreateInstance(GetType());
+                CopyMappedProperties(this, ShadowClone);
             }
         }
         public void EndEdit()
         {
             if(_isEditing)
             {
-                //Kage Bunshin Release
-                ShadowClone = null;
-                _isEditing = false;
+                ShadowCloneRelease();
             }
         }
         public void CancelEdit()
         {
             if(_isEditing)
             {
-                var properties = from p in GetType().GetProperties() select p.Name;
-                foreach (var name in properties)
-                {
-                    PropertyInfo property = GetType().GetProperty(name);
-                    bool notMapped = property.GetCustomAttributes(typeof(NotMappedAttribute), false).Length > 0;
-                    if (name == "Item" || notMapped) continue;
-                    var experience = property.GetValue(ShadowClone);
-                    property.SetValue(this, experience);
-                }
-                //Kage Bunshin Release
-                ShadowClone = null;
-                _isEditing = false;
+                CopyMappedProperties(ShadowClone, this);
+                ShadowCloneRelease();
             }
             IsChanged = false;
+        }
+        private void CopyMappedProperties(object source, object target)
+        {
+            if (source.GetType() != target.GetType())
+                throw new ArgumentException("Objects must be the same type.");
+            //Get mapped public properties
+            var properties = from p in source.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                             where p.GetCustomAttributes(typeof(NotMappedAttribute), false).Length == 0
+                             select p;
+            foreach (var p in properties)
+            {
+                p.SetValue(target, p.GetValue(source));
+            }
+        }
+        private void ShadowCloneRelease()
+        {
+            ShadowClone = null;
+            _isEditing = false;
         }
         #endregion
     }

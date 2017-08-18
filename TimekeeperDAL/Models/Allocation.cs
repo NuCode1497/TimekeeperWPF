@@ -1,4 +1,6 @@
-﻿namespace TimekeeperDAL.EF
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace TimekeeperDAL.EF
 {
     public partial class Allocation : EntityBase
     {
@@ -7,6 +9,7 @@
             return minAmount + " - " + maxAmount + " of " + Resource.ToString();
         }
 
+        [NotMapped]
         public override string this[string columnName]
         {
             get

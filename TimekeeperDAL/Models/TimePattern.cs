@@ -15,6 +15,7 @@ namespace TimekeeperDAL.EF
             return Name;
         }
 
+        [NotMapped]
         public override string this[string columnName]
         {
             get

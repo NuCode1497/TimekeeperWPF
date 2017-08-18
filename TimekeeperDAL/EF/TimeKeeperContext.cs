@@ -20,6 +20,25 @@ namespace TimekeeperDAL.EF
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<TimeTask>()
+                .HasMany(task => task.IncludedPatterns)
+                .WithMany(pattern => pattern.Inclusions)
+                .Map(c =>
+                {
+                    c.ToTable("Includes");
+                    c.MapLeftKey("TimeTaskId");
+                    c.MapRightKey("TimePatternId");
+                });
+
+            modelBuilder.Entity<TimeTask>()
+                .HasMany(task => task.ExcludedPatterns)
+                .WithMany(pattern => pattern.Exclusions)
+                .Map(c =>
+                {
+                    c.ToTable("Excludes");
+                    c.MapLeftKey("TimeTaskId");
+                    c.MapRightKey("TimePatternId");
+                });
         }
     }
 }

@@ -74,7 +74,7 @@ namespace TimekeeperWPF
                 else
                 {
                     HasSelected = true;
-                    Status = SelectedItem.GetType().Name + " Selected";
+                    Status = SelectedItem.GetTypeName() + " Selected";
                 }
                 OnPropertyChanged();
             }
@@ -235,7 +235,7 @@ namespace TimekeeperWPF
         {
             CurrentEditItem = View.AddNew() as ModelType;
             IsAddingNew = true;
-            Status = "Adding new " + CurrentEditItem.GetType().Name;
+            Status = "Adding new " + CurrentEditItem.GetTypeName();
         }
         protected virtual void Cancel()
         {
@@ -256,20 +256,22 @@ namespace TimekeeperWPF
         {
             if (await SaveChangesAsync())
             {
+                string status = "";
                 if (IsAddingNew)
                 {
-                    Status = CurrentEditItem.GetType().Name + " Added";
+                    status = CurrentEditItem.GetTypeName() + " Added";
                     View.CommitNew();
                     CurrentEditItem = null;
                     IsAddingNew = false;
                 }
                 if (IsEditingItem)
                 {
-                    Status = CurrentEditItem.GetType().Name + " Modified";
+                    status = CurrentEditItem.GetTypeName() + " Modified";
                     View.CommitEdit();
                     CurrentEditItem = null;
                     IsEditingItem = false;
                 }
+                Status = status;
             }
             CommandManager.InvalidateRequerySuggested();
         }
@@ -330,13 +332,13 @@ namespace TimekeeperWPF
             CurrentEditItem = SelectedItem;
             View.EditItem(CurrentEditItem);
             IsEditingItem = true;
-            Status = "Editing " + CurrentEditItem.GetType().Name;
+            Status = "Editing " + CurrentEditItem.GetTypeName();
         }
         protected virtual async void DeleteSelected()
         {
-            Status = SelectedItem?.GetType().Name + " Deleted";
+            string status = SelectedItem?.GetTypeName() + " Deleted";
             View.Remove(SelectedItem);
-            await SaveChangesAsync();
+            if(await SaveChangesAsync()) Status = status;
             SelectedItem = null;
         }
         #endregion

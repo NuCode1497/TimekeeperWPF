@@ -10,10 +10,14 @@ namespace TimekeeperDAL.EF
         [Required]
         public long maxAmount { get; set; }
 
+        #region Navigation
+
         [Required]
         public virtual Resource Resource { get; set; }
 
         [Required]
         public TimePattern TimePattern { get; set; }
+
+        #endregion
     }
 }

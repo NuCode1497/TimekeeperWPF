@@ -14,9 +14,13 @@ namespace TimekeeperDAL.EF
         [StringLength(150)]
         public string Text { get; set; }
         
+        #region Navigation
+
         [Required]
         public virtual TaskType TaskType { get; set; }
 
         public virtual ICollection<Label> Labels { get; set; }
+
+        #endregion
     }
 }

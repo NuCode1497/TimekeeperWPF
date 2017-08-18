@@ -15,6 +15,7 @@ namespace TimekeeperWPF
     public class NotesViewModel : ViewModel<Note>
     {
         #region Fields
+        private ICommand _DeleteLabelCommand;
         #endregion
         public NotesViewModel() : base()
         {
@@ -28,11 +29,21 @@ namespace TimekeeperWPF
         public ListCollectionView NoteTypesView => NoteTypesCollection?.View as ListCollectionView;
         #endregion
         #region Predicates
+        private bool CanDeleteLabel(object o)
+        {
+            return o is Label;
+        }
         protected override bool CanSave => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
         #endregion
         #region Commands
+        public ICommand DeleteLabelCommand => _DeleteLabelCommand
+            ?? (_DeleteLabelCommand = new RelayCommand(ap => DeleteLabel(ap as Label), pp => CanDeleteLabel(pp)));
         #endregion
         #region Actions
+        private void DeleteLabel(Label ap)
+        {
+
+        }
         protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
         {
             //await System.Threading.Tasks.Task.Delay(2000);
@@ -48,7 +59,7 @@ namespace TimekeeperWPF
         {
             DateTime selectedDate = DateTime.Today;
             var selection = from n in Source
-                            where n.DateTime.Date == selectedDate.Date && n.TaskType.Name != "Test"
+                            where n.DateTime.Date == selectedDate.Date && n.TaskType.Name != "DBTest"
                             orderby n.DateTime
                             select n;
 
@@ -93,12 +104,20 @@ namespace TimekeeperWPF
         protected override void AddNew()
         {
             base.AddNew();
+            CurrentEditItem.DateTime = DateTime.Now;
+            CurrentEditItem.Text = "Your text here.";
+            CurrentEditItem.TaskType = 
+                (from t in NoteTypesSource
+                 where t.Name == "Note"
+                 select t).DefaultIfEmpty(NoteTypesSource[0]).First();
             PreSelectNoteType();
         }
         private void PreSelectNoteType()
         {
-            NoteTypesView?.MoveCurrentTo(NoteTypesSource.DefaultIfEmpty(NoteTypesSource[0])
-                .First(t => t.Name == CurrentEditItem?.TaskType.Name));
+            NoteTypesView.MoveCurrentTo(
+                (from t in NoteTypesSource
+                 where t.Name == CurrentEditItem?.TaskType.Name
+                 select t).DefaultIfEmpty(NoteTypesSource[0]).First());
         }
         #endregion
     }

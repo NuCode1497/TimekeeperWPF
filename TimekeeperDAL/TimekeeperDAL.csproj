@@ -62,9 +62,9 @@
     <Compile Include="EF\Label.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
-    <Compile Include="Migrations\201708170355231_InitialCreate.cs" />
-    <Compile Include="Migrations\201708170355231_InitialCreate.Designer.cs">
-      <DependentUpon>201708170355231_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\201708172004465_IntialCreate.cs" />
+    <Compile Include="Migrations\201708172004465_IntialCreate.Designer.cs">
+      <DependentUpon>201708172004465_IntialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Allocation.cs" />
@@ -99,8 +99,8 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201708170355231_InitialCreate.resx">
-      <DependentUpon>201708170355231_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201708172004465_IntialCreate.resx">
+      <DependentUpon>201708172004465_IntialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

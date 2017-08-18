@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
@@ -8,6 +9,8 @@ namespace TimekeeperDAL.EF
         {
             return DateTime.ToString() + " " + Text;
         }
+
+        [NotMapped]
         public override string this[string columnName]
         {
             get
