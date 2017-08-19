@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace TimekeeperWPF
 {
     /// <summary>
-    /// Interaction logic for EditLabelsView.xaml
+    /// Interaction logic for TaskTypesView.xaml
     /// </summary>
-    public partial class EditLabelsView : UserControl
+    public partial class TaskTypesView : UserControl
     {
-        public EditLabelsView()
+        public TaskTypesView()
         {
             InitializeComponent();
         }

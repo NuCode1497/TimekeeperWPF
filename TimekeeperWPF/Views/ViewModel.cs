@@ -332,8 +332,8 @@ namespace TimekeeperWPF
         protected virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
-            CurrentEditItem.IsEditing = true;
             View.EditItem(CurrentEditItem);
+            CurrentEditItem.IsEditing = true; //after view.edit
             IsEditingItem = true;
             Status = "Editing " + CurrentEditItem.GetTypeName();
         }

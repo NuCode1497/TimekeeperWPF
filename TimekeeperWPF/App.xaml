@@ -144,9 +144,9 @@
             </Grid>
         </ControlTemplate>
         <Style x:Key="LabelDeleteButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="13"/>
-            <Setter Property="Height" Value="13"/>
-            <Setter Property="Content" Value="X"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Content" Value="r"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -162,8 +162,17 @@
                             </Ellipse>
                             <Label x:Name="buttonCaption" Width="20" Height="20"
                                    VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="Wheat"
-                                   FontFamily="Comic Sans MS" FontWeight="Bold" FontSize="8" 
-                                   Content="{TemplateBinding Content}" Margin="0,-2,-3,0"/>
+                                   FontFamily="Webdings" FontWeight="Bold" FontSize="8" 
+                                   Content="{TemplateBinding Content}" RenderTransformOrigin="0.5,0.5">
+                                <Label.RenderTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform/>
+                                        <SkewTransform/>
+                                        <RotateTransform/>
+                                        <TranslateTransform X="0.5" Y="1"/>
+                                    </TransformGroup>
+                                </Label.RenderTransform>
+                            </Label>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -174,7 +183,7 @@
                                 <Setter TargetName="controlLayout" Property="RenderTransformOrigin" Value="0.5,0.5"/>
                                 <Setter TargetName="controlLayout" Property="RenderTransform">
                                     <Setter.Value>
-                                        <ScaleTransform ScaleX="1.1" ScaleY="1.1"/>
+                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
                                     </Setter.Value>
                                 </Setter>
                                 <Setter TargetName="buttonSurface" Property="Fill">

@@ -11,6 +11,20 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
+        public string LabelsToString
+        {
+            get
+            {
+                string s = "";
+                foreach(Label l in Labels)
+                {
+                    s += l.ToString() + ", ";
+                }
+                return s;
+            }
+        }
+
+        [NotMapped]
         public override string this[string columnName]
         {
             get

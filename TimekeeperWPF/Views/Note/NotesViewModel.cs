@@ -38,6 +38,7 @@ namespace TimekeeperWPF
         public CollectionViewSource CurrentNoteLabelsCollection { get; set; }
         public ObservableCollection<TaskType> NoteTypesSource => NoteTypesCollection?.Source as ObservableCollection<TaskType>;
         public ObservableCollection<Label> LabelsSource => LabelsCollection?.Source as ObservableCollection<Label>;
+        public ObservableCollection<Label> CurrentNoteLabelsSource => CurrentNoteLabelsCollection?.Source as ObservableCollection<Label>;
         public ListCollectionView NoteTypesView => NoteTypesCollection?.View as ListCollectionView;
         public ListCollectionView LabelsView => LabelsCollection?.View as ListCollectionView;
         public ListCollectionView CurrentNoteLabelsView => CurrentNoteLabelsCollection?.View as ListCollectionView;
@@ -99,13 +100,12 @@ namespace TimekeeperWPF
             CurrentNoteLabelsView.AddNewItem(SelectedLabel);
             CurrentNoteLabelsView.CommitNew();
             SelectedLabel = null;
-            OnPropertyChanged(nameof(CurrentNoteLabelsView));
-            OnPropertyChanged(nameof(LabelsView));
+            UpdateViews();
         }
         private void DeleteLabel(Label ap)
         {
             CurrentNoteLabelsView.Remove(ap);
-            OnPropertyChanged(nameof(LabelsView));
+            UpdateViews();
         }
         protected override async Task<ObservableCollection<Note>> GetDataAsync()
         {
@@ -128,7 +128,7 @@ namespace TimekeeperWPF
         {
             DateTime selectedDate = DateTime.Today;
             var selection = from n in Source
-                            where n.DateTime.Date == selectedDate.Date && n.TaskType.Name != "DBTest"
+                            where n.DateTime.Date == selectedDate.AddDays(-1).Date && n.TaskType.Name != "DBTest"
                             orderby n.DateTime
                             select n;
 
@@ -188,12 +188,18 @@ namespace TimekeeperWPF
                  where t.Name == CurrentEditItem?.TaskType.Name
                  select t).DefaultIfEmpty(NoteTypesSource[0]).First());
             CurrentNoteLabelsCollection = new CollectionViewSource();
-            CurrentNoteLabelsCollection.Source = CurrentEditItem.Labels.ToList();
+            CurrentNoteLabelsCollection.Source = new ObservableCollection<Label>(CurrentEditItem.Labels);
+            UpdateViews();
+        }
+        private void UpdateViews()
+        {
             LabelsView.Filter = L => CurrentNoteLabelsView.Contains(L) == false;
+            OnPropertyChanged(nameof(CurrentNoteLabelsView));
+            OnPropertyChanged(nameof(LabelsView));
         }
         protected override void Commit()
         {
-            //CurrentEditItem.Labels = new HashSet<Label>(sdfsdfsdf);
+            CurrentEditItem.Labels = new HashSet<Label>(CurrentNoteLabelsSource);
             base.Commit();
         }
         protected override void EndEdit()

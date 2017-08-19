@@ -12,7 +12,7 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<Allocation> Allocations { get; set; }
         public virtual IDbSet<Label> Labels { get; set; }
         public virtual IDbSet<Note> Notes { get; set; }
-        public virtual IDbSet<Resource> Resource { get; set; }
+        public virtual IDbSet<Resource> Resources { get; set; }
         public virtual IDbSet<TimeTask> Tasks { get; set; }
         public virtual IDbSet<TaskType> TaskTypes { get; set; }
         public virtual IDbSet<TimePattern> TimePatterns { get; set; }

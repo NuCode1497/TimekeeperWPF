@@ -15,7 +15,7 @@ namespace TimekeeperDAL.EF
         IDbSet<Allocation> Allocations { get; set; }
         IDbSet<Label> Labels { get; set; }
         IDbSet<Note> Notes { get; set; }
-        IDbSet<Resource> Resource { get; set; }
+        IDbSet<Resource> Resources { get; set; }
         IDbSet<TimeTask> Tasks { get; set; }
         IDbSet<TaskType> TaskTypes { get; set; }
         IDbSet<TimePattern> TimePatterns { get; set; }

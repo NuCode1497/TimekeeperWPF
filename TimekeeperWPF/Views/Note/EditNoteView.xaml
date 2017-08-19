@@ -33,6 +33,6 @@
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding Path=CurrentEditItem.TaskType, Mode=TwoWay}"
                   ItemsSource="{Binding Path=NoteTypesView}" />
-        <local:EditLabelsView Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3"/>
+        <local:LabelSelectorView Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3"/>
     </Grid>
 </UserControl>
