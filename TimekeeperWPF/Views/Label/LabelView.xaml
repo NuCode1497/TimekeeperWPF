@@ -5,13 +5,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" d:DesignWidth="100">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
-        <Label Grid.Column="0" Content="{Binding Path=Name}"/>
-        <Button Grid.Column="1" Name="DeleteButton" Style="{StaticResource LabelDeleteButtonStyle}" 
-                Command="{Binding Path=DeleteLabelCommand}"/>
-    </Grid>
+    <Border Margin="2" CornerRadius="4" BorderThickness="1" Background="Wheat" BorderBrush="DarkSlateGray">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="2"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="1" Content="{Binding Path=Name}" Foreground="Black" FontWeight="Bold" FontFamily="Comic Sans MS"/>
+            <Button Grid.Column="2" Name="DeleteButton" Style="{StaticResource LabelDeleteButtonStyle}" 
+                CommandParameter="{Binding}"
+                Command="{Binding Path=DeleteLabelFromNoteCommand, RelativeSource={RelativeSource AncestorType={x:Type Grid}, AncestorLevel=2}}"/>
+        </Grid>
+    </Border>
 </UserControl>

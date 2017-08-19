@@ -7,6 +7,12 @@ namespace TimekeeperDAL.EF
 {
     public partial class TimeTask
     {
+        public TimeTask()
+        {
+            Labels = new HashSet<Label>();
+            IncludedPatterns = new HashSet<TimePattern>();
+            ExcludedPatterns = new HashSet<TimePattern>();
+        }
         [Required]
         [StringLength(50)]
         public string Name { get; set; }

@@ -1,11 +1,13 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -17,6 +19,7 @@ namespace TimekeeperWPF
     public class NotesViewModel : ViewModel<Note>
     {
         #region Fields
+        private IComparer BasicSorter;
         private bool _HasSelectedLabel = false;
         private Label _SelectedLabel;
         private ICommand _DeleteLabelFromNoteCommand;
@@ -24,17 +27,20 @@ namespace TimekeeperWPF
         #endregion
         public NotesViewModel() : base()
         {
-            Sorter = new DateTimeSorter();
+            Sorter = new NoteDateTimeSorter();
+            BasicSorter = new BasicEntitySorter();
             LoadData();
         }
         #region Properties
-        public override string Name => nameof(Context.Notes);
+        public override string Name => nameof(Context.Notes) + " Editor";
         public CollectionViewSource NoteTypesCollection { get; set; }
         public CollectionViewSource LabelsCollection { get; set; }
+        public CollectionViewSource CurrentNoteLabelsCollection { get; set; }
         public ObservableCollection<TaskType> NoteTypesSource => NoteTypesCollection?.Source as ObservableCollection<TaskType>;
         public ObservableCollection<Label> LabelsSource => LabelsCollection?.Source as ObservableCollection<Label>;
         public ListCollectionView NoteTypesView => NoteTypesCollection?.View as ListCollectionView;
         public ListCollectionView LabelsView => LabelsCollection?.View as ListCollectionView;
+        public ListCollectionView CurrentNoteLabelsView => CurrentNoteLabelsCollection?.View as ListCollectionView;
         public Label SelectedLabel
         {
             get
@@ -90,17 +96,18 @@ namespace TimekeeperWPF
         #region Actions
         private void AddLabel()
         {
-            //add label to current note label list
-            //update filter to not show this item in label list
+            CurrentNoteLabelsView.AddNewItem(SelectedLabel);
+            CurrentNoteLabelsView.CommitNew();
+            SelectedLabel = null;
+            OnPropertyChanged(nameof(CurrentNoteLabelsView));
             OnPropertyChanged(nameof(LabelsView));
         }
         private void DeleteLabel(Label ap)
         {
-            //remove label from current note label list
-            //update filter to show this item in label list
+            CurrentNoteLabelsView.Remove(ap);
             OnPropertyChanged(nameof(LabelsView));
         }
-        protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async Task<ObservableCollection<Note>> GetDataAsync()
         {
             //await System.Threading.Tasks.Task.Delay(2000);
             Context = new TimeKeeperContext();
@@ -111,6 +118,8 @@ namespace TimekeeperWPF
             await Context.Labels.LoadAsync();
             NoteTypesCollection.Source = Context.TaskTypes.Local;
             LabelsCollection.Source = Context.Labels.Local;
+            NoteTypesView.CustomSort = BasicSorter;
+            LabelsView.CustomSort = BasicSorter;
             OnPropertyChanged(nameof(NoteTypesView));
             OnPropertyChanged(nameof(LabelsView));
             return Context.Notes.Local;
@@ -159,12 +168,10 @@ namespace TimekeeperWPF
         protected override void EditSelected()
         {
             base.EditSelected();
-            PreSelectNoteType();
-            //create filter on labelscollection that excludes CurrentEditItem.Labels
+            PrepareViews();
         }
         protected override void AddNew()
         {
-            //clear labels filter
             base.AddNew();
             CurrentEditItem.DateTime = DateTime.Now;
             CurrentEditItem.Text = "Your text here.";
@@ -172,16 +179,27 @@ namespace TimekeeperWPF
                 (from t in NoteTypesSource
                  where t.Name == "Note"
                  select t).DefaultIfEmpty(NoteTypesSource[0]).First();
-            PreSelectNoteType();
+            PrepareViews();
         }
-        #endregion
-        #region Functions
-        private void PreSelectNoteType()
+        private void PrepareViews()
         {
             NoteTypesView.MoveCurrentTo(
                 (from t in NoteTypesSource
                  where t.Name == CurrentEditItem?.TaskType.Name
                  select t).DefaultIfEmpty(NoteTypesSource[0]).First());
+            CurrentNoteLabelsCollection = new CollectionViewSource();
+            CurrentNoteLabelsCollection.Source = CurrentEditItem.Labels.ToList();
+            LabelsView.Filter = L => CurrentNoteLabelsView.Contains(L) == false;
+        }
+        protected override void Commit()
+        {
+            //CurrentEditItem.Labels = new HashSet<Label>(sdfsdfsdf);
+            base.Commit();
+        }
+        protected override void EndEdit()
+        {
+            base.EndEdit();
+            CurrentNoteLabelsCollection.Source = null;
         }
         #endregion
     }

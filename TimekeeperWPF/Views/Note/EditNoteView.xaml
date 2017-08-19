@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" d:DesignWidth="300">
+             mc:Ignorable="d" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,26 +14,25 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="80"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time"/>
-        <TextBox Grid.Column="1" Grid.Row="0" Margin="2" Height="26" 
+        <TextBox Grid.Column="1" Grid.Row="0" Width="200" HorizontalAlignment="Left"
                  VerticalContentAlignment="Center" 
                  Text="{Binding Path=CurrentEditItem.DateTime, ValidatesOnDataErrors=True, 
             ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         <Label Grid.Column="0" Grid.Row="1" Content="Note"/>
-        <TextBox Grid.Column="1" Grid.Row="1" Margin="2" MinHeight="26"
-                 TextWrapping="Wrap"
+        <TextBox Grid.Column="1" Grid.Row="1" Width="200" HorizontalAlignment="Left"
+                 TextWrapping="Wrap" MaxLength="160"
                  Text="{Binding Path=CurrentEditItem.Text, ValidatesOnDataErrors=True, 
-            ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" MaxLines="2" MaxLength="160" />
-        <Label Grid.Column="0" Grid.Row="2" Content="Task Type"/>
-        <ComboBox Grid.Column="1" Grid.Row="2" Width="130" HorizontalAlignment="Left"
+            ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        <Label Grid.Column="0" Grid.Row="2" Content="Task Type" />
+        <ComboBox Grid.Column="1" Grid.Row="2" Width="100" HorizontalAlignment="Left"
                   DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding Path=CurrentEditItem.TaskType, Mode=TwoWay}"
                   ItemsSource="{Binding Path=NoteTypesView}" />
-        <Label Grid.Column="0" Grid.Row="3" Content="Labels"/>
-        <local:EditLabelsView Grid.Column="1" Grid.Row="3"/>
+        <local:EditLabelsView Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3"/>
     </Grid>
 </UserControl>

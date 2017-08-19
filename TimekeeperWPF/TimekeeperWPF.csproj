@@ -76,6 +76,7 @@
     <Compile Include="BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\BasicEntitySorter.cs" />
     <Compile Include="Views\Label\EditLabelsView.xaml.cs">
       <DependentUpon>EditLabelsView.xaml</DependentUpon>
     </Compile>

@@ -141,12 +141,13 @@ namespace TimekeeperDAL.EF
         //These functions are used in a collection that implements IEditableObject for change tracking.
         //For example, a CollectionView wrapper on the entity collection.
         private object ShadowClone;
-        private bool _isEditing = false;
+        //Setting this flag from the VM because only the VM should handle change tracking. Not DataGrids.
+        [NotMapped]
+        public bool IsEditing { get; set; } = false;
         public void BeginEdit()
         {
-            if(!_isEditing)
+            if(!IsEditing)
             {
-                _isEditing = true;
                 //Kage Bunshin no Jutsu
                 //Create an object that looks like this object by copying mapped public properties
                 ShadowClone = Activator.CreateInstance(GetType());
@@ -155,17 +156,17 @@ namespace TimekeeperDAL.EF
         }
         public void EndEdit()
         {
-            if(_isEditing)
+            if(IsEditing)
             {
-                ShadowCloneRelease();
+                ShadowClone = null;
             }
         }
         public void CancelEdit()
         {
-            if(_isEditing)
+            if(IsEditing)
             {
                 CopyMappedProperties(ShadowClone, this);
-                ShadowCloneRelease();
+                ShadowClone = null;
             }
             IsChanged = false;
         }
@@ -181,11 +182,6 @@ namespace TimekeeperDAL.EF
             {
                 p.SetValue(target, p.GetValue(source));
             }
-        }
-        private void ShadowCloneRelease()
-        {
-            ShadowClone = null;
-            _isEditing = false;
         }
         #endregion
     }

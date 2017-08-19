@@ -3,13 +3,13 @@ using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF
 {
-    public class DateTimeSorter : IComparer
+    public class NoteDateTimeSorter : IComparer
     {
         public int Compare(object x, object y)
         {
             Note noteX = x as Note;
             Note noteY = y as Note;
-            return noteX.DateTime.CompareTo(noteY.DateTime);
+            return noteY.DateTime.CompareTo(noteX.DateTime);
         }
     }
 }

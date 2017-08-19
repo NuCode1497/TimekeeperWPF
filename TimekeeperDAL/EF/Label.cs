@@ -4,6 +4,12 @@ namespace TimekeeperDAL.EF
 {
     public partial class Label
     {
+        public Label()
+        {
+            Notes = new HashSet<Note>();
+            Tasks = new HashSet<TimeTask>();
+            Patterns = new HashSet<TimePattern>();
+        }
         #region Navigation
 
         public virtual ICollection<Note> Notes { get; set; }

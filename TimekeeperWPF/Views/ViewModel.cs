@@ -192,7 +192,7 @@ namespace TimekeeperWPF
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         #endregion
         #region Predicates
-        protected virtual bool CanGetData => IsNotLoading && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanGetData => IsNotLoading;
         protected virtual bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
         protected virtual bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
         protected virtual bool CanCommit => IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
@@ -241,37 +241,40 @@ namespace TimekeeperWPF
             if(IsEditingItem)
             {
                 View?.CancelEdit();
-                IsEditingItem = false;
+                EndEdit();
+                Status = "Cancelled";
             }
-            if(IsAddingNew)
+            else if(IsAddingNew)
             {
                 View?.CancelNew();
-                IsAddingNew = false;
+                EndEdit();
+                Status = "Cancelled";
             }
+        }
+        protected virtual void EndEdit()
+        {
+            IsEditingItem = false;
+            IsAddingNew = false;
+            CurrentEditItem.IsEditing = false;
             CurrentEditItem = null;
-            Status = "Cancelled";
         }
         protected virtual async void Commit()
         {
             if (await SaveChangesAsync())
             {
-                string status = "";
                 if (IsAddingNew)
                 {
-                    status = CurrentEditItem.GetTypeName() + " Added";
+                    Status = CurrentEditItem.GetTypeName() + " Added";
                     View.CommitNew();
-                    CurrentEditItem = null;
-                    IsAddingNew = false;
                 }
-                if (IsEditingItem)
+                else if (IsEditingItem)
                 {
-                    status = CurrentEditItem.GetTypeName() + " Modified";
+                    Status = CurrentEditItem.GetTypeName() + " Modified";
                     View.CommitEdit();
-                    CurrentEditItem = null;
-                    IsEditingItem = false;
                 }
-                Status = status;
+                EndEdit();
             }
+            //Refresh all of the buttons
             CommandManager.InvalidateRequerySuggested();
         }
         protected virtual async Task<bool> SaveChangesAsync()
@@ -329,6 +332,7 @@ namespace TimekeeperWPF
         protected virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
+            CurrentEditItem.IsEditing = true;
             View.EditItem(CurrentEditItem);
             IsEditingItem = true;
             Status = "Editing " + CurrentEditItem.GetTypeName();

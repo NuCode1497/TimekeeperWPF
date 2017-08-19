@@ -7,6 +7,10 @@ namespace TimekeeperDAL.EF
 {
    public partial class Note
     {
+        public Note()
+        {
+            Labels = new HashSet<Label>();
+        }
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
 

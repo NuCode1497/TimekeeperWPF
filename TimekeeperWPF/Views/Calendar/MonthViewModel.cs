@@ -22,7 +22,7 @@ namespace TimekeeperWPF
         public MonthViewModel() : base()
         {
             _SelectedDateTime = DateTime.Now;
-            Sorter = new DateTimeSorter();
+            Sorter = new NoteDateTimeSorter();
             LoadData();
             BuildMonth();
         }
