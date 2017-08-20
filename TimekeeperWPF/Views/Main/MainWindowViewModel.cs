@@ -21,6 +21,10 @@ namespace TimekeeperWPF
                 return;
             }
             Views.Add(new NotesViewModel());
+            Views.Add(new LabelsViewModel());
+            Views.Add(new ResourcesViewModel());
+            Views.Add(new TaskTypesViewModel());
+            Views.Add(new TimePointsViewModel());
             Views.Add(new MonthViewModel());
             CurrentView = Views[0];
         }

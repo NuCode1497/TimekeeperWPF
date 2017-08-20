@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace TimekeeperWPF
 {
     /// <summary>
-    /// Interaction logic for TimePatternView.xaml
+    /// Interaction logic for TimePatternsView.xaml
     /// </summary>
-    public partial class TimePatternView : UserControl
+    public partial class TimePatternsView : UserControl
     {
-        public TimePatternView()
+        public TimePatternsView()
         {
             InitializeComponent();
         }

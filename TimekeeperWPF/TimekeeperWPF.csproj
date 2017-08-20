@@ -73,28 +73,25 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\BasicEntitiesView.xaml.cs">
+      <DependentUpon>BasicEntitiesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\TimePattern\TimePatternView.xaml.cs">
-      <DependentUpon>TimePatternView.xaml</DependentUpon>
+    <Compile Include="Views\TimePattern\TimePatternsView.xaml.cs">
+      <DependentUpon>TimePatternsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\TimePattern\TimePatternViewModel.cs" />
-    <Compile Include="Views\TimeTask\TimeTaskViewModel.cs" />
-    <Compile Include="Views\Label\LabelsView.xaml.cs">
-      <DependentUpon>LabelsView.xaml</DependentUpon>
+    <Compile Include="Views\TimePattern\EditTimePatternView.xaml.cs">
+      <DependentUpon>EditTimePatternView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Resource\ResourcesView.xaml.cs">
-      <DependentUpon>ResourcesView.xaml</DependentUpon>
+    <Compile Include="Views\TimeTask\EditTimeTaskView.xaml.cs">
+      <DependentUpon>EditTimeTaskView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\TimePattern\TimePatternsViewModel.cs" />
+    <Compile Include="Views\TimeTask\TimeTasksViewModel.cs" />
     <Compile Include="Views\Resource\ResourcesViewModel.cs" />
-    <Compile Include="Views\TaskType\TaskTypesView.xaml.cs">
-      <DependentUpon>TaskTypesView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\TaskType\TaskTypesViewModel.cs" />
-    <Compile Include="Views\TimePoint\TimePointsView.xaml.cs">
-      <DependentUpon>TimePointsView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\TimePoint\TimePointsViewModel.cs" />
     <Compile Include="Views\TimeTask\TimeTasksView.xaml.cs">
       <DependentUpon>TimeTasksView.xaml</DependentUpon>
@@ -137,27 +134,23 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
+    <Page Include="Views\BasicEntitiesView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="BindingsExample.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\TimePattern\TimePatternView.xaml">
+    <Page Include="Views\TimePattern\TimePatternsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Label\LabelsView.xaml">
+    <Page Include="Views\TimePattern\EditTimePatternView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Resource\ResourcesView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\TaskType\TaskTypesView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\TimePoint\TimePointsView.xaml">
+    <Page Include="Views\TimeTask\EditTimeTaskView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -26,6 +26,7 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task<ObservableCollection<Label>> GetDataAsync()
         {
+            //await Task.Delay(2000);
             Context = new TimeKeeperContext();
             await Context.Labels.LoadAsync();
             return Context.Labels.Local;

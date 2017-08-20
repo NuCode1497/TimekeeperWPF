@@ -109,7 +109,7 @@ namespace TimekeeperWPF
         }
         protected override async Task<ObservableCollection<Note>> GetDataAsync()
         {
-            //await System.Threading.Tasks.Task.Delay(2000);
+            //await Task.Delay(2000);
             Context = new TimeKeeperContext();
             NoteTypesCollection = new CollectionViewSource();
             LabelsCollection = new CollectionViewSource();
@@ -128,7 +128,7 @@ namespace TimekeeperWPF
         {
             DateTime selectedDate = DateTime.Today;
             var selection = from n in Source
-                            where n.DateTime.Date == selectedDate.AddDays(-1).Date && n.TaskType.Name != "DBTest"
+                            where n.DateTime.Date == selectedDate.Date && n.TaskType.Name != "DBTest"
                             orderby n.DateTime
                             select n;
 

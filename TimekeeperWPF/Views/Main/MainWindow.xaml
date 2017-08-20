@@ -8,20 +8,6 @@
     <Window.DataContext>
         <l:MainWindowViewModel/>
     </Window.DataContext>
-    <Window.Resources>
-        <DataTemplate DataType="{x:Type l:NotesViewModel}">
-            <l:NotesView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type l:FakeNotesViewModel}">
-            <l:NotesView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type l:MonthViewModel}">
-            <l:MonthView/>
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type l:FakeMonthViewModel}">
-            <l:MonthView/>
-        </DataTemplate>
-    </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -37,7 +23,31 @@
                 </MenuItem.ItemContainerStyle>
             </MenuItem>
         </Menu>
-        <ContentControl x:Name="ViewHolder" Margin="5" IsTabStop="False"
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="100"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <Separator Grid.Column="1"/>
+            <Separator Grid.Column="3"/>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Name="StatusTextBlk" Text="{Binding Path=CurrentView.Status, FallbackValue='Ready'}"/>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2">
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="4">
+            </StatusBarItem>
+        </StatusBar>
+        <ContentControl DockPanel.Dock="Top" x:Name="ViewHolder" IsTabStop="False"
                         Content="{Binding Path=CurrentView}"/>
     </DockPanel>
 </Window>

@@ -13,28 +13,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" x:Name="ControlsPanel">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Grid.Row="0" Margin="2" Content="New Note" x:Name="NewNoteButton" 
-                    Command="{Binding Path=NewItemCommand}" Width="100"/>
-            <Button Grid.Column="1" Grid.Row="0" Margin="2" Content="Refresh" x:Name="GetDataButton" 
-                    Command="{Binding Path=GetDataCommand}" Width="100"/>
-            <Button Grid.Column="0" Grid.Row="1" Margin="2" Content="Edit Selected" x:Name="EditSelectedButton" 
-                    Command="{Binding Path=EditSelectedCommand}" Width="100"/>
-            <Button Grid.Column="1" Grid.Row="1" Margin="2" Content="Delete Selected" x:Name="DeleteSelectedButton" 
-                    Command="{Binding Path=DeleteSelectedCommand}" Width="100"/>
-            <Button Grid.Column="2" Grid.Row="1" Margin="2" Content="Deselect" x:Name="DeselectButton" 
-                    Command="{Binding Path=DeselectCommand}" Width="100" HorizontalAlignment="Left"/>
-            <TextBlock Grid.Column="2" Grid.Row="0" Margin="2" Text="{Binding Path=Status}" x:Name="StatusTextBlock"/>
-        </Grid>
+        <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
         <DataGrid x:Name="DG" Grid.Row="1" Margin="1"
                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   IsEnabled="{Binding Path=IsEnabled}"
@@ -67,7 +46,8 @@
                 </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <ContentControl Grid.Row="0" Grid.RowSpan="2" Template="{StaticResource EditPopUpTemplate}" x:Name="NotesViewEditPopUp" IsTabStop="False">
+        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp" IsTabStop="False"
+                        Template="{StaticResource EditPopUpTemplate}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <local:EditNoteView x:Name="DataEditor" Margin="1"/>
             </ScrollViewer>
