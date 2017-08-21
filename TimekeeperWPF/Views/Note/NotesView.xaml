@@ -50,7 +50,7 @@
                         Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
                         Template="{StaticResource EditPopUpTemplate}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView Margin="1"/>
+                <local:EditNoteView x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
             </ScrollViewer>
         </ContentControl>
         <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="SaveDateSelectPopUp"
@@ -71,7 +71,8 @@
                     <Label Grid.Column="0" Grid.Row="0" Content="Start" />
                     <Label Grid.Column="0" Grid.Row="1" Content="End" />
                     <DatePicker Grid.Column="1" Grid.Row="0" Width="Auto" 
-                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" />
+                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}">
+                    </DatePicker>
                     <DatePicker Grid.Column="1" Grid.Row="1" Width="Auto" 
                                 SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
                     <Button Grid.Column="2" Grid.RowSpan="2" Content="Continue" 

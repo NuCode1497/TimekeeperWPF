@@ -139,7 +139,7 @@ namespace TimekeeperWPF
         protected override void EndEdit()
         {
             base.EndEdit();
-            CurrentEntityLabelsCollection.Source = null;
+            CurrentEntityLabelsCollection = null;
         }
         #endregion
     }

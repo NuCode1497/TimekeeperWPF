@@ -274,7 +274,7 @@
                         <RowDefinition Height="12"/>
                     </Grid.RowDefinitions>
                     <!--Properties Editor-->
-                    <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" x:Name="DataEditor" Margin="12,12,12,6"/>
+                    <ContentPresenter x:Name="PropEditorCP" Grid.Row="0" Grid.ColumnSpan="2" Margin="12,12,12,6"/>
                     <!--Validations List-->
                     <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="100"
                               VerticalScrollBarVisibility="Auto"
