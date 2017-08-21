@@ -24,12 +24,12 @@ namespace TimekeeperWPF
         protected override bool CanSave => false;
         #endregion
         #region Actions
-        protected override async Task<ObservableCollection<Label>> GetDataAsync()
+        protected override async Task GetDataAsync()
         {
             //await Task.Delay(2000);
             Context = new TimeKeeperContext();
             await Context.Labels.LoadAsync();
-            return Context.Labels.Local;
+            Items.Source = Context.Labels.Local;
         }
         protected override void SaveAs()
         {

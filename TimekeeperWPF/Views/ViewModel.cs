@@ -18,12 +18,14 @@ namespace TimekeeperWPF
         #region Fields
         protected ITimeKeeperContext Context;
         protected IComparer Sorter;
+        protected IComparer BasicSorter;
         private String _status = "Ready";
         private bool _IsEnabled = true;
         private bool _IsLoading = false;
         private bool _IsEditingItem = false;
         private bool _IsAddingNew = false;
         private bool _HasSelected = false;
+        private bool _IsSaving = false;
         private ModelType _SelectedItem;
         private ModelType _CurrentEditItem;
         private ICommand _GetDataCommand = null;
@@ -37,6 +39,7 @@ namespace TimekeeperWPF
         #endregion
         public ViewModel()
         {
+            BasicSorter = new BasicEntitySorter();
         }
         #region Properties
         public abstract string Name { get; }
@@ -152,6 +155,18 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
             }
         }
+        public bool IsSaving
+        {
+            get
+            {
+                return _IsSaving;
+            }
+            set
+            {
+                _IsSaving = value;
+                OnPropertyChanged();
+            }
+        }
         public bool HasSelected
         {
             get
@@ -171,6 +186,7 @@ namespace TimekeeperWPF
         public bool IsNotLoading => !IsLoading;
         public bool IsNotEditingItem => !IsEditingItem;
         public bool IsNotAddingNew => !IsAddingNew;
+        public bool IsNotSaving => !IsSaving;
         public bool HasNotSelected => !HasSelected;
         #endregion
         #region Commands
@@ -192,17 +208,17 @@ namespace TimekeeperWPF
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         #endregion
         #region Predicates
-        protected virtual bool CanGetData => IsNotLoading;
-        protected virtual bool CanAddNew => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
+        protected virtual bool CanGetData => IsNotSaving && IsNotLoading;
+        protected virtual bool CanAddNew => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
         protected virtual bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
-        protected virtual bool CanCommit => IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
+        protected virtual bool CanCommit => IsNotSaving && IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
         protected virtual bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
-        protected virtual bool CanEditSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
-        protected virtual bool CanDeleteSelected => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
-        protected virtual bool CanSave => IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanEditSelected => IsNotSaving && IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanDeleteSelected => IsNotSaving && IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
+        protected virtual bool CanSave => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
         #endregion
         #region Actions
-        protected abstract Task<ObservableCollection<ModelType>> GetDataAsync();
+        protected abstract Task GetDataAsync();
         protected abstract void SaveAs();
         protected virtual async void LoadData()
         {
@@ -216,7 +232,7 @@ namespace TimekeeperWPF
             Dispose();
             try
             {
-                Items.Source = await GetDataAsync();
+                await GetDataAsync();
                 View.CustomSort = Sorter;
                 OnPropertyChanged(nameof(View));
                 Deselect();
@@ -242,13 +258,13 @@ namespace TimekeeperWPF
             {
                 View?.CancelEdit();
                 EndEdit();
-                Status = "Cancelled";
+                Status = "Canceled";
             }
             else if(IsAddingNew)
             {
                 View?.CancelNew();
                 EndEdit();
-                Status = "Cancelled";
+                Status = "Canceled";
             }
         }
         protected virtual void EndEdit()

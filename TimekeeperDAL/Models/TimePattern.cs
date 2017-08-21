@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TimePattern : EntityBase
+    public partial class TimePattern : LabeledEntity
     {
         public override string ToString()
         {

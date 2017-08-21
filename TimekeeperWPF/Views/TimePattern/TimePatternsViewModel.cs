@@ -18,11 +18,13 @@ namespace TimekeeperWPF
 {
     public class TimePatternsViewModel : ViewModel<TimePattern>
     {
-        public override string Name => throw new NotImplementedException();
+        public override string Name => nameof(Context.TimePatterns) + " Editor";
 
-        protected override Task<ObservableCollection<TimePattern>> GetDataAsync()
+        protected override async Task GetDataAsync()
         {
-            throw new NotImplementedException();
+            Context = new TimeKeeperContext();
+            await Context.TimePatterns.LoadAsync();
+            Items.Source = Context.TimePatterns.Local;
         }
 
         protected override void SaveAs()

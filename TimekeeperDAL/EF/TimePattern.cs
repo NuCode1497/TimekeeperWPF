@@ -33,8 +33,6 @@ namespace TimekeeperDAL.EF
 
         public virtual ICollection<Allocation> Allocations { get; set; }
 
-        public virtual ICollection<Label> Labels { get; set; }
-
         [InverseProperty("IncludedPatterns")]
         public virtual ICollection<TimeTask> Inclusions { get; set; }
 

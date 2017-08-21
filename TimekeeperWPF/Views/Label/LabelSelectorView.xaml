@@ -16,11 +16,14 @@
                   IsSynchronizedWithCurrentItem="True" Width="100"
                   SelectedItem="{Binding Path=SelectedLabel, Mode=TwoWay}"
                   ItemsSource="{Binding Path=LabelsView}" />
-            <Button Name="AddLabelBtn" Grid.Column="2" Grid.Row="0" Content="Add" Command="{Binding Path=AddLabelToNoteCommand}" 
+            <Button Name="AddLabelBtn" Grid.Column="2" Grid.Row="0" Content="Add" 
+                    Command="{Binding Path=AddLabelCommand}" 
                 Visibility="{Binding Path=CanAddLabel, Converter={StaticResource BooleanToVisibilityConverter}}" Padding="4,1"/>
         </StackPanel>
-        <Border Name="LabelListBdr" Grid.ColumnSpan="4" Grid.Row="2" BorderBrush="Purple" BorderThickness="1" Margin="2">
-            <ItemsControl ItemsSource="{Binding Path=CurrentNoteLabelsView}" Name="LabelListIC">
+        <Border Name="LabelListBdr" Grid.ColumnSpan="4" Grid.Row="2" 
+                BorderBrush="Purple" BorderThickness="1" Margin="2">
+            <ItemsControl Name="LabelListIC" IsTabStop="False" 
+                          ItemsSource="{Binding Path=CurrentEntityLabelsView}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" Name="LabelListPnl"/>

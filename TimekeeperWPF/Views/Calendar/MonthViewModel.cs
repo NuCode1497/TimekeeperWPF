@@ -64,11 +64,11 @@ namespace TimekeeperWPF
         protected override bool CanSave => false;
         #endregion
         #region Actions
-        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async Task GetDataAsync()
         {
             Context = new TimeKeeperContext();
             await Context.Notes.LoadAsync();
-            return Context.Notes.Local;
+            Items.Source = Context.Notes.Local;
         }
         protected override void SaveAs()
         {

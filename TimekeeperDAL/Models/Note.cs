@@ -3,25 +3,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Note : EntityBase
+    public partial class Note : LabeledEntity
     {
         public override string ToString()
         {
             return DateTime.ToString() + " " + Text;
-        }
-
-        [NotMapped]
-        public string LabelsToString
-        {
-            get
-            {
-                string s = "";
-                foreach(Label l in Labels)
-                {
-                    s += l.ToString() + ", ";
-                }
-                return s;
-            }
         }
 
         [NotMapped]

@@ -16,154 +16,164 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class NotesViewModel : ViewModel<Note>
+    public class NotesViewModel : LabeledEntitiesViewModel<Note>
     {
         #region Fields
-        private IComparer BasicSorter;
-        private bool _HasSelectedLabel = false;
-        private Label _SelectedLabel;
-        private ICommand _DeleteLabelFromNoteCommand;
-        private ICommand _AddLabelToNoteCommand;
+        private ICommand _ContinueSaveCommand;
+        private DateTime _SaveAsStart;
+        private DateTime _SaveAsEnd;
+        private string _SaveAsError;
         #endregion
         public NotesViewModel() : base()
         {
             Sorter = new NoteDateTimeSorter();
-            BasicSorter = new BasicEntitySorter();
             LoadData();
         }
         #region Properties
         public override string Name => nameof(Context.Notes) + " Editor";
         public CollectionViewSource NoteTypesCollection { get; set; }
-        public CollectionViewSource LabelsCollection { get; set; }
-        public CollectionViewSource CurrentNoteLabelsCollection { get; set; }
         public ObservableCollection<TaskType> NoteTypesSource => NoteTypesCollection?.Source as ObservableCollection<TaskType>;
-        public ObservableCollection<Label> LabelsSource => LabelsCollection?.Source as ObservableCollection<Label>;
-        public ObservableCollection<Label> CurrentNoteLabelsSource => CurrentNoteLabelsCollection?.Source as ObservableCollection<Label>;
         public ListCollectionView NoteTypesView => NoteTypesCollection?.View as ListCollectionView;
-        public ListCollectionView LabelsView => LabelsCollection?.View as ListCollectionView;
-        public ListCollectionView CurrentNoteLabelsView => CurrentNoteLabelsCollection?.View as ListCollectionView;
-        public Label SelectedLabel
+        public DateTime SaveAsStart
         {
             get
             {
-                return _SelectedLabel;
+                return _SaveAsStart;
             }
             set
             {
-                //Label must not be itself and must be in LabelsSource
-                if ((value == _SelectedLabel) || (value != null && (!LabelsSource?.Contains(value) ?? false))) return;
-                _SelectedLabel = value;
-                if (SelectedLabel == null)
-                {
-                    HasSelectedLabel = false;
-                }
-                else
-                {
-                    HasSelectedLabel = true;
-                }
+                _SaveAsStart = value;
+                OnPropertyChanged();
+            }
+        }
+        public DateTime SaveAsEnd
+        {
+            get
+            {
+                return _SaveAsEnd;
+            }
+            set
+            {
+                _SaveAsEnd = value;
+                OnPropertyChanged();
+            }
+        }
+        public string SaveAsError
+        {
+            get
+            {
+                return _SaveAsError;
+            }
+            private set
+            {
+                _SaveAsError = value;
                 OnPropertyChanged();
             }
         }
         #endregion
         #region Conditions
-        public bool HasSelectedLabel
-        {
-            get
-            {
-                return _HasSelectedLabel;
-            }
-            protected set
-            {
-                _HasSelectedLabel = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasNotSelectedLabel));
-            }
-        }
-        public bool HasNotSelectedLabel => !HasSelectedLabel;
         #endregion
         #region Predicates
-        private bool CanDeleteLabel(object o)
-        {
-            return o is Label;
-        }
-        private bool CanAddLabel => HasSelectedLabel;
+        private bool CanContinueSave => SaveAsStart <= SaveAsEnd;
         #endregion
         #region Commands
-        public ICommand DeleteLabelFromNoteCommand => _DeleteLabelFromNoteCommand
-            ?? (_DeleteLabelFromNoteCommand = new RelayCommand(ap => DeleteLabel(ap as Label), pp => CanDeleteLabel(pp)));
-        public ICommand AddLabelToNoteCommand => _AddLabelToNoteCommand
-            ?? (_AddLabelToNoteCommand = new RelayCommand(ap => AddLabel(), pp => CanAddLabel));
+        public ICommand ContinueSaveCommand => _ContinueSaveCommand
+            ?? (_ContinueSaveCommand = new RelayCommand(ap => ContinueSave(), pp => CanContinueSave));
         #endregion
         #region Actions
-        private void AddLabel()
-        {
-            CurrentNoteLabelsView.AddNewItem(SelectedLabel);
-            CurrentNoteLabelsView.CommitNew();
-            SelectedLabel = null;
-            UpdateViews();
-        }
-        private void DeleteLabel(Label ap)
-        {
-            CurrentNoteLabelsView.Remove(ap);
-            UpdateViews();
-        }
-        protected override async Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async Task GetDataAsync()
         {
             //await Task.Delay(2000);
+
+            //Load entities data
             Context = new TimeKeeperContext();
-            NoteTypesCollection = new CollectionViewSource();
-            LabelsCollection = new CollectionViewSource();
             await Context.Notes.LoadAsync();
+            Items.Source = Context.Notes.Local;
+
+            //Load TaskTypes stuff
+            NoteTypesCollection = new CollectionViewSource();
             await Context.TaskTypes.LoadAsync();
-            await Context.Labels.LoadAsync();
             NoteTypesCollection.Source = Context.TaskTypes.Local;
-            LabelsCollection.Source = Context.Labels.Local;
             NoteTypesView.CustomSort = BasicSorter;
-            LabelsView.CustomSort = BasicSorter;
             OnPropertyChanged(nameof(NoteTypesView));
-            OnPropertyChanged(nameof(LabelsView));
-            return Context.Notes.Local;
+
+            await base.GetDataAsync();
         }
         protected override void SaveAs()
         {
-            DateTime selectedDate = DateTime.Today;
+            SaveAsStart = DateTime.Now.Date;
+            SaveAsEnd = DateTime.Now.Date;
+            IsSaving = true;
+            Status = "Select date range...";
+            //expect view to handle changing start end
+            //wait for continuesave command
+        }
+        private void ContinueSave()
+        {
+            Status = "Select file type...";
+            var saveDlg = new SaveFileDialog { Filter = "Text Files |*.txt" };
+            if (true == saveDlg.ShowDialog())
+            {
+                switch(saveDlg.FilterIndex)
+                {
+                    case 1:
+                        SaveAsText(saveDlg);
+                        break;
+                        //other save cases
+                }
+                Status = String.Format("Created {0}", saveDlg.FileName);
+            }
+            else
+            {
+                Status = "Canceled";
+            }
+            
+            IsSaving = false;
+        }
+        private void SaveAsText(SaveFileDialog saveDlg)
+        {
+            Status = "Saving as text...";
             var selection = from n in Source
-                            where n.DateTime.Date == selectedDate.Date && n.TaskType.Name != "DBTest"
+                            where n.DateTime.Date >= SaveAsStart.Date
+                            && n.DateTime.Date <= SaveAsEnd.Date
+                            && n.TaskType.Name != "DBTest"
                             orderby n.DateTime
                             select n;
 
-            if(selection.Count() == 0)
+            if (selection.Count() == 0)
             {
-                MessageBox.Show(String.Format("No notes were found for date {0}.", selectedDate), 
+                MessageBox.Show(String.Format("No notes were found for {0} to {1}.", 
+                    SaveAsStart.ToShortDateString(), SaveAsEnd.ToShortDateString()),
                     "Nothing to Save", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return;
             }
 
-            string text = String.Format("Notes for {0}:\n", selectedDate.ToLongDateString());
-            text += "------------------------------------------------------------------\n";
-            foreach (var n in selection)
+            string text = "";
+            for (DateTime d = SaveAsStart.Date; d <= SaveAsEnd.Date; d = d.AddDays(1))
             {
-                text += String.Format("{0,12} | {1,-7} | ", n.DateTime.ToLongTimeString(), n.TaskType.Name);
-                var charCount = 0;
-                var lineLength = 51;
-                var words = n.Text.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                var query = from word in words
-                            group word by ((charCount += word.Length + 1) / lineLength) into line
-                            select string.Join(" ", line);
-                var lines = query.ToList();
-                text += lines.First() + "\n";
-                foreach (var line in lines.Skip(1))
+                text += String.Format("Notes for {0}:\n", d.ToLongDateString());
+                text += "------------------------------------------------------------------\n";
+                foreach (var n in selection)
                 {
-                    text += String.Format("{0,-25}{1}\n", " ", line);
+                    text += String.Format("{0,12} | {1,-7} | ", n.DateTime.ToLongTimeString(), n.TaskType.Name);
+                    var charCount = 0;
+                    var lineLength = 51;
+                    var words = n.Text.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                    var query = from word in words
+                                group word by ((charCount += word.Length + 1) / lineLength) into line
+                                select string.Join(" ", line);
+                    var lines = query.ToList();
+                    text += lines.First() + "\n";
+                    foreach (var line in lines.Skip(1))
+                    {
+                        text += String.Format("{0,-25}{1}\n", " ", line);
+                    }
                 }
+                text += "\n\n";
             }
 
-            var saveDlg = new SaveFileDialog { Filter = "Text Files |*.txt" };
-            if (true == saveDlg.ShowDialog())
-            {
-                File.WriteAllText(saveDlg.FileName, text);
-                Process.Start(saveDlg.FileName);
-            }
+            File.WriteAllText(saveDlg.FileName, text);
+            Process.Start(saveDlg.FileName);
         }
         protected override void EditSelected()
         {
@@ -187,25 +197,6 @@ namespace TimekeeperWPF
                 (from t in NoteTypesSource
                  where t.Name == CurrentEditItem?.TaskType.Name
                  select t).DefaultIfEmpty(NoteTypesSource[0]).First());
-            CurrentNoteLabelsCollection = new CollectionViewSource();
-            CurrentNoteLabelsCollection.Source = new ObservableCollection<Label>(CurrentEditItem.Labels);
-            UpdateViews();
-        }
-        private void UpdateViews()
-        {
-            LabelsView.Filter = L => CurrentNoteLabelsView.Contains(L) == false;
-            OnPropertyChanged(nameof(CurrentNoteLabelsView));
-            OnPropertyChanged(nameof(LabelsView));
-        }
-        protected override void Commit()
-        {
-            CurrentEditItem.Labels = new HashSet<Label>(CurrentNoteLabelsSource);
-            base.Commit();
-        }
-        protected override void EndEdit()
-        {
-            base.EndEdit();
-            CurrentNoteLabelsCollection.Source = null;
         }
         #endregion
     }

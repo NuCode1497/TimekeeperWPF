@@ -23,8 +23,6 @@ namespace TimekeeperDAL.EF
         [Required]
         public virtual TaskType TaskType { get; set; }
 
-        public virtual ICollection<Label> Labels { get; set; }
-
         #endregion
     }
 }

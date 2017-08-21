@@ -12,15 +12,19 @@ namespace TimekeeperWPF
         {
         }
         public override string Name => "Fake " + base.Name;
-        protected override async System.Threading.Tasks.Task<ObservableCollection<Note>> GetDataAsync()
+        protected override async Task GetDataAsync()
         {
-            await System.Threading.Tasks.Task.Delay(0);
-            //throw new Exception("testing get data error");
             Context = new FakeTimeKeeperContext();
+            await Context.Notes.LoadAsync();
+            Items.Source = Context.Notes.Local;
+
+            //Load TaskTypes stuff
             NoteTypesCollection = new CollectionViewSource();
+            await Context.TaskTypes.LoadAsync();
             NoteTypesCollection.Source = Context.TaskTypes.Local;
+            NoteTypesView.CustomSort = BasicSorter;
             OnPropertyChanged(nameof(NoteTypesView));
-            return Context.Notes.Local;
+
         }
     }
 }

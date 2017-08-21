@@ -240,50 +240,62 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl">
+        <ControlTemplate x:Key="PopUpTemplate" TargetType="ContentControl">
             <!--Grey out background content-->
             <Grid Background="#9980B0A0"
-                  Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
+                  KeyboardNavigation.TabNavigation="Cycle"
                   Width="{Binding ElementName=SV, Path=ActualWidth}"
                   Height="{Binding ElementName=SV, Path=ActualHeight}" >
-                <Border BorderBrush="Gray" Margin="30" CornerRadius="4" BorderThickness="3" MaxWidth="400" MaxHeight="500" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border BorderBrush="Gray" Margin="30" CornerRadius="4" BorderThickness="3" 
+                        Name="PopUpBorder"
+                        MaxWidth="400" MaxHeight="500" 
+                        SnapsToDevicePixels="True" UseLayoutRounding="True"
+                        HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Border.Effect>
                         <DropShadowEffect/>
                     </Border.Effect>
                     <Grid Background="#FFBDFFD8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="12"/>
-                        </Grid.RowDefinitions>
-                        <!--Properties Editor-->
-                        <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" Margin="12,12,12,6"/>
-                        <!--Validations List-->
-                        <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller"
-                                      VerticalScrollBarVisibility="Auto"
-                                      IsTabStop="False" Margin="12,0,12,6">
-                            <ItemsControl Margin="8" Foreground="Red" Name="ValidationsItemsControl"
-                                          ItemsSource="{Binding ElementName=DataEditor, Path=(Validation.Errors)}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <ItemsControl Name="ValidationsItem" ItemsSource="{Binding Path=ErrorContent}"/>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                        <!--Cancel Save Buttons-->
-                        <Button Grid.Column="0" Grid.Row="2" x:Name="CancelButton" Content="Cancel" Width="70"
-                            Command="{Binding Path=CancelCommand}"/>
-                        <Button Grid.Column="1" Grid.Row="2" x:Name="SaveButton" Content="Save" Width="70"
-                            Command="{Binding Path=CommitCommand}"/>
+                        <ContentPresenter/>
                     </Grid>
                 </Border>
             </Grid>
+        </ControlTemplate>
+        <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl" >
+            <ContentControl Template="{StaticResource PopUpTemplate}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                    </Grid.RowDefinitions>
+                    <!--Properties Editor-->
+                    <ContentPresenter Grid.Row="0" Grid.ColumnSpan="2" x:Name="DataEditor" Margin="12,12,12,6"/>
+                    <!--Validations List-->
+                    <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="100"
+                              VerticalScrollBarVisibility="Auto"
+                              IsTabStop="False" Margin="12,0,12,6">
+                        <ItemsControl Margin="8" Foreground="Red" Name="ValidationsItemsControl" IsTabStop="False"
+                                  ItemsSource="{Binding ElementName=DataEditor, Path=(Validation.Errors)}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ItemsControl Name="ValidationsItem" IsTabStop="False" 
+                                                  ItemsSource="{Binding Path=ErrorContent}"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <!--Cancel Save Buttons-->
+                    <Button Grid.Column="0" Grid.Row="2" x:Name="CancelButton" Content="Cancel" Width="70"
+                        Command="{Binding Path=CancelCommand}"/>
+                    <Button Grid.Column="1" Grid.Row="2" x:Name="SaveButton" Content="Save" Width="70"
+                        Command="{Binding Path=CommitCommand}"/>
+                </Grid>
+            </ContentControl>
         </ControlTemplate>
         <ControlTemplate x:Key="BasicEntityTemplate" TargetType="ContentControl">
             <Border Name="LabelBdr" Margin="2" CornerRadius="4" BorderThickness="1" Background="Wheat" BorderBrush="DarkSlateGray">
@@ -294,8 +306,9 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="2"/>
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Column="1" Content="{Binding Path=Name, FallbackValue='qgyilkjQ^Test'}" Height="32" VerticalAlignment="Center"
-                   FontSize="14" Foreground="Black" FontWeight="Bold"/>
+                    <Label Grid.Column="1" Height="32" VerticalAlignment="Center"
+                           Content="{Binding Path=Name, FallbackValue='qgyilkjQ^Test'}" 
+                           FontSize="14" Foreground="Black" FontWeight="Bold"/>
                     <ContentPresenter Grid.Column="2" Name="LabelExtras"/>
                 </Grid>
             </Border>

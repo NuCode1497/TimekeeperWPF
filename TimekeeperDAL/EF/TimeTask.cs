@@ -57,8 +57,6 @@ namespace TimekeeperDAL.EF
         [Required]
         public virtual TaskType TaskType { get; set; }
 
-        public virtual ICollection<Label> Labels { get; set; }
-
         [InverseProperty("Inclusions")]
         public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
 

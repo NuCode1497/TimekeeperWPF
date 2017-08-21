@@ -24,11 +24,11 @@ namespace TimekeeperWPF
         protected override bool CanSave => false;
         #endregion
         #region Actions
-        protected override async Task<ObservableCollection<TimePoint>> GetDataAsync()
+        protected override async Task GetDataAsync()
         {
             Context = new TimeKeeperContext();
             await Context.TimePoints.LoadAsync();
-            return Context.TimePoints.Local;
+            Items.Source = Context.TimePoints.Local;
         }
         protected override void SaveAs()
         {

@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d">
-    <ContentControl Template="{StaticResource BasicEntityTemplate}">
-        <Button Name="DeleteButton" 
+    <ContentControl Template="{StaticResource BasicEntityTemplate}" IsTabStop="False">
+        <Button Name="DeleteButton" IsTabStop="False"
                 Style="{StaticResource LabelDeleteButtonStyle}" 
                 CommandParameter="{Binding}"
                 Command="{Binding Path=DataContext.RemoveLabelCommand, 

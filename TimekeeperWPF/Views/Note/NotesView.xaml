@@ -47,10 +47,37 @@
             </DataGrid.Columns>
         </DataGrid>
         <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp" IsTabStop="False"
+                        Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
                         Template="{StaticResource EditPopUpTemplate}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView x:Name="DataEditor" Margin="1"/>
+                <local:EditNoteView Margin="1"/>
             </ScrollViewer>
+        </ContentControl>
+        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="SaveDateSelectPopUp"
+                        Visibility="{Binding Path=IsSaving, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Template="{StaticResource PopUpTemplate}">
+            <StackPanel>
+                <Label Content="Pick date range:"/>
+                <Grid Margin="5" Width="300">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Grid.Row="0" Content="Start" />
+                    <Label Grid.Column="0" Grid.Row="1" Content="End" />
+                    <DatePicker Grid.Column="1" Grid.Row="0" Width="Auto" 
+                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" />
+                    <DatePicker Grid.Column="1" Grid.Row="1" Width="Auto" 
+                                SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
+                    <Button Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
+                            Command="{Binding Path=ContinueSaveCommand}" VerticalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
         </ContentControl>
         <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>

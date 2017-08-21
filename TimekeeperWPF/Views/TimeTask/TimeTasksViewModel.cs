@@ -20,7 +20,7 @@ namespace TimekeeperWPF
     {
         public override string Name => throw new NotImplementedException();
 
-        protected override Task<ObservableCollection<TimeTask>> GetDataAsync()
+        protected override Task GetDataAsync()
         {
             throw new NotImplementedException();
         }

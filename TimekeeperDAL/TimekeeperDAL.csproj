@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="EF\Allocation.cs" />
     <Compile Include="EF\Label.cs" />
+    <Compile Include="Models\LabeledEntity.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
     <Compile Include="Migrations\201708172004465_IntialCreate.cs" />
