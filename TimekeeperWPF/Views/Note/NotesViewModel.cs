@@ -27,7 +27,6 @@ namespace TimekeeperWPF
         public NotesViewModel() : base()
         {
             Sorter = new NoteDateTimeSorter();
-            LoadData();
         }
         #region Properties
         public override string Name => nameof(Context.Notes) + " Editor";
@@ -87,6 +86,12 @@ namespace TimekeeperWPF
             Items.Source = Context.Notes.Local;
             
             await base.GetDataAsync();
+        }
+        protected override void AddNew()
+        {
+            base.AddNew();
+            CurrentEditItem.DateTime = DateTime.Now;
+            CurrentEditItem.Text = "Your text here.";
         }
         protected override void SaveAs()
         {
@@ -163,12 +168,6 @@ namespace TimekeeperWPF
 
             File.WriteAllText(saveDlg.FileName, text);
             Process.Start(saveDlg.FileName);
-        }
-        protected override void AddNew()
-        {
-            base.AddNew();
-            CurrentEditItem.DateTime = DateTime.Now;
-            CurrentEditItem.Text = "Your text here.";
         }
         #endregion
     }

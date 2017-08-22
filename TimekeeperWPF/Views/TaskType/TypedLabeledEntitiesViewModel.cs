@@ -19,6 +19,8 @@ namespace TimekeeperWPF
     public abstract class TypedLabeledEntitiesViewModel<ModelType> : LabeledEntitiesViewModel<ModelType>
         where ModelType : TypedLabeledEntity, new()
     {
+        public TypedLabeledEntitiesViewModel() : base()
+        { }
         #region Properties
         public CollectionViewSource TaskTypesCollection { get; set; }
         public ObservableCollection<TaskType> TaskTypesSource => TaskTypesCollection?.Source as ObservableCollection<TaskType>;

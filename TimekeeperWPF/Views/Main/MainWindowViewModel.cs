@@ -17,7 +17,7 @@ namespace TimekeeperWPF
             {
                 Views.Add(new FakeNotesViewModel());
                 Views.Add(new FakeMonthViewModel());
-                CurrentView = Views[0];
+                Navigate(Views[0]);
                 return;
             }
             Views.Add(new NotesViewModel());
@@ -26,7 +26,7 @@ namespace TimekeeperWPF
             Views.Add(new TaskTypesViewModel());
             Views.Add(new TimePointsViewModel());
             Views.Add(new MonthViewModel());
-            CurrentView = Views[0];
+            Navigate(Views[0]);
         }
 
         public ObservableCollection<IPage> Views => _views

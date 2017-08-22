@@ -12,10 +12,9 @@ namespace TimekeeperWPF
 {
     public class TaskTypesViewModel : ViewModel<TaskType>
     {
-        public TaskTypesViewModel()
+        public TaskTypesViewModel() : base()
         {
-            Sorter = new BasicEntitySorter();
-            LoadData();
+            Sorter = BasicSorter;
         }
         #region Properties
         public override string Name => nameof(Context.TaskTypes) + " Editor";

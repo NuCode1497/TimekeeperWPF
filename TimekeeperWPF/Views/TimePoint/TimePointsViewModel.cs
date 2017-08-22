@@ -12,10 +12,9 @@ namespace TimekeeperWPF
 {
     public class TimePointsViewModel : ViewModel<TimePoint>
     {
-        public TimePointsViewModel()
+        public TimePointsViewModel() : base()
         {
-            Sorter = new BasicEntitySorter();
-            LoadData();
+            Sorter = BasicSorter;
         }
         #region Properties
         public override string Name => nameof(Context.TimePoints) + " Editor";

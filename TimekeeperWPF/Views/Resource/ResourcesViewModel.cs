@@ -12,10 +12,9 @@ namespace TimekeeperWPF
 {
     public class ResourcesViewModel : ViewModel<Resource>
     {
-        public ResourcesViewModel()
+        public ResourcesViewModel() : base()
         {
-            Sorter = new BasicEntitySorter();
-            LoadData();
+            Sorter = BasicSorter;
         }
         #region Properties
         public override string Name => nameof(Context.Resources) + " Editor";

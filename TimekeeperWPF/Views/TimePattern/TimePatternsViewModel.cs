@@ -18,6 +18,10 @@ namespace TimekeeperWPF
 {
     public class TimePatternsViewModel : ViewModel<TimePattern>
     {
+        public TimePatternsViewModel() : base()
+        {
+
+        }
         public override string Name => nameof(Context.TimePatterns) + " Editor";
 
         protected override async Task GetDataAsync()

@@ -8,6 +8,9 @@ namespace TimekeeperWPF.Tools
 {
     public static class Extensions
     {
+        //Reminder: Exensions are:
+        //public static [type] [MethodName](this [type2] [variableName])
+
         public static string GetTypeName(this object o)
         {
             return o.GetType().IgnoreProxy().Name;
@@ -23,6 +26,13 @@ namespace TimekeeperWPF.Tools
                 entityType = entityType.BaseType;
             }
             return entityType;
+        }
+
+        //https://stackoverflow.com/questions/2499479/how-to-round-off-hours-based-on-minuteshours0-if-min30-hours1-otherwise
+        public static DateTime RoundToHour(this DateTime dt)
+        {
+            long ticks = dt.Ticks + 18000000000;
+            return new DateTime(ticks - ticks % 36000000000, dt.Kind);
         }
     }
 }
