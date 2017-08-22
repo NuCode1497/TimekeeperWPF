@@ -18,11 +18,11 @@
                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   IsEnabled="{Binding Path=IsEnabled}"
                   ItemsSource="{Binding Path=View}"
-                  SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+                  SelectedItem="{Binding Path=SelectedItem, Mode=OneWayToSource}">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
-                <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
-                <DataGridTextColumn Binding="{Binding Path=Text}" Header="Text" Width="*">
+                <DataGridTextColumn Binding="{Binding Path=DateTime, Mode=TwoWay}" Header="Date &amp; Time" />
+                <DataGridTextColumn Binding="{Binding Path=TaskType.Name, Mode=TwoWay}" Header="Type" />
+                <DataGridTextColumn Binding="{Binding Path=Text, Mode=TwoWay}" Header="Text" Width="*">
                     <DataGridTextColumn.ElementStyle>
                         <Style>
                             <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>

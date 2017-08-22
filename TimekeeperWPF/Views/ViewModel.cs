@@ -22,8 +22,6 @@ namespace TimekeeperWPF
         private String _status = "Ready";
         private bool _IsEnabled = true;
         private bool _IsLoading = false;
-        private bool _IsEditingItem = false;
-        private bool _IsAddingNew = false;
         private bool _HasSelected = false;
         private bool _IsSaving = false;
         private ModelType _SelectedItem;
@@ -125,36 +123,6 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(IsNotLoading));
             }
         }
-        public bool IsEditingItem
-        {
-            get
-            {
-                return _IsEditingItem;
-            }
-            protected set
-            {
-                _IsEditingItem = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsNotEditingItem));
-                OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
-                OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
-            }
-        }
-        public bool IsAddingNew
-        {
-            get
-            {
-                return _IsAddingNew;
-            }
-            protected set
-            {
-                _IsAddingNew = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsNotAddingNew));
-                OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
-                OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
-            }
-        }
         public bool IsSaving
         {
             get
@@ -180,12 +148,10 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(HasNotSelected));
             }
         }
-        public bool IsEditingItemOrAddingNew => IsEditingItem || IsAddingNew;
+        public bool IsEditingItemOrAddingNew => View.IsEditingItem || View.IsAddingNew;
         public bool IsNotEditingItemOrAddingNew => !IsEditingItemOrAddingNew;
         public bool IsNotEnabled => !IsEnabled;
         public bool IsNotLoading => !IsLoading;
-        public bool IsNotEditingItem => !IsEditingItem;
-        public bool IsNotAddingNew => !IsAddingNew;
         public bool IsNotSaving => !IsSaving;
         public bool HasNotSelected => !HasSelected;
         #endregion
@@ -210,7 +176,7 @@ namespace TimekeeperWPF
         #region Predicates
         protected virtual bool CanGetData => IsNotSaving && IsNotLoading;
         protected virtual bool CanAddNew => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
-        protected virtual bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
+        protected virtual bool CanCancel => (View?.IsAddingNew??false) || (View?.CanCancelEdit??false);
         protected virtual bool CanCommit => IsNotSaving && IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
         protected virtual bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
         protected virtual bool CanEditSelected => IsNotSaving && IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
@@ -249,41 +215,50 @@ namespace TimekeeperWPF
         protected virtual void AddNew()
         {
             CurrentEditItem = View.AddNew() as ModelType;
-            IsAddingNew = true;
+            BeginEdit();
             Status = "Adding new " + CurrentEditItem.GetTypeName();
+        }
+        protected virtual void EditSelected()
+        {
+            CurrentEditItem = SelectedItem;
+            View.EditItem(CurrentEditItem);
+            BeginEdit();
+            Status = "Editing " + CurrentEditItem.GetTypeName();
         }
         protected virtual void Cancel()
         {
-            if(IsEditingItem)
+            if(View?.IsEditingItem??false)
             {
-                View?.CancelEdit();
+                View.CancelEdit();
                 EndEdit();
                 Status = "Canceled";
             }
-            else if(IsAddingNew)
+            else if(View?.IsAddingNew??false)
             {
-                View?.CancelNew();
+                View.CancelNew();
                 EndEdit();
                 Status = "Canceled";
             }
         }
+        protected virtual void BeginEdit()
+        {
+            OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
+        }
         protected virtual void EndEdit()
         {
-            IsEditingItem = false;
-            IsAddingNew = false;
-            CurrentEditItem.IsEditing = false;
             CurrentEditItem = null;
+            OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
         }
         protected virtual async void Commit()
         {
             if (await SaveChangesAsync())
             {
-                if (IsAddingNew)
+                if (View.IsAddingNew)
                 {
                     Status = CurrentEditItem.GetTypeName() + " Added";
                     View.CommitNew();
                 }
-                else if (IsEditingItem)
+                else if (View.IsEditingItem)
                 {
                     Status = CurrentEditItem.GetTypeName() + " Modified";
                     View.CommitEdit();
@@ -344,14 +319,6 @@ namespace TimekeeperWPF
         {
             Status = "Ready";
             SelectedItem = null;
-        }
-        protected virtual void EditSelected()
-        {
-            CurrentEditItem = SelectedItem;
-            View.EditItem(CurrentEditItem);
-            CurrentEditItem.IsEditing = true; //after view.edit
-            IsEditingItem = true;
-            Status = "Editing " + CurrentEditItem.GetTypeName();
         }
         protected virtual async void DeleteSelected()
         {
