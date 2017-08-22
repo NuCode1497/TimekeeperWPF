@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:TimekeeperWPF"
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" >
     <Grid>
         <Grid.RowDefinitions>
@@ -17,12 +18,11 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time"/>
-        <TextBox Grid.Column="1" Grid.Row="0" Width="200" HorizontalAlignment="Left"
-                 VerticalContentAlignment="Center" 
-                 Text="{Binding Path=DateTime, ValidatesOnDataErrors=True, 
-            ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        <wpftools:DateTimePicker Grid.Column="1" Grid.Row="0" Width="300" HorizontalAlignment="Left"
+                                 VerticalContentAlignment="Center" 
+                                 Text="{Binding Path=DateTime, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" />
         <Label Grid.Column="0" Grid.Row="1" Content="Note"/>
-        <TextBox Grid.Column="1" Grid.Row="1" Width="200" HorizontalAlignment="Left"
+        <TextBox Grid.Column="1" Grid.Row="1" Width="300" HorizontalAlignment="Left"
                  TextWrapping="Wrap" MaxLength="160"
                  Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
             ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
