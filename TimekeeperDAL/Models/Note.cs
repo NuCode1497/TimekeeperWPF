@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Note : LabeledEntity
+    public partial class Note : TypedLabeledEntity
     {
         public override string ToString()
         {

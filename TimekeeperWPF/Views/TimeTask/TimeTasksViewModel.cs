@@ -16,9 +16,15 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class TimeTasksViewModel : LabeledEntitiesViewModel<TimeTask>
+    public class TimeTasksViewModel : TypedLabeledEntitiesViewModel<TimeTask>
     {
-        public override string Name => throw new NotImplementedException();
+        #region Fields
+        private ICommand _ContinueSaveCommand;
+        private DateTime _SaveAsStart;
+        private DateTime _SaveAsEnd;
+        private string _SaveAsError;
+        #endregion
+        public override string Name => nameof(Context.TimeTasks) + " Editor";
 
         protected override Task GetDataAsync()
         {

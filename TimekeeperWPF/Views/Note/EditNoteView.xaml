@@ -31,7 +31,7 @@
                   DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding Path=TaskType, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=DataContext.NoteTypesView, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}" />
+                  ItemsSource="{Binding Path=DataContext.TaskTypesView, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}" />
         <local:LabelSelectorView Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3"
                                  DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}"/>
     </Grid>

@@ -19,11 +19,11 @@ namespace TimekeeperWPF
             Items.Source = Context.Notes.Local;
 
             //Load TaskTypes stuff
-            NoteTypesCollection = new CollectionViewSource();
+            TaskTypesCollection = new CollectionViewSource();
             await Context.TaskTypes.LoadAsync();
-            NoteTypesCollection.Source = Context.TaskTypes.Local;
-            NoteTypesView.CustomSort = BasicSorter;
-            OnPropertyChanged(nameof(NoteTypesView));
+            TaskTypesCollection.Source = Context.TaskTypes.Local;
+            TaskTypesView.CustomSort = BasicSorter;
+            OnPropertyChanged(nameof(TaskTypesView));
 
         }
     }

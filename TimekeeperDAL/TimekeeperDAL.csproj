@@ -60,6 +60,10 @@
   <ItemGroup>
     <Compile Include="EF\Allocation.cs" />
     <Compile Include="EF\Label.cs" />
+    <Compile Include="Migrations\201708221824327_TimeTasksRename.cs" />
+    <Compile Include="Migrations\201708221824327_TimeTasksRename.Designer.cs">
+      <DependentUpon>201708221824327_TimeTasksRename.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\LabeledEntity.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
@@ -90,6 +94,7 @@
     <Compile Include="Models\TaskType.cs" />
     <Compile Include="Models\TimePattern.cs" />
     <Compile Include="Models\TimePoint.cs" />
+    <Compile Include="Models\TypedLabeledEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +107,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201708172004465_IntialCreate.resx">
       <DependentUpon>201708172004465_IntialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201708221824327_TimeTasksRename.resx">
+      <DependentUpon>201708221824327_TimeTasksRename.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

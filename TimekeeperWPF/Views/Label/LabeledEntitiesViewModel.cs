@@ -89,10 +89,39 @@ namespace TimekeeperWPF
             ?? (_AddLabelCommand = new RelayCommand(ap => AddLabel(), pp => CanAddLabel));
         #endregion
         #region Actions
+        protected override async Task GetDataAsync()
+        {
+            LabelsCollection = new CollectionViewSource();
+            await Context.Labels.LoadAsync();
+            LabelsCollection.Source = Context.Labels.Local;
+            LabelsView.CustomSort = BasicSorter;
+            OnPropertyChanged(nameof(LabelsView));
+        }
         protected override void AddNew()
         {
             base.AddNew();
-            PrepareViews();
+            BeginEdit();
+        }
+        protected override void EditSelected()
+        {
+            base.EditSelected();
+            BeginEdit();
+        }
+        private void BeginEdit()
+        {
+            CurrentEntityLabelsCollection = new CollectionViewSource();
+            CurrentEntityLabelsCollection.Source = new ObservableCollection<Label>(CurrentEditItem.Labels);
+            UpdateViews();
+        }
+        protected override void EndEdit()
+        {
+            CurrentEntityLabelsCollection = null;
+            base.EndEdit();
+        }
+        protected override void Commit()
+        {
+            CurrentEditItem.Labels = new HashSet<Label>(CurrentEntityLabelsSource);
+            base.Commit();
         }
         private void AddLabel()
         {
@@ -106,40 +135,11 @@ namespace TimekeeperWPF
             CurrentEntityLabelsView.Remove(ap);
             UpdateViews();
         }
-        protected override async Task GetDataAsync()
-        {
-            LabelsCollection = new CollectionViewSource();
-            await Context.Labels.LoadAsync();
-            LabelsCollection.Source = Context.Labels.Local;
-            LabelsView.CustomSort = BasicSorter;
-            OnPropertyChanged(nameof(LabelsView));
-        }
-        protected override void EditSelected()
-        {
-            base.EditSelected();
-            PrepareViews();
-        }
-        private void PrepareViews()
-        {
-            CurrentEntityLabelsCollection = new CollectionViewSource();
-            CurrentEntityLabelsCollection.Source = new ObservableCollection<Label>(CurrentEditItem.Labels);
-            UpdateViews();
-        }
         private void UpdateViews()
         {
             LabelsView.Filter = L => CurrentEntityLabelsView.Contains(L) == false;
             OnPropertyChanged(nameof(CurrentEntityLabelsView));
             OnPropertyChanged(nameof(LabelsView));
-        }
-        protected override void Commit()
-        {
-            CurrentEditItem.Labels = new HashSet<Label>(CurrentEntityLabelsSource);
-            base.Commit();
-        }
-        protected override void EndEdit()
-        {
-            base.EndEdit();
-            CurrentEntityLabelsCollection = null;
         }
         #endregion
     }

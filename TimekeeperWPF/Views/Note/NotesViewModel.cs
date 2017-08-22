@@ -16,7 +16,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class NotesViewModel : LabeledEntitiesViewModel<Note>
+    public class NotesViewModel : TypedLabeledEntitiesViewModel<Note>
     {
         #region Fields
         private ICommand _ContinueSaveCommand;
@@ -31,9 +31,6 @@ namespace TimekeeperWPF
         }
         #region Properties
         public override string Name => nameof(Context.Notes) + " Editor";
-        public CollectionViewSource NoteTypesCollection { get; set; }
-        public ObservableCollection<TaskType> NoteTypesSource => NoteTypesCollection?.Source as ObservableCollection<TaskType>;
-        public ListCollectionView NoteTypesView => NoteTypesCollection?.View as ListCollectionView;
         public DateTime SaveAsStart
         {
             get
@@ -84,19 +81,11 @@ namespace TimekeeperWPF
         protected override async Task GetDataAsync()
         {
             //await Task.Delay(2000);
-
-            //Load entities data
+            
             Context = new TimeKeeperContext();
             await Context.Notes.LoadAsync();
             Items.Source = Context.Notes.Local;
-
-            //Load TaskTypes stuff
-            NoteTypesCollection = new CollectionViewSource();
-            await Context.TaskTypes.LoadAsync();
-            NoteTypesCollection.Source = Context.TaskTypes.Local;
-            NoteTypesView.CustomSort = BasicSorter;
-            OnPropertyChanged(nameof(NoteTypesView));
-
+            
             await base.GetDataAsync();
         }
         protected override void SaveAs()
@@ -175,28 +164,11 @@ namespace TimekeeperWPF
             File.WriteAllText(saveDlg.FileName, text);
             Process.Start(saveDlg.FileName);
         }
-        protected override void EditSelected()
-        {
-            base.EditSelected();
-            PrepareViews();
-        }
         protected override void AddNew()
         {
             base.AddNew();
             CurrentEditItem.DateTime = DateTime.Now;
             CurrentEditItem.Text = "Your text here.";
-            CurrentEditItem.TaskType = 
-                (from t in NoteTypesSource
-                 where t.Name == "Note"
-                 select t).DefaultIfEmpty(NoteTypesSource[0]).First();
-            PrepareViews();
-        }
-        private void PrepareViews()
-        {
-            NoteTypesView.MoveCurrentTo(
-                (from t in NoteTypesSource
-                 where t.Name == CurrentEditItem?.TaskType.Name
-                 select t).DefaultIfEmpty(NoteTypesSource[0]).First());
         }
         #endregion
     }

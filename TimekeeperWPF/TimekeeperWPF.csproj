@@ -101,6 +101,7 @@
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Label\LabeledEntitiesViewModel.cs" />
+    <Compile Include="Views\TaskType\TypedLabeledEntitiesViewModel.cs" />
     <Compile Include="Views\TimePattern\TimePatternsView.xaml.cs">
       <DependentUpon>TimePatternsView.xaml</DependentUpon>
     </Compile>

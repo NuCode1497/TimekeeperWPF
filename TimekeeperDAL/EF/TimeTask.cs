@@ -54,9 +54,6 @@ namespace TimekeeperDAL.EF
 
         #region Navigation
 
-        [Required]
-        public virtual TaskType TaskType { get; set; }
-
         [InverseProperty("Inclusions")]
         public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
 
