@@ -122,7 +122,6 @@
             <Setter Property="AlternationCount" Value="1"/>
             <Setter Property="IsTabStop" Value="False"/>
             <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
-            <Setter Property="IsSynchronizedWithCurrentItem" Value="True"/>
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="CanUserAddRows" Value="False"/>
             <Setter Property="CanUserDeleteRows" Value="False"/>
@@ -142,7 +141,6 @@
             <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
             <Setter Property="IsTabStop" Value="False"/>
             <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
-            <Setter Property="IsSynchronizedWithCurrentItem" Value="True"/>
             <Setter Property="SelectionMode" Value="Single"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -324,7 +322,6 @@
                     <Button Content="New" x:Name="NewItemBtn" Command="{Binding Path=NewItemCommand}"/>
                     <Button Content="Edit" x:Name="EditSelectedBtn" Command="{Binding Path=EditSelectedCommand}"/>
                     <Button Content="Delete" x:Name="DeleteSelectedBtn" Command="{Binding Path=DeleteSelectedCommand}"/>
-                    <Button Content="Deselect" x:Name="DeselectBtn" Command="{Binding Path=DeselectCommand}"/>
                     <Button Margin="2" Content="Refresh" x:Name="GetDataBtn" Command="{Binding Path=GetDataCommand}"/>
                 </ToolBar>
             </ToolBarTray>

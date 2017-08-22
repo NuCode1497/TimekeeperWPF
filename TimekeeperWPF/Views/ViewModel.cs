@@ -12,6 +12,17 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
+    /// <summary>
+    /// Generic ViewModel handles CRUD logic for Views. Bind a collection control's ItemsSource to View.
+    /// 
+    /// Recommendations:
+    /// Collectioon controls like DataGrids and such will try to control change tracking and might disable
+    /// CanCancel unexpectedly, unless you set the following properties:
+    /// IsSyncronizedWithCurrentItem = false
+    /// CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}"
+    /// SelectedItem no binding
+    /// </summary>
+    /// <typeparam name="ModelType">EntityBase type</typeparam>
     public abstract class ViewModel<ModelType> : ObservableObject, IPage, IDisposable 
         where ModelType: EntityBase, new() 
     {
@@ -32,7 +43,6 @@ namespace TimekeeperWPF
         private ICommand _NewItemCommand = null;
         private ICommand _CancelCommand = null;
         private ICommand _CommitCommand = null;
-        private ICommand _DeselectCommand = null;
         private ICommand _EditSelectedCommand = null;
         private ICommand _DeleteSelectedCommand = null;
         private ICommand _SaveAsCommand;
@@ -198,8 +208,6 @@ namespace TimekeeperWPF
             ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
         public ICommand CommitCommand => _CommitCommand
             ?? (_CommitCommand = new RelayCommand(ap => Commit(), pp => CanCommit));
-        public ICommand DeselectCommand => _DeselectCommand
-            ?? (_DeselectCommand = new RelayCommand(ap => Deselect(), pp => CanDeselect));
         public ICommand EditSelectedCommand => _EditSelectedCommand
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
@@ -225,7 +233,6 @@ namespace TimekeeperWPF
             IsEnabled = false;
             IsLoading = true;
             Cancel();
-            Deselect();
             Status = "Loading Data...";
             Items = new CollectionViewSource();
             OnPropertyChanged(nameof(View));
@@ -235,7 +242,6 @@ namespace TimekeeperWPF
                 await GetDataAsync();
                 View.CustomSort = Sorter;
                 OnPropertyChanged(nameof(View));
-                Deselect();
                 IsEnabled = true;
                 Status = "Ready";
             }
@@ -248,9 +254,26 @@ namespace TimekeeperWPF
         }
         protected virtual void AddNew()
         {
+            SelectedItem = null;
             CurrentEditItem = View.AddNew() as ModelType;
             IsAddingNew = true;
             Status = "Adding new " + CurrentEditItem.GetTypeName();
+        }
+        protected virtual void EditSelected()
+        {
+            CurrentEditItem = SelectedItem;
+            SelectedItem = null;
+            View.EditItem(CurrentEditItem);
+            CurrentEditItem.IsEditing = true; //after view.edit
+            IsEditingItem = true;
+            Status = "Editing " + CurrentEditItem.GetTypeName();
+        }
+        protected virtual void EndEdit()
+        {
+            IsEditingItem = false;
+            IsAddingNew = false;
+            CurrentEditItem.IsEditing = false;
+            CurrentEditItem = null;
         }
         protected virtual void Cancel()
         {
@@ -266,13 +289,6 @@ namespace TimekeeperWPF
                 EndEdit();
                 Status = "Canceled";
             }
-        }
-        protected virtual void EndEdit()
-        {
-            IsEditingItem = false;
-            IsAddingNew = false;
-            CurrentEditItem.IsEditing = false;
-            CurrentEditItem = null;
         }
         protected virtual async void Commit()
         {
@@ -339,19 +355,6 @@ namespace TimekeeperWPF
                 MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return success;
-        }
-        protected virtual void Deselect()
-        {
-            Status = "Ready";
-            SelectedItem = null;
-        }
-        protected virtual void EditSelected()
-        {
-            CurrentEditItem = SelectedItem;
-            View.EditItem(CurrentEditItem);
-            CurrentEditItem.IsEditing = true; //after view.edit
-            IsEditingItem = true;
-            Status = "Editing " + CurrentEditItem.GetTypeName();
         }
         protected virtual async void DeleteSelected()
         {

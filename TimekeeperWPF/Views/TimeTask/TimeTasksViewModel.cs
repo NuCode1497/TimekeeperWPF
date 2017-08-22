@@ -16,7 +16,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class TimeTasksViewModel : ViewModel<TimeTask>
+    public class TimeTasksViewModel : LabeledEntitiesViewModel<TimeTask>
     {
         public override string Name => throw new NotImplementedException();
 
