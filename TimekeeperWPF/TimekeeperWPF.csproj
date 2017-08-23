@@ -91,6 +91,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DemoView.xaml.cs">
+      <DependentUpon>DemoView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TaskType\TaskTypeSelectorView.xaml.cs">
+      <DependentUpon>TaskTypeSelectorView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\ExceptionViewer.xaml.cs">
       <DependentUpon>ExceptionViewer.xaml</DependentUpon>
     </Compile>
@@ -157,6 +163,14 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
+    <Page Include="DemoView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TaskType\TaskTypeSelectorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Tools\ExceptionViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

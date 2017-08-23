@@ -59,7 +59,9 @@
     </UserControl.Triggers>
     <Grid>
         <ContentControl Width="300" Height="300" >
-            <Label x:Name="LoadyMcLoadFace" Content="Loading..." HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="48" FontWeight="Bold" FontStyle="Italic" Foreground="Red">
+            <Label x:Name="LoadyMcLoadFace" Content="Loading..." 
+                   Width="Auto" HorizontalAlignment="Left" VerticalAlignment="Center" 
+                   FontSize="48" FontWeight="Bold" FontStyle="Italic" Foreground="Red">
                 <Label.Effect>
                     <DropShadowEffect BlurRadius="10" Opacity="0.85" ShadowDepth="3" Color="{Binding ElementName=LoadyMcLoadFace, Path=Foreground.Color}"/>
                 </Label.Effect>

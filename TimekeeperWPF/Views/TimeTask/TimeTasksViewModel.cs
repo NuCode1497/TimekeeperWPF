@@ -60,6 +60,10 @@ namespace TimekeeperWPF
                 }
                 else
                 {
+                    if(SelectedInclude == SelectedExclude)
+                    {
+                        SelectedExclude = null;
+                    }
                     HasSelectedInclude = true;
                 }
                 OnPropertyChanged();
@@ -82,6 +86,10 @@ namespace TimekeeperWPF
                 }
                 else
                 {
+                    if(SelectedExclude == SelectedInclude)
+                    {
+                        SelectedInclude = null;
+                    }
                     HasSelectedExclude = true;
                 }
                 OnPropertyChanged();
@@ -118,8 +126,20 @@ namespace TimekeeperWPF
         public bool HasNotSelectedInclude => !HasSelectedInclude;
         public bool HasNotSelectedExclude => !HasSelectedExclude;
         #endregion
+        #region Commands
+        public ICommand RemoveIncludeCommand => _RemoveIncludeCommand
+            ?? (_RemoveIncludeCommand = new RelayCommand(ap => RemoveInclude(ap as TimePattern), pp => pp is TimePattern));
+        public ICommand RemoveExcludeCommand => _RemoveExcludeCommand
+            ?? (_RemoveExcludeCommand = new RelayCommand(ap => RemoveExclude(ap as TimePattern), pp => pp is TimePattern));
+        public ICommand AddIncludeCommand => _AddIncludeCommand
+            ?? (_AddIncludeCommand = new RelayCommand(ap => AddInclude(), pp => CanAddInclude));
+        public ICommand AddExcludeCommand => _AddExcludeCommand
+            ?? (_AddExcludeCommand = new RelayCommand(ap => AddExclude(), pp => CanAddExclude));
+        #endregion
         #region Predicates
         protected override bool CanSave => false;
+        private bool CanAddInclude => HasSelectedInclude && !(CurrentEntityIncludesSource?.Contains(SelectedInclude)??false);
+        private bool CanAddExclude => HasSelectedExclude && !(CurrentEntityExcludesSource?.Contains(SelectedExclude)??false);
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -130,26 +150,93 @@ namespace TimekeeperWPF
 
             await base.GetDataAsync();
         }
-        protected override void AddNew()
-        {
-            base.AddNew();
-            CurrentEditItem.AsksForCheckin = false;
-            CurrentEditItem.AsksForReschedule = false;
-            CurrentEditItem.CanBeEarly = false;
-            CurrentEditItem.CanBeLate = false;
-            CurrentEditItem.CanBePushed = false;
-            CurrentEditItem.CanDeflate = false;
-            CurrentEditItem.CanFill = false;
-            CurrentEditItem.CanInflate = false;
-            CurrentEditItem.CanReschedule = false;
-            CurrentEditItem.Description = "Your text here.";
-            CurrentEditItem.Dimension = 1;
-            CurrentEditItem.End = DateTime.Now.RoundToHour().AddHours(1);
-            CurrentEditItem.Start = DateTime.Now.RoundToHour();
-        }
         protected override void SaveAs()
         {
             throw new NotImplementedException();
+        }
+        protected override void AddNew()
+        {
+            base.AddNew();
+            CurrentEditItem.Name = "New Task";
+            CurrentEditItem.Description = "Your text here.";
+            CurrentEditItem.Start = DateTime.Now.RoundToHour();
+            CurrentEditItem.End = DateTime.Now.RoundToHour().AddHours(1);
+            CurrentEditItem.Dimension = 1;
+            CurrentEditItem.PowerLevel = 100;
+            CurrentEditItem.Priority = 1;
+            CurrentEditItem.AsksForCheckin = false;
+            CurrentEditItem.AsksForReschedule = false;
+            CurrentEditItem.CanReschedule = false;
+            CurrentEditItem.RaiseOnReschedule = false;
+            CurrentEditItem.CanBeEarly = false;
+            CurrentEditItem.CanBeLate = false;
+            CurrentEditItem.CanBePushed = false;
+            CurrentEditItem.CanInflate = false;
+            CurrentEditItem.CanDeflate = false;
+            CurrentEditItem.CanFill = false;
+            BeginEdit();
+        }
+        protected override void EditSelected()
+        {
+            base.EditSelected();
+            BeginEdit();
+        }
+        private void BeginEdit()
+        {
+            CurrentEntityIncludesCollection = new CollectionViewSource();
+            CurrentEntityIncludesCollection.Source = new ObservableCollection<TimePattern>(CurrentEditItem.IncludedPatterns);
+            CurrentEntityExcludesCollection = new CollectionViewSource();
+            CurrentEntityExcludesCollection.Source = new ObservableCollection<TimePattern>(CurrentEditItem.ExcludedPatterns);
+            UpdateViews();
+        }
+        protected override void EndEdit()
+        {
+            CurrentEntityIncludesCollection = null;
+            CurrentEntityExcludesCollection = null;
+            base.EndEdit();
+        }
+        protected override void Commit()
+        {
+            CurrentEditItem.IncludedPatterns = new HashSet<TimePattern>(CurrentEntityIncludesSource);
+            CurrentEditItem.ExcludedPatterns = new HashSet<TimePattern>(CurrentEntityExcludesSource);
+            base.Commit();
+        }
+        private void AddInclude()
+        {
+            CurrentEntityIncludesView.AddNewItem(SelectedInclude);
+            CurrentEntityIncludesView.CommitNew();
+            SelectedInclude = null;
+            UpdateViews();
+        }
+        private void AddExclude()
+        {
+            CurrentEntityExcludesView.AddNewItem(SelectedExclude);
+            CurrentEntityExcludesView.CommitNew();
+            SelectedExclude = null;
+            UpdateViews();
+        }
+        private void RemoveExclude(TimePattern ap)
+        {
+            CurrentEntityExcludesView.Remove(ap);
+            UpdateViews();
+        }
+        private void RemoveInclude(TimePattern ap)
+        {
+            CurrentEntityIncludesView.Remove(ap);
+            UpdateViews();
+        }
+        private void UpdateViews()
+        {
+            //PatternsView.Filter = P =>
+            //{
+            //    return
+            //    CurrentEntityIncludesView.Contains(P) == false &&
+            //    CurrentEntityExcludesView.Contains(P) == false;
+            //};
+            //OnPropertyChanged(nameof(PatternsView));
+            //OnPropertyChanged(nameof(CurrentEntityIncludesView));
+            //OnPropertyChanged(nameof(CurrentEntityExcludesView));
+
         }
         #endregion
     }

@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="TimekeeperWPF.TaskTypeSelectorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TimekeeperWPF"
+             mc:Ignorable="d" >
+    <StackPanel Orientation="Horizontal">
+        <Label Content="Task Type"  Width="80"/>
+        <ComboBox Width="100" HorizontalAlignment="Left"
+                  DisplayMemberPath="Name"
+                  IsSynchronizedWithCurrentItem="True"
+                  SelectedItem="{Binding Path=TaskType, Mode=TwoWay}"
+                  ItemsSource="{Binding Path=DataContext.TaskTypesView, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}" />
+    </StackPanel>
+</UserControl>

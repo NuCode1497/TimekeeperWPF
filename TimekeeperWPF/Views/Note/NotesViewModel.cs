@@ -69,12 +69,12 @@ namespace TimekeeperWPF
         #endregion
         #region Conditions
         #endregion
-        #region Predicates
-        private bool CanContinueSave => SaveAsStart <= SaveAsEnd;
-        #endregion
         #region Commands
         public ICommand ContinueSaveCommand => _ContinueSaveCommand
             ?? (_ContinueSaveCommand = new RelayCommand(ap => ContinueSave(), pp => CanContinueSave));
+        #endregion
+        #region Predicates
+        private bool CanContinueSave => SaveAsStart <= SaveAsEnd;
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -86,12 +86,6 @@ namespace TimekeeperWPF
             Items.Source = Context.Notes.Local;
             
             await base.GetDataAsync();
-        }
-        protected override void AddNew()
-        {
-            base.AddNew();
-            CurrentEditItem.DateTime = DateTime.Now;
-            CurrentEditItem.Text = "Your text here.";
         }
         protected override void SaveAs()
         {
@@ -168,6 +162,12 @@ namespace TimekeeperWPF
 
             File.WriteAllText(saveDlg.FileName, text);
             Process.Start(saveDlg.FileName);
+        }
+        protected override void AddNew()
+        {
+            base.AddNew();
+            CurrentEditItem.DateTime = DateTime.Now;
+            CurrentEditItem.Text = "Your text here.";
         }
         #endregion
     }

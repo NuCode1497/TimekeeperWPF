@@ -5,8 +5,47 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-            
-    </Grid>
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Name" Width="80"/>
+            <TextBox Width="300" MaxLength="50"
+                     Text="{Binding Path=Name, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Description" Width="80"/>
+            <TextBox Width="300" TextWrapping="Wrap" MaxLength="160" 
+                     Text="{Binding Path=Description, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Start" Width="80"/>
+            <wpftools:DateTimePicker Width="300" Text="{Binding Path=Start}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="End" Width="80"/>
+            <wpftools:DateTimePicker Width="300" Text="{Binding Path=End}" />
+        </StackPanel>
+        <local:TaskTypeSelectorView/>
+        <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Priority" Width="Auto" Margin="10,2,2,2"/>
+            <TextBox Width="50" Text="{Binding Path=Priority}"/>
+            <Label Content="Dimension" Width="Auto" Margin="10,2,2,2"/>
+            <TextBox Width="50" Text="{Binding Path=Dimension}"/>
+            <Label Content="Power Level" Width="Auto" Margin="10,2,2,2"/>
+            <TextBox Width="50" Text="{Binding Path=PowerLevel}"/>
+        </StackPanel>
+        <ListBox Width="150" Margin="10,4,4,4" Background="Transparent" HorizontalAlignment="Left">
+            <CheckBox Content="AsksForCheckin" IsChecked="{Binding Path=AsksForCheckin}"/>
+            <CheckBox Content="AsksForReschedule" IsChecked="{Binding Path=AsksForReschedule}"/>
+            <CheckBox Content="CanReschedule" IsChecked="{Binding Path=CanReschedule}"/>
+            <CheckBox Content="RaiseOnReschedule" IsChecked="{Binding Path=RaiseOnReschedule}"/>
+            <CheckBox Content="CanBeEarly" IsChecked="{Binding Path=CanBeEarly}"/>
+            <CheckBox Content="CanBeLate" IsChecked="{Binding Path=CanBeLate}"/>
+            <CheckBox Content="CanBePushed" IsChecked="{Binding Path=CanBePushed}"/>
+            <CheckBox Content="CanInflate" IsChecked="{Binding Path=CanInflate}"/>
+            <CheckBox Content="CanDeflate" IsChecked="{Binding Path=CanDeflate}"/>
+            <CheckBox Content="CanFill" IsChecked="{Binding Path=CanFill}"/>
+        </ListBox>
+    </StackPanel>
 </UserControl>

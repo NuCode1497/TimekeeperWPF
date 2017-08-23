@@ -75,14 +75,14 @@ namespace TimekeeperWPF
         }
         public bool HasNotSelectedLabel => !HasSelectedLabel;
         #endregion
-        #region Predicates
-        private bool CanAddLabel => HasSelectedLabel && !(CurrentEntityLabelsSource?.Contains(SelectedLabel)??false);
-        #endregion
         #region Commands
         public ICommand RemoveLabelCommand => _RemoveLabelCommand
             ?? (_RemoveLabelCommand = new RelayCommand(ap => RemoveLabel(ap as Label), pp => pp is Label));
         public ICommand AddLabelCommand => _AddLabelCommand
             ?? (_AddLabelCommand = new RelayCommand(ap => AddLabel(), pp => CanAddLabel));
+        #endregion
+        #region Predicates
+        private bool CanAddLabel => HasSelectedLabel && !(CurrentEntityLabelsSource?.Contains(SelectedLabel)??false);
         #endregion
         #region Actions
         protected override async Task GetDataAsync()

@@ -4,9 +4,69 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
+             xmlns:wpftk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-            
+             d:DesignHeight="400" d:DesignWidth="600">
+    <Grid x:Name="SV">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
+        <DataGrid x:Name="DG" Grid.Row="1" Margin="1"
+                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                  IsEnabled="{Binding Path=IsEnabled}"
+                  ItemsSource="{Binding Path=View}"
+                  CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
+                <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"/>
+                <DataGridTextColumn Binding="{Binding Path=End}" Header="End"/>
+                <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
+                <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description" Width="200">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style>
+                            <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+                            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+                            <Setter Property="TextBlock.FontSize" Value="12"/>
+                            <Setter Property="TextBlock.LineHeight" Value="14"/>
+                            <Setter Property="TextBlock.MaxHeight" Value="42"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels" Width="150">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style>
+                            <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+                            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+                            <Setter Property="TextBlock.FontSize" Value="12"/>
+                            <Setter Property="TextBlock.LineHeight" Value="14"/>
+                            <Setter Property="TextBlock.MaxHeight" Value="42"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Path=Priority}" Header="Priority"/>
+                <DataGridTextColumn Binding="{Binding Path=Dimension}" Header="Dimension"/>
+                <DataGridTextColumn Binding="{Binding Path=PowerLevel}" Header="PowerLevel"/>
+                <DataGridTextColumn Binding="{Binding Path=AsksForCheckin}" Header="AsksForCheckin"/>
+                <DataGridTextColumn Binding="{Binding Path=AsksForReschedule}" Header="AsksForReschedule"/>
+                <DataGridTextColumn Binding="{Binding Path=CanReschedule}" Header="CanReschedule"/>
+                <DataGridTextColumn Binding="{Binding Path=RaiseOnReschedule}" Header="RaiseOnReschedule"/>
+                <DataGridTextColumn Binding="{Binding Path=CanBeEarly}" Header="CanBeEarly"/>
+                <DataGridTextColumn Binding="{Binding Path=CanBeLate}" Header="CanBeLate"/>
+                <DataGridTextColumn Binding="{Binding Path=CanBePushed}" Header="CanBePushed"/>
+                <DataGridTextColumn Binding="{Binding Path=CanInflate}" Header="CanInflate"/>
+                <DataGridTextColumn Binding="{Binding Path=CanDeflate}" Header="CanDeflate"/>
+                <DataGridTextColumn Binding="{Binding Path=CanFill}" Header="CanFill"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp" IsTabStop="False"
+                        Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Template="{StaticResource EditPopUpTemplate}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <local:EditTimeTaskView x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
+            </ScrollViewer>
+        </ContentControl>
+        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

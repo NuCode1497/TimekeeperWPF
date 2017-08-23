@@ -40,10 +40,10 @@ namespace TimekeeperWPF
         protected override void AddNew()
         {
             base.AddNew();
-            CurrentEditItem.TaskType =
-                (from t in TaskTypesSource
-                 where t.Name == "Note"
-                 select t).DefaultIfEmpty(TaskTypesSource[0]).First();
+            var q = from t in TaskTypesSource
+                    where t.Name == "Note"
+                    select t;
+            CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource[0]).First();
             BeginEdit();
         }
         protected override void EditSelected()
@@ -53,10 +53,10 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
-            TaskTypesView.MoveCurrentTo(
-                (from t in TaskTypesSource
-                 where t.Name == CurrentEditItem?.TaskType.Name
-                 select t).DefaultIfEmpty(TaskTypesSource[0]).First());
+            var q = from t in TaskTypesSource
+                    where t.Name == CurrentEditItem?.TaskType.Name
+                    select t;
+            TaskTypesView.MoveCurrentTo(q.DefaultIfEmpty(TaskTypesSource[0]).First());
         }
         #endregion
     }

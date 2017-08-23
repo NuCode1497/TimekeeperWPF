@@ -6,33 +6,17 @@
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" >
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="80"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time"/>
-        <wpftools:DateTimePicker Grid.Column="1" Grid.Row="0" Width="300" HorizontalAlignment="Left"
-                                 VerticalContentAlignment="Center" 
-                                 Text="{Binding Path=DateTime, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" />
-        <Label Grid.Column="0" Grid.Row="1" Content="Note"/>
-        <TextBox Grid.Column="1" Grid.Row="1" Width="300" HorizontalAlignment="Left"
-                 TextWrapping="Wrap" MaxLength="160"
-                 Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
-            ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
-        <Label Grid.Column="0" Grid.Row="2" Content="Task Type" />
-        <ComboBox Grid.Column="1" Grid.Row="2" Width="100" HorizontalAlignment="Left"
-                  DisplayMemberPath="Name"
-                  IsSynchronizedWithCurrentItem="True"
-                  SelectedItem="{Binding Path=TaskType, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=DataContext.TaskTypesView, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}" />
-        <local:LabelSelectorView Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3"
-                                 DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}"/>
-    </Grid>
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Date &amp; Time" Width="80"/>
+            <wpftools:DateTimePicker Width="300" Text="{Binding Path=DateTime}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Note" Width="80"/>
+            <TextBox Width="300" HorizontalAlignment="Left" TextWrapping="Wrap" MaxLength="160" 
+                     Text="{Binding Path=Text, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+        <local:TaskTypeSelectorView/>
+        <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+    </StackPanel>
 </UserControl>

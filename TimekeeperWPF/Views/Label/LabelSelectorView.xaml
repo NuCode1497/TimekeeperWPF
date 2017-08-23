@@ -5,23 +5,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="100">
-    <Grid Name="LabelEditorGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <StackPanel Name="LabelEditorPanel">
         <StackPanel Orientation="Horizontal">
-        <Label Grid.Row="0" Content="Labels" Width="80"/>
-        <ComboBox Name="LabelsCbo" Grid.Row="0" DisplayMemberPath="Name"
+            <Label Content="Labels" Width="80"/>
+            <ComboBox Name="LabelsCbo" DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True" Width="100"
                   SelectedItem="{Binding Path=SelectedLabel, Mode=TwoWay}"
                   ItemsSource="{Binding Path=LabelsView}" />
-            <Button Name="AddLabelBtn" Grid.Column="2" Grid.Row="0" Content="Add" 
+            <Button Name="AddLabelBtn" Content="Add" 
                     Command="{Binding Path=AddLabelCommand}" 
                 Visibility="{Binding Path=CanAddLabel, Converter={StaticResource BooleanToVisibilityConverter}}" Padding="4,1"/>
         </StackPanel>
-        <Border Name="LabelListBdr" Grid.ColumnSpan="4" Grid.Row="2" 
-                BorderBrush="Purple" BorderThickness="1" Margin="2">
+        <Border Name="LabelListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
             <ItemsControl Name="LabelListIC" IsTabStop="False" 
                           ItemsSource="{Binding Path=CurrentEntityLabelsView}">
                 <ItemsControl.ItemsPanel>
@@ -36,5 +31,5 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </Border>
-    </Grid>
+    </StackPanel>
 </UserControl>

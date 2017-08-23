@@ -112,6 +112,15 @@
             <Setter Property="Padding" Value="4,1"/>
         </Style>
         <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+        <Style TargetType="Label">
+            <Setter Property="Margin" Value="2"/>
+        </Style>
+        <Style TargetType="GroupBox">
+            <Setter Property="BorderBrush" Value="Lime"/>
+            <Setter Property="Margin" Value="12,12,12,6"/>
+            <Setter Property="Padding" Value="2"/>
+            <Setter Property="Header" Value="Features"/>
+        </Style>
         <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}">
             <Setter Property="Margin" Value="2"/>
         </Style>
@@ -123,6 +132,8 @@
             <Setter Property="IsTabStop" Value="False"/>
             <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
             <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
             <Setter Property="CanUserAddRows" Value="False"/>
             <Setter Property="CanUserDeleteRows" Value="False"/>
             <Setter Property="AutoGenerateColumns" Value="False"/>
@@ -251,7 +262,7 @@
                   Height="{Binding ElementName=SV, Path=ActualHeight}" >
                 <Border BorderBrush="Gray" Margin="30" CornerRadius="4" BorderThickness="3" 
                         Name="PopUpBorder"
-                        MaxWidth="500" MaxHeight="600" 
+                        MaxWidth="500" MaxHeight="800" 
                         SnapsToDevicePixels="True" UseLayoutRounding="True"
                         HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Border.Effect>
@@ -271,13 +282,15 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="3*"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="12"/>
                     </Grid.RowDefinitions>
                     <!--Properties Editor-->
-                    <ContentPresenter x:Name="PropEditorCP" Grid.Row="0" Grid.ColumnSpan="2" Margin="12,12,12,6"/>
+                    <GroupBox Header="Properties" Grid.Row="0" Grid.ColumnSpan="2" >
+                        <ContentPresenter x:Name="PropEditorCP" Margin="2"/>
+                    </GroupBox>
                     <!--Validations List-->
                     <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="100"
                               VerticalScrollBarVisibility="Auto"
