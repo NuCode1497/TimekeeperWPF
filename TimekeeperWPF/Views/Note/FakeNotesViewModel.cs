@@ -22,7 +22,7 @@ namespace TimekeeperWPF
             TaskTypesCollection = new CollectionViewSource();
             await Context.TaskTypes.LoadAsync();
             TaskTypesCollection.Source = Context.TaskTypes.Local;
-            TaskTypesView.CustomSort = BasicSorter;
+            TaskTypesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(TaskTypesView));
 
         }

@@ -32,7 +32,7 @@ namespace TimekeeperWPF
             TaskTypesCollection = new CollectionViewSource();
             await Context.TaskTypes.LoadAsync();
             TaskTypesCollection.Source = Context.TaskTypes.Local;
-            TaskTypesView.CustomSort = BasicSorter;
+            TaskTypesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(TaskTypesView));
 
             await base.GetDataAsync();
@@ -40,10 +40,11 @@ namespace TimekeeperWPF
         protected override void AddNew()
         {
             base.AddNew();
+            //set type to Note by getting it from the list of types
             var q = from t in TaskTypesSource
                     where t.Name == "Note"
                     select t;
-            CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource[0]).First();
+            CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource.First()).First();
             BeginEdit();
         }
         protected override void EditSelected()
@@ -53,10 +54,11 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
+            //Preselect the current type
             var q = from t in TaskTypesSource
                     where t.Name == CurrentEditItem?.TaskType.Name
                     select t;
-            TaskTypesView.MoveCurrentTo(q.DefaultIfEmpty(TaskTypesSource[0]).First());
+            TaskTypesView.MoveCurrentTo(q.DefaultIfEmpty(TaskTypesSource.First()).First());
         }
         #endregion
     }

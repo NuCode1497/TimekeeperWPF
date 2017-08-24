@@ -64,6 +64,7 @@
     <Compile Include="Migrations\201708221824327_TimeTasksRename.Designer.cs">
       <DependentUpon>201708221824327_TimeTasksRename.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\INamedObject.cs" />
     <Compile Include="Models\LabeledEntity.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />

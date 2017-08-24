@@ -8,12 +8,12 @@ using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF.Tools
 {
-    public class BasicEntitySorter : IComparer
+    public class NameSorter : IComparer
     {
         public int Compare(object x, object y)
         {
-            BasicEntity Ex = x as BasicEntity;
-            BasicEntity Ey = y as BasicEntity;
+            INamedObject Ex = x as INamedObject;
+            INamedObject Ey = y as INamedObject;
             return Ex.Name.CompareTo(Ey.Name);
         }
     }

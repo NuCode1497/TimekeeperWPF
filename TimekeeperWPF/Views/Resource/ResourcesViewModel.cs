@@ -14,7 +14,7 @@ namespace TimekeeperWPF
     {
         public ResourcesViewModel() : base()
         {
-            Sorter = BasicSorter;
+            Sorter = NameSorter;
         }
         #region Properties
         public override string Name => nameof(Context.Resources) + " Editor";

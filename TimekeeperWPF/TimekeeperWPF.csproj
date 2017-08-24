@@ -125,7 +125,7 @@
     <Compile Include="Views\TimeTask\TimeTasksView.xaml.cs">
       <DependentUpon>TimeTasksView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\BasicEntitySorter.cs" />
+    <Compile Include="Tools\NameSorter.cs" />
     <Compile Include="Views\Label\LabelSelectorView.xaml.cs">
       <DependentUpon>LabelSelectorView.xaml</DependentUpon>
     </Compile>
@@ -164,10 +164,6 @@
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
     <Page Include="DemoView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\GreenTheme.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

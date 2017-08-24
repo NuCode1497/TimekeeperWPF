@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public abstract class BasicEntity : EntityBase
+    public abstract class BasicEntity : EntityBase, INamedObject
     {
         [Required]
         [StringLength(20)]

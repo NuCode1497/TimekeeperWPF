@@ -23,6 +23,7 @@ namespace TimekeeperWPF
         private bool _HasSelectedExclude = false;
         private TimePattern _SelectedInclude;
         private TimePattern _SelectedExclude;
+        private TimePattern _CurrentEditPattern;
         private ICommand _RemoveIncludeCommand;
         private ICommand _RemoveExcludeCommand;
         private ICommand _AddIncludeCommand;
@@ -148,6 +149,12 @@ namespace TimekeeperWPF
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
 
+            PatternsCollection = new CollectionViewSource();
+            await Context.TimePatterns.LoadAsync();
+            PatternsCollection.Source = Context.TimePatterns.Local;
+            PatternsView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(PatternsView));
+
             await base.GetDataAsync();
         }
         protected override void SaveAs()
@@ -227,16 +234,15 @@ namespace TimekeeperWPF
         }
         private void UpdateViews()
         {
-            //PatternsView.Filter = P =>
-            //{
-            //    return
-            //    CurrentEntityIncludesView.Contains(P) == false &&
-            //    CurrentEntityExcludesView.Contains(P) == false;
-            //};
-            //OnPropertyChanged(nameof(PatternsView));
-            //OnPropertyChanged(nameof(CurrentEntityIncludesView));
-            //OnPropertyChanged(nameof(CurrentEntityExcludesView));
-
+            PatternsView.Filter = P =>
+            {
+                return
+                CurrentEntityIncludesView.Contains(P) == false &&
+                CurrentEntityExcludesView.Contains(P) == false;
+            };
+            OnPropertyChanged(nameof(PatternsView));
+            OnPropertyChanged(nameof(CurrentEntityIncludesView));
+            OnPropertyChanged(nameof(CurrentEntityExcludesView));
         }
         #endregion
     }

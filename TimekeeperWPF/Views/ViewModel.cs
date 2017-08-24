@@ -29,7 +29,7 @@ namespace TimekeeperWPF
         #region Fields
         protected ITimeKeeperContext Context;
         protected IComparer Sorter;
-        protected IComparer BasicSorter;
+        protected IComparer NameSorter;
         private String _status = "Ready";
         private bool _IsEnabled = true;
         private bool _IsLoading = false;
@@ -49,7 +49,7 @@ namespace TimekeeperWPF
         #endregion
         public ViewModel()
         {
-            BasicSorter = new BasicEntitySorter();
+            NameSorter = new NameSorter();
         }
         #region Properties
         public abstract string Name { get; }

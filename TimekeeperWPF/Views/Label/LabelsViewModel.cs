@@ -14,7 +14,7 @@ namespace TimekeeperWPF
     {
         public LabelsViewModel() : base()
         {
-            Sorter = BasicSorter;
+            Sorter = NameSorter;
         }
         #region Properties
         public override string Name => nameof(Context.Labels) + " Editor";

@@ -90,7 +90,7 @@ namespace TimekeeperWPF
             LabelsCollection = new CollectionViewSource();
             await Context.Labels.LoadAsync();
             LabelsCollection.Source = Context.Labels.Local;
-            LabelsView.CustomSort = BasicSorter;
+            LabelsView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(LabelsView));
         }
         protected override void AddNew()
