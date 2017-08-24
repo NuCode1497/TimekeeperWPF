@@ -79,6 +79,13 @@ namespace TimekeeperWPF
             }
             set
             {
+                //must not be editing
+                if (IsEditingItemOrAddingNew)
+                {
+                    //prevent change and cause two way bindings to reselect this
+                    OnPropertyChanged();
+                    return;
+                }
                 //Item must not be itself and must be in Source
                 if ((value == _SelectedItem) || (value != null && (!Source?.Contains(value) ?? false))) return;
                 _SelectedItem = value;
@@ -105,6 +112,13 @@ namespace TimekeeperWPF
             }
             protected set
             {
+                //must not be editing
+                if (IsEditingItemOrAddingNew)
+                {
+                    //prevent change and cause two way bindings to reselect this
+                    OnPropertyChanged();
+                    return;
+                }
                 if (value == _CurrentEditItem) return;
                 _CurrentEditItem = value;
                 OnPropertyChanged();
@@ -257,7 +271,6 @@ namespace TimekeeperWPF
         }
         protected virtual void AddNew()
         {
-            SelectedItem = null;
             CurrentEditItem = View.AddNew() as ModelType;
             IsAddingNew = true;
             Status = "Adding new " + CurrentEditItem.GetTypeName();
@@ -265,7 +278,6 @@ namespace TimekeeperWPF
         protected virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
-            SelectedItem = null;
             View.EditItem(CurrentEditItem);
             CurrentEditItem.IsEditing = true; //after view.edit
             IsEditingItem = true;

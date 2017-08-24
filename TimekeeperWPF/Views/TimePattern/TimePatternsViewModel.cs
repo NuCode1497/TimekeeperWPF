@@ -19,17 +19,15 @@ namespace TimekeeperWPF
     public class TimePatternsViewModel : LabeledEntitiesViewModel<TimePattern>
     {
         #region Fields
+        private bool _HasSelectedChild = false;
         private bool _HasSelectedResource = false;
         private bool _IsAddingNewAllocation = false;
-        private bool _IsChildCollapsed = true;
+        private TimePattern _SelectedChild;
         private Resource _SelectedResource;
         private Allocation _CurrentEditAllocation;
-        private TimePatternsViewModel _ChildVM;
-        private long _CurrentEditAllocationMin = 0;
-        private long _CurrentEditAllocationMax = 0;
-        private ICommand _RemoveChildCommand;
         private ICommand _AddChildCommand;
-        private ICommand _RemoveAllocationCommand;
+        private ICommand _RemoveChildCommand;
+        private ICommand _DeleteAllocationCommand;
         private ICommand _AddNewAllocationCommand;
         private ICommand _CancelAllocationCommand;
         private ICommand _CommitAllocationCommand;
@@ -43,12 +41,28 @@ namespace TimekeeperWPF
         public CollectionViewSource ResourcesCollection { get; set; }
         public CollectionViewSource CurrentEntityAllocationsCollection { get; set; }
         public CollectionViewSource TimePointsCollection { get; set; }
+        public CollectionViewSource PatternsCollection { get; set; }
         public ObservableCollection<Resource> ResourcesSource => ResourcesCollection?.Source as ObservableCollection<Resource>;
         public ObservableCollection<Allocation> CurrentEntityAllocationsSource => CurrentEntityAllocationsCollection?.Source as ObservableCollection<Allocation>;
         public ObservableCollection<TimePoint> TimePointsSource => TimePointsCollection?.Source as ObservableCollection<TimePoint>;
+        public ObservableCollection<TimePattern> PatternsSource => PatternsCollection?.Source as ObservableCollection<TimePattern>;
         public ListCollectionView ResourcesView => ResourcesCollection?.View as ListCollectionView;
         public ListCollectionView CurrentEntityAllocationsView => CurrentEntityAllocationsCollection?.View as ListCollectionView;
         public ListCollectionView TimePointsView => TimePointsCollection?.View as ListCollectionView;
+        public ListCollectionView PatternsView => PatternsCollection?.View as ListCollectionView;
+        public TimePattern SelectedChild
+        {
+            get
+            {
+                return _SelectedChild;
+            }
+            set
+            {
+                if (_SelectedChild == value) return;
+                _SelectedChild = value;
+                OnPropertyChanged();
+            }
+        }
         public Resource SelectedResource
         {
             get
@@ -57,6 +71,13 @@ namespace TimekeeperWPF
             }
             set
             {
+                //Must not be adding new allocation
+                if (IsAddingNewAllocation)
+                {
+                    //prevent change and cause two way bindings to reselect this
+                    OnPropertyChanged();
+                    return;
+                }
                 //Resource must not be itself and must be in ResourcesSource
                 if ((value == _SelectedResource) || (value != null && (!ResourcesSource?.Contains(value) ?? false))) return;
                 _SelectedResource = value;
@@ -79,52 +100,33 @@ namespace TimekeeperWPF
             }
             protected set
             {
+                //Must not be adding new allocation
+                if (IsAddingNewAllocation)
+                {
+                    //prevent change and cause two way bindings to reselect this
+                    OnPropertyChanged();
+                    return;
+                }
                 if (value == _CurrentEditAllocation) return;
                 _CurrentEditAllocation = value;
                 OnPropertyChanged();
             }
         }
-        public long CurrentEditAllocationMin
-        {
-            get
-            {
-                return _CurrentEditAllocationMin;
-            }
-            set
-            {
-                if (value == _CurrentEditAllocationMin) return;
-                _CurrentEditAllocationMin = value;
-                OnPropertyChanged();
-            }
-        }
-        public long CurrentEditAllocationMax
-        {
-            get
-            {
-                return _CurrentEditAllocationMax;
-            }
-            set
-            {
-                if (value == _CurrentEditAllocationMax) return;
-                _CurrentEditAllocationMax = value;
-                OnPropertyChanged();
-            }
-        }
-        public TimePatternsViewModel ChildVM
-        {
-            get
-            {
-                return _ChildVM;
-            }
-            private set
-            {
-                if (value == _ChildVM) return;
-                _ChildVM = value;
-                OnPropertyChanged();
-            }
-        }
         #endregion
         #region Conditions
+        public bool HasSelectedChild
+        {
+            get
+            {
+                return _HasSelectedChild;
+            }
+            protected set
+            {
+                _HasSelectedChild = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasNotSelectedChild));
+            }
+        }
         public bool HasSelectedResource
         {
             get
@@ -151,28 +153,17 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(IsNotAddingNewAllocation));
             }
         }
-        public bool IsChildCollapsed
-        {
-            get
-            {
-                return _IsChildCollapsed;
-            }
-            protected set
-            {
-                _IsChildCollapsed = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsNotChildCollapsed));
-            }
-        }
+        public bool HasNotSelectedChild => !HasSelectedChild;
         public bool HasNotSelectedResource => !HasSelectedResource;
         public bool IsNotAddingNewAllocation => !IsAddingNewAllocation;
-        public bool IsNotChildCollapsed => !IsChildCollapsed;
         #endregion
         #region Commands
-        //public ICommand RemoveChildCommand => _RemoveChildCommand
-        //    ?? (_RemoveChildCommand = new RelayCommand(ap => RemoveChild(), pp => CanRemoveChild));
-        public ICommand RemoveAllocationCommand => _RemoveAllocationCommand
-            ?? (_RemoveAllocationCommand = new RelayCommand(ap => RemoveAllocation(ap as Allocation), pp => CanDeleteAllocation(pp)));
+        public ICommand AddChildCommand => _AddChildCommand
+            ?? (_AddChildCommand = new RelayCommand(ap => AddChild(), pp => CanAddChild));
+        public ICommand RemoveChildCommand => _RemoveChildCommand
+            ?? (_RemoveChildCommand = new RelayCommand(ap => RemoveChild(), pp => true));
+        public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
+            ?? (_DeleteAllocationCommand = new RelayCommand(ap => DeleteAllocation(ap as Allocation), pp => CanDeleteAllocation(pp)));
         public ICommand AddNewAllocationCommand => _AddNewAllocationCommand
             ?? (_AddNewAllocationCommand = new RelayCommand(ap => AddNewAllocation(), pp => CanAddNewAllocation));
         public ICommand CancelAllocationCommand => _CancelAllocationCommand
@@ -181,6 +172,7 @@ namespace TimekeeperWPF
             ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
         #endregion
         #region Predicates
+        private bool CanAddChild => HasSelectedChild && IsValidChild(SelectedChild);
         private bool CanAddNewAllocation => HasSelectedResource && !IsResourceAllocated(SelectedResource);
         private bool CanCancelAllocation => IsAddingNewAllocation;
         private bool CanCommitAllocation => IsAddingNewAllocation && !CurrentEditAllocation.HasErrors;
@@ -190,8 +182,6 @@ namespace TimekeeperWPF
                 pp is Allocation &&
                 IsNotAddingNewAllocation;
         }
-        protected override bool CanSave => ChildVM.CanSave && base.CanSave;
-        protected override bool CanCancel => ChildVM.CanSave && base.CanCancel;
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -199,6 +189,11 @@ namespace TimekeeperWPF
             Context = new TimeKeeperContext();
             await Context.TimePatterns.LoadAsync();
             Items.Source = Context.TimePatterns.Local;
+
+            PatternsCollection = new CollectionViewSource();
+            PatternsCollection.Source = Context.TimePatterns.Local;
+            PatternsView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(PatternsView));
             
             ResourcesCollection = new CollectionViewSource();
             await Context.Resources.LoadAsync();
@@ -221,7 +216,6 @@ namespace TimekeeperWPF
         protected override void AddNew()
         {
             base.AddNew();
-            //CurrentEditItem.Child =
             CurrentEditItem.Duration = TimeSpan.FromHours(1).Ticks;
             CurrentEditItem.ForNth = 0;
             CurrentEditItem.ForSkipDuration = 0;
@@ -236,7 +230,6 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
-            //CurrentEntityChild?????
             CurrentEntityAllocationsCollection = new CollectionViewSource();
             CurrentEntityAllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
             UpdateViews();
@@ -251,21 +244,40 @@ namespace TimekeeperWPF
             CurrentEditItem.Allocations = new HashSet<Allocation>(CurrentEntityAllocationsSource);
             base.Commit();
         }
+        private void AddChild()
+        {
+            CurrentEditItem.Child = SelectedChild;
+            SelectedChild = null;
+            UpdateViews();
+        }
         private void AddNewAllocation()
         {
-            Allocation A = new Allocation()
-            {
-                maxAmount = 0,
-                minAmount = 0,
-                Resource = ResourcesSource.First(),
-                TimePattern = CurrentEditItem
-            };
-            //CurrentEntityAllocationsView.AddNewItem()
+            CurrentEditAllocation = (Allocation)CurrentEntityAllocationsView.AddNew();
+            CurrentEditAllocation.maxAmount = 0;
+            CurrentEditAllocation.minAmount = 0;
+            CurrentEditAllocation.Resource = SelectedResource;
+            CurrentEditAllocation.TimePattern = CurrentEditItem;
+            IsAddingNewAllocation = true;
+        }
+        private void DeleteAllocation(Allocation ap)
+        {
+            CurrentEntityAllocationsView.Remove(ap);
         }
         private void UpdateViews()
         {
-            ResourcesView.Filter = R => !IsResourceAllocated(R as Resource);
+            PatternsView.Filter = P => IsValidChild((TimePattern)P);
+            OnPropertyChanged(nameof(PatternsView));
+
+            ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
+            CurrentEntityAllocationsView.Filter = A => ((Allocation)A).TimePattern == CurrentEditItem;
             OnPropertyChanged(nameof(ResourcesView));
+            OnPropertyChanged(nameof(CurrentEntityAllocationsView));
+        }
+        private bool IsValidChild(TimePattern P)
+        {
+            return
+                CurrentEditItem.Duration > P.Duration &&
+                P != CurrentEditItem.Child;
         }
         private bool IsResourceAllocated(Resource R)
         {
