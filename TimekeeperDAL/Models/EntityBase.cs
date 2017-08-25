@@ -15,7 +15,7 @@ namespace TimekeeperDAL.EF
     //This annotation from PropertyChanged.Fody weaver injects INotifyPropertyChanged into each model.
     //Implementing INotifyProperyChanged creates an Observable Model that lets the UI update when data changes.
     [AddINotifyPropertyChangedInterface]
-    public abstract class EntityBase : IDataErrorInfo, INotifyDataErrorInfo, IEditableObject
+    public abstract class EntityBase : ObservableObject, IDataErrorInfo, INotifyDataErrorInfo, IEditableObject
     {
         [Key]
         public int Id { get; set; }

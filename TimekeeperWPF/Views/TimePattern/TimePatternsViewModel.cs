@@ -172,6 +172,7 @@ namespace TimekeeperWPF
             ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
         #endregion
         #region Predicates
+        protected override bool CanCommit => IsNotAddingNewAllocation && !CurrentEditItem.Child.HasErrors && base.CanCommit;
         private bool CanAddChild => HasSelectedChild && IsValidChild(SelectedChild);
         private bool CanAddNewAllocation => HasSelectedResource && !IsResourceAllocated(SelectedResource);
         private bool CanCancelAllocation => IsAddingNewAllocation;
@@ -230,46 +231,97 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
+            //get current edit entity allocations
             CurrentEntityAllocationsCollection = new CollectionViewSource();
             CurrentEntityAllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
-            UpdateViews();
+
+            //subscribe to duration changes
+            //duration changes affect child choices
+            CurrentEditItem.PropertyChanged += CurrentEditItem_DurationChanges;
+
+            //update views
+            UpdateAllocationsView();
+            UpdatePatternsView();
+        }
+        private void CurrentEditItem_DurationChanges(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == nameof(CurrentEditItem.Duration))
+            {
+                UpdatePatternsView();
+            }
         }
         protected override void EndEdit()
         {
+            EndEditAllocation();
             CurrentEntityAllocationsCollection = null;
+            //unsubscribe
+            CurrentEditItem.PropertyChanged -= CurrentEditItem_DurationChanges;
             base.EndEdit();
+        }
+        protected override void Cancel()
+        {
+            CancelAllocation();
+            base.Cancel();
         }
         protected override void Commit()
         {
             CurrentEditItem.Allocations = new HashSet<Allocation>(CurrentEntityAllocationsSource);
             base.Commit();
         }
-        private void AddChild()
-        {
-            CurrentEditItem.Child = SelectedChild;
-            SelectedChild = null;
-            UpdateViews();
-        }
         private void AddNewAllocation()
         {
-            CurrentEditAllocation = (Allocation)CurrentEntityAllocationsView.AddNew();
-            CurrentEditAllocation.maxAmount = 0;
-            CurrentEditAllocation.minAmount = 0;
-            CurrentEditAllocation.Resource = SelectedResource;
-            CurrentEditAllocation.TimePattern = CurrentEditItem;
+            CurrentEditAllocation = new Allocation()
+            {
+                maxAmount = 0,
+                minAmount = 0,
+                Resource = SelectedResource,
+                TimePattern = CurrentEditItem
+            };
             IsAddingNewAllocation = true;
+        }
+        private void EndEditAllocation()
+        {
+            IsAddingNewAllocation = false;
+            CurrentEditAllocation = null;
+        }
+        private void CancelAllocation()
+        {
+            if (IsAddingNewAllocation) EndEditAllocation();
+        }
+        private void CommitAllocation()
+        {
+            if(IsAddingNewAllocation)
+            {
+                CurrentEntityAllocationsView.AddNewItem(CurrentEditAllocation);
+                CurrentEntityAllocationsView.CommitNew();
+                EndEditAllocation();
+                UpdateAllocationsView();
+            }
         }
         private void DeleteAllocation(Allocation ap)
         {
             CurrentEntityAllocationsView.Remove(ap);
+            UpdateAllocationsView();
         }
-        private void UpdateViews()
+        private void AddChild()
+        {
+            CurrentEditItem.Child = SelectedChild;
+            SelectedChild = null;
+            UpdatePatternsView();
+        }
+        private void RemoveChild()
+        {
+            CurrentEditItem.Child = null;
+            UpdatePatternsView();
+        }
+        private void UpdatePatternsView()
         {
             PatternsView.Filter = P => IsValidChild((TimePattern)P);
             OnPropertyChanged(nameof(PatternsView));
-
+        }
+        private void UpdateAllocationsView()
+        {
             ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
-            CurrentEntityAllocationsView.Filter = A => ((Allocation)A).TimePattern == CurrentEditItem;
             OnPropertyChanged(nameof(ResourcesView));
             OnPropertyChanged(nameof(CurrentEntityAllocationsView));
         }

@@ -29,6 +29,22 @@ namespace TimekeeperDAL.EF
                     case nameof(Name):
                         errors = GetErrorsFromAnnotations(nameof(Name), Name);
                         break;
+                    case nameof(Duration):
+                        if (Child.Duration > Duration)
+                        {
+                            AddError(nameof(Duration), "Duration must be greater than Child duration");
+                            hasError = true;
+                        }
+                        if (!hasError) ClearErrors(nameof(Duration));
+                        break;
+                    case nameof(Child):
+                        if(Child.Duration > Duration)
+                        {
+                            AddError(nameof(Child), "Child duration must be less than Parent duration");
+                            hasError = true;
+                        }
+                        if (!hasError) ClearErrors(nameof(Child));
+                        break;
                 }
                 if (errors != null && errors.Length != 0)
                 {

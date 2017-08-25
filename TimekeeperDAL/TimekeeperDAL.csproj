@@ -76,6 +76,7 @@
     <Compile Include="Models\Allocation.cs" />
     <Compile Include="Models\BasicEntity.cs" />
     <Compile Include="Models\Label.cs" />
+    <Compile Include="Models\ObservableObject.cs" />
     <Compile Include="Models\Resource.cs" />
     <Compile Include="EF\TimePattern.cs" />
     <Compile Include="EF\TimePoint.cs" />
