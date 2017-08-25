@@ -341,7 +341,17 @@
             </Grid>
         </ControlTemplate>
         <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl" >
-            <ContentControl Template="{StaticResource PopUpTemplate}">
+            <ContentControl Template="{StaticResource PopUpTemplate}" x:Name="EditPopUp" IsTabStop="False">
+                <ContentControl.Style>
+                    <Style TargetType="ContentControl">
+                        <Setter Property="Visibility" Value="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        <Style.Triggers>
+                            <Trigger Property="Visibility" Value="Visible">
+                                <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>

@@ -79,10 +79,8 @@ namespace TimekeeperWPF
             }
             set
             {
-                //must not be editing
                 if (IsEditingItemOrAddingNew)
                 {
-                    //prevent change and cause two way bindings to reselect this
                     OnPropertyChanged();
                     return;
                 }
@@ -112,10 +110,8 @@ namespace TimekeeperWPF
             }
             protected set
             {
-                //must not be editing
-                if (IsEditingItemOrAddingNew)
+                if(IsEditingItemOrAddingNew)
                 {
-                    //prevent change and cause two way bindings to reselect this
                     OnPropertyChanged();
                     return;
                 }
@@ -271,16 +267,20 @@ namespace TimekeeperWPF
         }
         protected virtual void AddNew()
         {
-            CurrentEditItem = View.AddNew() as ModelType;
             IsAddingNew = true;
+            _CurrentEditItem = View.AddNew() as ModelType;
+            OnPropertyChanged(nameof(CurrentEditItem));
             Status = "Adding new " + CurrentEditItem.GetTypeName();
         }
         protected virtual void EditSelected()
         {
-            CurrentEditItem = SelectedItem;
+            IsEditingItem = true;
+            _CurrentEditItem = SelectedItem;
+            OnPropertyChanged(nameof(CurrentEditItem));
+            _SelectedItem = null;
+            OnPropertyChanged(nameof(SelectedItem));
             View.EditItem(CurrentEditItem);
             CurrentEditItem.IsEditing = true; //after view.edit
-            IsEditingItem = true;
             Status = "Editing " + CurrentEditItem.GetTypeName();
         }
         protected virtual void EndEdit()
