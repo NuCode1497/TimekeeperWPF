@@ -267,18 +267,17 @@ namespace TimekeeperWPF
         }
         protected virtual void AddNew()
         {
-            IsAddingNew = true;
+            SelectedItem = null;
+            IsAddingNew = true; //before view.addnew
             _CurrentEditItem = View.AddNew() as ModelType;
             OnPropertyChanged(nameof(CurrentEditItem));
             Status = "Adding new " + CurrentEditItem.GetTypeName();
         }
         protected virtual void EditSelected()
         {
-            IsEditingItem = true;
-            _CurrentEditItem = SelectedItem;
-            OnPropertyChanged(nameof(CurrentEditItem));
-            _SelectedItem = null;
-            OnPropertyChanged(nameof(SelectedItem));
+            CurrentEditItem = SelectedItem;
+            SelectedItem = null;
+            IsEditingItem = true; //before view.edit
             View.EditItem(CurrentEditItem);
             CurrentEditItem.IsEditing = true; //after view.edit
             Status = "Editing " + CurrentEditItem.GetTypeName();
@@ -289,6 +288,9 @@ namespace TimekeeperWPF
             IsAddingNew = false;
             CurrentEditItem.IsEditing = false;
             CurrentEditItem = null;
+            SelectedItem = null;
+            //Refresh all of the buttons
+            CommandManager.InvalidateRequerySuggested();
         }
         protected virtual void Cancel()
         {
@@ -321,8 +323,6 @@ namespace TimekeeperWPF
                 }
                 EndEdit();
             }
-            //Refresh all of the buttons
-            CommandManager.InvalidateRequerySuggested();
         }
         protected virtual async Task<bool> SaveChangesAsync()
         {
