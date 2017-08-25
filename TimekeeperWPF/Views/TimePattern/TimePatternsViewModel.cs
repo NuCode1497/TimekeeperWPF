@@ -153,6 +153,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(IsNotAddingNewAllocation));
             }
         }
+        public bool CurrentEntityHasChild => CurrentEditItem == null ? false : CurrentEditItem.Child == null ? false : true;
         public bool HasNotSelectedChild => !HasSelectedChild;
         public bool HasNotSelectedResource => !HasSelectedResource;
         public bool IsNotAddingNewAllocation => !IsAddingNewAllocation;
@@ -256,10 +257,16 @@ namespace TimekeeperWPF
         }
         protected override void EndEdit()
         {
+            //clear filters
+            PatternsView.Filter = null;
+            ResourcesView.Filter = null;
+
             EndEditAllocation();
             CurrentEntityAllocationsCollection = null;
+
             //unsubscribe
             CurrentEditItem.PropertyChanged -= CurrentEditItem_DurationChanges;
+
             base.EndEdit();
         }
         protected override void Cancel()
@@ -322,6 +329,7 @@ namespace TimekeeperWPF
         {
             PatternsView.Filter = P => IsValidChild((TimePattern)P);
             OnPropertyChanged(nameof(PatternsView));
+            OnPropertyChanged(nameof(CurrentEntityHasChild));
         }
         private void UpdateAllocationsView()
         {

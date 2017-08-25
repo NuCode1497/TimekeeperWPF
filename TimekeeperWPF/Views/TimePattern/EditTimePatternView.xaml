@@ -14,7 +14,7 @@
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Duration" Width="80"/>
-            <wpftools:DateTimePicker MinWidth="200" Text="{Binding Path=Duration}" />
+            <wpftools:TimeSpanUpDown Width="200" Minimum="0" Text="{Binding Path=Duration}"/>
         </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label Content="Child"  Width="80"/>
@@ -23,6 +23,10 @@
                     IsSynchronizedWithCurrentItem="True"
                     SelectedItem="{Binding Path=Child, Mode=TwoWay}"
                     ItemsSource="{Binding Path=DataContext.PatternsView, RelativeSource={RelativeSource AncestorType=Grid}}" />
+            <local:TimePatternChildView DataContext="{Binding Path=Child}"
+                                        Visibility="{Binding Path=DataContext.CurrentEntityHasChild, 
+                                        RelativeSource={RelativeSource AncestorType=Grid},
+                                        Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </StackPanel>
         <GroupBox Header="Repeat Settings" Margin="2">
             <StackPanel>
@@ -39,11 +43,11 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Skip:" Width="40" Margin="2,2,-2,2" HorizontalContentAlignment="Right"/>
-                    <wpftools:TimeSpanUpDown Width="200" Minimum="0"/>
+                    <wpftools:TimeSpanUpDown Width="200" Minimum="0" Text="{Binding Path=ForSkipDuration}"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>
-        <local:AllocationSelectorView/>
+        <local:AllocationSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
         <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
     </StackPanel>
 </UserControl>

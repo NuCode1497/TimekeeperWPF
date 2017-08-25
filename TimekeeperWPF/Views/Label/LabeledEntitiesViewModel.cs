@@ -111,6 +111,7 @@ namespace TimekeeperWPF
         }
         protected override void EndEdit()
         {
+            LabelsView.Filter = null;
             CurrentEntityLabelsCollection = null;
             base.EndEdit();
         }
