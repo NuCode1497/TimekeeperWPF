@@ -10,6 +10,15 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
+        public string AllocationString
+        {
+            get
+            {
+                return Resource.ToString() + ": " + minAmount + " - " + maxAmount;
+            }
+        }
+
+        [NotMapped]
         public override string this[string columnName]
         {
             get

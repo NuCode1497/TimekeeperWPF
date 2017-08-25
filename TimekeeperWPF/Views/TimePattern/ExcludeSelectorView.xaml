@@ -1,33 +1,31 @@
-﻿<UserControl x:Class="TimekeeperWPF.LabelSelectorView"
+﻿<UserControl x:Class="TimekeeperWPF.ExcludeSelectorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="100">
-    <GroupBox Header="Labels" Margin="2">
-        <StackPanel Name="LabelEditorPanel">
+             mc:Ignorable="d" >
+    <GroupBox Header="Excludes" Margin="2">
+        <StackPanel Name="ExcludeEditorPanel">
             <StackPanel Orientation="Horizontal">
-                <ComboBox Name="LabelsCbo" DisplayMemberPath="Name"
+                <ComboBox Name="ExcludesCbo" DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True" Width="100"
-                  SelectedItem="{Binding Path=SelectedLabel, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=LabelsView}" />
-                <Button Name="AddLabelBtn" Content="Add" 
-                    Command="{Binding Path=AddLabelCommand}" />
+                  SelectedItem="{Binding Path=SelectedExclude, Mode=TwoWay}"
+                  ItemsSource="{Binding Path=ExcludesView}" />
+                <Button Name="AddExcludeBtn" Content="Add" 
+                    Command="{Binding Path=AddExcludeCommand}" />
             </StackPanel>
-            <Border Name="LabelListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
-                <ItemsControl Name="LabelListIC" IsTabStop="False" 
-                          ItemsSource="{Binding Path=CurrentEntityLabelsView}">
+            <Border Name="ExcludeListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
+                <ItemsControl Name="ExcludeListIC" IsTabStop="False" 
+                          ItemsSource="{Binding Path=CurrentEntityExcludesView}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" Name="LabelListPnl">
-
-                            </WrapPanel>
+                            <WrapPanel Orientation="Horizontal" Name="ExcludeListPnl"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:LabelView/>
+                            <local:ExcludeView/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

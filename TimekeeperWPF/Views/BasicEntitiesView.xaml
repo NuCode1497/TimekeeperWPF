@@ -24,7 +24,7 @@
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <ContentControl Template="{StaticResource BasicEntityTemplate}"/>
+                    <ContentControl Template="{StaticResource EntityTemplate}"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

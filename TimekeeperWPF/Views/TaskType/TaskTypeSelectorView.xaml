@@ -11,6 +11,6 @@
                   DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding Path=TaskType, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=DataContext.TaskTypesView, RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}" />
+                  ItemsSource="{Binding Path=DataContext.TaskTypesView, RelativeSource={RelativeSource AncestorType=Grid}}" />
     </StackPanel>
 </UserControl>

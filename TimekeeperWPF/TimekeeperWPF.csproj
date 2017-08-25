@@ -91,8 +91,29 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
+      <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Resource\AllocationView.xaml.cs">
+      <DependentUpon>AllocationView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DemoView.xaml.cs">
       <DependentUpon>DemoView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TimePattern\TimePatternChildView.xaml.cs">
+      <DependentUpon>TimePatternChildView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TimePattern\ExcludeSelectorView.xaml.cs">
+      <DependentUpon>ExcludeSelectorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TimePattern\IncludeSelectorView.xaml.cs">
+      <DependentUpon>IncludeSelectorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TimePattern\ExcludeView.xaml.cs">
+      <DependentUpon>ExcludeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TimePattern\IncludeView.xaml.cs">
+      <DependentUpon>IncludeView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\TaskType\TaskTypeSelectorView.xaml.cs">
       <DependentUpon>TaskTypeSelectorView.xaml</DependentUpon>
@@ -163,7 +184,35 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
+    <Page Include="Views\Resource\AllocationSelectorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Resource\AllocationView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="DemoView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TimePattern\TimePatternChildView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TimePattern\ExcludeSelectorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TimePattern\IncludeSelectorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TimePattern\ExcludeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TimePattern\IncludeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

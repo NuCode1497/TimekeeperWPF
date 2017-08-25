@@ -36,6 +36,7 @@ namespace TimekeeperDAL.EF
                             hasError = true;
                         }
                         if (!hasError) ClearErrors(nameof(Duration));
+                        errors = GetErrorsFromAnnotations(nameof(Duration), Duration);
                         break;
                     case nameof(Child):
                         if(Child.Duration > Duration)
@@ -45,6 +46,18 @@ namespace TimekeeperDAL.EF
                         }
                         if (!hasError) ClearErrors(nameof(Child));
                         break;
+                    case nameof(ForNth):
+                        errors = GetErrorsFromAnnotations(nameof(ForNth), ForNth);
+                        break;
+                    case nameof(ForSkipDuration):
+                        errors = GetErrorsFromAnnotations(nameof(ForSkipDuration), ForSkipDuration);
+                        break;
+                    case nameof(ForTimePoint):
+                        errors = GetErrorsFromAnnotations(nameof(ForTimePoint), ForTimePoint);
+                        break;
+                    case nameof(ForX):
+                        errors = GetErrorsFromAnnotations(nameof(ForX), ForX);
+                        break;
                 }
                 if (errors != null && errors.Length != 0)
                 {
@@ -53,6 +66,21 @@ namespace TimekeeperDAL.EF
                 }
                 if (!hasError) ClearErrors(columnName);
                 return string.Empty;
+            }
+        }
+
+        [NotMapped]
+        public string AllocationsToString
+        {
+            get
+            {
+                string s = "";
+                foreach (Allocation A in Allocations)
+                {
+                    s += A.minAmount + " - " + A.maxAmount + " of " + A.Resource.Name.ToString() + ", ";
+                }
+                if(s.Length >= 2) s.Substring(s.Length - 2);
+                return s;
             }
         }
     }

@@ -70,11 +70,10 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" Grid.Row="0" Content="Start" />
                         <Label Grid.Column="0" Grid.Row="1" Content="End" />
-                        <DatePicker Grid.Column="1" Grid.Row="0" Width="Auto" 
-                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}">
-                        </DatePicker>
+                        <DatePicker Grid.Column="1" Grid.Row="0" Width="Auto"
+                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
                         <DatePicker Grid.Column="1" Grid.Row="1" Width="Auto" 
-                                SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
+                                SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" VerticalContentAlignment="Stretch" />
                         <Button Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
                             Command="{Binding Path=ContinueSaveCommand}" VerticalAlignment="Center"/>
                     </Grid>

@@ -26,6 +26,7 @@ namespace TimekeeperWPF
             Views.Add(new TaskTypesViewModel());
             Views.Add(new TimePointsViewModel());
             Views.Add(new TimeTasksViewModel());
+            Views.Add(new TimePatternsViewModel());
             Views.Add(new MonthViewModel());
             Navigate(Views[0]);
         }

@@ -172,7 +172,7 @@ namespace TimekeeperWPF
             ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
         #endregion
         #region Predicates
-        protected override bool CanCommit => IsNotAddingNewAllocation && !CurrentEditItem.Child.HasErrors && base.CanCommit;
+        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation && !(CurrentEditItem.Child?.HasErrors??false);
         private bool CanAddChild => HasSelectedChild && IsValidChild(SelectedChild);
         private bool CanAddNewAllocation => HasSelectedResource && !IsResourceAllocated(SelectedResource);
         private bool CanCancelAllocation => IsAddingNewAllocation;
@@ -217,11 +217,15 @@ namespace TimekeeperWPF
         protected override void AddNew()
         {
             base.AddNew();
+            //CurrentEditItem.Allocations;
+            //CurrentEditItem.Child;
+            //CurrentEditItem.Labels;
             CurrentEditItem.Duration = TimeSpan.FromHours(1).Ticks;
             CurrentEditItem.ForNth = 0;
             CurrentEditItem.ForSkipDuration = 0;
             CurrentEditItem.ForTimePoint = TimePointsSource.First();
             CurrentEditItem.ForX = 1;
+            CurrentEditItem.Name = "New Time Pattern";
             BeginEdit();
         }
         protected override void EditSelected()

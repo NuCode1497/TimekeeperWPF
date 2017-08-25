@@ -5,8 +5,45 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-            
-    </Grid>
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Name" Width="80"/>
+            <TextBox MinWidth="200" MaxLength="50"
+                     Text="{Binding Path=Name, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Duration" Width="80"/>
+            <wpftools:DateTimePicker MinWidth="200" Text="{Binding Path=Duration}" />
+        </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Child"  Width="80"/>
+                <ComboBox Width="100" HorizontalAlignment="Left"
+                    DisplayMemberPath="Name"
+                    IsSynchronizedWithCurrentItem="True"
+                    SelectedItem="{Binding Path=Child, Mode=TwoWay}"
+                    ItemsSource="{Binding Path=DataContext.PatternsView, RelativeSource={RelativeSource AncestorType=Grid}}" />
+        </StackPanel>
+        <GroupBox Header="Repeat Settings" Margin="2">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="For X:" Margin="2,2,-2,2" HorizontalContentAlignment="Right" Width="40"/>
+                    <TextBox Width="40" Text="{Binding Path=ForX, Mode=TwoWay}"/>
+                    <Label Content="Nth:" Margin="0,2,-2,2"/>
+                    <TextBox Width="40" Text="{Binding Path=ForX, Mode=TwoWay}"/>
+                    <ComboBox MinWidth="150" HorizontalAlignment="Left"
+                        DisplayMemberPath="Name"
+                        IsSynchronizedWithCurrentItem="True"
+                        SelectedItem="{Binding Path=ForTimePoint, Mode=TwoWay}"
+                        ItemsSource="{Binding Path=DataContext.TimePointsView, RelativeSource={RelativeSource AncestorType=Grid}}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Skip:" Width="40" Margin="2,2,-2,2" HorizontalContentAlignment="Right"/>
+                    <wpftools:TimeSpanUpDown Width="200" Minimum="0"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+        <local:AllocationSelectorView/>
+        <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+    </StackPanel>
 </UserControl>
