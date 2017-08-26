@@ -30,7 +30,7 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(Name), Name);
                         break;
                     case nameof(Duration):
-                        if (Child.Duration > Duration)
+                        if (Child?.Duration > Duration)
                         {
                             AddError(nameof(Duration), "Duration must be greater than Child duration");
                             hasError = true;
@@ -39,7 +39,7 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(Duration), Duration);
                         break;
                     case nameof(Child):
-                        if(Child.Duration > Duration)
+                        if(Child?.Duration > Duration)
                         {
                             AddError(nameof(Child), "Child duration must be less than Parent duration");
                             hasError = true;
@@ -82,6 +82,20 @@ namespace TimekeeperDAL.EF
                 if(s.Length >= 2) s.Substring(s.Length - 2);
                 return s;
             }
+        }
+
+        [NotMapped]
+        public TimeSpan DurationTS
+        {
+            get { return new TimeSpan(Duration); }
+            set { Duration = value.Ticks; }
+        }
+
+        [NotMapped]
+        public TimeSpan ForSkipDurationTS
+        {
+            get { return new TimeSpan(ForSkipDuration); }
+            set { ForSkipDuration = value.Ticks; }
         }
     }
 }

@@ -9,7 +9,7 @@
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Date &amp; Time" Width="80"/>
-            <wpftools:DateTimePicker Width="300" Text="{Binding Path=DateTime}" />
+            <wpftools:DateTimePicker Width="300" Value="{Binding Path=DateTime, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Note" Width="80"/>

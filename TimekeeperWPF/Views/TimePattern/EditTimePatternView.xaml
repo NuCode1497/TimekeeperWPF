@@ -4,17 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" 
-             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" >
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Name" Width="80"/>
-            <TextBox MinWidth="200" MaxLength="50"
-                     Text="{Binding Path=Name, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox MinWidth="200" MaxLength="50" Text="{Binding Path=Name, Mode=TwoWay,
+                ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
+                UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Duration" Width="80"/>
-            <wpftools:TimeSpanUpDown Width="200" Minimum="0" Text="{Binding Path=Duration}"/>
+            <wpftools:TimeSpanUpDown Width="200" Minimum="0" Value="{Binding Path=DurationTS, Mode=TwoWay, 
+                UpdateSourceTrigger=PropertyChanged,
+                ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
         </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label Content="Child"  Width="80"/>
@@ -22,28 +25,37 @@
                     DisplayMemberPath="Name"
                     IsSynchronizedWithCurrentItem="True"
                     SelectedItem="{Binding Path=Child, Mode=TwoWay}"
-                    ItemsSource="{Binding Path=DataContext.PatternsView, RelativeSource={RelativeSource AncestorType=Grid}}" />
-            <local:TimePatternChildView DataContext="{Binding Path=Child}"
-                                        Visibility="{Binding Path=DataContext.CurrentEntityHasChild, 
-                                        RelativeSource={RelativeSource AncestorType=Grid},
-                                        Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    ItemsSource="{Binding Path=DataContext.PatternsView,
+                    RelativeSource={RelativeSource AncestorType=Grid}}" />
+            <local:TimePatternChildView Visibility="{Binding Path=DataContext.CurrentEntityHasChild, 
+                RelativeSource={RelativeSource AncestorType=Grid}, 
+                Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </StackPanel>
         <GroupBox Header="Repeat Settings" Margin="2">
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="For X:" Margin="2,2,-2,2" HorizontalContentAlignment="Right" Width="40"/>
-                    <TextBox Width="40" Text="{Binding Path=ForX, Mode=TwoWay}"/>
+                    <wpftools:IntegerUpDown MinWidth="50" Value="{Binding Path=ForX, Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged,
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                     <Label Content="Nth:" Margin="0,2,-2,2"/>
-                    <TextBox Width="40" Text="{Binding Path=ForX, Mode=TwoWay}"/>
+                    <wpftools:IntegerUpDown MinWidth="50" Value="{Binding Path=ForNth, Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged,
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                     <ComboBox MinWidth="150" HorizontalAlignment="Left"
                         DisplayMemberPath="Name"
                         IsSynchronizedWithCurrentItem="True"
-                        SelectedItem="{Binding Path=ForTimePoint, Mode=TwoWay}"
-                        ItemsSource="{Binding Path=DataContext.TimePointsView, RelativeSource={RelativeSource AncestorType=Grid}}" />
+                        SelectedItem="{Binding Path=ForTimePoint, Mode=TwoWay, 
+                        ValidatesOnDataErrors=True,ValidatesOnExceptions=True}"
+                        ItemsSource="{Binding Path=DataContext.TimePointsView,
+                        RelativeSource={RelativeSource AncestorType=Grid}}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Skip:" Width="40" Margin="2,2,-2,2" HorizontalContentAlignment="Right"/>
-                    <wpftools:TimeSpanUpDown Width="200" Minimum="0" Text="{Binding Path=ForSkipDuration}"/>
+                    <wpftools:TimeSpanUpDown Width="200" Minimum="0" 
+                                             Value="{Binding Path=ForSkipDurationTS, Mode=TwoWay, 
+                                             UpdateSourceTrigger=PropertyChanged,
+                                             ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>

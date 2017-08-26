@@ -91,6 +91,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Tools\ResourceDecimalFormatConverter.cs" />
     <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
       <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
     </Compile>

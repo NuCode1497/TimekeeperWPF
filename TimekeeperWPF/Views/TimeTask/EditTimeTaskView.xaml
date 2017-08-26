@@ -10,35 +10,47 @@
         <StackPanel Orientation="Horizontal">
             <Label Content="Name" Width="80"/>
             <TextBox Width="300" MaxLength="50"
-                     Text="{Binding Path=Name, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+                     Text="{Binding Path=Name, Mode=TwoWay, ValidatesOnDataErrors=True, 
+                ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Description" Width="80"/>
             <TextBox Width="300" TextWrapping="Wrap" MaxLength="160" 
-                     Text="{Binding Path=Description, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+                     Text="{Binding Path=Description, Mode=TwoWay, ValidatesOnDataErrors=True, 
+                ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Start" Width="80"/>
-            <wpftools:DateTimePicker Width="300" Text="{Binding Path=Start}" />
+            <wpftools:DateTimePicker Width="300" Value="{Binding Path=Start, Mode=TwoWay, 
+                UpdateSourceTrigger=PropertyChanged,
+                ValidatesOnDataErrors=True,ValidatesOnExceptions=True}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="End" Width="80"/>
-            <wpftools:DateTimePicker Width="300" Text="{Binding Path=End}" />
+            <wpftools:DateTimePicker Width="300" Value="{Binding Path=End, Mode=TwoWay, 
+                UpdateSourceTrigger=PropertyChanged,
+                ValidatesOnDataErrors=True,ValidatesOnExceptions=True}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <StackPanel>
                 <local:TaskTypeSelectorView/>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Priority" Width="80" />
-                    <TextBox Width="50" Text="{Binding Path=Priority}"/>
+                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Priority, Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged,
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Dimension" Width="80" />
-                    <TextBox Width="50" Text="{Binding Path=Dimension}"/>
+                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Dimension, Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged,
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Power Level" Width="80"/>
-                    <TextBox Width="50" Text="{Binding Path=PowerLevel}"/>
+                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=PowerLevel, Mode=TwoWay, 
+                        UpdateSourceTrigger=PropertyChanged,
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
             </StackPanel>
             <ListBox Width="150" Margin="10,4,4,4" Background="Transparent" HorizontalAlignment="Left">

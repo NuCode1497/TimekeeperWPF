@@ -3,16 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:t="clr-namespace:TimekeeperWPF.Tools"
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" >
-    <GroupBox Header="Allocations" Margin="2">
+    <GroupBox Header="Resource Allocations" Margin="2">
         <StackPanel Name="AllocationEditorPanel">
             <StackPanel Orientation="Horizontal">
                 <ComboBox Name="ResourcesCbo" DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True" Width="100"
                   SelectedItem="{Binding Path=SelectedResource, Mode=TwoWay}"
                   ItemsSource="{Binding Path=ResourcesView}" />
-                <Button Name="AddLabelBtn" Content="Add" 
+                <Button Name="AllocateResourceBtn" Content="Allocate" 
                     Command="{Binding Path=AddNewAllocationCommand}" />
             </StackPanel>
             <GroupBox Margin="2" Visibility="{Binding Path=IsAddingNewAllocation, Converter={StaticResource BooleanToVisibilityConverter}}">
@@ -21,15 +23,23 @@
                         <TextBlock Text="New Allocation" Margin="2"/>
                         <Button Name="CommitButton" IsTabStop="False" Margin="2"
                                 Style="{StaticResource EntityAddButtonStyle}" 
-                                CommandParameter="{Binding}" 
                                 Command="{Binding Path=CommitAllocationCommand}"/>
                         <Button Name="CancelButton" IsTabStop="False" Margin="2"
                                 Style="{StaticResource EntityDeleteButtonStyle}" 
-                                CommandParameter="{Binding}" 
                                 Command="{Binding Path=CancelAllocationCommand}"/>
                     </StackPanel>
                 </GroupBox.Header>
-                
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Path=SelectedResource, FallbackValue='Resource'}" Margin="2"/>
+                    <TextBlock Text="Min:" Margin="2"/>
+                    <wpftools:DecimalUpDown MinWidth="50" Value="{Binding Path=CurrentEditAllocation.minAmount, Mode=TwoWay,
+                        UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"
+                                            FormatString="{Binding Path=SelectedResource, Converter={t:ResourceDecimalFormatConverter}}"/>
+                    <TextBlock Text=" Max:" Margin="2"/>
+                    <wpftools:DecimalUpDown MinWidth="50" Value="{Binding Path=CurrentEditAllocation.maxAmount, Mode=TwoWay,
+                        UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"
+                                            FormatString="{Binding Path=SelectedResource, Converter={t:ResourceDecimalFormatConverter}}"/>
+                </StackPanel>
             </GroupBox>
             <Border Name="AllocationListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
                 <ItemsControl Name="AllocationListIC" IsTabStop="False" 

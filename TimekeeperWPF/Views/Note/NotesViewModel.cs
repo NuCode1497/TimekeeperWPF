@@ -139,9 +139,14 @@ namespace TimekeeperWPF
             string text = "";
             for (DateTime d = SaveAsStart.Date; d <= SaveAsEnd.Date; d = d.AddDays(1))
             {
+                var subSelection = from n in selection
+                                   where n.DateTime.Date == d.Date
+                                   select n;
+
                 text += String.Format("Notes for {0}:\n", d.ToLongDateString());
                 text += "------------------------------------------------------------------\n";
-                foreach (var n in selection)
+
+                foreach (var n in subSelection)
                 {
                     text += String.Format("{0,12} | {1,-7} | ", n.DateTime.ToLongTimeString(), n.TaskType.Name);
                     var charCount = 0;

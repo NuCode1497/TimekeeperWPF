@@ -333,6 +333,7 @@ namespace TimekeeperWPF
         }
         private void UpdateAllocationsView()
         {
+            //filter out allocated resources
             ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
             OnPropertyChanged(nameof(ResourcesView));
             OnPropertyChanged(nameof(CurrentEntityAllocationsView));
@@ -345,7 +346,9 @@ namespace TimekeeperWPF
         }
         private bool IsResourceAllocated(Resource R)
         {
-            return (CurrentEntityAllocationsSource?.Count(A => A.Resource == R) == 0);
+            //count number of allocations of resource R
+            //if count is > 0 then yes resource is allocated return true
+            return (CurrentEntityAllocationsSource?.Count(A => A.Resource == R) > 0);
         }
         #endregion
     }

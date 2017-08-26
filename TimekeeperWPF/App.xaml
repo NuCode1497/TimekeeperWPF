@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
+             xmlns:clr="clr-namespace:System;assembly=mscorlib"
              xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
              StartupUri="/Views/Main/MainWindow.xaml"
              DispatcherUnhandledException="Application_DispatcherUnhandledException">
@@ -22,29 +23,7 @@
         <SolidColorBrush x:Key="PopUp.Behind.Background" Color="#9980B0A0"/>
         <SolidColorBrush x:Key="PopUp.Window.Background" Color="#FFBDFFD8"/>
         <SolidColorBrush x:Key="PopUp.Window.Border" Color="Gray"/>
-        <SolidColorBrush x:Key="GroupBox.BorderBrush" Color="Lime"/>
-        <SolidColorBrush x:Key="BasicEntity.Button.Delete.Foreground" Color="Wheat"/>
-        <RadialGradientBrush x:Key="BasicEntity.Button.Delete.Static">
-            <GradientStop Color="Red" Offset="0.432"/>
-            <GradientStop Color="Black" Offset="0.932"/>
-            <GradientStop Color="DarkRed" Offset="0.911"/>
-        </RadialGradientBrush>
-        <RadialGradientBrush x:Key="BasicEntity.Button.Delete.Pressed">
-            <GradientStop Color="MediumVioletRed" Offset="0.432"/>
-            <GradientStop Color="Black" Offset="0.932"/>
-            <GradientStop Color="PaleVioletRed" Offset="0.911"/>
-        </RadialGradientBrush>
-        <SolidColorBrush x:Key="BasicEntity.Button.Add.Foreground" Color="Wheat"/>
-        <RadialGradientBrush x:Key="BasicEntity.Button.Add.Static">
-            <GradientStop Color="Green" Offset="0.432"/>
-            <GradientStop Color="Black" Offset="0.932"/>
-            <GradientStop Color="DarkGreen" Offset="0.911"/>
-        </RadialGradientBrush>
-        <RadialGradientBrush x:Key="BasicEntity.Button.Add.Pressed">
-            <GradientStop Color="MediumTurquoise" Offset="0.432"/>
-            <GradientStop Color="Black" Offset="0.932"/>
-            <GradientStop Color="PaleTurquoise" Offset="0.911"/>
-        </RadialGradientBrush>
+        <SolidColorBrush x:Key="GroupBox.BorderBrush" Color="DarkGreen"/>
         <!--#endregion-->
         <!--#region DataContexts-->
         <DataTemplate DataType="{x:Type local:NotesViewModel}">
@@ -84,6 +63,7 @@
             <Setter Property="Background" Value="{StaticResource Window.Background}"/>
         </Style>
         <Style x:Key="BasicErrorTemplate" TargetType="Control">
+            <Setter Property="Margin" Value="2"/>
             <Setter Property="Validation.ErrorTemplate">
                 <Setter.Value>
                     <ControlTemplate>
@@ -105,7 +85,7 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="EllipsyErrorTemplate" TargetType="Control">
+        <Style x:Key="EllipsyErrorTemplate" TargetType="{x:Type Control}">
             <Setter Property="Validation.ErrorTemplate">
                 <Setter.Value>
                     <ControlTemplate>
@@ -138,14 +118,12 @@
             <Setter Property="MinHeight" Value="26"/>
             <Setter Property="Margin" Value="2"/>
         </Style>
-        <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
-        <Style TargetType="wpftools:MaskedTextBox" BasedOn="{StaticResource TextBoxStyle}"/>
-        <Style TargetType="wpftools:TimeSpanUpDown">
-            <Setter Property="Margin" Value="2"/>
-        </Style>
-        <Style TargetType="{x:Type wpftools:DateTimePicker}" BasedOn="{StaticResource BasicErrorTemplate}">
-            <Setter Property="Margin" Value="2"/>
-        </Style>
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource TextBoxStyle}"/>
+        <Style TargetType="{x:Type wpftools:MaskedTextBox}" BasedOn="{StaticResource TextBoxStyle}"/>
+        <Style TargetType="{x:Type wpftools:TimeSpanUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+        <Style TargetType="{x:Type wpftools:DateTimePicker}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+        <Style TargetType="{x:Type wpftools:IntegerUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+        <Style TargetType="{x:Type wpftools:DoubleUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Margin" Value="2"/>
             <Setter Property="Padding" Value="4,1"/>
@@ -174,10 +152,8 @@
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
             <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
             <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="CanUserDeleteRows" Value="False"/>
             <Setter Property="AutoGenerateColumns" Value="False"/>
             <Setter Property="Background" Value="{StaticResource DataGrid.Background}"/>
-            <Setter Property="SelectionMode" Value="Single"/>
         </Style>
         <Style TargetType="{x:Type ListView}">
             <Setter Property="Background" Value="{StaticResource ListBox.Static.Background}"/>
@@ -236,89 +212,89 @@
             <Setter Property="MaxWidth" Value="500" />
         </Style>
         <Style x:Key="EntityDeleteButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="16"/>
-            <Setter Property="Height" Value="16"/>
+            <Style.Resources>
+                <RadialGradientBrush x:Key="Background.Static">
+                    <GradientStop Color="Red" Offset="0.432"/>
+                    <GradientStop Color="Black" Offset="0.932"/>
+                    <GradientStop Color="DarkRed" Offset="0.911"/>
+                </RadialGradientBrush>
+                <SolidColorBrush x:Key="Foreground.Static" Color="Wheat"/>
+                <RadialGradientBrush x:Key="Background.Pressed">
+                    <GradientStop Color="MediumVioletRed" Offset="0.432"/>
+                    <GradientStop Color="Black" Offset="0.932"/>
+                    <GradientStop Color="PaleVioletRed" Offset="0.911"/>
+                </RadialGradientBrush>
+                <SolidColorBrush x:Key="Foreground.Pressed" Color="Wheat"/>
+                <SolidColorBrush x:Key="Background.MouseOver" Color="Cyan"/>
+                <SolidColorBrush x:Key="Foreground.MouseOver" Color="Black"/>
+                <clr:Double x:Key="TranslateX">0.5</clr:Double>
+                <clr:Double x:Key="TranslateY">1</clr:Double>
+            </Style.Resources>
             <Setter Property="Content" Value="r"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Grid x:Name="controlLayout">
-                            <Ellipse x:Name="buttonSurface" Fill="{StaticResource BasicEntity.Button.Delete.Static}"/>
-                            <Label x:Name="buttonCaption" Width="20" Height="20"
-                                   VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource BasicEntity.Button.Delete.Foreground}"
-                                   FontFamily="Webdings" FontWeight="Bold" FontSize="8" 
-                                   Content="{TemplateBinding Content}" RenderTransformOrigin="0.5,0.5">
-                                <Label.RenderTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform/>
-                                        <SkewTransform/>
-                                        <RotateTransform/>
-                                        <TranslateTransform X="0.5" Y="1"/>
-                                    </TransformGroup>
-                                </Label.RenderTransform>
-                            </Label>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="buttonSurface" Property="Fill" Value="Cyan"/>
-                                <Setter TargetName="buttonCaption" Property="Foreground" Value="Black"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="controlLayout" Property="RenderTransformOrigin" Value="0.5,0.5"/>
-                                <Setter TargetName="controlLayout" Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter TargetName="buttonSurface" Property="Fill" Value="{StaticResource BasicEntity.Button.Delete.Pressed}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="FontFamily" Value="Webdings"/>
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="8"/>
+            <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
         </Style>
         <Style x:Key="EntityAddButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="16"/>
-            <Setter Property="Height" Value="16"/>
+            <Style.Resources>
+                <RadialGradientBrush x:Key="Background.Static">
+                    <GradientStop Color="Green" Offset="0.432"/>
+                    <GradientStop Color="Black" Offset="0.932"/>
+                    <GradientStop Color="DarkGreen" Offset="0.911"/>
+                </RadialGradientBrush>
+                <SolidColorBrush x:Key="Foreground.Static" Color="Wheat"/>
+                <RadialGradientBrush x:Key="Background.Pressed">
+                    <GradientStop Color="MediumTurquoise" Offset="0.432"/>
+                    <GradientStop Color="Black" Offset="0.932"/>
+                    <GradientStop Color="PaleTurquoise" Offset="0.911"/>
+                </RadialGradientBrush>
+                <SolidColorBrush x:Key="Foreground.Pressed" Color="Wheat"/>
+                <SolidColorBrush x:Key="Background.MouseOver" Color="Cyan"/>
+                <SolidColorBrush x:Key="Foreground.MouseOver" Color="Black"/>
+                <clr:Double x:Key="TranslateX">-0.5</clr:Double>
+                <clr:Double x:Key="TranslateY">-0.5</clr:Double>
+            </Style.Resources>
             <Setter Property="Content" Value="a"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Grid x:Name="controlLayout">
-                            <Ellipse x:Name="buttonSurface" Fill="{StaticResource BasicEntity.Button.Add.Static}"/>
-                            <Label x:Name="buttonCaption" Width="20" Height="20"
-                                   VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource BasicEntity.Button.Add.Foreground}"
-                                   FontFamily="Webdings"  FontSize="12" 
-                                   Content="{TemplateBinding Content}" RenderTransformOrigin="0.5,0.5">
-                                <Label.RenderTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform/>
-                                        <SkewTransform/>
-                                        <RotateTransform/>
-                                        <TranslateTransform X="-0.5" Y="-0.5"/>
-                                    </TransformGroup>
-                                </Label.RenderTransform>
-                            </Label>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="buttonSurface" Property="Fill" Value="Cyan"/>
-                                <Setter TargetName="buttonCaption" Property="Foreground" Value="Black"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="controlLayout" Property="RenderTransformOrigin" Value="0.5,0.5"/>
-                                <Setter TargetName="controlLayout" Property="RenderTransform">
-                                    <Setter.Value>
-                                        <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter TargetName="buttonSurface" Property="Fill" Value="{StaticResource BasicEntity.Button.Add.Pressed}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="FontFamily" Value="Webdings"/>
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
         </Style>
+        <ControlTemplate x:Key="TinyButtonTemplate" TargetType="{x:Type Button}">
+            <Grid x:Name="controlLayout" Width="16" Height="16">
+                <Ellipse x:Name="ButtonSurface" Fill="{DynamicResource Background.Static}"/>
+                <Label x:Name="ButtonCaption" Width="20" Height="20"
+                        VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource Foreground.Static}"
+                        FontFamily="{TemplateBinding FontFamily}" FontWeight="{TemplateBinding FontWeight}" FontSize="{TemplateBinding FontSize}" 
+                        Content="{TemplateBinding Content}" RenderTransformOrigin="0.5,0.5">
+                    <Label.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform/>
+                            <TranslateTransform X="{DynamicResource TranslateX}" Y="{DynamicResource TranslateY}"/>
+                        </TransformGroup>
+                    </Label.RenderTransform>
+                </Label>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter TargetName="ButtonSurface" Property="Fill" Value="{DynamicResource Background.MouseOver}"/>
+                    <Setter TargetName="ButtonCaption" Property="Foreground" Value="{DynamicResource Foreground.MouseOver}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter TargetName="ButtonSurface" Property="Fill" Value="{DynamicResource Background.Pressed}"/>
+                    <Setter TargetName="ButtonCaption" Property="Foreground" Value="{DynamicResource Foreground.Pressed}"/>
+                    <Setter TargetName="controlLayout" Property="RenderTransformOrigin" Value="0.5,0.5"/>
+                    <Setter TargetName="controlLayout" Property="RenderTransform">
+                        <Setter.Value>
+                            <ScaleTransform ScaleX="0.8" ScaleY="0.8"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
         <ControlTemplate x:Key="PopUpTemplate" TargetType="ContentControl">
             <!--Grey out background content-->
             <Grid Background="{StaticResource PopUp.Behind.Background}"
@@ -358,8 +334,8 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="3*"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="12"/>
                     </Grid.RowDefinitions>
@@ -368,7 +344,7 @@
                         <ContentPresenter x:Name="PropEditorCP" />
                     </GroupBox>
                     <!--Validations List-->
-                    <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="100"
+                    <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="Auto"
                               VerticalScrollBarVisibility="Auto"
                               IsTabStop="False" Margin="12,0,12,6">
                         <ItemsControl Margin="8" Foreground="Red" Name="ValidationsItemsControl" IsTabStop="False"

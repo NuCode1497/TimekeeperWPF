@@ -23,7 +23,6 @@ namespace TimekeeperWPF
         private bool _HasSelectedExclude = false;
         private TimePattern _SelectedInclude;
         private TimePattern _SelectedExclude;
-        private TimePattern _CurrentEditPattern;
         private ICommand _RemoveIncludeCommand;
         private ICommand _RemoveExcludeCommand;
         private ICommand _AddIncludeCommand;
@@ -166,8 +165,8 @@ namespace TimekeeperWPF
             base.AddNew();
             CurrentEditItem.Name = "New Task";
             CurrentEditItem.Description = "Your text here.";
+            CurrentEditItem.End = DateTime.Now.RoundToHour().AddHours(1); //init before start
             CurrentEditItem.Start = DateTime.Now.RoundToHour();
-            CurrentEditItem.End = DateTime.Now.RoundToHour().AddHours(1);
             CurrentEditItem.Dimension = 1;
             CurrentEditItem.PowerLevel = 100;
             CurrentEditItem.Priority = 1;

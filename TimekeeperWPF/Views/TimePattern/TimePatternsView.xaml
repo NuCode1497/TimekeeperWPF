@@ -19,12 +19,12 @@
                   CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
-                <DataGridTextColumn Binding="{Binding Path=Duration}" Header="Duration"/>
+                <DataGridTextColumn Binding="{Binding Path=DurationTS}" Header="Duration"/>
                 <DataGridTextColumn Binding="{Binding Path=Child.Name}" Header="Child"/>
-                <DataGridTextColumn Binding="{Binding Path=ForNth}" Header="ForNth" />
-                <DataGridTextColumn Binding="{Binding Path=ForSkip}" Header="ForSkip" />
-                <DataGridTextColumn Binding="{Binding Path=ForTimePoint}" Header="ForTimePoint" />
-                <DataGridTextColumn Binding="{Binding Path=ForX}" Header="ForX" />
+                <DataGridTextColumn Binding="{Binding Path=ForX}" Header="For X" />
+                <DataGridTextColumn Binding="{Binding Path=ForNth}" Header="Nth" />
+                <DataGridTextColumn Binding="{Binding Path=ForTimePoint}" Header="TimePoint" />
+                <DataGridTextColumn Binding="{Binding Path=ForSkipDurationTS}" Header="Skip" />
                 <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels" Width="150">
                     <DataGridTextColumn.ElementStyle>
                         <Style>
