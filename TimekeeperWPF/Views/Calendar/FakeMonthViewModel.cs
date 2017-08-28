@@ -19,7 +19,6 @@ namespace TimekeeperWPF
         protected override async Task GetDataAsync()
         {
             Context = new FakeTimeKeeperContext();
-            await Context.Notes.LoadAsync();
             Items.Source = Context.Notes.Local;
         }
     }

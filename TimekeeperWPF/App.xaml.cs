@@ -17,12 +17,12 @@ namespace TimekeeperWPF
     {
         private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            //if (e.Exception.StackTrace.Contains("at Xceed.Wpf.Toolkit.Spinner.OnSpin(SpinEventArgs e)"))
-            //{
-            //    //Handle these stupid errors I'm not buying Plus for $500 are you kidding me
-            //    e.Handled = true;
-            //    return;
-            //}
+            if (e.Exception.StackTrace.Contains("at Xceed.Wpf.Toolkit.Spinner.OnSpin(SpinEventArgs e)"))
+            {
+                //Handle these stupid errors I'm not buying Plus for $500 are you kidding me
+                e.Handled = true;
+                return;
+            }
 
             ExceptionViewer ev = new ExceptionViewer("An unexpected error occurred in the application.", e.Exception, sender as Window);
             ev.ShowDialog();

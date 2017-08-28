@@ -91,6 +91,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DayView.xaml.cs">
+      <DependentUpon>DayView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\ResourceDecimalFormatConverter.cs" />
     <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
       <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
@@ -185,6 +188,10 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
+    <Page Include="DayView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Resource\AllocationSelectorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

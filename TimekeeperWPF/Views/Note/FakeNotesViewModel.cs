@@ -15,12 +15,10 @@ namespace TimekeeperWPF
         protected override async Task GetDataAsync()
         {
             Context = new FakeTimeKeeperContext();
-            await Context.Notes.LoadAsync();
             Items.Source = Context.Notes.Local;
 
             //Load TaskTypes stuff
             TaskTypesCollection = new CollectionViewSource();
-            await Context.TaskTypes.LoadAsync();
             TaskTypesCollection.Source = Context.TaskTypes.Local;
             TaskTypesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(TaskTypesView));
