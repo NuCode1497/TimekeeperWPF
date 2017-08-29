@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Views.Month
 {
     public class Week : ObservableObject
     {

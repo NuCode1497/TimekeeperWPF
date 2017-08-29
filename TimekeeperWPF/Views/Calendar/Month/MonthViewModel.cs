@@ -8,6 +8,7 @@ using TimekeeperDAL.EF;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Windows.Input;
+using TimekeeperWPF.Views.Month;
 
 namespace TimekeeperWPF
 {

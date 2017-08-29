@@ -13,16 +13,17 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Examples
 {
     /// <summary>
-    /// Interaction logic for DayView.xaml
+    /// Interaction logic for RadialSample.xaml
     /// </summary>
-    public partial class DayView : UserControl
+    public partial class RadialSample : Window
     {
-        public DayView()
+        public RadialSample()
         {
             InitializeComponent();
+            itemsControl.ItemsSource = typeof(Colors).GetProperties();
         }
     }
 }

@@ -17,8 +17,9 @@
                             Height="{Binding RelativeSource={RelativeSource Self}, Path=Parent.ActualHeight}">
                         <Canvas Name="Parent4">
                             <TextBlock FontSize="16" Margin="5" Text="Display the name of the ancestor"/>
-                            <TextBlock FontSize="16" Margin="50" Width="200"
-                                       Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}, AncestorLevel=2},Path=Name}"/>
+                            <TextBlock FontSize="16" Width="200"
+                                       Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Border}, AncestorLevel=2},Path=Name}" 
+                                       Canvas.Left="37" Canvas.Top="49"/>
                         </Canvas>
                     </Border>
                 </Border>

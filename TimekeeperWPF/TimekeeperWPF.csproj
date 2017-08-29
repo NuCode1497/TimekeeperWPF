@@ -91,17 +91,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DayView.xaml.cs">
-      <DependentUpon>DayView.xaml</DependentUpon>
+    <Compile Include="Examples\PlotPanel.cs" />
+    <Compile Include="Examples\RadialPanel.cs" />
+    <Compile Include="Examples\RadialSample.xaml.cs">
+      <DependentUpon>RadialSample.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\ResourceDecimalFormatConverter.cs" />
+    <Compile Include="Views\Calendar\Day\Day.cs" />
     <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
       <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Resource\AllocationView.xaml.cs">
       <DependentUpon>AllocationView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DemoView.xaml.cs">
+    <Compile Include="Examples\DemoView.xaml.cs">
       <DependentUpon>DemoView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\TimePattern\TimePatternChildView.xaml.cs">
@@ -128,7 +131,7 @@
     <Compile Include="Views\BasicEntitiesView.xaml.cs">
       <DependentUpon>BasicEntitiesView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="BindingsExample.xaml.cs">
+    <Compile Include="Examples\BindingsExample.xaml.cs">
       <DependentUpon>BindingsExample.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Label\LabeledEntitiesViewModel.cs" />
@@ -155,18 +158,18 @@
       <DependentUpon>LabelSelectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\Extensions.cs" />
-    <Compile Include="Views\Calendar\MonthDayView.xaml.cs">
+    <Compile Include="Views\Calendar\Month\MonthDayView.xaml.cs">
       <DependentUpon>MonthDayView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\BoolToGreenConverter.cs" />
-    <Compile Include="Views\Calendar\FakeMonthViewModel.cs" />
-    <Compile Include="Views\Calendar\MonthViewModel.cs" />
+    <Compile Include="Views\Calendar\Month\FakeMonthViewModel.cs" />
+    <Compile Include="Views\Calendar\Month\MonthViewModel.cs" />
     <Compile Include="Tools\BoolToGrayConverter.cs" />
-    <Compile Include="Views\Calendar\Day.cs" />
-    <Compile Include="Views\Calendar\MonthView.xaml.cs">
+    <Compile Include="Views\Calendar\Month\Day.cs" />
+    <Compile Include="Views\Calendar\Month\MonthView.xaml.cs">
       <DependentUpon>MonthView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Calendar\Week.cs" />
+    <Compile Include="Views\Calendar\Month\Week.cs" />
     <Compile Include="Views\Label\LabelsViewModel.cs" />
     <Compile Include="Views\LoadingView.xaml.cs">
       <DependentUpon>LoadingView.xaml</DependentUpon>
@@ -188,7 +191,7 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
-    <Page Include="DayView.xaml">
+    <Page Include="Examples\RadialSample.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -200,7 +203,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DemoView.xaml">
+    <Page Include="Examples\DemoView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -236,7 +239,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="BindingsExample.xaml">
+    <Page Include="Examples\BindingsExample.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -260,11 +263,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Calendar\MonthDayView.xaml">
+    <Page Include="Views\Calendar\Month\MonthDayView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Calendar\MonthView.xaml">
+    <Page Include="Views\Calendar\Month\MonthView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

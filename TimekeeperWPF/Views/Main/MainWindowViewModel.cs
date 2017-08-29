@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows.Input;
 using TimekeeperWPF.Tools;
+using TimekeeperWPF.Examples;
 
 namespace TimekeeperWPF
 {
@@ -29,6 +30,9 @@ namespace TimekeeperWPF
             Views.Add(new TimePatternsViewModel());
             Views.Add(new MonthViewModel());
             Navigate(Views[0]);
+
+            RadialSample radialSample = new RadialSample();
+            radialSample.Show();
         }
 
         public ObservableCollection<IPage> Views => _views
