@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace TimekeeperWPF.Views.Month
 {
-    public class Week : ObservableObject
+    public class MonthWeek : ObservableObject
     {
-        private List<Day> _Days;
-        public Week()
+        private List<MonthDay> _Days;
+        public MonthWeek()
         {
-            _Days = new List<Day>();
+            _Days = new List<MonthDay>();
         }
-        public List<Day> Days
+        public List<MonthDay> Days
         {
             get
             {

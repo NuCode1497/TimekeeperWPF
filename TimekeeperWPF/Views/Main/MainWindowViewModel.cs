@@ -3,13 +3,14 @@ using System.ComponentModel;
 using System.Windows.Input;
 using TimekeeperWPF.Tools;
 using TimekeeperWPF.Examples;
+using System.Windows;
 
 namespace TimekeeperWPF
 {
     public class MainWindowViewModel : ObservableObject
     {
-        private ObservableCollection<IPage> _views;
-        private IPage _currentView;
+        private ObservableCollection<IView> _views;
+        private IView _currentView;
         private ICommand _navigateViewCommand = null;
 
         public MainWindowViewModel()
@@ -31,14 +32,14 @@ namespace TimekeeperWPF
             Views.Add(new MonthViewModel());
             Navigate(Views[0]);
 
-            RadialSample radialSample = new RadialSample();
-            radialSample.Show();
+            //RadialSample radialSample = new RadialSample();
+            //radialSample.Show();
         }
 
-        public ObservableCollection<IPage> Views => _views
-            ?? (_views = new ObservableCollection<IPage>());
+        public ObservableCollection<IView> Views => _views
+            ?? (_views = new ObservableCollection<IView>());
 
-        public IPage CurrentView
+        public IView CurrentView
         {
             get
             {
@@ -52,8 +53,8 @@ namespace TimekeeperWPF
         }
 
         public ICommand NavigateViewCommand => _navigateViewCommand 
-            ?? (_navigateViewCommand = new RelayCommand(ap => Navigate(ap as IPage), pp => pp is IPage));
-        private void Navigate(IPage page)
+            ?? (_navigateViewCommand = new RelayCommand(ap => Navigate(ap as IView), pp => pp is IView));
+        private void Navigate(IView page)
         {
             CurrentView = page;
             if(CurrentView.GetDataCommand.CanExecute(null))

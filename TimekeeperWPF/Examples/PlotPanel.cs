@@ -50,7 +50,7 @@ namespace TimekeeperWPF.Examples
             SolidColorBrush mySolidColorBrush = new SolidColorBrush();
             mySolidColorBrush.Color = Colors.LimeGreen;
             Pen myPen = new Pen(Brushes.Blue, 10);
-            Rect myRect = new Rect(0, 0, 500, 500);
+            Rect myRect = new Rect(0, 0, 300, 300);
             dc.DrawRectangle(mySolidColorBrush, myPen, myRect);
         }
     }

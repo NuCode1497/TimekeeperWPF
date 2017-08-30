@@ -7,10 +7,10 @@ using System.Globalization;
 
 namespace TimekeeperWPF.Views.Month
 {
-    public class Day : ObservableObject
+    public class MonthDay : ObservableObject
     {
         private DateTime _dateTime;
-        public Day()
+        public MonthDay()
         {
             _dateTime = DateTime.Now;
             IsNotInMonth = false;

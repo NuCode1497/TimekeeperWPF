@@ -23,7 +23,7 @@ namespace TimekeeperWPF
     /// SelectedItem no binding
     /// </summary>
     /// <typeparam name="ModelType">EntityBase type</typeparam>
-    public abstract class ViewModel<ModelType> : ObservableObject, IPage, IDisposable 
+    public abstract class ViewModel<ModelType> : ObservableObject, IView, IDisposable 
         where ModelType: EntityBase, new() 
     {
         #region Fields

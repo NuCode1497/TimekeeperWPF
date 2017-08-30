@@ -8,39 +8,24 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace TimekeeperWPF.Views.Calendar.Day
+namespace TimekeeperWPF
 {
     public class Day : Panel
     {
-        VisualCollection theVisuals;
-
         public Day() : base()
         {
         }
 
-        protected override int VisualChildrenCount
-        {
-            get { return theVisuals.Count; }
-        }
-        protected override Visual GetVisualChild(int index)
-        {
-            if (index < 0 || index >= theVisuals.Count)
-            {
-                throw new ArgumentOutOfRangeException();
-            }
-            return theVisuals[index];
-        }
         // Override the default Measure method of Panel
         protected override Size MeasureOverride(Size availableSize)
         {
+            //Height will be unbound. Width will be bound to UI space.
+            availableSize.Height = double.PositiveInfinity;
             Size panelDesiredSize = new Size();
-
-            // In our example, we just have one child. 
-            // Report that our panel requires just the size of its only child.
             foreach (UIElement child in InternalChildren)
             {
                 child.Measure(availableSize);
-                panelDesiredSize = child.DesiredSize;
+                panelDesiredSize.Width = child.DesiredSize.Width;
             }
 
             return panelDesiredSize;
@@ -49,10 +34,19 @@ namespace TimekeeperWPF.Views.Calendar.Day
         {
             foreach (UIElement child in InternalChildren)
             {
+                if (child == null) { continue; }
                 double x = 50;
-                double y = 50;
+                double y = 0;
+                Size size = child.DesiredSize;
+                size.Width = finalSize.Width - x;
 
-                child.Arrange(new Rect(new Point(x, y), child.DesiredSize));
+                if(child is ICalendarObject)
+                {
+                    //position CalendarObject on the Calendar according to properties
+
+                }
+
+                child.Arrange(new Rect(new Point(x, y), size));
             }
             return finalSize; // Returns the final Arranged size
         }

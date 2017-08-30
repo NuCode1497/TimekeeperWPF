@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace TimekeeperWPF.Tools
 {
-    public interface IPage
+    public interface IView
     {
         string Name { get; }
         ICommand SaveAsCommand { get; }

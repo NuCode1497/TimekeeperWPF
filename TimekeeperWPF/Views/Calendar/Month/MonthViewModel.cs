@@ -54,7 +54,7 @@ namespace TimekeeperWPF
         public string SelectedYearString => SelectedDateTime.ToString("yyy");
         public int SelectedDay => _SelectedDateTime.Day;
         #endregion
-        public List<Week> Weeks { get; set; }
+        public List<MonthWeek> Weeks { get; set; }
         #region Commands
         public ICommand NextMonthCommand => _NextMonthCommand
             ?? (_NextMonthCommand = new RelayCommand(ap => NextMonth(), pp => true));
@@ -92,7 +92,7 @@ namespace TimekeeperWPF
             //Every week starts on Sunday. We need to find the first Sunday of the first week that may or may not be in the month.
             //Starting from the first Sunday, we fill each week with successive days until we run out of days of the month
             //and the last week is filled.
-            Weeks = new List<Week>();
+            Weeks = new List<MonthWeek>();
             DateTime firstDay = new DateTime(SelectedYear, SelectedMonth, 1);
             DateTime lastDay = firstDay.AddMonths(1).AddDays(-1);
             DayOfWeek firstDayWeekday = _Calendar.GetDayOfWeek(firstDay);
@@ -100,10 +100,10 @@ namespace TimekeeperWPF
             DateTime firstSunday = firstDay.AddDays(-(int)firstDayWeekday);
             for (int d = -(int)firstDayWeekday; d < DaysInMonth;)
             {
-                Week week = new Week();
+                MonthWeek week = new MonthWeek();
                 for(int wd = 0; wd < 7; wd ++)
                 {
-                    Day day = new Day()
+                    MonthDay day = new MonthDay()
                     {
                         DateTime = firstDay.AddDays(d),
                         IsNotInMonth = d < 0 || d >= DaysInMonth
