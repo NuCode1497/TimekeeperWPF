@@ -24,8 +24,8 @@ namespace TimekeeperWPF
         }
         public CalendarObject()
         {
-            Start = DateTime.Now.Date;
-            End = DateTime.Now.Date.AddHours(1);
+            Start = DateTime.Now.Date.AddMinutes(30);
+            End = DateTime.Now.Date.AddHours(2);
             Scale = 60d;
             Background = Brushes.Tomato;
         }
