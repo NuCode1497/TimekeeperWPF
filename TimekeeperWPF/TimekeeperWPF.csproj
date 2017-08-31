@@ -91,8 +91,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="TaskEvent.xaml.cs">
-      <DependentUpon>TaskEvent.xaml</DependentUpon>
+    <Compile Include="Views\Calendar\CalendarObject.cs" />
+    <Compile Include="Examples\Window1.xaml.cs">
+      <DependentUpon>Window1.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Day\DayView.xaml.cs">
       <DependentUpon>DayView.xaml</DependentUpon>
@@ -102,13 +103,8 @@
     <Compile Include="Examples\RadialSample.xaml.cs">
       <DependentUpon>RadialSample.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Examples\UserControl1.xaml.cs">
-      <DependentUpon>UserControl1.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Tools\ResourceDecimalFormatConverter.cs" />
-    <Compile Include="Tools\ZoomCanvas.cs" />
     <Compile Include="Views\Calendar\Day\Day.cs" />
-    <Compile Include="Views\Calendar\ICalendarObject.cs" />
     <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
       <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
     </Compile>
@@ -202,19 +198,19 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
-    <Page Include="TaskEvent.xaml">
+    <Page Include="Examples\Window1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Calendar\Day\DayView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Examples\RadialSample.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Examples\UserControl1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

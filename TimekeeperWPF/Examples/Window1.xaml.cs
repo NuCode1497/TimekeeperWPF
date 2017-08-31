@@ -10,17 +10,16 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Examples
 {
     /// <summary>
-    /// Interaction logic for TaskEvent.xaml
+    /// Interaction logic for Window1.xaml
     /// </summary>
-    public partial class TaskEvent : UserControl
+    public partial class Window1 : Window
     {
-        public TaskEvent()
+        public Window1()
         {
             InitializeComponent();
         }

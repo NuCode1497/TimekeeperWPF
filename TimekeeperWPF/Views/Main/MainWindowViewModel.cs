@@ -34,6 +34,9 @@ namespace TimekeeperWPF
 
             //RadialSample radialSample = new RadialSample();
             //radialSample.Show();
+
+            Window1 window1 = new Window1();
+            window1.Show();
         }
 
         public ObservableCollection<IView> Views => _views

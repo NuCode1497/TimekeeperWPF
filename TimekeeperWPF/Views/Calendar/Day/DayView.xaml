@@ -7,8 +7,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <local:Day>
-            <Button Height="50" Content="Hello" />
-        </local:Day>
+        <ScrollViewer>
+            <local:Day Margin="1">
+                <local:CalendarObject/>
+            </local:Day>
+        </ScrollViewer>
     </Grid>
 </UserControl>

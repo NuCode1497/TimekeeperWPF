@@ -180,9 +180,8 @@ namespace TimekeeperWPF
         private bool CanCommitAllocation => IsAddingNewAllocation && !CurrentEditAllocation.HasErrors;
         private bool CanDeleteAllocation(object pp)
         {
-            return
-                pp is Allocation &&
-                IsNotAddingNewAllocation;
+            return pp is Allocation 
+                && IsNotAddingNewAllocation;
         }
         #endregion
         #region Actions
@@ -340,9 +339,8 @@ namespace TimekeeperWPF
         }
         private bool IsValidChild(TimePattern P)
         {
-            return
-                CurrentEditItem.Duration > P.Duration &&
-                P != CurrentEditItem.Child;
+            return CurrentEditItem.Duration > P.Duration 
+                && P != CurrentEditItem.Child;
         }
         private bool IsResourceAllocated(Resource R)
         {
