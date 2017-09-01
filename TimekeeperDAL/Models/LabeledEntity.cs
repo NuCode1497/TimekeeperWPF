@@ -21,7 +21,7 @@ namespace TimekeeperDAL.EF
                 {
                     s += l.ToString() + ", ";
                 }
-                if(s.Length >= 2)
+                if (s.Length >= 2)
                     s = s.Substring(0, s.Length - 2);
                 return s;
             }

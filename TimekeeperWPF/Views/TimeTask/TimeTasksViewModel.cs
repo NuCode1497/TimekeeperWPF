@@ -60,7 +60,7 @@ namespace TimekeeperWPF
                 }
                 else
                 {
-                    if(SelectedInclude == SelectedExclude)
+                    if (SelectedInclude == SelectedExclude)
                     {
                         SelectedExclude = null;
                     }
@@ -86,7 +86,7 @@ namespace TimekeeperWPF
                 }
                 else
                 {
-                    if(SelectedExclude == SelectedInclude)
+                    if (SelectedExclude == SelectedInclude)
                     {
                         SelectedInclude = null;
                     }

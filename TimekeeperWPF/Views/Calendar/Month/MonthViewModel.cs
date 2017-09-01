@@ -101,7 +101,7 @@ namespace TimekeeperWPF
             for (int d = -(int)firstDayWeekday; d < DaysInMonth;)
             {
                 MonthWeek week = new MonthWeek();
-                for(int wd = 0; wd < 7; wd ++)
+                for (int wd = 0; wd < 7; wd ++)
                 {
                     MonthDay day = new MonthDay()
                     {

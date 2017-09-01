@@ -28,7 +28,7 @@ namespace TimekeeperDAL.EF
                 switch (columnName)
                 {
                     case nameof(minAmount):
-                        if(minAmount > maxAmount)
+                        if (minAmount > maxAmount)
                         {
                             AddError(nameof(minAmount), "minAmount must be less than maxAmount");
                             hasError = true;
@@ -37,7 +37,7 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(minAmount), minAmount);
                         break;
                     case nameof(maxAmount):
-                        if(maxAmount < minAmount)
+                        if (maxAmount < minAmount)
                         {
                             AddError(nameof(maxAmount), "maxAmount must be greater than minAmount");
                             hasError = true;

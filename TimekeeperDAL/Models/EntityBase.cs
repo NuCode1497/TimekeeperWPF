@@ -146,7 +146,7 @@ namespace TimekeeperDAL.EF
         public bool IsEditing { get; set; } = false;
         public void BeginEdit()
         {
-            if(!IsEditing)
+            if (!IsEditing)
             {
                 //Kage Bunshin no Jutsu
                 //Create an object that looks like this object by copying mapped public properties
@@ -156,14 +156,14 @@ namespace TimekeeperDAL.EF
         }
         public void EndEdit()
         {
-            if(IsEditing)
+            if (IsEditing)
             {
                 ShadowClone = null;
             }
         }
         public void CancelEdit()
         {
-            if(IsEditing)
+            if (IsEditing)
             {
                 CopyMappedProperties(ShadowClone, this);
                 ShadowClone = null;

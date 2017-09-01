@@ -110,7 +110,7 @@ namespace TimekeeperWPF
             }
             protected set
             {
-                if(IsEditingItemOrAddingNew)
+                if (IsEditingItemOrAddingNew)
                 {
                     OnPropertyChanged();
                     return;
@@ -294,13 +294,13 @@ namespace TimekeeperWPF
         }
         protected virtual void Cancel()
         {
-            if(IsEditingItem)
+            if (IsEditingItem)
             {
                 View?.CancelEdit();
                 EndEdit();
                 Status = "Canceled";
             }
-            else if(IsAddingNew)
+            else if (IsAddingNew)
             {
                 View?.CancelNew();
                 EndEdit();
@@ -375,7 +375,7 @@ namespace TimekeeperWPF
         {
             string status = SelectedItem?.GetTypeName() + " Deleted";
             View.Remove(SelectedItem);
-            if(await SaveChangesAsync()) Status = status;
+            if (await SaveChangesAsync()) Status = status;
             SelectedItem = null;
         }
         #endregion
@@ -388,7 +388,7 @@ namespace TimekeeperWPF
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    if(Context is IDisposable)
+                    if (Context is IDisposable)
                     {
                         ((IDisposable)Context).Dispose();
                     }

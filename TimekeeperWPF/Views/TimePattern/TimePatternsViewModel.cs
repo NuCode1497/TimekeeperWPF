@@ -249,7 +249,7 @@ namespace TimekeeperWPF
         }
         private void CurrentEditItem_DurationChanges(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(CurrentEditItem.Duration))
+            if (e.PropertyName == nameof(CurrentEditItem.Duration))
             {
                 UpdatePatternsView();
             }
@@ -300,7 +300,7 @@ namespace TimekeeperWPF
         }
         private void CommitAllocation()
         {
-            if(IsAddingNewAllocation)
+            if (IsAddingNewAllocation)
             {
                 CurrentEntityAllocationsView.AddNewItem(CurrentEditAllocation);
                 CurrentEntityAllocationsView.CommitNew();

@@ -60,7 +60,7 @@ namespace TimekeeperWPF
         private void Navigate(IView page)
         {
             CurrentView = page;
-            if(CurrentView.GetDataCommand.CanExecute(null))
+            if (CurrentView.GetDataCommand.CanExecute(null))
                 CurrentView.GetDataCommand.Execute(null);
         }
     }

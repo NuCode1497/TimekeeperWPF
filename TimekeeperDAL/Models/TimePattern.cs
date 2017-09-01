@@ -39,7 +39,7 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(Duration), Duration);
                         break;
                     case nameof(Child):
-                        if(Child?.Duration > Duration)
+                        if (Child?.Duration > Duration)
                         {
                             AddError(nameof(Child), "Child duration must be less than Parent duration");
                             hasError = true;
