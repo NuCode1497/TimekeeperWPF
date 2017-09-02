@@ -91,6 +91,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Examples\AnnoyingPanel.cs" />
     <Compile Include="Views\Calendar\CalendarObject.cs" />
     <Compile Include="Examples\Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>

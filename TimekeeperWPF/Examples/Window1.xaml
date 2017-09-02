@@ -6,8 +6,22 @@
         xmlns:local="clr-namespace:TimekeeperWPF.Examples"
         xmlns:timekeeperwpf="clr-namespace:TimekeeperWPF"
         mc:Ignorable="d"
-        Title="Testing DayView" Height="300" Width="300">
-    <Grid>
-        <timekeeperwpf:DayView/>
+        Style="{StaticResource WindowStyle}"
+        Title="Testing Stuff" Height="700" Width="700">
+    <Grid ShowGridLines="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <timekeeperwpf:DayView Grid.Row="0" Grid.Column="0"/>
+        <ScrollViewer CanContentScroll="True" Grid.Row="0" Grid.Column="1">
+            <local:AnnoyingPanel>
+                <Button>button</Button>
+            </local:AnnoyingPanel>
+        </ScrollViewer>
     </Grid>
 </Window>

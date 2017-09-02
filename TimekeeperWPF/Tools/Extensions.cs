@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media;
 
 namespace TimekeeperWPF.Tools
 {
@@ -33,6 +35,15 @@ namespace TimekeeperWPF.Tools
         {
             long ticks = dt.Ticks + 18000000000;
             return new DateTime(ticks - ticks % 36000000000, dt.Kind);
+        }
+
+        public static T FindAncestor<T>(this DependencyObject d)
+            where T : DependencyObject
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(d);
+            if (parent == null) return null;
+            T found = parent as T;
+            return found ?? parent.FindAncestor<T>();
         }
     }
 }

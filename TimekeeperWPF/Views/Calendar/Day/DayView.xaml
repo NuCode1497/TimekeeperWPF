@@ -5,10 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="300">
+             d:DesignHeight="400" d:DesignWidth="300" Background="LimeGreen">
     <Grid>
         <Border BorderBrush="Black" BorderThickness="1">
-            <ScrollViewer VerticalAlignment="Top">
+            <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
+                          CanContentScroll="True">
                 <local:Day>
                     <local:CalendarObject Background="#7FFF6347"/>
                 </local:Day>
