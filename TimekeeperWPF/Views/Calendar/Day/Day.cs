@@ -1,4 +1,10 @@
-﻿using System;
+﻿// Copyright 2012 (C) Cody Neuburger  All rights reserved.
+// References:
+// http://jigneshon.blogspot.com/2013/11/c-wpf-tutorial-implementing-iscrollinfo.html
+// https://blogs.msdn.microsoft.com/bencon/2006/12/09/iscrollinfo-tutorial-part-iv/
+// http://jobijoy.blogspot.com/2008/04/simple-radial-panel-for-wpf-and.html
+// https://www.codeproject.com/Articles/15705/FishEyePanel-FanPanel-Examples-of-custom-layout-pa
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -21,7 +27,6 @@ namespace TimekeeperWPF
     {
         public Day() : base()
         {
-            RenderTransform = _ScrollTrans;
             Scale = 25d;
             BackgroundProperty.OverrideMetadata(typeof(Day),
                 new FrameworkPropertyMetadata(Brushes.MintCream,
@@ -326,7 +331,6 @@ namespace TimekeeperWPF
                 double x = TextMargin;
                 double y = 0; //12:00:00 AM
                 Size childSize = child.DesiredSize;
-
                 if (child is CalendarObject)
                 {
                     CalendarObject CalObj = child as CalendarObject;
@@ -339,6 +343,19 @@ namespace TimekeeperWPF
                 }
                 biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width);
                 child.Arrange(new Rect(new Point(x, y), childSize));
+                TranslateTransform trans = child.RenderTransform as TranslateTransform;
+                if (trans == null)
+                {
+                    child.RenderTransformOrigin = new Point(0, 0);
+                    trans = new TranslateTransform();
+                    child.RenderTransform = trans;
+                }
+                trans.BeginAnimation(TranslateTransform.YProperty,
+                    new DoubleAnimation(-VerticalOffset, _ScrollAnimationLength), 
+                    HandoffBehavior.SnapshotAndReplace);
+                trans.BeginAnimation(TranslateTransform.XProperty,
+                    new DoubleAnimation(-HorizontalOffset, _ScrollAnimationLength), 
+                    HandoffBehavior.SnapshotAndReplace);
             }
             extent.Width += biggestChildWidth;
             extent.Height = DaySize;
@@ -525,7 +542,6 @@ namespace TimekeeperWPF
         #endregion Layout
         #region IScrollInfo
         private TimeSpan _ScrollAnimationLength = TimeSpan.FromMilliseconds(200);
-        private TranslateTransform _ScrollTrans = new TranslateTransform();
         private const double LineSize = 16;
         private const double WheelSize = 3 * LineSize;
         private bool _CanHorizontallyScroll = false;
@@ -549,15 +565,15 @@ namespace TimekeeperWPF
             get { return _CanHorizontallyScroll; }
             set { _CanHorizontallyScroll = value; }
         }
-        public double ExtentWidth { get { return _Extent.Width; } }
-        public double ExtentHeight { get { return _Extent.Height; } }
-        public double ViewportWidth { get { return _Viewport.Width; } }
-        public double ViewportHeight { get { return _Viewport.Height; } }
-        public double HorizontalOffset { get { return _Offset.X; } }
-        public double VerticalOffset { get { return _Offset.Y; } }
+        public double ExtentWidth => _Extent.Width;
+        public double ExtentHeight => _Extent.Height;
+        public double ViewportWidth => _Viewport.Width;
+        public double ViewportHeight => _Viewport.Height;
+        public double HorizontalOffset => _Offset.X;
+        public double VerticalOffset => _Offset.Y;
         public void LineUp() { SetVerticalOffset(VerticalOffset - LineSize); }
         public void LineDown() { SetVerticalOffset(VerticalOffset + LineSize); }
-        public void LineLeft(){ SetHorizontalOffset(HorizontalOffset - LineSize); }
+        public void LineLeft() { SetHorizontalOffset(HorizontalOffset - LineSize); }
         public void LineRight() { SetHorizontalOffset(HorizontalOffset + LineSize); }
         public void PageUp() { SetVerticalOffset(VerticalOffset - ViewportHeight); }
         public void PageDown() { SetVerticalOffset(VerticalOffset + ViewportHeight); }
@@ -573,12 +589,8 @@ namespace TimekeeperWPF
             if (offset != _Offset.Y)
             {
                 _Offset.X = offset;
-                //InvalidateArrange();
+                InvalidateArrange();
                 InvalidateVisual();
-                if (ScrollOwner != null)
-                { ScrollOwner.InvalidateScrollInfo(); }
-                _ScrollTrans.BeginAnimation(TranslateTransform.XProperty,
-                    new DoubleAnimation(-offset, _ScrollAnimationLength), HandoffBehavior.Compose);
             }
         }
         public void SetVerticalOffset(double offset)
@@ -587,12 +599,8 @@ namespace TimekeeperWPF
             if (offset != _Offset.Y)
             {
                 _Offset.Y = offset;
-                //InvalidateArrange();
+                InvalidateArrange();
                 InvalidateVisual();
-                if (ScrollOwner != null)
-                { ScrollOwner.InvalidateScrollInfo(); }
-                _ScrollTrans.BeginAnimation(TranslateTransform.YProperty,
-                    new DoubleAnimation(-offset, _ScrollAnimationLength), HandoffBehavior.Compose);
             }
         }
         protected void VerifyScrollData(Size viewport, Size extent)
@@ -610,7 +618,31 @@ namespace TimekeeperWPF
         }
         public Rect MakeVisible(Visual visual, Rect rectangle)
         {
+            if (rectangle.IsEmpty || visual == null || visual == this || !base.IsAncestorOf(visual))
+            { return Rect.Empty; }
+            rectangle = visual.TransformToAncestor(this).TransformBounds(rectangle);
+            Rect viewRect = new Rect(HorizontalOffset, VerticalOffset, ViewportWidth, ViewportHeight);
+            rectangle.X += viewRect.X;
+            rectangle.Y += viewRect.Y;
+            viewRect.X = CalculateNewScrollOffset(viewRect.Left, viewRect.Right, rectangle.Left, rectangle.Right);
+            viewRect.Y = CalculateNewScrollOffset(viewRect.Top, viewRect.Bottom, rectangle.Top, rectangle.Bottom);
+            SetHorizontalOffset(viewRect.X);
+            SetVerticalOffset(viewRect.Y);
+            rectangle.Intersect(viewRect);
+            rectangle.X -= viewRect.X;
+            rectangle.Y -= viewRect.Y;
             return rectangle;
+        }
+        private static double CalculateNewScrollOffset(double topView, double bottomView, double topChild, double bottomChild)
+        {
+            bool offBottom = topChild < topView && bottomChild < bottomView;
+            bool offTop = bottomChild > bottomView && topChild > topView;
+            bool tooLarge = (bottomChild - topChild) > (bottomView - topView);
+            if (!offBottom && !offTop)
+            { return topView; } //Don't do anything, already in view
+            if ((offBottom && !tooLarge) || (offTop && tooLarge))
+            { return topChild; }
+            return (bottomChild - (bottomView - topView));
         }
         #endregion
     }

@@ -24,8 +24,6 @@ namespace TimekeeperWPF
         }
         public CalendarObject()
         {
-            Start = DateTime.Now.Date.AddMinutes(0);
-            End = DateTime.Now.Date.AddHours(1);
         }
         #region Properties
         #region Start
