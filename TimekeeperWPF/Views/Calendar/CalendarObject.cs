@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TimekeeperWPF.Tools;
+using TimekeeperWPF.Views.Calendar.Day;
 
 namespace TimekeeperWPF
 {
@@ -35,7 +36,7 @@ namespace TimekeeperWPF
         public static readonly DependencyProperty StartProperty =
             DependencyProperty.Register(
                 nameof(Start), typeof(DateTime), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date));
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1)));
         #endregion
         #region End
         public DateTime End
@@ -46,7 +47,7 @@ namespace TimekeeperWPF
         public static readonly DependencyProperty EndProperty =
             DependencyProperty.Register(
                 nameof(End), typeof(DateTime), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1)));
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2)));
         #endregion
         #region Scale
         public double Scale
@@ -58,13 +59,7 @@ namespace TimekeeperWPF
             DependencyProperty.Register(
                 nameof(Scale), typeof(double), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(60d),
-                new ValidateValueCallback(IsValidScale));
-        private static bool IsValidScale(object value)
-        {
-            Double scale = (Double)value;
-            return scale >= 1
-                && !scale.Equals(Double.PositiveInfinity);
-        }
+                new ValidateValueCallback(Day.IsValidScale));
         #endregion
         #endregion
     }

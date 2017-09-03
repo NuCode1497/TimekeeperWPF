@@ -45,5 +45,10 @@ namespace TimekeeperWPF.Tools
             T found = parent as T;
             return found ?? parent.FindAncestor<T>();
         }
+
+        public static double Within(this double d, double min, double max)
+        {
+            return Math.Max(min, Math.Min(d, max));
+        }
     }
 }

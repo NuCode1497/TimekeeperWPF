@@ -20,27 +20,44 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using TimekeeperWPF.Tools;
+using TimekeeperWPF;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Views.Calendar.Day
 {
     public class Day : Panel, IScrollInfo
     {
+        #region Fields
+        private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
+        private double ScaleFactor = 0.2d;
+        #region IScrollInfo Fields
+        private const double LineSize = 12;
+        private const double WheelSize = 3 * LineSize;
+        private bool _CanHorizontallyScroll = false;
+        private bool _CanVerticallyScroll = false;
+        private ScrollViewer _ScrollOwner;
+        private Size _Extent = new Size(0, 0);
+        private Size _Viewport = new Size(0, 0);
+        #endregion IScrollInfo Fields
+        #endregion Fields
         public Day() : base()
         {
-            Scale = 25d;
             BackgroundProperty.OverrideMetadata(typeof(Day),
                 new FrameworkPropertyMetadata(Brushes.MintCream,
                 FrameworkPropertyMetadataOptions.AffectsRender |
                 FrameworkPropertyMetadataOptions.SubPropertiesDoNotAffectRender));
+            Scale = 25d;
         }
         #region Events
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
         {
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                int delta = e.Delta;
-                //modify scale by 10%
-                Scale = Scale * (1d + 0.1d * (e.Delta / Math.Abs(e.Delta)));
+                //Scale
+                int delta = -e.Delta / Math.Abs(e.Delta);
+                _Scale = Scale * (1d + ScaleFactor * delta);
+                _Offset = (Offset * Scale) / _Scale;
+                AnimateScale();
+                AnimateOffset();
                 e.Handled = true;
             }
             base.OnPreviewMouseWheel(e);
@@ -51,16 +68,18 @@ namespace TimekeeperWPF
         public double TextMargin
         {
             get { return (double)GetValue(TextMarginProperty); }
-            set { SetValue(TextMarginProperty, value); }
+            private set { SetValue(TextMarginPropertyKey, value); }
         }
-        public static readonly DependencyProperty TextMarginProperty =
-            DependencyProperty.Register(
+        private static readonly DependencyPropertyKey TextMarginPropertyKey =
+            DependencyProperty.RegisterReadOnly(
                 nameof(TextMargin), typeof(double), typeof(Day),
                 new FrameworkPropertyMetadata(80d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender,
                     null,
                     new CoerceValueCallback(OnCoerceTextMargin)));
+        public static readonly DependencyProperty TextMarginProperty =
+            TextMarginPropertyKey.DependencyProperty;
         public static object OnCoerceTextMargin(DependencyObject d, object value)
         {
             Day day = (Day)d;
@@ -78,6 +97,7 @@ namespace TimekeeperWPF
         }
         #endregion
         #region Date
+        [Bindable(true)]
         public DateTime Date
         {
             get { return (DateTime)GetValue(DateProperty); }
@@ -90,7 +110,31 @@ namespace TimekeeperWPF
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
         #endregion
+        #region Offset
+        private Vector _Offset = new Vector();
+        private Vector Offset
+        {
+            get { return (Vector)GetValue(OffsetProperty); }
+            set { SetValue(OffsetProperty, value); }
+        }
+        private static readonly DependencyProperty OffsetProperty =
+            DependencyProperty.Register(
+                nameof(Offset), typeof(Vector), typeof(Day),
+                new FrameworkPropertyMetadata(new Vector(),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        private void AnimateOffset()
+        {
+            VectorAnimation anime = new VectorAnimation();
+            anime.Duration = _AnimationLength;
+            anime.To = new Vector(HorizontalOffset, VerticalOffset);
+            BeginAnimation(OffsetProperty, anime, HandoffBehavior.Compose);
+        }
+        #endregion Offset
         #region Scale
+        // Scale is in Seconds per Pixel s/px
+        //final non-animated scale
+        private double _Scale = 60d;
+        //animated scale
         public double Scale
         {
             get { return (double)GetValue(ScaleProperty); }
@@ -112,67 +156,44 @@ namespace TimekeeperWPF
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
+            Day day = d as Day;
             Double newValue = (Double)value;
-            if (newValue < 1) return 1;
+            if (newValue < 1)
+                return 1d;
             if (Double.IsNaN(newValue) || Double.IsPositiveInfinity(newValue)) return DependencyProperty.UnsetValue;
             return newValue;
         }
-        private static bool IsValidScale(object value)
+        internal static bool IsValidScale(object value)
         {
+            if((double)value <= 1)
+            { }
             Double scale = (Double)value;
-            return scale > 0
-                && !Double.IsNaN(scale)
-                && !Double.IsInfinity(scale);
+            bool result = scale > 0 && !Double.IsNaN(scale) && !Double.IsInfinity(scale);
+            return result;
+        }
+        private void AnimateScale()
+        {
+            DoubleAnimation anime = new DoubleAnimation();
+            anime.Duration = _AnimationLength;
+            anime.To = _Scale;
+            BeginAnimation(ScaleProperty, anime, HandoffBehavior.Compose);
         }
         #endregion
-        #region Control-ish Properties
-
-        /// <summary>
-        ///     The DependencyProperty for the Foreground property.
-        ///     Flags:              Can be used in style rules
-        ///     Default Value:      System Font Color
-        /// </summary>
-        public static readonly DependencyProperty ForegroundProperty =
-            TextElement.ForegroundProperty.AddOwner(
-                typeof(Day), 
-                new FrameworkPropertyMetadata(
-                    SystemColors.ControlTextBrush, 
-                    FrameworkPropertyMetadataOptions.Inherits));
-
-        /// <summary>
-        ///     An brush that describes the foreground color.
-        ///     This will only affect controls whose template uses the property
-        ///     as a parameter. On other controls, the property will do nothing.
-        /// </summary>
+        #region Foreground
         [Bindable(true), Category("Appearance")]
         public Brush Foreground
         {
             get { return (Brush)GetValue(ForegroundProperty); }
             set { SetValue(ForegroundProperty, value); }
         }
-
-        /// <summary>
-        ///     The DependencyProperty for the FontFamily property.
-        ///     Flags:              Can be used in style rules
-        ///     Default Value:      System Dialog Font
-        /// </summary>
-        public static readonly DependencyProperty FontFamilyProperty =
-            TextElement.FontFamilyProperty.AddOwner(
+        public static readonly DependencyProperty ForegroundProperty =
+            TextElement.ForegroundProperty.AddOwner(
                 typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontFamily,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontFamilyChanged)));
-
-        private static void OnFontFamilyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-
-        /// <summary>
-        ///     The font family of the desired font.
-        ///     This will only affect controls whose template uses the property
-        ///     as a parameter. On other controls, the property will do nothing.
-        /// </summary>
+                new FrameworkPropertyMetadata(
+                    SystemColors.ControlTextBrush,
+                    FrameworkPropertyMetadataOptions.Inherits));
+        #endregion
+        #region FontFamily
         [Bindable(true), Category("Appearance")]
         [Localizability(LocalizationCategory.Font)]
         public FontFamily FontFamily
@@ -180,29 +201,18 @@ namespace TimekeeperWPF
             get { return (FontFamily)GetValue(FontFamilyProperty); }
             set { SetValue(FontFamilyProperty, value); }
         }
-
-        /// <summary>
-        ///     The DependencyProperty for the FontSize property.
-        ///     Flags:              Can be used in style rules
-        ///     Default Value:      System Dialog Font Size
-        /// </summary>
-        public static readonly DependencyProperty FontSizeProperty =
-            TextElement.FontSizeProperty.AddOwner(
+        public static readonly DependencyProperty FontFamilyProperty =
+            TextElement.FontFamilyProperty.AddOwner(
                 typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontSize,
+                new FrameworkPropertyMetadata(SystemFonts.MessageFontFamily,
                     FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontSizeChanged)));
-
-        private static void OnFontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+                    new PropertyChangedCallback(OnFontFamilyChanged)));
+        private static void OnFontFamilyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.CoerceValue(TextMarginProperty);
         }
-
-        /// <summary>
-        ///     The size of the desired font.
-        ///     This will only affect controls whose template uses the property
-        ///     as a parameter. On other controls, the property will do nothing.
-        /// </summary>
+        #endregion
+        #region FontSize
         [TypeConverter(typeof(FontSizeConverter))]
         [Bindable(true), Category("Appearance")]
         [Localizability(LocalizationCategory.None)]
@@ -211,12 +221,24 @@ namespace TimekeeperWPF
             get { return (double)GetValue(FontSizeProperty); }
             set { SetValue(FontSizeProperty, value); }
         }
-
-        /// <summary>
-        ///     The DependencyProperty for the FontStretch property.
-        ///     Flags:              Can be used in style rules
-        ///     Default Value:      FontStretches.Normal
-        /// </summary>
+        public static readonly DependencyProperty FontSizeProperty =
+            TextElement.FontSizeProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(SystemFonts.MessageFontSize,
+                    FrameworkPropertyMetadataOptions.Inherits,
+                    new PropertyChangedCallback(OnFontSizeChanged)));
+        private static void OnFontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
+        #endregion
+        #region FontStretch
+        [Bindable(true), Category("Appearance")]
+        public FontStretch FontStretch
+        {
+            get { return (FontStretch)GetValue(FontStretchProperty); }
+            set { SetValue(FontStretchProperty, value); }
+        }
         public static readonly DependencyProperty FontStretchProperty
             = TextElement.FontStretchProperty.AddOwner(
                 typeof(Day),
@@ -224,111 +246,131 @@ namespace TimekeeperWPF
                     TextElement.FontStretchProperty.DefaultMetadata.DefaultValue,
                     FrameworkPropertyMetadataOptions.Inherits,
                     new PropertyChangedCallback(OnFontStretchChanged)));
-
         private static void OnFontStretchChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.CoerceValue(TextMarginProperty);
         }
-
-        /// <summary>
-        ///     The stretch of the desired font.
-        ///     This will only affect controls whose template uses the property
-        ///     as a parameter. On other controls, the property will do nothing.
-        /// </summary>
-        [Bindable(true), Category("Appearance")]
-        public FontStretch FontStretch
-        {
-            get { return (FontStretch)GetValue(FontStretchProperty); }
-            set { SetValue(FontStretchProperty, value); }
-        }
-
-        /// <summary>
-        ///     The DependencyProperty for the FontStyle property.
-        ///     Flags:              Can be used in style rules
-        ///     Default Value:      System Dialog Font Style
-        /// </summary>
-        public static readonly DependencyProperty FontStyleProperty =
-            TextElement.FontStyleProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontStyle,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontStyleChanged)));
-
-        private static void OnFontStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-
-        /// <summary>
-        ///     The style of the desired font.
-        ///     This will only affect controls whose template uses the property
-        ///     as a parameter. On other controls, the property will do nothing.
-        /// </summary>
+        #endregion
+        #region FontStyle
         [Bindable(true), Category("Appearance")]
         public FontStyle FontStyle
         {
             get { return (FontStyle)GetValue(FontStyleProperty); }
             set { SetValue(FontStyleProperty, value); }
         }
-
-        /// <summary>
-        ///     The DependencyProperty for the FontWeight property.
-        ///     Flags:              Can be used in style rules
-        ///     Default Value:      System Dialog Font Weight
-        /// </summary>
-        public static readonly DependencyProperty FontWeightProperty =
-            TextElement.FontWeightProperty.AddOwner(
+        public static readonly DependencyProperty FontStyleProperty =
+            TextElement.FontStyleProperty.AddOwner(
                 typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontWeight,
+                new FrameworkPropertyMetadata(SystemFonts.MessageFontStyle,
                     FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontWeightChanged)));
-
-        private static void OnFontWeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+                    new PropertyChangedCallback(OnFontStyleChanged)));
+        private static void OnFontStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.CoerceValue(TextMarginProperty);
         }
-
-        /// <summary>
-        ///     The weight or thickness of the desired font.
-        ///     This will only affect controls whose template uses the property
-        ///     as a parameter. On other controls, the property will do nothing.
-        /// </summary>
+        #endregion
+        #region FontWeight
         [Bindable(true), Category("Appearance")]
         public FontWeight FontWeight
         {
             get { return (FontWeight)GetValue(FontWeightProperty); }
             set { SetValue(FontWeightProperty, value); }
         }
-
+        public static readonly DependencyProperty FontWeightProperty =
+            TextElement.FontWeightProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(SystemFonts.MessageFontWeight,
+                    FrameworkPropertyMetadataOptions.Inherits,
+                    new PropertyChangedCallback(OnFontWeightChanged)));
+        private static void OnFontWeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
         #endregion
-        private double DaySize => (Date.AddDays(1) - Date).TotalSeconds / Scale;
+        #region GridMinorPen
+        [Bindable(true)]
+        public Pen GridMinorPen
+        {
+            get { return (Pen)GetValue(GridMinorPenProperty); }
+            set { SetValue(GridMinorPenProperty, value); }
+        }
+        public static readonly DependencyProperty GridMinorPenProperty =
+            DependencyProperty.Register(
+                nameof(GridMinorPen), typeof(Pen), typeof(Day),
+                new FrameworkPropertyMetadata(GetDefaultMinorPen(),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        private static Pen GetDefaultMinorPen()
+        {
+            Pen p = new Pen(Brushes.Gray, 1);
+            p.DashStyle = DashStyles.Dash;
+            return p;
+        }
+        #endregion
+        #region GridRegularPen
+        [Bindable(true)]
+        public Pen GridRegularPen
+        {
+            get { return (Pen)GetValue(GridRegularPenProperty); }
+            set { SetValue(GridRegularPenProperty, value); }
+        }
+        public static readonly DependencyProperty GridRegularPenProperty =
+            DependencyProperty.Register(
+                nameof(GridRegularPen), typeof(Pen), typeof(Day),
+                new FrameworkPropertyMetadata(new Pen(Brushes.Black, 1),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        #region GridMajorPen
+        [Bindable(true)]
+        public Pen GridMajorPen
+        {
+            get { return (Pen)GetValue(GridMajorPenProperty); }
+            set { SetValue(GridMajorPenProperty, value); }
+        }
+        public static readonly DependencyProperty GridMajorPenProperty =
+            DependencyProperty.Register(
+                nameof(GridMajorPen), typeof(Pen), typeof(Day),
+                new FrameworkPropertyMetadata(new Pen(Brushes.Black, 3),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        private double DaySeconds => (Date.AddDays(1) - Date).TotalSeconds;
+        private double DaySize => DaySeconds / Scale;
         #endregion Properties
         #region Layout
         protected override Size MeasureOverride(Size availableSize)
         {
             //Height will be unbound. Width will be bound to UI space.
-            Size childAvailableSize = new Size(availableSize.Width - TextMargin, double.PositiveInfinity);
-            Size extent = new Size(TextMargin, 0);
-            double biggestChildWidth = 0;
+            Size extent = new Size(0, 0);
+            double biggestChildWidth = TextMargin;
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
-                child.Measure(childAvailableSize);
-                biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width);
+                double x = 0;
+                Size childSize = new Size(availableSize.Width, double.PositiveInfinity);
+                if (child is CalendarObject)
+                {
+                    x = TextMargin;
+                    childSize.Width -= x;
+                    biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width + x);
+                }
+                else
+                {
+                    biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width);
+                }
+                child.Measure(childSize);
             }
-            extent.Width += biggestChildWidth;
+            extent.Width = biggestChildWidth;
             extent.Height = DaySize;
             VerifyScrollData(availableSize, extent);
             return _Viewport;
         }
         protected override Size ArrangeOverride(Size arrangeSize)
         {
-            Size extent = new Size(TextMargin, 0);
-            double biggestChildWidth = 0;
+            Size extent = new Size(0, 0);
+            double biggestChildWidth = TextMargin;
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
-                double x = TextMargin;
+                double x = 0;
                 double y = 0; //12:00:00 AM
                 Size childSize = child.DesiredSize;
                 if (child is CalendarObject)
@@ -337,27 +379,19 @@ namespace TimekeeperWPF
                     CalObj.Scale = Scale;
                     //set y relative to object start
                     //y = 0 is Date = 12:00:00 AM
+                    x = TextMargin;
                     y = (CalObj.Start - Date).TotalSeconds / Scale;
                     childSize.Width = arrangeSize.Width - x;
                     childSize.Height = (CalObj.End - CalObj.Start).TotalSeconds / Scale;
+                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + x);
                 }
-                biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width);
-                child.Arrange(new Rect(new Point(x, y), childSize));
-                TranslateTransform trans = child.RenderTransform as TranslateTransform;
-                if (trans == null)
+                else
                 {
-                    child.RenderTransformOrigin = new Point(0, 0);
-                    trans = new TranslateTransform();
-                    child.RenderTransform = trans;
+                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width);
                 }
-                trans.BeginAnimation(TranslateTransform.YProperty,
-                    new DoubleAnimation(-VerticalOffset, _ScrollAnimationLength), 
-                    HandoffBehavior.SnapshotAndReplace);
-                trans.BeginAnimation(TranslateTransform.XProperty,
-                    new DoubleAnimation(-HorizontalOffset, _ScrollAnimationLength), 
-                    HandoffBehavior.SnapshotAndReplace);
+                child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
-            extent.Width += biggestChildWidth;
+            extent.Width = biggestChildWidth;
             extent.Height = DaySize;
             VerifyScrollData(arrangeSize, extent);
             return arrangeSize;
@@ -368,35 +402,30 @@ namespace TimekeeperWPF
             //Draw Grid lines and margin text
             DrawHorizontalGridLines(dc);
             //Draw Margin separator line
-            dc.DrawLine(new Pen(Brushes.SlateGray, 2),
-                new Point(TextMargin, 0), new Point(TextMargin, DaySize));
+            dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), new Point(TextMargin, DaySize));
         }
         private void DrawHorizontalGridLines(DrawingContext dc)
         {
+            if (!(Scale >= 1 && Scale <= 900)) return;
             //area to work with, only draw within a margin of this area
-            Size area = _Viewport;
-
-            if (Scale < 1 || Scale > 900) return;
-
-            //TODO: make pens dep props
-            Pen minorPen = new Pen(Brushes.Gray, 1);
-            minorPen.DashStyle = DashStyles.Dash;
-            Pen regularPen = new Pen(Brushes.Black, 1);
-            Pen majorPen = new Pen(Brushes.Black, 2);
-            Pen currentPen = regularPen;
+            Rect area = new Rect(new Point(Offset.X, Offset.Y), _Viewport);
+            Pen currentPen = GridRegularPen;
             string timeFormat = "";
             string minorFormat = "";
             string regularFormat = "";
             string majorFormat = "";
-            double x1 = TextMargin;
-            double x2 = ActualWidth;
             double y = 0;
             bool minorGridLines = false;
             bool regularGridLines = false;
             bool majorGridLines = false;
-            double minorInterval = 15d;
-            double regularInterval = 60d;
-            double majorInterval = 3600d;
+            double secondsInterval = 21600d;
+            double screenInterval;
+            int regularSkip = 1;
+            int majorSkip = 1;
+            int maxIntervals;
+            int iStart;
+            int iEnd;
+            int buffer = 2;
 
             //left of each grid line display time
             //hour: 4 PM
@@ -405,9 +434,9 @@ namespace TimekeeperWPF
             if (Scale == 1)
             {
                 //if scale = 1s/px, 1m/60px, 1h/3600px
-                minorInterval = 15d; //15s
-                regularInterval = 60d; //1m
-                majorInterval = 3600d; //1h
+                secondsInterval = 15d; //15s
+                regularSkip = 4; //1m
+                majorSkip = 240; //1h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -417,9 +446,9 @@ namespace TimekeeperWPF
             }
             else if (Scale < 2)
             {
-                minorInterval = 30d; //30s
-                regularInterval = 60d; //1m
-                majorInterval = 3600d; //1h
+                secondsInterval = 30d; //30s
+                regularSkip = 2; //1m
+                majorSkip = 120; //1h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -427,11 +456,11 @@ namespace TimekeeperWPF
                 regularFormat = "h:mm:ss tt";
                 majorFormat = "h:mm:ss tt";
             }
-            else if (Scale < 5)
+            else if (Scale < 4)
             {
-                minorInterval = 60d; //1m
-                regularInterval = 300d; //5m
-                majorInterval = 3600d; //1h
+                secondsInterval = 60d; //1m
+                regularSkip = 5; //5m
+                majorSkip = 60; //1h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -441,9 +470,9 @@ namespace TimekeeperWPF
             }
             else if (Scale < 15)
             {
-                minorInterval = 300d; //5m
-                regularInterval = 900d; //15m
-                majorInterval = 3600d; //1h
+                secondsInterval = 300d; //5m
+                regularSkip = 3; //15m
+                majorSkip = 12; //1h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -453,9 +482,9 @@ namespace TimekeeperWPF
             }
             else if (Scale < 30)
             {
-                minorInterval = 900d; //15m
-                regularInterval = 1800d; //30m
-                majorInterval = 3600d; //1h
+                secondsInterval = 900d; //15m
+                regularSkip = 2; //30m
+                majorSkip = 4; //1h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -466,9 +495,9 @@ namespace TimekeeperWPF
             else if (Scale < 60)
             {
                 //if scale < 60s/px, 1m/px, 1h/60px, 24h/1440px
-                minorInterval = 1800d; //30m
-                regularInterval = 3600d; //1h
-                majorInterval = 21600d; //6h
+                secondsInterval = 1800d; //30m
+                regularSkip = 2; //1h
+                majorSkip = 12; //6h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -479,8 +508,9 @@ namespace TimekeeperWPF
             else if (Scale < 240)
             {
                 //if scale < 240s/px, 4m/px, 1h/15px, 24h/360px
-                minorInterval = regularInterval = 3600d; //1h
-                majorInterval = 21600d; //6h
+                secondsInterval = 3600d; //1h
+                regularSkip = 1; //1h
+                majorSkip = 6; //6h
                 minorGridLines = false;
                 regularGridLines = true;
                 majorGridLines = true;
@@ -489,8 +519,8 @@ namespace TimekeeperWPF
             }
             else if (Scale < 600)
             {
-                minorInterval = 10800d; //3h
-                regularInterval = 21600d; //6h
+                secondsInterval = 10800d; //3h
+                regularSkip = 2; //6h
                 minorGridLines = true;
                 regularGridLines = true;
                 majorGridLines = false;
@@ -500,35 +530,41 @@ namespace TimekeeperWPF
             else if (Scale < 900)
             {
                 //if scale < 900s/px, 15m/px, 1h/4px, 24h/96px
-                minorInterval = regularInterval = 21600d; //6h
+                secondsInterval = 21600d; //6h
+                regularSkip = 1;
                 minorGridLines = false;
                 regularGridLines = true;
                 majorGridLines = false;
                 regularFormat = "h tt";
             }
-            minorInterval /= Scale;
-            regularInterval /= Scale;
-            majorInterval /= Scale;
-            for (y = 0; y < DaySize; y += minorInterval)
+            screenInterval = secondsInterval / Scale;
+            maxIntervals = (int)(DaySeconds / secondsInterval);
+            //restrict number of draws to within one interval of area 
+            iStart = (int)(area.Y / screenInterval - buffer).Within(0, maxIntervals);
+            iEnd = (int)((area.Y + area.Height) / screenInterval + buffer).Within(0, maxIntervals);
+            for (int i = iStart; i < iEnd; i++)
             {
-                //do this without %
-                if (majorGridLines && y % majorInterval == 0)
+                if (majorGridLines && i % majorSkip == 0)
                 {
-                    currentPen = majorPen;
+                    currentPen = GridMajorPen;
                     timeFormat = majorFormat;
                 }
-                else if (regularGridLines && y % regularInterval == 0)
+                else if (regularGridLines && i % regularSkip == 0)
                 {
-                    currentPen = regularPen;
+                    currentPen = GridRegularPen;
                     timeFormat = regularFormat;
                 }
                 else if (minorGridLines)
                 {
-                    currentPen = minorPen;
+                    currentPen = GridMinorPen;
                     timeFormat = minorFormat;
                 }
                 else continue;
-                dc.DrawLine(currentPen, new Point(x1, y), new Point(x2, y));
+                y = i * screenInterval;
+                double finalY = y - Offset.Y;
+                double finalX1 = TextMargin - Offset.X;
+                double finalX2 = ActualWidth - Offset.X;
+                dc.DrawLine(currentPen, new Point(finalX1, finalY), new Point(finalX2, finalY));
                 string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
                 FormattedText lineText = new FormattedText(text,
                     System.Globalization.CultureInfo.CurrentCulture,
@@ -536,20 +572,11 @@ namespace TimekeeperWPF
                     new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
                     FontSize, Foreground,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                dc.DrawText(lineText, new Point(TextMargin - 4, y - lineText.Height / 2));
+                dc.DrawText(lineText, new Point(finalX1 - 4, finalY - lineText.Height / 2));
             }
         }
         #endregion Layout
         #region IScrollInfo
-        private TimeSpan _ScrollAnimationLength = TimeSpan.FromMilliseconds(200);
-        private const double LineSize = 16;
-        private const double WheelSize = 3 * LineSize;
-        private bool _CanHorizontallyScroll = false;
-        private bool _CanVerticallyScroll = false;
-        private ScrollViewer _ScrollOwner;
-        private Vector _Offset = new Vector(0, 0);
-        private Size _Extent = new Size(0, 0);
-        private Size _Viewport = new Size(0, 0);
         public ScrollViewer ScrollOwner
         {
             get { return _ScrollOwner; }
@@ -585,22 +612,24 @@ namespace TimekeeperWPF
         public void MouseWheelRight() { SetHorizontalOffset(HorizontalOffset + WheelSize); }
         public void SetHorizontalOffset(double offset)
         {
-            offset = Math.Max(0, Math.Min(offset, ExtentWidth - ViewportWidth));
+            offset = offset.Within(0, ExtentWidth - ViewportWidth);
             if (offset != _Offset.Y)
             {
                 _Offset.X = offset;
                 InvalidateArrange();
                 InvalidateVisual();
+                AnimateOffset();
             }
         }
         public void SetVerticalOffset(double offset)
         {
-            offset = Math.Max(0, Math.Min(offset, ExtentHeight - ViewportHeight));
+            offset = offset.Within(0, ExtentHeight - ViewportHeight);
             if (offset != _Offset.Y)
             {
                 _Offset.Y = offset;
                 InvalidateArrange();
                 InvalidateVisual();
+                AnimateOffset();
             }
         }
         protected void VerifyScrollData(Size viewport, Size extent)
@@ -611,8 +640,8 @@ namespace TimekeeperWPF
             { viewport.Height = extent.Height; }
             _Extent = extent;
             _Viewport = viewport;
-            _Offset.X = Math.Max(0, Math.Min(_Offset.X, ExtentWidth - ViewportWidth));
-            _Offset.Y = Math.Max(0, Math.Min(_Offset.Y, ExtentHeight - ViewportHeight));
+            _Offset.X = _Offset.X.Within(0, ExtentWidth - ViewportWidth);
+            _Offset.Y = _Offset.Y.Within(0, ExtentHeight - ViewportHeight);
             if (ScrollOwner != null)
             { ScrollOwner.InvalidateScrollInfo(); }
         }
@@ -644,6 +673,6 @@ namespace TimekeeperWPF
             { return topChild; }
             return (bottomChild - (bottomView - topView));
         }
-        #endregion
+        #endregion IScrollInfo
     }
 }
