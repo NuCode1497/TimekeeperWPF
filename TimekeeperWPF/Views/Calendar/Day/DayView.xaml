@@ -10,8 +10,8 @@
     <Grid>
         <Border BorderBrush="Black" BorderThickness="1">
             <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
-                          CanContentScroll="True">
-                <day:Day>
+                          VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+                <day:Day ForceMaxScale="False">
                     <local:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
                 </day:Day>
             </ScrollViewer>

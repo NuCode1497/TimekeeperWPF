@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Data.Entity;

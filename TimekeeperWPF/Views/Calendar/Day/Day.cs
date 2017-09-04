@@ -1,4 +1,4 @@
-﻿// Copyright 2012 (C) Cody Neuburger  All rights reserved.
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
 // References:
 // http://jigneshon.blogspot.com/2013/11/c-wpf-tutorial-implementing-iscrollinfo.html
 // https://blogs.msdn.microsoft.com/bencon/2006/12/09/iscrollinfo-tutorial-part-iv/
@@ -39,31 +39,47 @@ namespace TimekeeperWPF.Views.Calendar.Day
         private Size _Viewport = new Size(0, 0);
         #endregion IScrollInfo Fields
         #endregion Fields
-        public Day() : base()
+        static Day()
         {
             BackgroundProperty.OverrideMetadata(typeof(Day),
                 new FrameworkPropertyMetadata(Brushes.MintCream,
                 FrameworkPropertyMetadataOptions.AffectsRender |
                 FrameworkPropertyMetadataOptions.SubPropertiesDoNotAffectRender));
-            Scale = 25d;
+        }
+        public Day() : base()
+        {
         }
         #region Events
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
         {
+            if (e.Handled) return;
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                //Scale
-                int delta = -e.Delta / Math.Abs(e.Delta);
-                _Scale = Scale * (1d + ScaleFactor * delta);
-                _Offset = (Offset * Scale) / _Scale;
-                AnimateScale();
-                AnimateOffset();
                 e.Handled = true;
+                if (e.Delta < 0) TryScaleUp();
+                else TryScaleDown();
             }
-            base.OnPreviewMouseWheel(e);
+            else base.OnPreviewMouseWheel(e);
         }
         #endregion Events
-        #region Properties
+        #region Features
+        #region ForceMaxScale
+        [Bindable(true)]
+        public bool ForceMaxScale
+        {
+            get { return (bool)GetValue(ForceMaxScaleProperty); }
+            set { SetValue(ForceMaxScaleProperty, value); }
+        }
+        public static readonly DependencyProperty ForceMaxScaleProperty =
+            DependencyProperty.Register(
+                nameof(ForceMaxScale), typeof(bool), typeof(Day),
+                new FrameworkPropertyMetadata(false,
+                    new PropertyChangedCallback(OnForceMaxScaleChanged)));
+        private static void OnForceMaxScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(ScaleProperty);
+        }
+        #endregion
         #region TextMargin
         public double TextMargin
         {
@@ -111,6 +127,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     FrameworkPropertyMetadataOptions.AffectsArrange));
         #endregion
         #region Offset
+        //final non-animated offset
         private Vector _Offset = new Vector();
         private Vector Offset
         {
@@ -121,7 +138,19 @@ namespace TimekeeperWPF.Views.Calendar.Day
             DependencyProperty.Register(
                 nameof(Offset), typeof(Vector), typeof(Day),
                 new FrameworkPropertyMetadata(new Vector(),
-                    FrameworkPropertyMetadataOptions.AffectsRender));
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    null,
+                    new CoerceValueCallback(OnCoerceOffset)));
+        private static object OnCoerceOffset(DependencyObject d, object value)
+        {
+            Day day = d as Day;
+            Vector newValue = (Vector)value;
+            if(day.ForceMaxScale)
+            {
+                newValue = new Vector();
+            }
+            return newValue;
+        }
         private void AnimateOffset()
         {
             VectorAnimation anime = new VectorAnimation();
@@ -132,9 +161,11 @@ namespace TimekeeperWPF.Views.Calendar.Day
         #endregion Offset
         #region Scale
         // Scale is in Seconds per Pixel s/px
+        private double _MaxScale => DaySeconds / ViewportHeight;
+        private ICommand _ScaleUpCommand = null;
+        private ICommand _ScaleDownCommand = null;
         //final non-animated scale
         private double _Scale = 60d;
-        //animated scale
         public double Scale
         {
             get { return (double)GetValue(ScaleProperty); }
@@ -152,14 +183,15 @@ namespace TimekeeperWPF.Views.Calendar.Day
         private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Day day = d as Day;
+            Double newValue = (Double)e.NewValue;
             day.CoerceValue(TextMarginProperty);
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
             Day day = d as Day;
             Double newValue = (Double)value;
-            if (newValue < 1)
-                return 1d;
+            if (day.ForceMaxScale || newValue > day._MaxScale) newValue = day._MaxScale;
+            if (newValue < 1) return 1d;
             if (Double.IsNaN(newValue) || Double.IsPositiveInfinity(newValue)) return DependencyProperty.UnsetValue;
             return newValue;
         }
@@ -170,6 +202,36 @@ namespace TimekeeperWPF.Views.Calendar.Day
             Double scale = (Double)value;
             bool result = scale > 0 && !Double.IsNaN(scale) && !Double.IsInfinity(scale);
             return result;
+        }
+        public ICommand ScaleUpCommand => _ScaleUpCommand
+            ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
+        public ICommand ScaleDownCommand => _ScaleDownCommand
+            ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => CanScaleDown));
+        private bool CanScaleUp => !ForceMaxScale;
+        private bool CanScaleDown => !ForceMaxScale;
+        private void ScaleUp()
+        {
+            _Scale = Scale * (1d + ScaleFactor);
+            _Offset = (Offset * Scale) / _Scale;
+            AnimateScale();
+            AnimateOffset();
+        }
+        private void ScaleDown()
+        {
+            _Scale = Scale * (1d - ScaleFactor);
+            _Offset = (Offset * Scale) / _Scale;
+            AnimateScale();
+            AnimateOffset();
+        }
+        public void TryScaleUp()
+        {
+            if (ScaleUpCommand?.CanExecute(null) ?? false)
+                ScaleUpCommand.Execute(null);
+        }
+        public void TryScaleDown()
+        {
+            if (ScaleDownCommand?.CanExecute(null) ?? false)
+                ScaleDownCommand.Execute(null);
         }
         private void AnimateScale()
         {
@@ -332,10 +394,10 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 new FrameworkPropertyMetadata(new Pen(Brushes.Black, 3),
                     FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
+        #endregion Features
+        #region Layout
         private double DaySeconds => (Date.AddDays(1) - Date).TotalSeconds;
         private double DaySize => DaySeconds / Scale;
-        #endregion Properties
-        #region Layout
         protected override Size MeasureOverride(Size availableSize)
         {
             //Height will be unbound. Width will be bound to UI space.
@@ -399,10 +461,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
         protected override void OnRender(DrawingContext dc)
         {
             base.OnRender(dc);
-            //Draw Grid lines and margin text
             DrawHorizontalGridLines(dc);
-            //Draw Margin separator line
-            dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), new Point(TextMargin, DaySize));
         }
         private void DrawHorizontalGridLines(DrawingContext dc)
         {
@@ -574,6 +633,8 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 dc.DrawText(lineText, new Point(finalX1 - 4, finalY - lineText.Height / 2));
             }
+            //Draw Margin separator line
+            dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), new Point(TextMargin, DaySize));
         }
         #endregion Layout
         #region IScrollInfo
@@ -644,6 +705,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
             _Offset.Y = _Offset.Y.Within(0, ExtentHeight - ViewportHeight);
             if (ScrollOwner != null)
             { ScrollOwner.InvalidateScrollInfo(); }
+            CoerceValue(ScaleProperty);
         }
         public Rect MakeVisible(Visual visual, Rect rectangle)
         {
