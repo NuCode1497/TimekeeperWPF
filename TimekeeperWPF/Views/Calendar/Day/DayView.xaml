@@ -11,7 +11,7 @@
         <Border BorderBrush="Black" BorderThickness="1">
             <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
                           VerticalScrollBarVisibility="Auto" CanContentScroll="True">
-                <day:Day ForceMaxScale="False">
+                <day:Day ForceMaxScale="False" ShowTextMargin="True">
                     <local:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
                 </day:Day>
             </ScrollViewer>

@@ -30,8 +30,8 @@ namespace TimekeeperWPF.Views.Calendar.Day
         private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
         private double ScaleFactor = 0.2d;
         #region IScrollInfo Fields
-        private const double LineSize = 12;
-        private const double WheelSize = 3 * LineSize;
+        private const double _scrollLineDelta = 16d;
+        private const double _mouseWheelDelta = 3 * _scrollLineDelta;
         private bool _CanHorizontallyScroll = false;
         private bool _CanVerticallyScroll = false;
         private ScrollViewer _ScrollOwner;
@@ -81,35 +81,94 @@ namespace TimekeeperWPF.Views.Calendar.Day
         }
         #endregion
         #region TextMargin
+        private bool _ShowTextMargin = true;
+        public bool ShowTextMargin
+        {
+            get { return (bool)GetValue(ShowTextMarginProperty); }
+            set { SetValue(ShowTextMarginProperty, value); }
+        }
+        private static readonly DependencyProperty ShowTextMarginProperty =
+            DependencyProperty.Register(
+                nameof(ShowTextMargin), typeof(bool), typeof(Day),
+                new FrameworkPropertyMetadata(true,
+                    new PropertyChangedCallback(OnShowTextMarginChanged)));
+        public static void OnShowTextMarginChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+            CalcualteTextMargin(day);
+            day.AnimateTextMargin();
+        }
+        private double _TextMargin = 0;
         public double TextMargin
         {
             get { return (double)GetValue(TextMarginProperty); }
-            private set { SetValue(TextMarginPropertyKey, value); }
+            set { SetValue(TextMarginProperty, value); }
         }
-        private static readonly DependencyPropertyKey TextMarginPropertyKey =
-            DependencyProperty.RegisterReadOnly(
+        private static readonly DependencyProperty TextMarginProperty =
+            DependencyProperty.Register(
                 nameof(TextMargin), typeof(double), typeof(Day),
                 new FrameworkPropertyMetadata(80d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender,
                     null,
                     new CoerceValueCallback(OnCoerceTextMargin)));
-        public static readonly DependencyProperty TextMarginProperty =
-            TextMarginPropertyKey.DependencyProperty;
         public static object OnCoerceTextMargin(DependencyObject d, object value)
         {
             Day day = (Day)d;
-            string format = "";
-            if (day.Scale < 2) format = "00:00:00 AM";
-            else if (day.Scale < 240) format = "00:00 AM";
-            else format = "00 AM";
-            FormattedText lineText = new FormattedText(format,
-                System.Globalization.CultureInfo.CurrentCulture,
-                FlowDirection.RightToLeft,
-                new Typeface(day.FontFamily, day.FontStyle, day.FontWeight, day.FontStretch),
-                day.FontSize, day.Foreground,
-                VisualTreeHelper.GetDpi(day).PixelsPerDip);
-            return lineText.Width + 8;
+            if (!day.ShowTextMargin)
+            {
+                if (day._ShowTextMargin)
+                {
+                    //animation is running, text is closing
+                    return value;
+                }
+                //animation ended, text is closed
+                return 0;
+            }
+            else
+            {
+                if (!day._ShowTextMargin)
+                {
+                    //animation is running, text is opening
+                    return value;
+                }
+                //animation ended, text is open
+                CalcualteTextMargin(day);
+                return day._TextMargin;
+            }
+        }
+        private static void CalcualteTextMargin(Day day)
+        {
+            if(day.ShowTextMargin)
+            {
+                string format = "";
+                if (day.Scale < 2) format = "00:00:00 AM";
+                else if (day.Scale < 240) format = "00:00 AM";
+                else format = "00 AM";
+                FormattedText lineText = new FormattedText(format,
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    FlowDirection.RightToLeft,
+                    new Typeface(day.FontFamily, day.FontStyle, day.FontWeight, day.FontStretch),
+                    day.FontSize, day.Foreground,
+                    VisualTreeHelper.GetDpi(day).PixelsPerDip);
+                day._TextMargin = lineText.Width + 8;
+            }
+            else
+            {
+                day._TextMargin = 0;
+            }
+        }
+        private void AnimateTextMargin()
+        {
+            DoubleAnimation anime = new DoubleAnimation();
+            anime.Duration = _AnimationLength;
+            anime.To = _TextMargin;
+            anime.Completed += OnAnimateTextMarginCompleted;
+            BeginAnimation(TextMarginProperty, anime, HandoffBehavior.Compose);
+        }
+        private void OnAnimateTextMarginCompleted(object sender, EventArgs e)
+        {
+            _ShowTextMargin = ShowTextMargin;
         }
         #endregion
         #region Date
@@ -124,7 +183,15 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 nameof(Date), typeof(DateTime), typeof(Day),
                 new FrameworkPropertyMetadata(DateTime.Now.Date,
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
-                    FrameworkPropertyMetadataOptions.AffectsArrange));
+                    FrameworkPropertyMetadataOptions.AffectsArrange,
+                    null,
+                    new CoerceValueCallback(OnCoerceDate)));
+        private static object OnCoerceDate(DependencyObject d, object value)
+        {
+            Day day = d as Day;
+            DateTime newValue = (DateTime)value;
+            return newValue.Date;
+        }
         #endregion
         #region Offset
         //final non-animated offset
@@ -239,6 +306,33 @@ namespace TimekeeperWPF.Views.Calendar.Day
             anime.Duration = _AnimationLength;
             anime.To = _Scale;
             BeginAnimation(ScaleProperty, anime, HandoffBehavior.Compose);
+        }
+        #endregion
+        #region Orientation
+        public Orientation Orientation
+        {
+            get { return (Orientation)GetValue(OrientationProperty); }
+            set { SetValue(OrientationProperty, value); }
+        }
+        public static readonly DependencyProperty OrientationProperty =
+            DependencyProperty.Register(
+                nameof(Orientation), typeof(Orientation), typeof(Day),
+                new FrameworkPropertyMetadata(Orientation.Vertical,
+                    FrameworkPropertyMetadataOptions.AffectsMeasure,
+                    new PropertyChangedCallback(OnOrientationChanged)),
+                new ValidateValueCallback(IsValidOrientation));
+        private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+            day.ResetScrolling();
+        }
+        protected override bool HasLogicalOrientation => true;
+        protected override Orientation LogicalOrientation => Orientation;
+        internal static bool IsValidOrientation(object o)
+        {
+            Orientation value = (Orientation)o;
+            return value == Orientation.Horizontal
+                || value == Orientation.Vertical;
         }
         #endregion
         #region Foreground
@@ -411,7 +505,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 if (child is CalendarObject)
                 {
                     x = TextMargin;
-                    childSize.Width -= x;
+                    childSize.Width = Math.Max(0, childSize.Width - x);
                     biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width + x);
                 }
                 else
@@ -443,8 +537,8 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     //y = 0 is Date = 12:00:00 AM
                     x = TextMargin;
                     y = (CalObj.Start - Date).TotalSeconds / Scale;
-                    childSize.Width = arrangeSize.Width - x;
-                    childSize.Height = (CalObj.End - CalObj.Start).TotalSeconds / Scale;
+                    childSize.Width = Math.Max(0, arrangeSize.Width - x);
+                    childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
                     biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + x);
                 }
                 else
@@ -461,7 +555,22 @@ namespace TimekeeperWPF.Views.Calendar.Day
         protected override void OnRender(DrawingContext dc)
         {
             base.OnRender(dc);
+            DrawWaterMark(dc);
             DrawHorizontalGridLines(dc);
+        }
+        private void DrawWaterMark(DrawingContext dc)
+        {
+            double textSize = _Viewport.Width / 4d;
+            Brush foreground = new SolidColorBrush(Color.FromArgb(128, 200, 200, 200));
+            string text = Date.ToString("ddd\nMMM d");
+            FormattedText lineText = new FormattedText(text,
+                System.Globalization.CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(new FontFamily("Segoe UI Black"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal),
+                textSize, foreground, null,
+                VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            lineText.TextAlignment = TextAlignment.Center;
+            dc.DrawText(lineText, new Point(_Viewport.Width / 2d, _Viewport.Height / 2d - lineText.Height / 2d));
         }
         private void DrawHorizontalGridLines(DrawingContext dc)
         {
@@ -624,14 +733,18 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 double finalX1 = TextMargin - Offset.X;
                 double finalX2 = ActualWidth - Offset.X;
                 dc.DrawLine(currentPen, new Point(finalX1, finalY), new Point(finalX2, finalY));
-                string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
-                FormattedText lineText = new FormattedText(text,
-                    System.Globalization.CultureInfo.CurrentCulture,
-                    FlowDirection.RightToLeft,
-                    new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
-                    FontSize, Foreground,
-                    VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                dc.DrawText(lineText, new Point(finalX1 - 4, finalY - lineText.Height / 2));
+                if(ShowTextMargin || _ShowTextMargin)
+                {
+                    string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
+                    FormattedText lineText = new FormattedText(text,
+                        System.Globalization.CultureInfo.CurrentCulture,
+                        FlowDirection.LeftToRight,
+                        new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
+                        FontSize, Foreground,
+                        VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                    lineText.TextAlignment = TextAlignment.Right;
+                    dc.DrawText(lineText, new Point(finalX1 - 4, finalY - lineText.Height / 2));
+                }
             }
             //Draw Margin separator line
             dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), new Point(TextMargin, DaySize));
@@ -641,7 +754,12 @@ namespace TimekeeperWPF.Views.Calendar.Day
         public ScrollViewer ScrollOwner
         {
             get { return _ScrollOwner; }
-            set { _ScrollOwner = value; }
+            set
+            {
+                if (_ScrollOwner == value) return;
+                _ScrollOwner = value;
+                ResetScrolling();
+            }
         }
         public bool CanVerticallyScroll
         {
@@ -659,18 +777,18 @@ namespace TimekeeperWPF.Views.Calendar.Day
         public double ViewportHeight => _Viewport.Height;
         public double HorizontalOffset => _Offset.X;
         public double VerticalOffset => _Offset.Y;
-        public void LineUp() { SetVerticalOffset(VerticalOffset - LineSize); }
-        public void LineDown() { SetVerticalOffset(VerticalOffset + LineSize); }
-        public void LineLeft() { SetHorizontalOffset(HorizontalOffset - LineSize); }
-        public void LineRight() { SetHorizontalOffset(HorizontalOffset + LineSize); }
+        public void LineUp() { SetVerticalOffset(VerticalOffset - _scrollLineDelta); }
+        public void LineDown() { SetVerticalOffset(VerticalOffset + _scrollLineDelta); }
+        public void LineLeft() { SetHorizontalOffset(HorizontalOffset - _scrollLineDelta); }
+        public void LineRight() { SetHorizontalOffset(HorizontalOffset + _scrollLineDelta); }
         public void PageUp() { SetVerticalOffset(VerticalOffset - ViewportHeight); }
         public void PageDown() { SetVerticalOffset(VerticalOffset + ViewportHeight); }
         public void PageLeft() { SetHorizontalOffset(HorizontalOffset - ViewportWidth); }
         public void PageRight() { SetHorizontalOffset(HorizontalOffset + ViewportWidth); }
-        public void MouseWheelUp() { SetVerticalOffset(VerticalOffset - WheelSize); }
-        public void MouseWheelDown() { SetVerticalOffset(VerticalOffset + WheelSize); }
-        public void MouseWheelLeft() { SetHorizontalOffset(HorizontalOffset - WheelSize); }
-        public void MouseWheelRight() { SetHorizontalOffset(HorizontalOffset + WheelSize); }
+        public void MouseWheelUp() { SetVerticalOffset(VerticalOffset - _mouseWheelDelta); }
+        public void MouseWheelDown() { SetVerticalOffset(VerticalOffset + _mouseWheelDelta); }
+        public void MouseWheelLeft() { SetHorizontalOffset(HorizontalOffset - _mouseWheelDelta); }
+        public void MouseWheelRight() { SetHorizontalOffset(HorizontalOffset + _mouseWheelDelta); }
         public void SetHorizontalOffset(double offset)
         {
             offset = offset.Within(0, ExtentWidth - ViewportWidth);
@@ -706,6 +824,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
             if (ScrollOwner != null)
             { ScrollOwner.InvalidateScrollInfo(); }
             CoerceValue(ScaleProperty);
+            CoerceValue(TextMarginProperty);
         }
         public Rect MakeVisible(Visual visual, Rect rectangle)
         {
@@ -734,6 +853,15 @@ namespace TimekeeperWPF.Views.Calendar.Day
             if ((offBottom && !tooLarge) || (offTop && tooLarge))
             { return topChild; }
             return (bottomChild - (bottomView - topView));
+        }
+        private void ResetScrolling()
+        {
+            if(_ScrollOwner != null)
+            {
+                InvalidateMeasure();
+                Offset = _Offset = new Vector();
+                _Viewport = _Extent = new Size();
+            }
         }
         #endregion IScrollInfo
     }
