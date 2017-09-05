@@ -270,9 +270,21 @@ namespace TimekeeperWPF
         {
             SelectedItem = null;
             IsAddingNew = true; //before view.addnew
-            _CurrentEditItem = View.AddNew() as ModelType;
-            OnPropertyChanged(nameof(CurrentEditItem));
-            Status = "Adding new " + CurrentEditItem.GetTypeName();
+            try
+            {
+                ModelType newItem = View.AddNew() as ModelType;
+                _CurrentEditItem = newItem; //Some wack exception happens here sometimes
+                OnPropertyChanged(nameof(CurrentEditItem));
+                Status = "Adding new " + CurrentEditItem.GetTypeName();
+            }
+            catch (Exception ex)
+            {
+                IsAddingNew = false;
+                string text = "Uh, I don't know what happened, but maybe try that again...";
+                Status = text;
+                ExceptionViewer ev = new ExceptionViewer(text, ex);
+                ev.Show();
+            }
         }
         protected virtual void EditSelected()
         {

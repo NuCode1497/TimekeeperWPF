@@ -18,10 +18,5 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <timekeeperwpf:DayView Grid.Row="0" Grid.Column="0"/>
-        <ScrollViewer CanContentScroll="True" Grid.Row="0" Grid.Column="1">
-            <local:AnnoyingPanel>
-                <Button>button</Button>
-            </local:AnnoyingPanel>
-        </ScrollViewer>
     </Grid>
 </Window>

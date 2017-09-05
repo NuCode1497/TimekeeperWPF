@@ -13,7 +13,7 @@ namespace TimekeeperWPF.Tools
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            switch(value)
+            switch (value)
             {
                 case "Time":
                     return "N0";

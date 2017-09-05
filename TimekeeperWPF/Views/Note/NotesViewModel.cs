@@ -102,7 +102,7 @@ namespace TimekeeperWPF
             var saveDlg = new SaveFileDialog { Filter = "Text Files |*.txt" };
             if (true == saveDlg.ShowDialog())
             {
-                switch(saveDlg.FilterIndex)
+                switch (saveDlg.FilterIndex)
                 {
                     case 1:
                         SaveAsText(saveDlg);
