@@ -27,22 +27,12 @@ namespace TimekeeperWPF.Views.Calendar.Day
 {
     public class Day : Panel, IScrollInfo
     {
-        #region Static
-        private enum GridTextFormat { Long, Medium, Short }
-        private struct GridData
-        {
-            public double ScaleCutoff;
-            public double SecondsInterval;
-            public int RegularSkip;
-            public int MajorSkip;
-            public bool MinorGridLines;
-            public bool RegularGridLines;
-            public bool MajorGridLines;
-            public string MinorFormat;
-            public string RegularFormat;
-            public string MajorFormat;
-        }
-        private static List<GridData> GridDatas;
+        #region Fields
+        private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
+        private double _AccelerationRatio = 0.2d;
+        private double _DecelerationRatio = 0.8d;
+        #endregion Fields
+        #region Constructor
         static Day()
         {
             InitializeGridData();
@@ -51,134 +41,10 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 FrameworkPropertyMetadataOptions.AffectsRender |
                 FrameworkPropertyMetadataOptions.SubPropertiesDoNotAffectRender));
         }
-        private static void InitializeGridData()
-        {
-            GridDatas = new List<GridData>()
-            {
-                new GridData()
-                {
-                    //if scale < 2s/px, 1m/30px, 1h/1800px
-                    ScaleCutoff = 2,
-                    SecondsInterval = 30d, //30s
-                    RegularSkip = 2, //1m
-                    MajorSkip = 120, //1h
-                    MinorGridLines = true,
-                    RegularGridLines = true,
-                    MajorGridLines = true,
-                    MinorFormat = "ss",
-                    RegularFormat = "h:mm:ss tt",
-                    MajorFormat = "h:mm:ss tt",
-                },
-                new GridData()
-                {
-                    //if scale < 4s/px, 1m/15px, 1h/900px
-                    ScaleCutoff = 4,
-                    SecondsInterval = 60d, //1m
-                    RegularSkip = 5, //5m
-                    MajorSkip = 60, //1h
-                    MinorGridLines = true,
-                    RegularGridLines = true,
-                    MajorGridLines = true,
-                    MinorFormat = "mm",
-                    RegularFormat = "mm",
-                    MajorFormat = "h:mm tt",
-                },
-                new GridData()
-                {
-                    ScaleCutoff = 15,
-                    SecondsInterval = 300d, //5m
-                    RegularSkip = 3, //15m
-                    MajorSkip = 12, //1h
-                    MinorGridLines = true,
-                    RegularGridLines = true,
-                    MajorGridLines = true,
-                    MinorFormat = "mm",
-                    RegularFormat = "mm",
-                    MajorFormat = "h:mm tt",
-                },
-                new GridData()
-                {
-                    ScaleCutoff = 30,
-                    SecondsInterval = 900d, //15m
-                    RegularSkip = 2, //30m
-                    MajorSkip = 4, //1h
-                    MinorGridLines = true,
-                    RegularGridLines = true,
-                    MajorGridLines = true,
-                    MinorFormat = "mm",
-                    RegularFormat = "mm",
-                    MajorFormat = "h:mm tt",
-                },
-                new GridData()
-                {
-                    ScaleCutoff = 60,
-                    //if scale < 60s/px, 1m/px, 1h/60px, 24h/1440px
-                    SecondsInterval = 1800d, //30m
-                    RegularSkip = 2, //1h
-                    MajorSkip = 12, //6h
-                    MinorGridLines = true,
-                    RegularGridLines = true,
-                    MajorGridLines = true,
-                    MinorFormat = "mm",
-                    RegularFormat = "h:mm tt",
-                    MajorFormat = "h:mm tt",
-                },
-                new GridData()
-                {
-                    ScaleCutoff = 240,
-                    //if scale < 240s/px, 4m/px, 1h/15px, 24h/360px
-                    SecondsInterval = 3600d, //1h
-                    RegularSkip = 1, //1h
-                    MajorSkip = 6, //6h
-                    MinorGridLines = false,
-                    RegularGridLines = true,
-                    MajorGridLines = true,
-                    RegularFormat = "h tt",
-                    MajorFormat = "h tt",
-                },
-                new GridData()
-                {
-                    ScaleCutoff = 600,
-                    SecondsInterval = 10800d, //3h
-                    RegularSkip = 2, //6h
-                    MinorGridLines = true,
-                    RegularGridLines = true,
-                    MajorGridLines = false,
-                    MinorFormat = "h tt",
-                    RegularFormat = "h tt",
-                },
-                new GridData()
-                {
-                    ScaleCutoff = 900,
-                    //if scale < 900s/px, 15m/px, 1h/4px, 24h/96px
-                    SecondsInterval = 21600d, //6h
-                    RegularSkip = 1,
-                    MinorGridLines = false,
-                    RegularGridLines = true,
-                    MajorGridLines = false,
-                    RegularFormat = "h tt",
-                },
-            };
-        }
-        #endregion
-        #region Fields
-        private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
-        private double _AccelerationRatio = 0.2d;
-        private double _DecelerationRatio = 0.8d;
-        #region Grid Fields
-        private GridTextFormat _GridTextFormat = GridTextFormat.Long;
-        private GridData _GridData;
-        private double _ScreenInterval;
-        private int _MaxIntervals;
-        private Point _TextOffset = new Point(-4, 0);
-        private double _TextRotation = 0d;
-        #endregion Grid Fields
-        #region IScrollInfo Fields
-        #endregion IScrollInfo Fields
-        #endregion Fields
         public Day() : base()
         {
         }
+        #endregion
         #region Events
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
         {
@@ -211,7 +77,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
         }
         #endregion
         #region TextMargin
-        private bool _ShowTextMargin = true;
+        private bool _ShowTextMarginPrevious = true;
         public bool ShowTextMargin
         {
             get { return (bool)GetValue(ShowTextMarginProperty); }
@@ -225,8 +91,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
         public static void OnShowTextMarginChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Day day = d as Day;
-            day.CalcualteTextMargin();
-            day.AnimateTextMargin();
+            day.UpdateTextMargin();
         }
         private double _TextMargin = 0;
         public double TextMargin
@@ -239,58 +104,44 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 nameof(TextMargin), typeof(double), typeof(Day),
                 new FrameworkPropertyMetadata(80d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
-                    FrameworkPropertyMetadataOptions.AffectsRender,
-                    null,
-                    new CoerceValueCallback(OnCoerceTextMargin)));
-        public static object OnCoerceTextMargin(DependencyObject d, object value)
-        {
-            Day day = (Day)d;
-            if (!day.ShowTextMargin)
-            {
-                if (day._ShowTextMargin)
-                {
-                    //animation is running, text is closing
-                    return value;
-                }
-                //animation ended, text is closed
-                return 0d;
-            }
-            else
-            {
-                if (!day._ShowTextMargin)
-                {
-                    //animation is running, text is opening
-                    return value;
-                }
-                //animation ended, text is open
-                day.CalcualteTextMargin();
-                return day._TextMargin;
-            }
-        }
-        private void CalcualteTextMargin()
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        private GridTextFormat _GridTextFormatPrevious;
+        private void UpdateTextMargin()
         {
             if (ShowTextMargin)
             {
-                string format = "";
-                if (_GridTextFormat == GridTextFormat.Long) format = "00:00:00 AM";
-                else if (_GridTextFormat == GridTextFormat.Medium) format = "00:00 AM";
-                else if (_GridTextFormat == GridTextFormat.Short) format = "00 AM";
-                else _TextMargin = 0;
-                FormattedText lineText = new FormattedText(format,
-                    System.Globalization.CultureInfo.CurrentCulture,
-                    FlowDirection.RightToLeft,
-                    new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
-                    FontSize, Foreground,
-                    VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                _TextMargin = lineText.Width - _TextOffset.X;
+                if (_GridTextFormatPrevious != _GridData.GridTextFormat)
+                {
+                    _GridTextFormatPrevious = _GridData.GridTextFormat;
+                    string format = "";
+                    if (_GridData.GridTextFormat == GridTextFormat.Long) format = "00:00:00 AM";
+                    else if (_GridData.GridTextFormat == GridTextFormat.Medium) format = "00:00 AM";
+                    else if (_GridData.GridTextFormat == GridTextFormat.Short) format = "00 AM";
+                    else
+                    {
+                        _TextMargin = 0;
+                        AnimateTextMargin();
+                        return;
+                    }
+                    FormattedText lineText = new FormattedText(format,
+                        System.Globalization.CultureInfo.CurrentCulture,
+                        FlowDirection.RightToLeft,
+                        new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
+                        FontSize, Foreground,
+                        VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                    _TextMargin = lineText.Width - _TextOffset.X - _TextOffset.X;
+                    AnimateTextMargin();
+                }
             }
             else
             {
                 _TextMargin = 0;
+                AnimateTextMargin();
             }
         }
         private void AnimateTextMargin()
         {
+            if (TextMargin == _TextMargin) return;
             DoubleAnimation anime = new DoubleAnimation();
             anime.Duration = _AnimationLength;
             anime.To = _TextMargin;
@@ -301,7 +152,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
         }
         private void OnAnimateTextMarginCompleted(object sender, EventArgs e)
         {
-            _ShowTextMargin = ShowTextMargin;
+            _ShowTextMarginPrevious = ShowTextMargin;
         }
         #endregion
         #region Date
@@ -318,19 +169,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
                     FrameworkPropertyMetadataOptions.AffectsRender |
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
-                    FrameworkPropertyMetadataOptions.AffectsArrange,
-                    null,
-                    new CoerceValueCallback(OnCoerceDate)));
-        private static void OnDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            Day day = d as Day;
-        }
-        private static object OnCoerceDate(DependencyObject d, object value)
-        {
-            Day day = d as Day;
-            DateTime newValue = (DateTime)value;
-            return newValue.Date;
-        }
+                    FrameworkPropertyMetadataOptions.AffectsArrange));
         #endregion
         #region Offset
         //final non-animated offset
@@ -359,6 +198,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
         }
         private void AnimateOffset()
         {
+            if (Offset == _Offset) return;
             VectorAnimation anime = new VectorAnimation();
             anime.Duration = _AnimationLength;
             anime.To = new Vector(HorizontalOffset, VerticalOffset);
@@ -370,6 +210,8 @@ namespace TimekeeperWPF.Views.Calendar.Day
         #region Scale
         // Scale is in Seconds per Pixel s/px
         private double ScaleFactor = 0.2d;
+        private double _ScaleLowerLimit = 1d;
+        private double _ScaleUpperLimit = 900d;
         private double _MaxScale => DaySeconds / ViewportHeight;
         private ICommand _ScaleUpCommand = null;
         private ICommand _ScaleDownCommand = null;
@@ -393,15 +235,16 @@ namespace TimekeeperWPF.Views.Calendar.Day
         {
             Day day = d as Day;
             Double newValue = (Double)e.NewValue;
-            day.CoerceValue(TextMarginProperty);
+            day.FindGridData();
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
             Day day = d as Day;
             Double newValue = (Double)value;
             if (day.ForceMaxScale || newValue > day._MaxScale) newValue = day._MaxScale;
-            if (newValue < 1) return 1d;
-            if (Double.IsNaN(newValue) || Double.IsPositiveInfinity(newValue)) return DependencyProperty.UnsetValue;
+            if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
+            if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
+            if (Double.IsNaN(newValue)) return DependencyProperty.UnsetValue;
             return newValue;
         }
         internal static bool IsValidScale(object value)
@@ -444,24 +287,13 @@ namespace TimekeeperWPF.Views.Calendar.Day
         }
         private void AnimateScale()
         {
+            if (Scale == _Scale) return;
             DoubleAnimation anime = new DoubleAnimation();
             anime.Duration = _AnimationLength;
             anime.To = _Scale;
             anime.AccelerationRatio = _AccelerationRatio;
             anime.DecelerationRatio = _DecelerationRatio;
             BeginAnimation(ScaleProperty, anime, HandoffBehavior.Compose);
-        }
-        private void SetupGrid()
-        {
-            foreach(GridData gd in GridDatas)
-            {
-                if(Scale < gd.ScaleCutoff)
-                {
-                    _GridData = gd;
-                }
-            }
-            _ScreenInterval = _GridData.SecondsInterval / Scale;
-            _MaxIntervals = (int)(DaySeconds / _GridData.SecondsInterval);
         }
         #endregion
         #region Orientation
@@ -646,8 +478,187 @@ namespace TimekeeperWPF.Views.Calendar.Day
         #endregion
         #endregion Features
         #region Layout
+        private enum GridTextFormat { Long, Medium, Short, Hide }
+        private class GridData
+        {
+            //See: InitializeGridData()
+            //This GridData is used below this cutoff
+            public double ScaleCutoff;
+            //Number of seconds between each line
+            public double SecondsInterval;
+            //Draw a regular line each x interval
+            public int RegularSkip;
+            //Draw a major line each x interval
+            public int MajorSkip;
+            //These are toggles for each type of line
+            public bool MinorGridLines;
+            public bool RegularGridLines;
+            public bool MajorGridLines;
+            //These are the formats used to write the time text
+            public string MinorFormat;
+            public string RegularFormat;
+            public string MajorFormat;
+            //Used to determine size of TextMargin in UpdateTextMargin.
+            //Should be representative of Minor/regular/major format
+            public GridTextFormat GridTextFormat;
+            //Should the grid be drawn
+            public bool DrawGrid;
+        }
+        private GridData _GridData;
+        private static List<GridData> GridDatas;
+        private Point _TextOffset = new Point(-4, 0); //TODO: make dep prop
+        private double _TextRotation = 0d; //TODO: make dep prop
+        private double _ScreenInterval;
+        private int _MaxIntervals;
         private double DaySeconds => (Date.AddDays(1) - Date).TotalSeconds;
         private double DaySize => DaySeconds / Scale;
+        private static void InitializeGridData()
+        {
+            GridDatas = new List<GridData>()
+            {
+                new GridData()
+                {
+                    //if scale < 2s/px, 1m/30px, 1h/1800px
+                    ScaleCutoff = 2d,
+                    SecondsInterval = 30d, //30s
+                    RegularSkip = 2, //1m
+                    MajorSkip = 120, //1h
+                    MinorGridLines = true,
+                    RegularGridLines = true,
+                    MajorGridLines = true,
+                    MinorFormat = "",
+                    RegularFormat = "tt h:mm",
+                    MajorFormat = "tt h:mm",
+                    GridTextFormat = GridTextFormat.Medium,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    //if scale < 4s/px, 1m/15px, 1h/900px
+                    ScaleCutoff = 4d,
+                    SecondsInterval = 60d, //1m
+                    RegularSkip = 5, //5m
+                    MajorSkip = 60, //1h
+                    MinorGridLines = true,
+                    RegularGridLines = true,
+                    MajorGridLines = true,
+                    MinorFormat = "mm",
+                    RegularFormat = "h:mm",
+                    MajorFormat = "tt h:mm",
+                    GridTextFormat = GridTextFormat.Medium,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = 15d,
+                    SecondsInterval = 300d, //5m
+                    RegularSkip = 3, //15m
+                    MajorSkip = 12, //1h
+                    MinorGridLines = true,
+                    RegularGridLines = true,
+                    MajorGridLines = true,
+                    MinorFormat = "mm",
+                    RegularFormat = "mm",
+                    MajorFormat = "tt h:mm",
+                    GridTextFormat = GridTextFormat.Medium,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = 30d,
+                    SecondsInterval = 900d, //15m
+                    RegularSkip = 2, //30m
+                    MajorSkip = 4, //1h
+                    MinorGridLines = true,
+                    RegularGridLines = true,
+                    MajorGridLines = true,
+                    MinorFormat = "mm",
+                    RegularFormat = "mm",
+                    MajorFormat = "tt h:mm",
+                    GridTextFormat = GridTextFormat.Medium,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = 60d,
+                    //if scale < 60s/px, 1m/px, 1h/60px, 24h/1440px
+                    SecondsInterval = 1800d, //30m
+                    RegularSkip = 2, //1h
+                    MajorSkip = 12, //6h
+                    MinorGridLines = true,
+                    RegularGridLines = true,
+                    MajorGridLines = true,
+                    MinorFormat = "mm",
+                    RegularFormat = "tt h:mm",
+                    MajorFormat = "tt h:mm",
+                    GridTextFormat = GridTextFormat.Medium,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = 240d,
+                    //if scale < 240s/px, 4m/px, 1h/15px, 24h/360px
+                    SecondsInterval = 3600d, //1h
+                    RegularSkip = 1, //1h
+                    MajorSkip = 6, //6h
+                    MinorGridLines = false,
+                    RegularGridLines = true,
+                    MajorGridLines = true,
+                    RegularFormat = "tt h",
+                    MajorFormat = "tt h",
+                    GridTextFormat = GridTextFormat.Short,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = 600d,
+                    SecondsInterval = 10800d, //3h
+                    RegularSkip = 2, //6h
+                    MinorGridLines = true,
+                    RegularGridLines = true,
+                    MajorGridLines = false,
+                    MinorFormat = "tt h",
+                    RegularFormat = "tt h",
+                    GridTextFormat = GridTextFormat.Short,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = 900d,
+                    //if scale < 900s/px, 15m/px, 1h/4px, 24h/96px
+                    SecondsInterval = 21600d, //6h
+                    RegularSkip = 1,
+                    MinorGridLines = false,
+                    RegularGridLines = true,
+                    MajorGridLines = false,
+                    RegularFormat = "tt h",
+                    GridTextFormat = GridTextFormat.Short,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
+                    ScaleCutoff = double.PositiveInfinity,
+                    MinorGridLines = false,
+                    RegularGridLines = false,
+                    MajorGridLines = false,
+                    RegularFormat = "",
+                    GridTextFormat = GridTextFormat.Hide,
+                    DrawGrid = false,
+                },
+            };
+        }
+        private void FindGridData()
+        {
+            _GridData = GridDatas.First();
+            foreach (GridData gd in GridDatas)
+            {
+                _GridData = gd;
+                if (Scale < gd.ScaleCutoff) break;
+            }
+            _ScreenInterval = _GridData.SecondsInterval / Scale;
+            _MaxIntervals = (int)(DaySeconds / _GridData.SecondsInterval);
+            UpdateTextMargin(); //because format length could've changed
+        }
         protected override Size MeasureOverride(Size availableSize)
         {
             Size extent = new Size(0, 0);
@@ -670,13 +681,11 @@ namespace TimekeeperWPF.Views.Calendar.Day
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
-                double x = 0; //1D
                 Size childSize = new Size(availableSize.Width, double.PositiveInfinity); //1D
                 if (child is CalendarObject)
                 {
-                    x = TextMargin; //1D
-                    childSize.Width = Math.Max(0, childSize.Width - x); //1D
-                    biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width + x); //1D
+                    childSize.Width = Math.Max(0, childSize.Width - TextMargin); //1D
+                    biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width + TextMargin); //1D
                 }
                 else
                 {
@@ -694,13 +703,11 @@ namespace TimekeeperWPF.Views.Calendar.Day
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
-                double y = 0; //1D
                 Size childSize = new Size(double.PositiveInfinity, availableSize.Height); //1D
                 if (child is CalendarObject)
                 {
-                    y = TextMargin; //1D
-                    childSize.Height = Math.Max(0, childSize.Height - y); //1D
-                    biggestChildHeight = Math.Max(biggestChildHeight, child.DesiredSize.Height + y); //1D
+                    childSize.Height = Math.Max(0, childSize.Height - TextMargin); //1D
+                    biggestChildHeight = Math.Max(biggestChildHeight, child.DesiredSize.Height + TextMargin); //1D
                 }
                 else
                 {
@@ -745,9 +752,9 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     //y = 0 is Date = 12:00:00 AM //1D
                     x = TextMargin; //1D
                     y = (CalObj.Start - Date).TotalSeconds / Scale; //1D
-                    childSize.Width = Math.Max(0, arrangeSize.Width - x); //1D
+                    childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin); //1D
                     childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
-                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + x); //1D
+                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin); //1D
                 }
                 else
                 {
@@ -774,9 +781,9 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     CalObj.Scale = Scale;
                     //set x relative to object start //1D
                     //x = 0 is Date = 12:00:00 AM //1D
-                    y = TextMargin; //1D
+                    //y = 0
                     x = (CalObj.Start - Date).TotalSeconds / Scale; //1D
-                    childSize.Height = Math.Max(0, arrangeSize.Height - y); //1D
+                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin); //1D
                     childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
                     biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + y); //1D
                 }
@@ -812,7 +819,8 @@ namespace TimekeeperWPF.Views.Calendar.Day
         }
         private void DrawGrid(DrawingContext dc)
         {
-            if (!(Scale >= 1 && Scale <= 900)) return;
+            if (_GridData == null) FindGridData();
+            if (!_GridData.DrawGrid) return;
             //area to work with, only draw within a margin of this area
             Rect area = new Rect(new Point(Offset.X, Offset.Y), _Viewport);
             switch (Orientation)
@@ -855,15 +863,19 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 double finalY = y - Offset.Y; //1D
                 double finalX1 = TextMargin - Offset.X; //1D
                 double finalX2 = area.Width - Offset.X; //1D
-                dc.DrawLine(currentPen, new Point(finalX1, finalY), new Point(finalX2, finalY)); //1D
-                if (ShowTextMargin || _ShowTextMargin)
+                dc.DrawLine(currentPen, 
+                    new Point(finalX1, finalY), 
+                    new Point(finalX2, finalY)); //1D
+                if (timeFormat != "" && (ShowTextMargin || _ShowTextMarginPrevious))
                 {
                     string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
                     DrawText(dc, text, 0d, finalX1, finalY);
                 }
             }
             //Draw Margin separator line
-            dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), new Point(TextMargin, DaySize)); //1D
+            dc.DrawLine(GridRegularPen, 
+                new Point(TextMargin, 0), 
+                new Point(TextMargin, DaySize)); //1D
         }
         private void DrawGridHorizontally(DrawingContext dc, Rect area)
         {
@@ -892,17 +904,21 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 else continue;
                 double x = i * _ScreenInterval; //1D
                 double finalX = x - Offset.X; //1D
-                double finalY1 = 0 - Offset.Y; //1D
-                double finalY2 = area.Height - TextMargin - Offset.Y; //1D
-                dc.DrawLine(currentPen, new Point(finalX, finalY1), new Point(finalX, finalY2)); //1D
-                if (ShowTextMargin || _ShowTextMargin)
+                double finalY1 = area.Height - TextMargin - Offset.Y; //1D
+                double finalY2 = 0 - Offset.Y; //1D
+                dc.DrawLine(currentPen, 
+                    new Point(finalX, finalY1), 
+                    new Point(finalX, finalY2)); //1D
+                if (timeFormat != "" && (ShowTextMargin || _ShowTextMarginPrevious))
                 {
                     string text = Date.AddSeconds(x * Scale).ToString(timeFormat);
                     DrawText(dc, text, -90d, finalX, finalY1);
                 }
             }
             //Draw Margin separator line
-            dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), new Point(TextMargin, DaySize)); //1D
+            dc.DrawLine(GridRegularPen, 
+                new Point(0, area.Height - TextMargin), 
+                new Point(DaySize, area.Height - TextMargin)); //1D
         }
         private void DrawText(DrawingContext dc, string text, double r, double x, double y)
         {
@@ -913,13 +929,14 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 FontSize, Foreground,
                 VisualTreeHelper.GetDpi(this).PixelsPerDip);
             lineText.TextAlignment = TextAlignment.Right;
-            double X = x + _TextOffset.X;
-            double Y = y + _TextOffset.Y - lineText.Height / 2;
-            TranslateTransform tranny = new TranslateTransform(X, Y);
+            TranslateTransform offset = new TranslateTransform(_TextOffset.X, _TextOffset.Y - lineText.Height / 2);
             RotateTransform rudeboi = new RotateTransform(_TextRotation + r);
-            dc.PushTransform(tranny);
+            TranslateTransform position = new TranslateTransform(x, y);
+            dc.PushTransform(position);
             dc.PushTransform(rudeboi);
+            dc.PushTransform(offset);
             dc.DrawText(lineText, _TextOffset); //1D
+            dc.Pop();
             dc.Pop();
             dc.Pop();
         }
