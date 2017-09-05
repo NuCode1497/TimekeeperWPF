@@ -23,7 +23,7 @@ using TimekeeperWPF.Tools;
 using TimekeeperWPF;
 using System.Reflection;
 
-namespace TimekeeperWPF.Views.Calendar.Day
+namespace TimekeeperWPF.Calendar
 {
     public class Day : Panel, IScrollInfo
     {
@@ -752,6 +752,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     //y = 0 is Date = 12:00:00 AM //1D
                     x = TextMargin; //1D
                     y = (CalObj.Start - Date).TotalSeconds / Scale; //1D
+                    //TODO: skip if CalObj is not within arrangeSize
                     childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin); //1D
                     childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
                     biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin); //1D
@@ -783,6 +784,7 @@ namespace TimekeeperWPF.Views.Calendar.Day
                     //x = 0 is Date = 12:00:00 AM //1D
                     //y = 0
                     x = (CalObj.Start - Date).TotalSeconds / Scale; //1D
+                    //TODO: skip if CalObj is not within arrangeSize
                     childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin); //1D
                     childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
                     biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + y); //1D
@@ -860,9 +862,9 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 }
                 else continue;
                 double y = i * _ScreenInterval; //1D
-                double finalY = y - Offset.Y; //1D
-                double finalX1 = TextMargin - Offset.X; //1D
-                double finalX2 = area.Width - Offset.X; //1D
+                double finalY = y - area.Y; //1D
+                double finalX1 = TextMargin - area.X; //1D
+                double finalX2 = area.Width - area.X; //1D
                 dc.DrawLine(currentPen, 
                     new Point(finalX1, finalY), 
                     new Point(finalX2, finalY)); //1D
@@ -903,9 +905,9 @@ namespace TimekeeperWPF.Views.Calendar.Day
                 }
                 else continue;
                 double x = i * _ScreenInterval; //1D
-                double finalX = x - Offset.X; //1D
-                double finalY1 = area.Height - TextMargin - Offset.Y; //1D
-                double finalY2 = 0 - Offset.Y; //1D
+                double finalX = x - area.X; //1D
+                double finalY1 = area.Height - TextMargin - area.Y; //1D
+                double finalY2 = 0 - area.Y; //1D
                 dc.DrawLine(currentPen, 
                     new Point(finalX, finalY1), 
                     new Point(finalX, finalY2)); //1D
@@ -1021,8 +1023,6 @@ namespace TimekeeperWPF.Views.Calendar.Day
             _Offset.Y = _Offset.Y.Within(0, ExtentHeight - ViewportHeight);
             if (ScrollOwner != null)
             { ScrollOwner.InvalidateScrollInfo(); }
-            CoerceValue(ScaleProperty);
-            CoerceValue(TextMarginProperty);
         }
         public Rect MakeVisible(Visual visual, Rect rectangle)
         {

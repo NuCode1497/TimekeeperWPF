@@ -15,7 +15,7 @@ namespace TimekeeperWPF
     public class MonthViewModel : ViewModel<Note>
     {
         #region Fields
-        private Calendar _Calendar => CultureInfo.CurrentCulture.Calendar;
+        private System.Globalization.Calendar _Calendar => CultureInfo.CurrentCulture.Calendar;
         private DateTime _SelectedDateTime;
         private ICommand _NextMonthCommand;
         private ICommand _PrevMonthCommand;

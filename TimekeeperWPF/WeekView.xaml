@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
-             xmlns:day="clr-namespace:TimekeeperWPF.Views.Calendar.Day"
+             xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="700">
     <Grid>
@@ -17,15 +17,15 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <day:Day Grid.Column="0" x:Name="Sunday" ForceMaxScale="True">
-            <local:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
-        </day:Day>
-        <day:Day Grid.Column="1" x:Name="Monday" ForceMaxScale="True">
-        </day:Day>
-        <day:Day Grid.Column="2" x:Name="Tuesday" ForceMaxScale="True"/>
-        <day:Day Grid.Column="3" x:Name="Wednesday" ForceMaxScale="True"/>
-        <day:Day Grid.Column="4" x:Name="Thursday" ForceMaxScale="True"/>
-        <day:Day Grid.Column="5" x:Name="Friday" ForceMaxScale="True"/>
-        <day:Day Grid.Column="6" x:Name="Saturday" ForceMaxScale="True"/>
+        <cal:Day Grid.Column="0" x:Name="Sunday" ForceMaxScale="True">
+            <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
+        </cal:Day>
+        <cal:Day Grid.Column="1" x:Name="Monday" ForceMaxScale="True">
+        </cal:Day>
+        <cal:Day Grid.Column="2" x:Name="Tuesday" ForceMaxScale="True"/>
+        <cal:Day Grid.Column="3" x:Name="Wednesday" ForceMaxScale="True"/>
+        <cal:Day Grid.Column="4" x:Name="Thursday" ForceMaxScale="True"/>
+        <cal:Day Grid.Column="5" x:Name="Friday" ForceMaxScale="True"/>
+        <cal:Day Grid.Column="6" x:Name="Saturday" ForceMaxScale="True"/>
     </Grid>
 </UserControl>

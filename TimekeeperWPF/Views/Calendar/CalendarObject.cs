@@ -13,9 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TimekeeperWPF.Tools;
-using TimekeeperWPF.Views.Calendar.Day;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Calendar
 {
     public class CalendarObject : Control
     {
