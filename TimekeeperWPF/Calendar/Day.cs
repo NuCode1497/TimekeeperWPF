@@ -29,10 +29,7 @@ namespace TimekeeperWPF.Calendar
     public class Day : Panel, IScrollInfo
     {
         #region Fields
-        private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
-        private double _AccelerationRatio = 0.2d;
-        private double _DecelerationRatio = 0.8d;
-        DispatcherTimer _Timer;
+        private DispatcherTimer _Timer;
         #endregion Fields
         #region Constructor
         static Day()
@@ -65,10 +62,29 @@ namespace TimekeeperWPF.Calendar
                 if (e.Delta < 0) TryScaleUp();
                 else TryScaleDown();
             }
-            else base.OnPreviewMouseWheel(e);
+            else
+            {
+                if (Orientation == Orientation.Vertical)
+                {
+                    e.Handled = true;
+                    if (e.Delta < 0) MouseWheelDown();
+                    else MouseWheelUp();
+                }
+                else
+                {
+                    e.Handled = true;
+                    if (e.Delta > 0) MouseWheelLeft();
+                    else MouseWheelRight();
+                }
+            }
         }
         #endregion Events
         #region Features
+        #region Animation
+        private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
+        private double _AccelerationRatio = 0.2d;
+        private double _DecelerationRatio = 0.8d;
+        #endregion
         #region ForceMaxScale
         [Bindable(true)]
         public bool ForceMaxScale
@@ -183,6 +199,7 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #region Offset
         //final non-animated offset
+        private Vector PreScaleOffSetInSeconds = new Vector();
         private Vector _Offset = new Vector();
         private Vector Offset
         {
@@ -193,9 +210,13 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(Offset), typeof(Vector), typeof(Day),
                 new FrameworkPropertyMetadata(new Vector(),
+                    FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender,
-                    null,
+                    new PropertyChangedCallback(OnOffsetChanged),
                     new CoerceValueCallback(OnCoerceOffset)));
+        private static void OnOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+        }
         private static object OnCoerceOffset(DependencyObject d, object value)
         {
             Day day = d as Day;
@@ -208,13 +229,18 @@ namespace TimekeeperWPF.Calendar
         }
         private void AnimateOffset()
         {
+            CancelScalingAnimation();
             if (Offset == _Offset) return;
             VectorAnimation anime = new VectorAnimation();
             anime.Duration = _AnimationLength;
             anime.To = new Vector(HorizontalOffset, VerticalOffset);
             anime.AccelerationRatio = _AccelerationRatio;
             anime.DecelerationRatio = _DecelerationRatio;
+            anime.Completed += OnOffsetAnimationCompleted;
             BeginAnimation(OffsetProperty, anime, HandoffBehavior.Compose);
+        }
+        private void OnOffsetAnimationCompleted(object sender, EventArgs e)
+        {
         }
         #endregion Offset
         #region Scale
@@ -246,6 +272,10 @@ namespace TimekeeperWPF.Calendar
             Day day = d as Day;
             Double newValue = (Double)e.NewValue;
             day.FindGridData();
+            //We want to set Offset when scale changes but
+            //We have to clear animations to set depProps because animation value hides backing value
+            day.BeginAnimation(OffsetProperty, null);
+            day._Offset = day.Offset = day.PreScaleOffSetInSeconds / day.Scale;
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
@@ -273,17 +303,17 @@ namespace TimekeeperWPF.Calendar
         private bool CanScaleDown => !ForceMaxScale;
         private void ScaleUp()
         {
-            _Scale = Scale * (1d + ScaleFactor);
-            _Offset = (Offset * Scale) / _Scale;
-            AnimateScale();
-            AnimateOffset();
+            ScaleUpOrDownBy(ScaleFactor);
         }
         private void ScaleDown()
         {
-            _Scale = Scale * (1d - ScaleFactor);
-            _Offset = (Offset * Scale) / _Scale;
+            ScaleUpOrDownBy(-ScaleFactor);
+        }
+        private void ScaleUpOrDownBy(double ScaleFactor)
+        {
+            PreScaleOffSetInSeconds = Offset * Scale;
+            _Scale = Scale * (1d + ScaleFactor);
             AnimateScale();
-            AnimateOffset();
         }
         public void TryScaleUp()
         {
@@ -304,6 +334,12 @@ namespace TimekeeperWPF.Calendar
             anime.AccelerationRatio = _AccelerationRatio;
             anime.DecelerationRatio = _DecelerationRatio;
             BeginAnimation(ScaleProperty, anime, HandoffBehavior.Compose);
+        }
+        private void CancelScalingAnimation()
+        {
+            _Scale = Scale;
+            BeginAnimation(ScaleProperty, null);
+            Scale = _Scale;
         }
         #endregion
         #region Orientation
@@ -1030,8 +1066,6 @@ namespace TimekeeperWPF.Calendar
             if (offset != _Offset.Y)
             {
                 _Offset.X = offset;
-                InvalidateArrange();
-                InvalidateVisual();
                 AnimateOffset();
             }
         }
@@ -1041,8 +1075,6 @@ namespace TimekeeperWPF.Calendar
             if (offset != _Offset.Y)
             {
                 _Offset.Y = offset;
-                InvalidateArrange();
-                InvalidateVisual();
                 AnimateOffset();
             }
         }

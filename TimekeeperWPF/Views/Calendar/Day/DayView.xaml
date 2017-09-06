@@ -12,8 +12,8 @@
             <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto" CanContentScroll="True">
-                <cal:Day Orientation="Horizontal" ForceMaxScale="False" 
-                         ShowTextMargin="True" Scale="210">
+                <cal:Day Orientation="Vertical" ForceMaxScale="False" 
+                         ShowTextMargin="True" >
                     <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="1"/>
                     <cal:NowMarker/>
                 </cal:Day>

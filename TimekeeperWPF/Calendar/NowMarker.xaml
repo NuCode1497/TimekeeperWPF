@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="30">
     <UserControl.Resources>
-        <Storyboard x:Key="RGBCycle" RepeatBehavior="Forever">
+        <Storyboard x:Key="RGBCycle" RepeatBehavior="Forever" SpeedRatio="3">
             <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="MarkyMcMarkFace">
                 <EasingColorKeyFrame KeyTime="0" Value="Red"/>
                 <EasingColorKeyFrame KeyTime="0:0:1" Value="Yellow"/>
