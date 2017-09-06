@@ -91,8 +91,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Calendar\CalendarObject.cs" />
+    <Compile Include="Calendar\Day.cs" />
+    <Compile Include="Calendar\NowMarker.xaml.cs">
+      <DependentUpon>NowMarker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Examples\AnnoyingPanel.cs" />
-    <Compile Include="Views\Calendar\CalendarObject.cs" />
     <Compile Include="Examples\Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
     </Compile>
@@ -105,7 +109,6 @@
       <DependentUpon>RadialSample.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\ResourceDecimalFormatConverter.cs" />
-    <Compile Include="Views\Calendar\Day\Day.cs" />
     <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
       <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
     </Compile>
@@ -202,6 +205,10 @@
     <Compile Include="WeekView.xaml.cs">
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Calendar\NowMarker.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Examples\Window1.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -6,14 +6,16 @@
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="300" Background="LimeGreen">
+             d:DesignHeight="400" d:DesignWidth="400" Background="LimeGreen">
     <Grid>
         <Border BorderBrush="Black" BorderThickness="1">
             <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto" CanContentScroll="True">
-                <cal:Day Orientation="Vertical" ForceMaxScale="False" ShowTextMargin="True" RenderTransformOrigin="0.5,0.5">
-                    <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
+                <cal:Day Orientation="Horizontal" ForceMaxScale="False" 
+                         ShowTextMargin="True" Scale="210">
+                    <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="1"/>
+                    <cal:NowMarker/>
                 </cal:Day>
             </ScrollViewer>
         </Border>

@@ -22,6 +22,7 @@ using System.Windows.Shapes;
 using TimekeeperWPF.Tools;
 using TimekeeperWPF;
 using System.Reflection;
+using System.Windows.Threading;
 
 namespace TimekeeperWPF.Calendar
 {
@@ -31,6 +32,7 @@ namespace TimekeeperWPF.Calendar
         private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
         private double _AccelerationRatio = 0.2d;
         private double _DecelerationRatio = 0.8d;
+        DispatcherTimer _Timer;
         #endregion Fields
         #region Constructor
         static Day()
@@ -43,9 +45,17 @@ namespace TimekeeperWPF.Calendar
         }
         public Day() : base()
         {
+            _Timer = new DispatcherTimer();
+            _Timer.Interval = TimeSpan.FromSeconds(1);
+            _Timer.Tick += _Timer_Tick;
+            _Timer.Start();
         }
         #endregion
         #region Events
+        private void _Timer_Tick(object sender, EventArgs e)
+        {
+            InvalidateArrange();
+        }
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
         {
             if (e.Handled) return;
@@ -510,7 +520,7 @@ namespace TimekeeperWPF.Calendar
         private double _TextRotation = 0d; //TODO: make dep prop
         private double _ScreenInterval;
         private int _MaxIntervals;
-        private double DaySeconds => (Date.AddDays(1) - Date).TotalSeconds;
+        private double DaySeconds => (Date.Date.AddDays(1) - Date.Date).TotalSeconds;
         private double DaySize => DaySeconds / Scale;
         private static void InitializeGridData()
         {
@@ -677,7 +687,7 @@ namespace TimekeeperWPF.Calendar
         private Size MeasureVertically(Size availableSize, Size extent)
         {
             //Height will be unbound. Width will be bound to UI space.
-            double biggestChildWidth = TextMargin; //1D
+            double biggestWidth = TextMargin; //1D
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
@@ -685,15 +695,20 @@ namespace TimekeeperWPF.Calendar
                 if (child is CalendarObject)
                 {
                     childSize.Width = Math.Max(0, childSize.Width - TextMargin); //1D
-                    biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width + TextMargin); //1D
+                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width + TextMargin); //1D
+                }
+                else if (child is NowMarker)
+                {
+                    //NowMarker will be rotated
+                    childSize.Height = Math.Max(0, childSize.Height - TextMargin);
                 }
                 else
                 {
-                    biggestChildWidth = Math.Max(biggestChildWidth, child.DesiredSize.Width); //1D
+                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width); //1D
                 }
                 child.Measure(childSize);
             }
-            extent.Width = biggestChildWidth; //1D
+            extent.Width = biggestWidth; //1D
             extent.Height = DaySize; //1D
             return extent;
         }
@@ -708,6 +723,11 @@ namespace TimekeeperWPF.Calendar
                 {
                     childSize.Height = Math.Max(0, childSize.Height - TextMargin); //1D
                     biggestChildHeight = Math.Max(biggestChildHeight, child.DesiredSize.Height + TextMargin); //1D
+                }
+                else if (child is NowMarker)
+                {
+                    //NowMarker will not be rotated
+                    childSize.Height = Math.Max(0, childSize.Height - TextMargin);
                 }
                 else
                 {
@@ -751,11 +771,20 @@ namespace TimekeeperWPF.Calendar
                     //set y relative to object start //1D
                     //y = 0 is Date = 12:00:00 AM //1D
                     x = TextMargin; //1D
-                    y = (CalObj.Start - Date).TotalSeconds / Scale; //1D
+                    y = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
                     //TODO: skip if CalObj is not within arrangeSize
                     childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin); //1D
                     childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
                     biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin); //1D
+                }
+                else if (child is NowMarker && Date.Date == DateTime.Now.Date)
+                {
+                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
+                    x = TextMargin + childSize.Height;
+                    y = (DateTime.Now - Date.Date).TotalSeconds / Scale;
+                    RotateTransform rotytoty = new RotateTransform(90);
+                    //child.RenderTransformOrigin = new Point(childSize.Width / 2, -childSize.Height);
+                    child.RenderTransform = rotytoty;
                 }
                 else
                 {
@@ -783,11 +812,17 @@ namespace TimekeeperWPF.Calendar
                     //set x relative to object start //1D
                     //x = 0 is Date = 12:00:00 AM //1D
                     //y = 0
-                    x = (CalObj.Start - Date).TotalSeconds / Scale; //1D
+                    x = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
                     //TODO: skip if CalObj is not within arrangeSize
                     childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin); //1D
                     childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
                     biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + y); //1D
+                }
+                else if (child is NowMarker && Date.Date == DateTime.Now.Date)
+                {
+                    //y = 0
+                    x = (DateTime.Now - Date.Date).TotalSeconds / Scale;
+                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                 }
                 else
                 {
@@ -870,7 +905,7 @@ namespace TimekeeperWPF.Calendar
                     new Point(finalX2, finalY)); //1D
                 if (timeFormat != "" && (ShowTextMargin || _ShowTextMarginPrevious))
                 {
-                    string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
+                    string text = Date.Date.AddSeconds(y * Scale).ToString(timeFormat);
                     DrawText(dc, text, 0d, finalX1, finalY);
                 }
             }
@@ -913,7 +948,7 @@ namespace TimekeeperWPF.Calendar
                     new Point(finalX, finalY2)); //1D
                 if (timeFormat != "" && (ShowTextMargin || _ShowTextMarginPrevious))
                 {
-                    string text = Date.AddSeconds(x * Scale).ToString(timeFormat);
+                    string text = Date.Date.AddSeconds(x * Scale).ToString(timeFormat);
                     DrawText(dc, text, -90d, finalX, finalY1);
                 }
             }
