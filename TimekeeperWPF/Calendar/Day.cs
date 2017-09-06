@@ -86,6 +86,9 @@ namespace TimekeeperWPF.Calendar
         private double _DecelerationRatio = 0.8d;
         #endregion
         #region ForceMaxScale
+        /// <summary>
+        /// Force Day to fit the available space.
+        /// </summary>
         [Bindable(true)]
         public bool ForceMaxScale
         {
@@ -104,6 +107,10 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #region TextMargin
         private bool _ShowTextMarginPrevious = true;
+        /// <summary>
+        /// Show or hide the grid time text.
+        /// </summary>
+        [Bindable(true)]
         public bool ShowTextMargin
         {
             get { return (bool)GetValue(ShowTextMarginProperty); }
@@ -120,7 +127,7 @@ namespace TimekeeperWPF.Calendar
             day.UpdateTextMargin();
         }
         private double _TextMargin = 0;
-        public double TextMargin
+        private double TextMargin
         {
             get { return (double)GetValue(TextMarginProperty); }
             set { SetValue(TextMarginProperty, value); }
@@ -182,6 +189,9 @@ namespace TimekeeperWPF.Calendar
         }
         #endregion
         #region Date
+        /// <summary>
+        /// The selected date.
+        /// </summary>
         [Bindable(true)]
         public DateTime Date
         {
@@ -199,7 +209,7 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #region Offset
         //final non-animated offset
-        private Vector PreScaleOffSetInSeconds = new Vector();
+        private Vector PreScaleCenterOfViewPortOffSetInSeconds = new Vector();
         private Vector _Offset = new Vector();
         private Vector Offset
         {
@@ -221,9 +231,16 @@ namespace TimekeeperWPF.Calendar
         {
             Day day = d as Day;
             Vector newValue = (Vector)value;
-            if (day.ForceMaxScale)
+            if (day.ForceMaxScale) return new Vector();
+            if (day.Orientation == Orientation.Vertical)
             {
-                newValue = new Vector();
+                newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
+                newValue.Y = newValue.Y.Within(0, day.ExtentHeight - day.ViewportHeight);
+            }
+            else //(day.Orientation == Orientation.Horizontal)
+            {
+                newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
+                newValue.Y = newValue.Y.Within(day.ExtentHeight - day.ViewportHeight, 0);
             }
             return newValue;
         }
@@ -245,9 +262,9 @@ namespace TimekeeperWPF.Calendar
         #endregion Offset
         #region Scale
         // Scale is in Seconds per Pixel s/px
-        private double ScaleFactor = 0.2d;
-        private double _ScaleLowerLimit = 1d;
-        private double _ScaleUpperLimit = 900d;
+        private double ScaleFactor = 0.3d; //TODO: dep prop
+        private double _ScaleLowerLimit = 1d; //TODO: dep prop
+        private double _ScaleUpperLimit = 900d; //TODO: dep prop
         private double _MaxScale => DaySeconds / ViewportHeight;
         private ICommand _ScaleUpCommand = null;
         private ICommand _ScaleDownCommand = null;
@@ -275,7 +292,7 @@ namespace TimekeeperWPF.Calendar
             //We want to set Offset when scale changes but
             //We have to clear animations to set depProps because animation value hides backing value
             day.BeginAnimation(OffsetProperty, null);
-            day._Offset = day.Offset = day.PreScaleOffSetInSeconds / day.Scale;
+            day._Offset = day.Offset = (day.PreScaleCenterOfViewPortOffSetInSeconds / day.Scale) - GetVPCenterForScaling(day);
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
@@ -311,9 +328,18 @@ namespace TimekeeperWPF.Calendar
         }
         private void ScaleUpOrDownBy(double ScaleFactor)
         {
-            PreScaleOffSetInSeconds = Offset * Scale;
+            PreScaleCenterOfViewPortOffSetInSeconds = (Offset + GetVPCenterForScaling(this)) * Scale;
             _Scale = Scale * (1d + ScaleFactor);
             AnimateScale();
+        }
+        private static Vector GetVPCenterForScaling(Day day)
+        {
+            Vector vpdiv2 = new Vector();
+            if (day.Orientation == Orientation.Vertical)
+                vpdiv2.Y = day._Viewport.Height / 2;
+            else
+                vpdiv2.Y = day._Viewport.Width / 2;
+            return vpdiv2;
         }
         public void TryScaleUp()
         {
@@ -712,12 +738,13 @@ namespace TimekeeperWPF.Calendar
             {
                 case Orientation.Vertical:
                     extent = MeasureVertically(availableSize, extent);
+                    VerifyVerticalScrollData(availableSize, extent);
                     break;
                 case Orientation.Horizontal:
                     extent = MeasureHorizontally(availableSize, extent);
+                    VerifyHorizontalScrollData(availableSize, extent);
                     break;
             }
-            VerifyScrollData(availableSize, extent);
             return _Viewport;
         }
         private Size MeasureVertically(Size availableSize, Size extent)
@@ -782,12 +809,13 @@ namespace TimekeeperWPF.Calendar
             {
                 case Orientation.Vertical:
                     extent = ArrangeVertically(arrangeSize, extent);
+                    VerifyVerticalScrollData(arrangeSize, extent);
                     break;
                 case Orientation.Horizontal:
                     extent = ArrangeHorizontally(arrangeSize, extent);
+                    VerifyHorizontalScrollData(arrangeSize, extent);
                     break;
             }
-            VerifyScrollData(arrangeSize, extent);
             return arrangeSize;
         }
         private Size ArrangeVertically(Size arrangeSize, Size extent)
@@ -847,7 +875,7 @@ namespace TimekeeperWPF.Calendar
                     CalObj.Scale = Scale;
                     //set x relative to object start //1D
                     //x = 0 is Date = 12:00:00 AM //1D
-                    //y = 0
+                    y = arrangeSize.Height - childSize.Height - TextMargin;
                     x = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
                     //TODO: skip if CalObj is not within arrangeSize
                     childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin); //1D
@@ -862,6 +890,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 else
                 {
+                    y = arrangeSize.Height - childSize.Height;
                     biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height); //1D
                 }
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
@@ -1078,7 +1107,7 @@ namespace TimekeeperWPF.Calendar
                 AnimateOffset();
             }
         }
-        protected void VerifyScrollData(Size viewport, Size extent)
+        private void VerifyVerticalScrollData(Size viewport, Size extent)
         {
             if (double.IsInfinity(viewport.Width))
             { viewport.Width = extent.Width; }
@@ -1088,6 +1117,19 @@ namespace TimekeeperWPF.Calendar
             _Viewport = viewport;
             _Offset.X = _Offset.X.Within(0, ExtentWidth - ViewportWidth);
             _Offset.Y = _Offset.Y.Within(0, ExtentHeight - ViewportHeight);
+            if (ScrollOwner != null)
+            { ScrollOwner.InvalidateScrollInfo(); }
+        }
+        private void VerifyHorizontalScrollData(Size viewport, Size extent)
+        {
+            if (double.IsInfinity(viewport.Width))
+            { viewport.Width = extent.Width; }
+            if (double.IsInfinity(viewport.Height))
+            { viewport.Height = extent.Height; }
+            _Extent = extent;
+            _Viewport = viewport;
+            _Offset.X = _Offset.X.Within(0, ExtentWidth - ViewportWidth);
+            _Offset.Y = _Offset.Y.Within(ExtentHeight - ViewportHeight, 0);
             if (ScrollOwner != null)
             { ScrollOwner.InvalidateScrollInfo(); }
         }
