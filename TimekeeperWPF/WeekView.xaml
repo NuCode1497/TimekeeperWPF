@@ -19,6 +19,7 @@
         </Grid.ColumnDefinitions>
         <cal:Day Grid.Column="0" x:Name="Sunday" ForceMaxScale="True">
             <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
+            <cal:NowMarker/>
         </cal:Day>
         <cal:Day Grid.Column="1" x:Name="Monday" ForceMaxScale="True">
         </cal:Day>

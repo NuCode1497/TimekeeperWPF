@@ -28,9 +28,6 @@ namespace TimekeeperWPF.Calendar
 {
     public class Day : Panel, IScrollInfo
     {
-        #region Fields
-        private DispatcherTimer _Timer;
-        #endregion Fields
         #region Constructor
         static Day()
         {
@@ -81,6 +78,7 @@ namespace TimekeeperWPF.Calendar
         #endregion Events
         #region Features
         #region Animation
+        private DispatcherTimer _Timer;
         private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
         private double _AccelerationRatio = 0.2d;
         private double _DecelerationRatio = 0.8d;
@@ -209,7 +207,6 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #region Offset
         //final non-animated offset
-        private Vector PreScaleCenterOfViewPortOffSetInSeconds = new Vector();
         private Vector _Offset = new Vector();
         private Vector Offset
         {
@@ -253,19 +250,17 @@ namespace TimekeeperWPF.Calendar
             anime.To = new Vector(HorizontalOffset, VerticalOffset);
             anime.AccelerationRatio = _AccelerationRatio;
             anime.DecelerationRatio = _DecelerationRatio;
-            anime.Completed += OnOffsetAnimationCompleted;
             BeginAnimation(OffsetProperty, anime, HandoffBehavior.Compose);
-        }
-        private void OnOffsetAnimationCompleted(object sender, EventArgs e)
-        {
         }
         #endregion Offset
         #region Scale
         // Scale is in Seconds per Pixel s/px
-        private double ScaleFactor = 0.3d; //TODO: dep prop
-        private double _ScaleLowerLimit = 1d; //TODO: dep prop
-        private double _ScaleUpperLimit = 900d; //TODO: dep prop
-        private double _MaxScale => DaySeconds / ViewportHeight;
+        protected double ScaleFactor = 0.3d;
+        protected double _ScaleLowerLimit = 1d;
+        protected double _ScaleUpperLimit = 900d;
+        public double MaxScale => DaySeconds / ViewportHeight;
+        private Vector PreScaleRelativeOffSetInSeconds = new Vector();
+        private Vector RelativeScalingVector = new Vector();
         private ICommand _ScaleUpCommand = null;
         private ICommand _ScaleDownCommand = null;
         //final non-animated scale
@@ -292,13 +287,13 @@ namespace TimekeeperWPF.Calendar
             //We want to set Offset when scale changes but
             //We have to clear animations to set depProps because animation value hides backing value
             day.BeginAnimation(OffsetProperty, null);
-            day._Offset = day.Offset = (day.PreScaleCenterOfViewPortOffSetInSeconds / day.Scale) - GetVPCenterForScaling(day);
+            day._Offset = day.Offset = (day.PreScaleRelativeOffSetInSeconds / day.Scale) - day.RelativeScalingVector;
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
             Day day = d as Day;
             Double newValue = (Double)value;
-            if (day.ForceMaxScale || newValue > day._MaxScale) newValue = day._MaxScale;
+            if (day.ForceMaxScale || newValue > day.MaxScale) newValue = day.MaxScale;
             if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
             if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
             if (Double.IsNaN(newValue)) return DependencyProperty.UnsetValue;
@@ -328,18 +323,20 @@ namespace TimekeeperWPF.Calendar
         }
         private void ScaleUpOrDownBy(double ScaleFactor)
         {
-            PreScaleCenterOfViewPortOffSetInSeconds = (Offset + GetVPCenterForScaling(this)) * Scale;
+            if (IsMouseOver) SetRelativeScalingVector(Mouse.GetPosition(this));
+            else SetRelativeScalingVector(new Point(_Viewport.Width / 2, _Viewport.Height / 2));
+            PreScaleRelativeOffSetInSeconds = (Offset + RelativeScalingVector) * Scale;
             _Scale = Scale * (1d + ScaleFactor);
             AnimateScale();
         }
-        private static Vector GetVPCenterForScaling(Day day)
+        private void SetRelativeScalingVector(Point p)
         {
-            Vector vpdiv2 = new Vector();
-            if (day.Orientation == Orientation.Vertical)
-                vpdiv2.Y = day._Viewport.Height / 2;
+            Vector v = new Vector();
+            if (Orientation == Orientation.Vertical)
+                v.Y = p.Y;
             else
-                vpdiv2.Y = day._Viewport.Width / 2;
-            return vpdiv2;
+                v.X = p.X;
+            RelativeScalingVector = v;
         }
         public void TryScaleUp()
         {

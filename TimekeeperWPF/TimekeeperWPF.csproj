@@ -96,6 +96,7 @@
     <Compile Include="Calendar\NowMarker.xaml.cs">
       <DependentUpon>NowMarker.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Calendar\Week.cs" />
     <Compile Include="Examples\AnnoyingPanel.cs" />
     <Compile Include="Examples\Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
