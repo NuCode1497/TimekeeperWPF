@@ -23,6 +23,7 @@ using TimekeeperWPF.Tools;
 using TimekeeperWPF;
 using System.Reflection;
 using System.Windows.Threading;
+using System.Collections;
 
 namespace TimekeeperWPF.Calendar
 {
@@ -31,7 +32,6 @@ namespace TimekeeperWPF.Calendar
         #region Constructor
         static Day()
         {
-            InitializeGridData();
             BackgroundProperty.OverrideMetadata(typeof(Day),
                 new FrameworkPropertyMetadata(Brushes.MintCream,
                 FrameworkPropertyMetadataOptions.AffectsRender |
@@ -83,6 +83,31 @@ namespace TimekeeperWPF.Calendar
         private double _AccelerationRatio = 0.2d;
         private double _DecelerationRatio = 0.8d;
         #endregion
+        #region Date
+        /// <summary>
+        /// The selected date.
+        /// </summary>
+        [Bindable(true)]
+        public DateTime Date
+        {
+            get { return (DateTime)GetValue(DateProperty); }
+            set { SetValue(DateProperty, value); }
+        }
+        public static readonly DependencyProperty DateProperty =
+            DependencyProperty.Register(
+                nameof(Date), typeof(DateTime), typeof(Day),
+                new FrameworkPropertyMetadata(DateTime.Now.Date,
+                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
+                    FrameworkPropertyMetadataOptions.AffectsRender |
+                    FrameworkPropertyMetadataOptions.AffectsMeasure |
+                    FrameworkPropertyMetadataOptions.AffectsArrange,
+                    new PropertyChangedCallback(OnDateChanged)));
+        private static void OnDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+
+        }
+        #endregion
         #region ForceMaxScale
         /// <summary>
         /// Force Day to fit the available space.
@@ -101,6 +126,382 @@ namespace TimekeeperWPF.Calendar
         private static void OnForceMaxScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.CoerceValue(ScaleProperty);
+        }
+        #endregion
+        #region Foreground
+        [Bindable(true), Category("Appearance")]
+        public Brush Foreground
+        {
+            get { return (Brush)GetValue(ForegroundProperty); }
+            set { SetValue(ForegroundProperty, value); }
+        }
+        public static readonly DependencyProperty ForegroundProperty =
+            TextElement.ForegroundProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(Brushes.Black,
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        #region FontFamily
+        [Bindable(true), Category("Appearance")]
+        [Localizability(LocalizationCategory.Font)]
+        public FontFamily FontFamily
+        {
+            get { return (FontFamily)GetValue(FontFamilyProperty); }
+            set { SetValue(FontFamilyProperty, value); }
+        }
+        public static readonly DependencyProperty FontFamilyProperty =
+            TextElement.FontFamilyProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(new FontFamily("Segoe UI"),
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnFontFamilyChanged)));
+        private static void OnFontFamilyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
+        #endregion
+        #region FontSize
+        [TypeConverter(typeof(FontSizeConverter))]
+        [Bindable(true), Category("Appearance")]
+        [Localizability(LocalizationCategory.None)]
+        public double FontSize
+        {
+            get { return (double)GetValue(FontSizeProperty); }
+            set { SetValue(FontSizeProperty, value); }
+        }
+        public static readonly DependencyProperty FontSizeProperty =
+            TextElement.FontSizeProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(12d,
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnFontSizeChanged)));
+        private static void OnFontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
+        #endregion
+        #region FontStretch
+        [Bindable(true), Category("Appearance")]
+        public FontStretch FontStretch
+        {
+            get { return (FontStretch)GetValue(FontStretchProperty); }
+            set { SetValue(FontStretchProperty, value); }
+        }
+        public static readonly DependencyProperty FontStretchProperty
+            = TextElement.FontStretchProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(FontStretches.Normal,
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnFontStretchChanged)));
+        private static void OnFontStretchChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
+        #endregion
+        #region FontStyle
+        [Bindable(true), Category("Appearance")]
+        public FontStyle FontStyle
+        {
+            get { return (FontStyle)GetValue(FontStyleProperty); }
+            set { SetValue(FontStyleProperty, value); }
+        }
+        public static readonly DependencyProperty FontStyleProperty =
+            TextElement.FontStyleProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(FontStyles.Normal,
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnFontStyleChanged)));
+        private static void OnFontStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
+        #endregion
+        #region FontWeight
+        [Bindable(true), Category("Appearance")]
+        public FontWeight FontWeight
+        {
+            get { return (FontWeight)GetValue(FontWeightProperty); }
+            set { SetValue(FontWeightProperty, value); }
+        }
+        public static readonly DependencyProperty FontWeightProperty =
+            TextElement.FontWeightProperty.AddOwner(
+                typeof(Day),
+                new FrameworkPropertyMetadata(FontWeights.Normal,
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnFontWeightChanged)));
+        private static void OnFontWeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            d.CoerceValue(TextMarginProperty);
+        }
+        #endregion
+        #region GridMinorPen
+        [Bindable(true)]
+        public Pen GridMinorPen
+        {
+            get { return (Pen)GetValue(GridMinorPenProperty); }
+            set { SetValue(GridMinorPenProperty, value); }
+        }
+        public static readonly DependencyProperty GridMinorPenProperty =
+            DependencyProperty.Register(
+                nameof(GridMinorPen), typeof(Pen), typeof(Day),
+                new FrameworkPropertyMetadata(GetDefaultMinorPen(),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        private static Pen GetDefaultMinorPen()
+        {
+            Pen p = new Pen(Brushes.Gray, 1);
+            p.DashStyle = DashStyles.Dash;
+            return p;
+        }
+        #endregion
+        #region GridRegularPen
+        [Bindable(true)]
+        public Pen GridRegularPen
+        {
+            get { return (Pen)GetValue(GridRegularPenProperty); }
+            set { SetValue(GridRegularPenProperty, value); }
+        }
+        public static readonly DependencyProperty GridRegularPenProperty =
+            DependencyProperty.Register(
+                nameof(GridRegularPen), typeof(Pen), typeof(Day),
+                new FrameworkPropertyMetadata(new Pen(Brushes.Black, 1),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        #region GridMajorPen
+        [Bindable(true)]
+        public Pen GridMajorPen
+        {
+            get { return (Pen)GetValue(GridMajorPenProperty); }
+            set { SetValue(GridMajorPenProperty, value); }
+        }
+        public static readonly DependencyProperty GridMajorPenProperty =
+            DependencyProperty.Register(
+                nameof(GridMajorPen), typeof(Pen), typeof(Day),
+                new FrameworkPropertyMetadata(new Pen(Brushes.Black, 3),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        #region Highlight
+        [Bindable(true), Category("Appearance")]
+        public bool IsHighlightable
+        {
+            get { return (bool)GetValue(IsHighlightableProperty); }
+            set { SetValue(IsHighlightableProperty, value); }
+        }
+        public static readonly DependencyProperty IsHighlightableProperty =
+            DependencyProperty.Register(
+                nameof(IsHighlightable), typeof(bool), typeof(Day),
+                new FrameworkPropertyMetadata(true,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public Brush Highlight
+        {
+            get { return (Brush)GetValue(HighlightProperty); }
+            set { SetValue(HighlightProperty, value); }
+        }
+        public static readonly DependencyProperty HighlightProperty =
+            DependencyProperty.Register(
+                nameof(Highlight), typeof(Brush), typeof(Day),
+                new FrameworkPropertyMetadata(Brushes.Aquamarine,
+                    FrameworkPropertyMetadataOptions.Inherits |
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        private Brush _Background;
+        private void HighlightToday()
+        {
+            if (!IsHighlightable) return;
+            if (_Background == null) _Background = Background;
+            if (Date.Date == DateTime.Now.Date) Background = Highlight;
+            else Background = _Background;
+        }
+        #endregion
+        #region Offset
+        //final non-animated offset
+        private Vector _Offset = new Vector();
+        private Vector Offset
+        {
+            get { return (Vector)GetValue(OffsetProperty); }
+            set { SetValue(OffsetProperty, value); }
+        }
+        private static readonly DependencyProperty OffsetProperty =
+            DependencyProperty.Register(
+                nameof(Offset), typeof(Vector), typeof(Day),
+                new FrameworkPropertyMetadata(new Vector(),
+                    FrameworkPropertyMetadataOptions.AffectsArrange |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnOffsetChanged),
+                    new CoerceValueCallback(OnCoerceOffset)));
+        private static void OnOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+        }
+        private static object OnCoerceOffset(DependencyObject d, object value)
+        {
+            Day day = d as Day;
+            Vector newValue = (Vector)value;
+            if (day.ForceMaxScale) return new Vector();
+            if (day.Orientation == Orientation.Vertical)
+            {
+                newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
+                newValue.Y = newValue.Y.Within(0, day.ExtentHeight - day.ViewportHeight);
+            }
+            else //(day.Orientation == Orientation.Horizontal)
+            {
+                newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
+                newValue.Y = newValue.Y.Within(day.ExtentHeight - day.ViewportHeight, 0);
+            }
+            return newValue;
+        }
+        private void AnimateOffset()
+        {
+            CancelScalingAnimation();
+            if (Offset == _Offset) return;
+            VectorAnimation anime = new VectorAnimation();
+            anime.Duration = _AnimationLength;
+            anime.To = new Vector(HorizontalOffset, VerticalOffset);
+            anime.AccelerationRatio = _AccelerationRatio;
+            anime.DecelerationRatio = _DecelerationRatio;
+            BeginAnimation(OffsetProperty, anime, HandoffBehavior.Compose);
+        }
+        #endregion Offset
+        #region Orientation
+        public Orientation Orientation
+        {
+            get { return (Orientation)GetValue(OrientationProperty); }
+            set { SetValue(OrientationProperty, value); }
+        }
+        public static readonly DependencyProperty OrientationProperty =
+            DependencyProperty.Register(
+                nameof(Orientation), typeof(Orientation), typeof(Day),
+                new FrameworkPropertyMetadata(Orientation.Vertical,
+                    FrameworkPropertyMetadataOptions.AffectsMeasure |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnOrientationChanged)),
+                new ValidateValueCallback(IsValidOrientation));
+        private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+            day.ResetScrolling();
+        }
+        protected override bool HasLogicalOrientation => true;
+        protected override Orientation LogicalOrientation => Orientation;
+        internal static bool IsValidOrientation(object o)
+        {
+            Orientation value = (Orientation)o;
+            return value == Orientation.Horizontal
+                || value == Orientation.Vertical;
+        }
+        #endregion
+        #region Scale
+        // Scale is in Seconds per Pixel s/px
+        protected double ScaleFactor = 0.3d;
+        protected double _ScaleLowerLimit = 1d;
+        protected double _ScaleUpperLimit = 900d;
+        public virtual double MaxScale => Orientation == Orientation.Vertical ? DaySeconds / ViewportHeight : DaySeconds / ViewportWidth;
+        private Vector PreScaleRelativeOffSetInSeconds = new Vector();
+        private Vector RelativeScalingVector = new Vector();
+        private ICommand _ScaleUpCommand = null;
+        private ICommand _ScaleDownCommand = null;
+        //final non-animated scale
+        private double _Scale = 60d;
+        public double Scale
+        {
+            get { return (double)GetValue(ScaleProperty); }
+            set { SetValue(ScaleProperty, value); }
+        }
+        public static readonly DependencyProperty ScaleProperty =
+            DependencyProperty.Register(
+                nameof(Scale), typeof(double), typeof(Day),
+                new FrameworkPropertyMetadata(60d,
+                    FrameworkPropertyMetadataOptions.AffectsArrange |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnScaleChanged),
+                    new CoerceValueCallback(OnCoerceScale)),
+                new ValidateValueCallback(IsValidScale));
+        private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+            Double newValue = (Double)e.NewValue;
+            day.FindGridData();
+            //We want to set Offset when scale changes but
+            //We have to clear animations to set depProps because animation value hides backing value
+            day.BeginAnimation(OffsetProperty, null);
+            day._Offset = day.Offset = (day.PreScaleRelativeOffSetInSeconds / day.Scale) - day.RelativeScalingVector;
+        }
+        private static object OnCoerceScale(DependencyObject d, object value)
+        {
+            Day day = d as Day;
+            Double newValue = (Double)value;
+            if (day.ForceMaxScale || newValue > day.MaxScale) newValue = day.MaxScale;
+            if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
+            if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
+            if (Double.IsNaN(newValue)) return DependencyProperty.UnsetValue;
+            return newValue;
+        }
+        internal static bool IsValidScale(object value)
+        {
+            Double scale = (Double)value;
+            bool result = scale > 0 && !Double.IsNaN(scale) && !Double.IsInfinity(scale);
+            return result;
+        }
+        public ICommand ScaleUpCommand => _ScaleUpCommand
+            ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
+        public ICommand ScaleDownCommand => _ScaleDownCommand
+            ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => CanScaleDown));
+        private bool CanScaleUp => !ForceMaxScale;
+        private bool CanScaleDown => !ForceMaxScale;
+        private void ScaleUp()
+        {
+            ScaleUpOrDownBy(ScaleFactor);
+        }
+        private void ScaleDown()
+        {
+            ScaleUpOrDownBy(-ScaleFactor);
+        }
+        private void ScaleUpOrDownBy(double ScaleFactor)
+        {
+            if (IsMouseOver) SetRelativeScalingVector(Mouse.GetPosition(this));
+            else SetRelativeScalingVector(new Point(_Viewport.Width / 2, _Viewport.Height / 2));
+            PreScaleRelativeOffSetInSeconds = (Offset + RelativeScalingVector) * Scale;
+            _Scale = Scale * (1d + ScaleFactor);
+            AnimateScale();
+        }
+        private void SetRelativeScalingVector(Point p)
+        {
+            Vector v = new Vector();
+            if (Orientation == Orientation.Vertical)
+                v.Y = p.Y;
+            else
+                v.X = p.X;
+            RelativeScalingVector = v;
+        }
+        public void TryScaleUp()
+        {
+            if (ScaleUpCommand?.CanExecute(null) ?? false)
+                ScaleUpCommand.Execute(null);
+        }
+        public void TryScaleDown()
+        {
+            if (ScaleDownCommand?.CanExecute(null) ?? false)
+                ScaleDownCommand.Execute(null);
+        }
+        private void AnimateScale()
+        {
+            if (Scale == _Scale) return;
+            DoubleAnimation anime = new DoubleAnimation();
+            anime.Duration = _AnimationLength;
+            anime.To = _Scale;
+            anime.AccelerationRatio = _AccelerationRatio;
+            anime.DecelerationRatio = _DecelerationRatio;
+            BeginAnimation(ScaleProperty, anime, HandoffBehavior.Compose);
+        }
+        private void CancelScalingAnimation()
+        {
+            _Scale = Scale;
+            BeginAnimation(ScaleProperty, null);
+            Scale = _Scale;
         }
         #endregion
         #region TextMargin
@@ -186,404 +587,66 @@ namespace TimekeeperWPF.Calendar
             _ShowTextMarginPrevious = ShowTextMargin;
         }
         #endregion
-        #region Date
-        /// <summary>
-        /// The selected date.
-        /// </summary>
+        #region Watermark
         [Bindable(true)]
-        public DateTime Date
+        public string WatermarkFormat
         {
-            get { return (DateTime)GetValue(DateProperty); }
-            set { SetValue(DateProperty, value); }
+            get { return (string)GetValue(WatermarkFormatProperty); }
+            set { SetValue(WatermarkFormatProperty, value); }
         }
-        public static readonly DependencyProperty DateProperty =
+        public static readonly DependencyProperty WatermarkFormatProperty =
             DependencyProperty.Register(
-                nameof(Date), typeof(DateTime), typeof(Day),
-                new FrameworkPropertyMetadata(DateTime.Now.Date,
-                    FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
-                    FrameworkPropertyMetadataOptions.AffectsRender |
-                    FrameworkPropertyMetadataOptions.AffectsMeasure |
-                    FrameworkPropertyMetadataOptions.AffectsArrange));
-        #endregion
-        #region Offset
-        //final non-animated offset
-        private Vector _Offset = new Vector();
-        private Vector Offset
-        {
-            get { return (Vector)GetValue(OffsetProperty); }
-            set { SetValue(OffsetProperty, value); }
-        }
-        private static readonly DependencyProperty OffsetProperty =
-            DependencyProperty.Register(
-                nameof(Offset), typeof(Vector), typeof(Day),
-                new FrameworkPropertyMetadata(new Vector(),
-                    FrameworkPropertyMetadataOptions.AffectsArrange |
-                    FrameworkPropertyMetadataOptions.AffectsRender,
-                    new PropertyChangedCallback(OnOffsetChanged),
-                    new CoerceValueCallback(OnCoerceOffset)));
-        private static void OnOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-        }
-        private static object OnCoerceOffset(DependencyObject d, object value)
-        {
-            Day day = d as Day;
-            Vector newValue = (Vector)value;
-            if (day.ForceMaxScale) return new Vector();
-            if (day.Orientation == Orientation.Vertical)
-            {
-                newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
-                newValue.Y = newValue.Y.Within(0, day.ExtentHeight - day.ViewportHeight);
-            }
-            else //(day.Orientation == Orientation.Horizontal)
-            {
-                newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
-                newValue.Y = newValue.Y.Within(day.ExtentHeight - day.ViewportHeight, 0);
-            }
-            return newValue;
-        }
-        private void AnimateOffset()
-        {
-            CancelScalingAnimation();
-            if (Offset == _Offset) return;
-            VectorAnimation anime = new VectorAnimation();
-            anime.Duration = _AnimationLength;
-            anime.To = new Vector(HorizontalOffset, VerticalOffset);
-            anime.AccelerationRatio = _AccelerationRatio;
-            anime.DecelerationRatio = _DecelerationRatio;
-            BeginAnimation(OffsetProperty, anime, HandoffBehavior.Compose);
-        }
-        #endregion Offset
-        #region Scale
-        // Scale is in Seconds per Pixel s/px
-        protected double ScaleFactor = 0.3d;
-        protected double _ScaleLowerLimit = 1d;
-        protected double _ScaleUpperLimit = 900d;
-        public double MaxScale => DaySeconds / ViewportHeight;
-        private Vector PreScaleRelativeOffSetInSeconds = new Vector();
-        private Vector RelativeScalingVector = new Vector();
-        private ICommand _ScaleUpCommand = null;
-        private ICommand _ScaleDownCommand = null;
-        //final non-animated scale
-        private double _Scale = 60d;
-        public double Scale
-        {
-            get { return (double)GetValue(ScaleProperty); }
-            set { SetValue(ScaleProperty, value); }
-        }
-        public static readonly DependencyProperty ScaleProperty =
-            DependencyProperty.Register(
-                nameof(Scale), typeof(double), typeof(Day),
-                new FrameworkPropertyMetadata(60d,
-                    FrameworkPropertyMetadataOptions.AffectsArrange |
-                    FrameworkPropertyMetadataOptions.AffectsRender,
-                    new PropertyChangedCallback(OnScaleChanged),
-                    new CoerceValueCallback(OnCoerceScale)),
-                new ValidateValueCallback(IsValidScale));
-        private static void OnScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            Day day = d as Day;
-            Double newValue = (Double)e.NewValue;
-            day.FindGridData();
-            //We want to set Offset when scale changes but
-            //We have to clear animations to set depProps because animation value hides backing value
-            day.BeginAnimation(OffsetProperty, null);
-            day._Offset = day.Offset = (day.PreScaleRelativeOffSetInSeconds / day.Scale) - day.RelativeScalingVector;
-        }
-        private static object OnCoerceScale(DependencyObject d, object value)
-        {
-            Day day = d as Day;
-            Double newValue = (Double)value;
-            if (day.ForceMaxScale || newValue > day.MaxScale) newValue = day.MaxScale;
-            if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
-            if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
-            if (Double.IsNaN(newValue)) return DependencyProperty.UnsetValue;
-            return newValue;
-        }
-        internal static bool IsValidScale(object value)
-        {
-            if ((double)value <= 1)
-            { }
-            Double scale = (Double)value;
-            bool result = scale > 0 && !Double.IsNaN(scale) && !Double.IsInfinity(scale);
-            return result;
-        }
-        public ICommand ScaleUpCommand => _ScaleUpCommand
-            ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
-        public ICommand ScaleDownCommand => _ScaleDownCommand
-            ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => CanScaleDown));
-        private bool CanScaleUp => !ForceMaxScale;
-        private bool CanScaleDown => !ForceMaxScale;
-        private void ScaleUp()
-        {
-            ScaleUpOrDownBy(ScaleFactor);
-        }
-        private void ScaleDown()
-        {
-            ScaleUpOrDownBy(-ScaleFactor);
-        }
-        private void ScaleUpOrDownBy(double ScaleFactor)
-        {
-            if (IsMouseOver) SetRelativeScalingVector(Mouse.GetPosition(this));
-            else SetRelativeScalingVector(new Point(_Viewport.Width / 2, _Viewport.Height / 2));
-            PreScaleRelativeOffSetInSeconds = (Offset + RelativeScalingVector) * Scale;
-            _Scale = Scale * (1d + ScaleFactor);
-            AnimateScale();
-        }
-        private void SetRelativeScalingVector(Point p)
-        {
-            Vector v = new Vector();
-            if (Orientation == Orientation.Vertical)
-                v.Y = p.Y;
-            else
-                v.X = p.X;
-            RelativeScalingVector = v;
-        }
-        public void TryScaleUp()
-        {
-            if (ScaleUpCommand?.CanExecute(null) ?? false)
-                ScaleUpCommand.Execute(null);
-        }
-        public void TryScaleDown()
-        {
-            if (ScaleDownCommand?.CanExecute(null) ?? false)
-                ScaleDownCommand.Execute(null);
-        }
-        private void AnimateScale()
-        {
-            if (Scale == _Scale) return;
-            DoubleAnimation anime = new DoubleAnimation();
-            anime.Duration = _AnimationLength;
-            anime.To = _Scale;
-            anime.AccelerationRatio = _AccelerationRatio;
-            anime.DecelerationRatio = _DecelerationRatio;
-            BeginAnimation(ScaleProperty, anime, HandoffBehavior.Compose);
-        }
-        private void CancelScalingAnimation()
-        {
-            _Scale = Scale;
-            BeginAnimation(ScaleProperty, null);
-            Scale = _Scale;
-        }
-        #endregion
-        #region Orientation
-        public Orientation Orientation
-        {
-            get { return (Orientation)GetValue(OrientationProperty); }
-            set { SetValue(OrientationProperty, value); }
-        }
-        public static readonly DependencyProperty OrientationProperty =
-            DependencyProperty.Register(
-                nameof(Orientation), typeof(Orientation), typeof(Day),
-                new FrameworkPropertyMetadata(Orientation.Vertical,
-                    FrameworkPropertyMetadataOptions.AffectsMeasure,
-                    new PropertyChangedCallback(OnOrientationChanged)),
-                new ValidateValueCallback(IsValidOrientation));
-        private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            Day day = d as Day;
-            day.ResetScrolling();
-        }
-        protected override bool HasLogicalOrientation => true;
-        protected override Orientation LogicalOrientation => Orientation;
-        internal static bool IsValidOrientation(object o)
-        {
-            Orientation value = (Orientation)o;
-            return value == Orientation.Horizontal
-                || value == Orientation.Vertical;
-        }
-        #endregion
-        #region Foreground
-        [Bindable(true), Category("Appearance")]
-        public Brush Foreground
-        {
-            get { return (Brush)GetValue(ForegroundProperty); }
-            set { SetValue(ForegroundProperty, value); }
-        }
-        public static readonly DependencyProperty ForegroundProperty =
-            TextElement.ForegroundProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(
-                    SystemColors.ControlTextBrush,
-                    FrameworkPropertyMetadataOptions.Inherits));
-        #endregion
-        #region FontFamily
-        [Bindable(true), Category("Appearance")]
-        [Localizability(LocalizationCategory.Font)]
-        public FontFamily FontFamily
-        {
-            get { return (FontFamily)GetValue(FontFamilyProperty); }
-            set { SetValue(FontFamilyProperty, value); }
-        }
-        public static readonly DependencyProperty FontFamilyProperty =
-            TextElement.FontFamilyProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontFamily,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontFamilyChanged)));
-        private static void OnFontFamilyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-        #endregion
-        #region FontSize
-        [TypeConverter(typeof(FontSizeConverter))]
-        [Bindable(true), Category("Appearance")]
-        [Localizability(LocalizationCategory.None)]
-        public double FontSize
-        {
-            get { return (double)GetValue(FontSizeProperty); }
-            set { SetValue(FontSizeProperty, value); }
-        }
-        public static readonly DependencyProperty FontSizeProperty =
-            TextElement.FontSizeProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontSize,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontSizeChanged)));
-        private static void OnFontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-        #endregion
-        #region FontStretch
-        [Bindable(true), Category("Appearance")]
-        public FontStretch FontStretch
-        {
-            get { return (FontStretch)GetValue(FontStretchProperty); }
-            set { SetValue(FontStretchProperty, value); }
-        }
-        public static readonly DependencyProperty FontStretchProperty
-            = TextElement.FontStretchProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(
-                    TextElement.FontStretchProperty.DefaultMetadata.DefaultValue,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontStretchChanged)));
-        private static void OnFontStretchChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-        #endregion
-        #region FontStyle
-        [Bindable(true), Category("Appearance")]
-        public FontStyle FontStyle
-        {
-            get { return (FontStyle)GetValue(FontStyleProperty); }
-            set { SetValue(FontStyleProperty, value); }
-        }
-        public static readonly DependencyProperty FontStyleProperty =
-            TextElement.FontStyleProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontStyle,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontStyleChanged)));
-        private static void OnFontStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-        #endregion
-        #region FontWeight
-        [Bindable(true), Category("Appearance")]
-        public FontWeight FontWeight
-        {
-            get { return (FontWeight)GetValue(FontWeightProperty); }
-            set { SetValue(FontWeightProperty, value); }
-        }
-        public static readonly DependencyProperty FontWeightProperty =
-            TextElement.FontWeightProperty.AddOwner(
-                typeof(Day),
-                new FrameworkPropertyMetadata(SystemFonts.MessageFontWeight,
-                    FrameworkPropertyMetadataOptions.Inherits,
-                    new PropertyChangedCallback(OnFontWeightChanged)));
-        private static void OnFontWeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            d.CoerceValue(TextMarginProperty);
-        }
-        #endregion
-        #region GridMinorPen
-        [Bindable(true)]
-        public Pen GridMinorPen
-        {
-            get { return (Pen)GetValue(GridMinorPenProperty); }
-            set { SetValue(GridMinorPenProperty, value); }
-        }
-        public static readonly DependencyProperty GridMinorPenProperty =
-            DependencyProperty.Register(
-                nameof(GridMinorPen), typeof(Pen), typeof(Day),
-                new FrameworkPropertyMetadata(GetDefaultMinorPen(),
-                    FrameworkPropertyMetadataOptions.AffectsRender));
-        private static Pen GetDefaultMinorPen()
-        {
-            Pen p = new Pen(Brushes.Gray, 1);
-            p.DashStyle = DashStyles.Dash;
-            return p;
-        }
-        #endregion
-        #region GridRegularPen
-        [Bindable(true)]
-        public Pen GridRegularPen
-        {
-            get { return (Pen)GetValue(GridRegularPenProperty); }
-            set { SetValue(GridRegularPenProperty, value); }
-        }
-        public static readonly DependencyProperty GridRegularPenProperty =
-            DependencyProperty.Register(
-                nameof(GridRegularPen), typeof(Pen), typeof(Day),
-                new FrameworkPropertyMetadata(new Pen(Brushes.Black, 1),
-                    FrameworkPropertyMetadataOptions.AffectsRender));
-        #endregion
-        #region GridMajorPen
-        [Bindable(true)]
-        public Pen GridMajorPen
-        {
-            get { return (Pen)GetValue(GridMajorPenProperty); }
-            set { SetValue(GridMajorPenProperty, value); }
-        }
-        public static readonly DependencyProperty GridMajorPenProperty =
-            DependencyProperty.Register(
-                nameof(GridMajorPen), typeof(Pen), typeof(Day),
-                new FrameworkPropertyMetadata(new Pen(Brushes.Black, 3),
+                nameof(WatermarkFormat), typeof(string), typeof(Day),
+                new FrameworkPropertyMetadata("ddd\nMMM d",
                     FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
         #endregion Features
         #region Layout
-        private enum GridTextFormat { Long, Medium, Short, Hide }
-        private class GridData
+        protected enum GridTextFormat { Long, Medium, Short, Hide }
+        protected class GridData : IComparable
         {
             //See: InitializeGridData()
             //This GridData is used below this cutoff
-            public double ScaleCutoff;
+            public double ScaleCutoff { get; set; }
             //Number of seconds between each line
-            public double SecondsInterval;
+            public double SecondsInterval { get; set; }
             //Draw a regular line each x interval
-            public int RegularSkip;
+            public int RegularSkip { get; set; }
             //Draw a major line each x interval
-            public int MajorSkip;
+            public int MajorSkip { get; set; }
             //These are toggles for each type of line
-            public bool MinorGridLines;
-            public bool RegularGridLines;
-            public bool MajorGridLines;
+            public bool MinorGridLines { get; set; }
+            public bool RegularGridLines { get; set; }
+            public bool MajorGridLines { get; set; }
             //These are the formats used to write the time text
-            public string MinorFormat;
-            public string RegularFormat;
-            public string MajorFormat;
+            public string MinorFormat { get; set; }
+            public string RegularFormat { get; set; }
+            public string MajorFormat { get; set; }
             //Used to determine size of TextMargin in UpdateTextMargin.
             //Should be representative of Minor/regular/major format
-            public GridTextFormat GridTextFormat;
+            public GridTextFormat GridTextFormat { get; set; }
             //Should the grid be drawn
-            public bool DrawGrid;
+            public bool DrawGrid { get; set; }
+
+            public int CompareTo(object obj)
+            {
+                GridData g = obj as GridData;
+                if (ScaleCutoff < g.ScaleCutoff) return -1;
+                else if (ScaleCutoff > g.ScaleCutoff) return 1;
+                else return 0;
+            }
         }
-        private GridData _GridData;
-        private static List<GridData> GridDatas;
-        private Point _TextOffset = new Point(-4, 0); //TODO: make dep prop
-        private double _TextRotation = 0d; //TODO: make dep prop
-        private double _ScreenInterval;
-        private int _MaxIntervals;
-        private double DaySeconds => (Date.Date.AddDays(1) - Date.Date).TotalSeconds;
-        private double DaySize => DaySeconds / Scale;
-        private static void InitializeGridData()
+        protected GridData _GridData;
+        protected List<GridData> _ListOfGridDatas;
+        protected Point _TextOffset = new Point(-4, 0); //TODO: make dep prop
+        protected double _TextRotation = 0d; //TODO: make dep prop
+        protected double _ScreenInterval;
+        protected int _MaxIntervals;
+        protected double DaySeconds => (Date.Date.AddDays(1) - Date.Date).TotalSeconds; //TODO: cache
+        protected double DaySize => DaySeconds / Scale; //TODO: cache
+        protected virtual void InitializeGridData()
         {
-            GridDatas = new List<GridData>()
+            _ListOfGridDatas = new List<GridData>()
             {
                 new GridData()
                 {
@@ -706,6 +769,7 @@ namespace TimekeeperWPF.Calendar
                 },
                 new GridData()
                 {
+                    //Last
                     ScaleCutoff = double.PositiveInfinity,
                     MinorGridLines = false,
                     RegularGridLines = false,
@@ -716,10 +780,15 @@ namespace TimekeeperWPF.Calendar
                 },
             };
         }
-        private void FindGridData()
+        protected void FindGridData()
         {
-            _GridData = GridDatas.First();
-            foreach (GridData gd in GridDatas)
+            if (_ListOfGridDatas == null)
+            {
+                InitializeGridData();
+                _ListOfGridDatas.Sort((x, y) => x.ScaleCutoff.CompareTo(y.ScaleCutoff));
+            }
+            _GridData = _ListOfGridDatas.First();
+            foreach (GridData gd in _ListOfGridDatas)
             {
                 _GridData = gd;
                 if (Scale < gd.ScaleCutoff) break;
@@ -744,7 +813,7 @@ namespace TimekeeperWPF.Calendar
             }
             return _Viewport;
         }
-        private Size MeasureVertically(Size availableSize, Size extent)
+        protected Size MeasureVertically(Size availableSize, Size extent)
         {
             //Height will be unbound. Width will be bound to UI space.
             double biggestWidth = TextMargin; //1D
@@ -760,7 +829,7 @@ namespace TimekeeperWPF.Calendar
                 else if (child is NowMarker)
                 {
                     //NowMarker will be rotated
-                    childSize.Height = Math.Max(0, childSize.Height - TextMargin);
+                    childSize.Height = Math.Max(0, childSize.Width - TextMargin);
                 }
                 else
                 {
@@ -772,7 +841,7 @@ namespace TimekeeperWPF.Calendar
             extent.Height = DaySize; //1D
             return extent;
         }
-        private Size MeasureHorizontally(Size availableSize, Size extent)
+        protected Size MeasureHorizontally(Size availableSize, Size extent)
         {   //Width will be unbound. Height will be bound to UI space.
             double biggestChildHeight = TextMargin; //1D
             foreach (UIElement child in InternalChildren)
@@ -815,7 +884,7 @@ namespace TimekeeperWPF.Calendar
             }
             return arrangeSize;
         }
-        private Size ArrangeVertically(Size arrangeSize, Size extent)
+        protected Size ArrangeVertically(Size arrangeSize, Size extent)
         {
             //Height will be unbound. Width will be bound to UI space.
             double biggestChildWidth = TextMargin; //1D
@@ -840,7 +909,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (child is NowMarker && Date.Date == DateTime.Now.Date)
                 {
-                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
+                    childSize.Height = Math.Max(0, arrangeSize.Width - TextMargin);
                     x = TextMargin + childSize.Height;
                     y = (DateTime.Now - Date.Date).TotalSeconds / Scale;
                     RotateTransform rotytoty = new RotateTransform(90);
@@ -857,7 +926,7 @@ namespace TimekeeperWPF.Calendar
             extent.Height = DaySize; //1D
             return extent;
         }
-        private Size ArrangeHorizontally(Size arrangeSize, Size extent)
+        protected Size ArrangeHorizontally(Size arrangeSize, Size extent)
         {   //Width will be unbound. Height will be bound to UI space.
             double biggestChildHeight = TextMargin; //1D
             foreach (UIElement child in InternalChildren)
@@ -898,15 +967,17 @@ namespace TimekeeperWPF.Calendar
         }
         protected override void OnRender(DrawingContext dc)
         {
+            HighlightToday();
             base.OnRender(dc);
             DrawWaterMark(dc);
             DrawGrid(dc);
         }
-        private void DrawWaterMark(DrawingContext dc)
+        protected void DrawWaterMark(DrawingContext dc)
         {
+            //TODO: make dep props
             double textSize = _Viewport.Width / 4d;
             Brush foreground = new SolidColorBrush(Color.FromArgb(128, 200, 200, 200));
-            string text = Date.ToString("ddd\nMMM d");
+            string text = Date.ToString(WatermarkFormat);
             FormattedText lineText = new FormattedText(text,
                 System.Globalization.CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
@@ -916,7 +987,7 @@ namespace TimekeeperWPF.Calendar
             lineText.TextAlignment = TextAlignment.Center;
             dc.DrawText(lineText, new Point(_Viewport.Width / 2d, _Viewport.Height / 2d - lineText.Height / 2d));
         }
-        private void DrawGrid(DrawingContext dc)
+        protected void DrawGrid(DrawingContext dc)
         {
             if (_GridData == null) FindGridData();
             if (!_GridData.DrawGrid) return;
@@ -932,7 +1003,7 @@ namespace TimekeeperWPF.Calendar
                     break;
             }
         }
-        private void DrawGridVertically(DrawingContext dc, Rect area)
+        protected void DrawGridVertically(DrawingContext dc, Rect area)
         {
 
             Pen currentPen = GridRegularPen;
@@ -976,7 +1047,7 @@ namespace TimekeeperWPF.Calendar
                 new Point(TextMargin, 0), 
                 new Point(TextMargin, DaySize)); //1D
         }
-        private void DrawGridHorizontally(DrawingContext dc, Rect area)
+        protected void DrawGridHorizontally(DrawingContext dc, Rect area)
         {
             Pen currentPen = GridRegularPen;
             string timeFormat = "";
@@ -1019,7 +1090,7 @@ namespace TimekeeperWPF.Calendar
                 new Point(0, area.Height - TextMargin), 
                 new Point(DaySize, area.Height - TextMargin)); //1D
         }
-        private void DrawText(DrawingContext dc, string text, double r, double x, double y)
+        protected void DrawText(DrawingContext dc, string text, double r, double x, double y)
         {
             FormattedText lineText = new FormattedText(text,
                 System.Globalization.CultureInfo.CurrentCulture,
@@ -1041,9 +1112,9 @@ namespace TimekeeperWPF.Calendar
         }
         #endregion Layout
         #region IScrollInfo
-        private const double _scrollLineDelta = 16d;
-        private const double _mouseWheelDelta = 3 * _scrollLineDelta;
-        private ScrollViewer _ScrollOwner;
+        protected const double _scrollLineDelta = 16d;
+        protected const double _mouseWheelDelta = 3 * _scrollLineDelta;
+        protected ScrollViewer _ScrollOwner;
         public ScrollViewer ScrollOwner
         {
             get { return _ScrollOwner; }
@@ -1054,22 +1125,22 @@ namespace TimekeeperWPF.Calendar
                 ResetScrolling();
             }
         }
-        private bool _CanHorizontallyScroll = false;
+        protected bool _CanHorizontallyScroll = false;
         public bool CanVerticallyScroll
         {
             get { return _CanVerticallyScroll; }
             set { _CanVerticallyScroll = value; }
         }
-        private bool _CanVerticallyScroll = false;
+        protected bool _CanVerticallyScroll = false;
         public bool CanHorizontallyScroll
         {
             get { return _CanHorizontallyScroll; }
             set { _CanHorizontallyScroll = value; }
         }
-        private Size _Extent = new Size(0, 0);
+        protected Size _Extent = new Size(0, 0);
         public double ExtentWidth => _Extent.Width;
         public double ExtentHeight => _Extent.Height;
-        private Size _Viewport = new Size(0, 0);
+        protected Size _Viewport = new Size(0, 0);
         public double ViewportWidth => _Viewport.Width;
         public double ViewportHeight => _Viewport.Height;
         public double HorizontalOffset => _Offset.X;
@@ -1104,7 +1175,7 @@ namespace TimekeeperWPF.Calendar
                 AnimateOffset();
             }
         }
-        private void VerifyVerticalScrollData(Size viewport, Size extent)
+        protected void VerifyVerticalScrollData(Size viewport, Size extent)
         {
             if (double.IsInfinity(viewport.Width))
             { viewport.Width = extent.Width; }
@@ -1117,7 +1188,7 @@ namespace TimekeeperWPF.Calendar
             if (ScrollOwner != null)
             { ScrollOwner.InvalidateScrollInfo(); }
         }
-        private void VerifyHorizontalScrollData(Size viewport, Size extent)
+        protected void VerifyHorizontalScrollData(Size viewport, Size extent)
         {
             if (double.IsInfinity(viewport.Width))
             { viewport.Width = extent.Width; }
@@ -1147,7 +1218,7 @@ namespace TimekeeperWPF.Calendar
             rectangle.Y -= viewRect.Y;
             return rectangle;
         }
-        private static double CalculateNewScrollOffset(double topView, double bottomView, double topChild, double bottomChild)
+        protected static double CalculateNewScrollOffset(double topView, double bottomView, double topChild, double bottomChild)
         {
             bool offBottom = topChild < topView && bottomChild < bottomView;
             bool offTop = bottomChild > bottomView && topChild > topView;
@@ -1158,7 +1229,7 @@ namespace TimekeeperWPF.Calendar
             { return topChild; }
             return (bottomChild - (bottomView - topView));
         }
-        private void ResetScrolling()
+        protected void ResetScrolling()
         {
             if (_ScrollOwner != null)
             {

@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="400" Background="LimeGreen">
+             d:DesignHeight="300" d:DesignWidth="400" Background="LimeGreen">
     <Grid>
         <Border BorderBrush="Black" BorderThickness="1">
             <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
