@@ -29,7 +29,7 @@
             <Label Content="Friday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
             <Label Content="Saturday" BorderBrush="Black" BorderThickness="0,0,1,1"/>
         </UniformGrid>
-        <ItemsControl Grid.Row="2" x:Name="MonthWeekList" ItemsSource="{Binding Path=Weeks}" Margin="2,0,2,2">
+        <ItemsControl Grid.Row="2" x:Name="MonthWeekIC" ItemsSource="{Binding Path=Weeks}" Margin="2,0,2,2">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <UniformGrid Columns="1"/>
@@ -37,7 +37,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <ItemsControl x:Name="WeekDayList" ItemsSource="{Binding Path=Days}">
+                    <ItemsControl x:Name="WeekDayIC" ItemsSource="{Binding Path=Days}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Rows="1" />

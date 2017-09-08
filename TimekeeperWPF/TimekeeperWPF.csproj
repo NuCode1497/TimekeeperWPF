@@ -91,11 +91,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\Calendar\CalendarViewModel.cs" />
     <Compile Include="Calendar\CalendarObject.cs" />
     <Compile Include="Calendar\Day.cs" />
     <Compile Include="Calendar\NowMarker.xaml.cs">
       <DependentUpon>NowMarker.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Calendar\Day\DayViewModel.cs" />
     <Compile Include="Examples\AnnoyingPanel.cs" />
     <Compile Include="Examples\Window1.xaml.cs">
       <DependentUpon>Window1.xaml</DependentUpon>
@@ -202,9 +204,10 @@
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Views\ViewModel.cs" />
-    <Compile Include="WeekView.xaml.cs">
+    <Compile Include="Views\Calendar\Week\WeekView.xaml.cs">
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Calendar\Week\WeekViewModel.cs" />
     <Page Include="Calendar\NowMarker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -213,9 +216,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Themes\Generic.xaml">
+    <Page Include="Themes\Core.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Calendar\CalendarStyles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\GreenTheme.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Calendar\Day\DayView.xaml">
       <SubType>Designer</SubType>
@@ -329,7 +340,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WeekView.xaml">
+    <Page Include="Views\Calendar\Week\WeekView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -361,8 +372,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\Calendar\Week\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

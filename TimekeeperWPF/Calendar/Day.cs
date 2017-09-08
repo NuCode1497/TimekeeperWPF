@@ -36,18 +36,19 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(Brushes.MintCream,
                 FrameworkPropertyMetadataOptions.AffectsRender |
                 FrameworkPropertyMetadataOptions.SubPropertiesDoNotAffectRender));
+            _Timer = new DispatcherTimer();
+            _Timer.Interval = TimeSpan.FromSeconds(1);
+            _Timer.Start();
         }
         public Day() : base()
         {
-            _Timer = new DispatcherTimer();
-            _Timer.Interval = TimeSpan.FromSeconds(1);
             _Timer.Tick += _Timer_Tick;
-            _Timer.Start();
         }
         #endregion
         #region Events
         private void _Timer_Tick(object sender, EventArgs e)
         {
+            //TODO: Toggle?
             InvalidateArrange();
         }
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
@@ -78,10 +79,10 @@ namespace TimekeeperWPF.Calendar
         #endregion Events
         #region Features
         #region Animation
-        private DispatcherTimer _Timer;
-        private TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
-        private double _AccelerationRatio = 0.2d;
-        private double _DecelerationRatio = 0.8d;
+        internal static DispatcherTimer _Timer;
+        internal static TimeSpan _AnimationLength = TimeSpan.FromMilliseconds(500);
+        internal static double _AccelerationRatio = 0.2d;
+        internal static double _DecelerationRatio = 0.8d;
         #endregion
         #region Date
         /// <summary>
@@ -981,7 +982,8 @@ namespace TimekeeperWPF.Calendar
             FormattedText lineText = new FormattedText(text,
                 System.Globalization.CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
-                new Typeface(new FontFamily("Segoe UI Black"), FontStyles.Normal, FontWeights.Bold, FontStretches.Normal),
+                new Typeface(new FontFamily("Segoe UI Black"), FontStyles.Normal, 
+                FontWeights.Bold, FontStretches.Normal),
                 textSize, foreground, null,
                 VisualTreeHelper.GetDpi(this).PixelsPerDip);
             lineText.TextAlignment = TextAlignment.Center;

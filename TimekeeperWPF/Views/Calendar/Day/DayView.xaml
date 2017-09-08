@@ -7,17 +7,37 @@
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="400" Background="LimeGreen">
-    <Grid>
-        <Border BorderBrush="Black" BorderThickness="1">
-            <ScrollViewer VerticalAlignment="Top" HorizontalAlignment="Left"
-                          HorizontalScrollBarVisibility="Auto"
-                          VerticalScrollBarVisibility="Auto" CanContentScroll="True">
-                <cal:Day Orientation="Vertical" ForceMaxScale="False" 
-                         ShowTextMargin="True" >
-                    <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="1"/>
-                    <cal:NowMarker/>
-                </cal:Day>
-            </ScrollViewer>
-        </Border>
+    <Grid x:Name="SV">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ContentControl x:Name="CommandsToolbar" Grid.Row="0" 
+                        Template="{StaticResource CalendarViewControlsTemplate}"/>
+        <ListBox x:Name="CalendarObjectsIC" Grid.Row="1"
+                 SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
+                 ItemsSource="{Binding Path=SetOfCalendarObjects}">
+            <ItemsControl.Template>
+                <ControlTemplate>
+                    <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto" 
+                                      CanContentScroll="True">
+                            <cal:Day x:Name="DayPanel" 
+                                     Orientation="Vertical" ForceMaxScale="False" 
+                                     ShowTextMargin="True" IsHighlightable="False" >
+                                <ItemsPresenter/>
+                            </cal:Day>
+                        </ScrollViewer>
+                    </Border>
+                </ControlTemplate>
+            </ItemsControl.Template>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <FrameworkElement x:Name="CalendarObjectFE"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ListBox>
+        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

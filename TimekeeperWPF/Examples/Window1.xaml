@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TimekeeperWPF.Examples"
-        xmlns:timekeeperwpf="clr-namespace:TimekeeperWPF"
+        xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
+        xmlns:tk="clr-namespace:TimekeeperWPF"
         mc:Ignorable="d"
         Style="{StaticResource WindowStyle}"
         Title="Testing Stuff" Height="700" Width="700">
@@ -17,6 +18,7 @@
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <timekeeperwpf:DayView Grid.Row="0" Grid.Column="0"/>
+        <tk:DayView Grid.Row="0" Grid.Column="0"/>
+        <tk:WeekView Grid.Row="1" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

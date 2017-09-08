@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF.Calendar
@@ -24,7 +25,14 @@ namespace TimekeeperWPF.Calendar
         }
         public CalendarObject()
         {
+            Day._Timer.Tick += _Timer_Tick;
         }
+        #region Events
+        private void _Timer_Tick(object sender, EventArgs e)
+        {
+            InvalidateArrange();
+        }
+        #endregion Events
         #region Properties
         #region Start
         public DateTime Start

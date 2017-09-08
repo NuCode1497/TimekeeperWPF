@@ -15,13 +15,6 @@ namespace TimekeeperWPF
 {
     /// <summary>
     /// Generic ViewModel handles CRUD logic for Views. Bind a collection control's ItemsSource to View.
-    /// 
-    /// Recommendations:
-    /// Collectioon controls like DataGrids and such will try to control change tracking and might disable
-    /// CanCancel unexpectedly, unless you set the following properties:
-    /// IsSyncronizedWithCurrentItem = false
-    /// CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}"
-    /// SelectedItem no binding
     /// </summary>
     /// <typeparam name="ModelType">EntityBase type</typeparam>
     public abstract class ViewModel<ModelType> : ObservableObject, IView, IDisposable 
