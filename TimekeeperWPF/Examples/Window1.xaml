@@ -9,7 +9,10 @@
         mc:Ignorable="d"
         Style="{StaticResource WindowStyle}"
         Title="Testing Stuff" Height="700" Width="700">
-    <Grid ShowGridLines="True">
+    <Window.DataContext>
+        <local:Window1VM/>
+    </Window.DataContext>
+    <Grid x:Name="testStuffGrid" ShowGridLines="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition/>
@@ -18,7 +21,13 @@
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <tk:DayView Grid.Row="0" Grid.Column="0"/>
-        <tk:WeekView Grid.Row="1" Grid.ColumnSpan="2"/>
+        <ContentControl Grid.Row="0" Grid.Column="0"
+                        Content="{Binding Path=CurrentView1}"/>
+        <ContentControl Grid.Row="0" Grid.Column="1"
+                        Content="{Binding Path=CurrentView2}"/>
+        <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                        Content="{Binding Path=CurrentView3}"/>
+        <ContentControl Grid.Row="1" Grid.Column="1"
+                        Content="{Binding Path=CurrentView4}"/>
     </Grid>
 </Window>

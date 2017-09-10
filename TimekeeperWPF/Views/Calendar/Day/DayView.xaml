@@ -16,25 +16,20 @@
                         Template="{StaticResource CalendarViewControlsTemplate}"/>
         <ListBox x:Name="CalendarObjectsIC" Grid.Row="1"
                  SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
-                 ItemsSource="{Binding Path=SetOfCalendarObjects}">
-            <ItemsControl.Template>
-                <ControlTemplate>
-                    <Border Grid.Row="1" BorderBrush="Black" BorderThickness="1">
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto"
-                                      VerticalScrollBarVisibility="Auto" 
-                                      CanContentScroll="True">
-                            <cal:Day x:Name="DayPanel" 
-                                     Orientation="Vertical" ForceMaxScale="False" 
-                                     ShowTextMargin="True" IsHighlightable="False" >
-                                <ItemsPresenter/>
-                            </cal:Day>
-                        </ScrollViewer>
-                    </Border>
-                </ControlTemplate>
-            </ItemsControl.Template>
+                 ItemsSource="{Binding Path=CalendarObjectsView}" 
+                 ItemContainerStyle="{StaticResource CalObjContainerStyle}"
+                 ScrollViewer.CanContentScroll="True"
+                 HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <cal:Day x:Name="DayPanel" 
+                             Orientation="Vertical" ForceMaxScale="False" 
+                             ShowTextMargin="True" IsHighlightable="False"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <FrameworkElement x:Name="CalendarObjectFE"/>
+                    <cal:CalendarObject/>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ListBox>

@@ -15,13 +15,15 @@ namespace TimekeeperWPF
 
         public MainWindowViewModel()
         {
-            if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
+            if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
             {
+                Views.Add(new FakeDayViewModel());
                 Views.Add(new FakeNotesViewModel());
                 Views.Add(new FakeMonthViewModel());
                 Navigate(Views[0]);
                 return;
             }
+            Views.Add(new DayViewModel());
             Views.Add(new NotesViewModel());
             Views.Add(new LabelsViewModel());
             Views.Add(new ResourcesViewModel());
@@ -30,13 +32,14 @@ namespace TimekeeperWPF
             Views.Add(new TimeTasksViewModel());
             Views.Add(new TimePatternsViewModel());
             Views.Add(new MonthViewModel());
+            Views.Add(new WeekViewModel());
             Navigate(Views[0]);
 
             //RadialSample radialSample = new RadialSample();
             //radialSample.Show();
 
-            Window1 window1 = new Window1();
-            window1.Show();
+            //Window1 window1 = new Window1();
+            //window1.Show();
         }
 
         public ObservableCollection<IView> Views => _views

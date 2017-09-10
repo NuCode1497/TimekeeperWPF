@@ -189,6 +189,7 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
+            if (!IsEditingItemOrAddingNew) return;
             CurrentEntityIncludesCollection = new CollectionViewSource();
             CurrentEntityIncludesCollection.Source = new ObservableCollection<TimePattern>(CurrentEditItem.IncludedPatterns);
             CurrentEntityExcludesCollection = new CollectionViewSource();

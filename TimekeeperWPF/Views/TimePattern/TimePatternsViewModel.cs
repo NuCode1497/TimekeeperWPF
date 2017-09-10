@@ -235,6 +235,8 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
+            if (!IsEditingItemOrAddingNew) return;
+
             //get current edit entity allocations
             CurrentEntityAllocationsCollection = new CollectionViewSource();
             CurrentEntityAllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);

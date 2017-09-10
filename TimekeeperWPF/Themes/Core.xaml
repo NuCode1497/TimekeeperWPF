@@ -4,6 +4,7 @@
                     xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
                     xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
                     xmlns:clr="clr-namespace:System;assembly=mscorlib"
+                    xmlns:example="clr-namespace:TimekeeperWPF.Examples"
                     xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
 
     <!--#region DataContexts-->
@@ -399,5 +400,76 @@
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>
+    <ControlTemplate x:Key="CalObjContainerTemplate" TargetType="ContentControl">
+        <Grid>
+            <Border BorderBrush="{DynamicResource CalObjContainer.BorderColor}" 
+                    CornerRadius="2"
+                    BorderThickness="{DynamicResource CalObjContainer.BorderThickness}">
+                <ContentPresenter Opacity="{DynamicResource CalObjContainer.Opacity}"/>
+            </Border>
+            <Border x:Name="HighlightBorder" BorderThickness="3" Margin="-1"
+                    Opacity="{DynamicResource CalObjContainer.Opacity}" 
+                    CornerRadius="2"
+                    BorderBrush="{DynamicResource Highlight.BorderColor}">
+                <Rectangle x:Name="HighlightBackground" Opacity="{DynamicResource Highlight.Opacity}"
+                           Fill="{DynamicResource Highlight.BackgroundColor}"/>
+            </Border>
+        </Grid>
+    </ControlTemplate>
+    <ControlTemplate x:Key="CalObjContainerTemplate.Selected" TargetType="ListBoxItem">
+        <ControlTemplate.Resources>
+            <SolidColorBrush x:Key="Highlight.BorderColor" Color="DarkCyan"/>
+            <SolidColorBrush x:Key="Highlight.BackgroundColor" Color="Cyan"/>
+            <clr:Double x:Key="Highlight.Opacity">0.5</clr:Double>
+        </ControlTemplate.Resources>
+        <ContentControl Template="{StaticResource CalObjContainerTemplate}">
+            <ContentPresenter/>
+        </ContentControl>
+    </ControlTemplate>
+    <ControlTemplate x:Key="CalObjContainerTemplate.Hover" TargetType="ListBoxItem">
+        <ControlTemplate.Resources>
+            <SolidColorBrush x:Key="Highlight.BorderColor" Color="DarkCyan"/>
+            <SolidColorBrush x:Key="Highlight.BackgroundColor" Color="Cyan"/>
+            <clr:Double x:Key="Highlight.Opacity">0.8</clr:Double>
+        </ControlTemplate.Resources>
+        <ContentControl Template="{StaticResource CalObjContainerTemplate}">
+            <ContentPresenter/>
+        </ContentControl>
+    </ControlTemplate>
+    <ControlTemplate x:Key="CalObjContainerTemplate.Static" TargetType="ListBoxItem">
+        <ControlTemplate.Resources>
+            <SolidColorBrush x:Key="Highlight.BorderColor" Color="Transparent"/>
+            <SolidColorBrush x:Key="Highlight.BackgroundColor" Color="Transparent"/>
+            <clr:Double x:Key="Highlight.Opacity">0.5</clr:Double>
+        </ControlTemplate.Resources>
+        <ContentControl Template="{StaticResource CalObjContainerTemplate}">
+            <ContentPresenter/>
+        </ContentControl>
+    </ControlTemplate>
+    <Style x:Key="CalObjContainerStyle" TargetType="ListBoxItem">
+        <Style.Resources>
+            <SolidColorBrush x:Key="CalObjContainer.BorderColor" Color="DarkSlateGray"/>
+            <Thickness x:Key="CalObjContainer.BorderThickness" Bottom="2" Left="2" Right="2" Top="2"/>
+            <clr:Double x:Key="CalObjContainer.Opacity">0.5</clr:Double>
+        </Style.Resources>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Template" Value="{StaticResource CalObjContainerTemplate.Static}" />
+        <Style.Triggers>
+            <Trigger Property="IsSelected" Value="true">
+                <Setter Property="Template" Value="{StaticResource CalObjContainerTemplate.Selected}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Template" Value="{StaticResource CalObjContainerTemplate.Hover}"/>
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsSelected" Value="true"/>
+                    <Condition Property="IsMouseOver" Value="true"/>
+                </MultiTrigger.Conditions>
+                <Setter Property="Template" Value="{StaticResource CalObjContainerTemplate.Selected}"/>
+            </MultiTrigger>
+        </Style.Triggers>
+    </Style>
     <!--#endregion-->
 </ResourceDictionary>

@@ -8,13 +8,8 @@ namespace TimekeeperWPF
 {
     public class WeekViewModel : CalendarViewModel
     {
-        public override string Name => throw new NotImplementedException();
-
-        protected override Task GetDataAsync()
-        {
-            throw new NotImplementedException();
-        }
-
+        public override string Name => "Week View";
+        
         protected override void SaveAs()
         {
             throw new NotImplementedException();

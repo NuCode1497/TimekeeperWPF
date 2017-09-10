@@ -105,6 +105,7 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
+            if (!IsEditingItemOrAddingNew) return;
             CurrentEntityLabelsCollection = new CollectionViewSource();
             CurrentEntityLabelsCollection.Source = new ObservableCollection<Label>(CurrentEditItem.Labels);
             UpdateViews();

@@ -8,13 +8,10 @@ namespace TimekeeperWPF
 {
     public class DayViewModel : CalendarViewModel
     {
-        public override string Name => throw new NotImplementedException();
-
-        protected override Task GetDataAsync()
+        public override string Name => "Day View";
+        public DayViewModel() : base()
         {
-            throw new NotImplementedException();
         }
-
         protected override void SaveAs()
         {
             throw new NotImplementedException();

@@ -91,6 +91,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Examples\Window1VM.cs" />
+    <Compile Include="FakeDayViewModel.cs" />
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />
     <Compile Include="Calendar\CalendarObject.cs" />
     <Compile Include="Calendar\Day.cs" />

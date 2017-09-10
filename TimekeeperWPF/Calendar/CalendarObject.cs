@@ -22,6 +22,7 @@ namespace TimekeeperWPF.Calendar
         static CalendarObject()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), new FrameworkPropertyMetadata(typeof(CalendarObject)));
+            BackgroundProperty.OverrideMetadata(typeof(CalendarObject), new FrameworkPropertyMetadata(Brushes.Tomato));
         }
         public CalendarObject()
         {
@@ -43,7 +44,7 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty StartProperty =
             DependencyProperty.Register(
                 nameof(Start), typeof(DateTime), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1)));
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
         #endregion
         #region End
         public DateTime End
@@ -54,7 +55,7 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty EndProperty =
             DependencyProperty.Register(
                 nameof(End), typeof(DateTime), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2)));
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
         #endregion
         #region Scale
         public double Scale

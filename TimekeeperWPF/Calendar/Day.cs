@@ -821,22 +821,27 @@ namespace TimekeeperWPF.Calendar
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
+                UIElement actualChild = child;
                 Size childSize = new Size(availableSize.Width, double.PositiveInfinity); //1D
-                if (child is CalendarObject)
+                //unbox the child element
+                if ((child as ContentControl)?.Content is UIElement)
+                    actualChild = (UIElement)((ContentControl)child).Content;
+                if (actualChild is CalendarObject)
                 {
                     childSize.Width = Math.Max(0, childSize.Width - TextMargin); //1D
-                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width + TextMargin); //1D
+                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width + TextMargin); //1D
                 }
-                else if (child is NowMarker)
+                else if (actualChild is NowMarker)
                 {
                     //NowMarker will be rotated
                     childSize.Height = Math.Max(0, childSize.Width - TextMargin);
                 }
                 else
                 {
-                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width); //1D
+                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width); //1D
                 }
                 child.Measure(childSize);
+                actualChild.Measure(childSize);
             }
             extent.Width = biggestWidth; //1D
             extent.Height = DaySize; //1D
@@ -892,12 +897,16 @@ namespace TimekeeperWPF.Calendar
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
+                UIElement actualChild = child;
                 double x = 0; //1D
                 double y = 0; //12:00:00 AM //1D
                 Size childSize = child.DesiredSize;
-                if (child is CalendarObject)
+                //unbox the child element
+                if ((child as ContentControl)?.Content is UIElement)
+                    actualChild = (UIElement)((ContentControl)child).Content;
+                if (actualChild is CalendarObject)
                 {
-                    CalendarObject CalObj = child as CalendarObject;
+                    CalendarObject CalObj = actualChild as CalendarObject;
                     CalObj.Scale = Scale;
                     //set y relative to object start //1D
                     //y = 0 is Date = 12:00:00 AM //1D
@@ -908,14 +917,13 @@ namespace TimekeeperWPF.Calendar
                     childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
                     biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin); //1D
                 }
-                else if (child is NowMarker && Date.Date == DateTime.Now.Date)
+                else if (actualChild is NowMarker)
                 {
                     childSize.Height = Math.Max(0, arrangeSize.Width - TextMargin);
                     x = TextMargin + childSize.Height;
                     y = (DateTime.Now - Date.Date).TotalSeconds / Scale;
                     RotateTransform rotytoty = new RotateTransform(90);
-                    //child.RenderTransformOrigin = new Point(childSize.Width / 2, -childSize.Height);
-                    child.RenderTransform = rotytoty;
+                    actualChild.RenderTransform = rotytoty;
                 }
                 else
                 {
