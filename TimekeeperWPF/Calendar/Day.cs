@@ -860,15 +860,15 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is CalendarObject)
+                if (actualChild is NowMarkerHorizontal) continue;
+                else if (actualChild is NowMarkerVertical)
+                {
+                    childSize.Width = Math.Max(0, childSize.Width - TextMargin);
+                }
+                else if (actualChild is CalendarObject)
                 {
                     childSize.Width = Math.Max(0, childSize.Width - TextMargin); //1D
                     biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width + TextMargin); //1D
-                }
-                else if (actualChild is NowMarker)
-                {
-                    //NowMarker will be rotated
-                    childSize.Height = Math.Max(0, childSize.Width - TextMargin);
                 }
                 else
                 {
@@ -891,15 +891,15 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is CalendarObject)
+                if (actualChild is NowMarkerVertical) continue;
+                else if (actualChild is NowMarkerHorizontal)
+                {
+                    childSize.Height = Math.Max(0, childSize.Height - TextMargin);
+                }
+                else if (actualChild is CalendarObject)
                 {
                     childSize.Height = Math.Max(0, childSize.Height - TextMargin); //1D
                     biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height + TextMargin); //1D
-                }
-                else if (actualChild is NowMarker)
-                {
-                    //NowMarker will not be rotated
-                    childSize.Height = Math.Max(0, childSize.Height - TextMargin);
                 }
                 else
                 {
@@ -941,7 +941,19 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is CalendarObject)
+                if (actualChild is NowMarkerHorizontal)
+                {
+                    child.Visibility = Visibility.Collapsed;
+                    continue;
+                }
+                else if (actualChild is NowMarkerVertical)
+                {
+                    child.Visibility = Visibility.Visible;
+                    childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
+                    x = TextMargin;
+                    y = (DateTime.Now - Date.Date).TotalSeconds / Scale;
+                }
+                else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
                     CalObj.Scale = Scale;
@@ -952,14 +964,6 @@ namespace TimekeeperWPF.Calendar
                     x = TextMargin; //1D
                     y = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
                     biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin); //1D
-                }
-                else if (actualChild is NowMarker)
-                {
-                    childSize.Height = Math.Max(0, arrangeSize.Width - TextMargin);
-                    x = TextMargin + childSize.Height;
-                    y = (DateTime.Now - Date.Date).TotalSeconds / Scale;
-                    RotateTransform rotytoty = new RotateTransform(90);
-                    actualChild.RenderTransform = rotytoty;
                 }
                 else
                 {
@@ -986,7 +990,19 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is CalendarObject)
+                if (actualChild is NowMarkerVertical)
+                {
+                    child.Visibility = Visibility.Collapsed;
+                    continue;
+                }
+                else if (actualChild is NowMarkerHorizontal)
+                {
+                    child.Visibility = Visibility.Visible;
+                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
+                    //y = 0
+                    x = (DateTime.Now - Date.Date).TotalSeconds / Scale;
+                }
+                else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
                     CalObj.Scale = Scale;
@@ -997,14 +1013,6 @@ namespace TimekeeperWPF.Calendar
                     y = arrangeSize.Height - childSize.Height - TextMargin;
                     x = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
                     biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + TextMargin); //1D
-                }
-                else if (actualChild is NowMarker)
-                {
-                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
-                    //y = 0
-                    x = (DateTime.Now - Date.Date).TotalSeconds / Scale;
-
-
                 }
                 else
                 {

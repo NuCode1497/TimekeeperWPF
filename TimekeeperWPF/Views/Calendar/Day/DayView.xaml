@@ -12,31 +12,43 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ContentControl x:Name="CommandsToolbar" Grid.Row="0" 
-                        Template="{StaticResource CalendarViewControlsTemplate}"/>
-        <ListBox x:Name="CalendarObjectsIC" Grid.Row="1"
-                 SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
-                 ItemsSource="{Binding Path=CalendarObjectsView}" 
-                 ItemContainerStyle="{StaticResource CalObjContainerStyle}"
-                 ScrollViewer.CanContentScroll="True"
-                 HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <ContentControl 
+            x:Name="CommandsToolbar" Grid.Row="0" 
+            Template="{StaticResource CalendarViewControlsTemplate}"/>
+        <ListBox 
+            x:Name="CalendarObjectsIC" Grid.Row="1"
+            SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
+            ItemContainerStyle="{StaticResource CalObjContainerStyle}"
+            ScrollViewer.CanContentScroll="True"
+            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+            <ListBox.Resources>
+                <CollectionContainer 
+                    x:Key="CalObjs"
+                    Collection="{Binding DataContext.CalendarObjectsView, 
+                    Source={x:Reference CalendarObjectsIC}}"/>
+            </ListBox.Resources>
+            <ItemsControl.ItemsSource>
+                <CompositeCollection>
+                    <cal:NowMarkerHorizontal/>
+                    <cal:NowMarkerVertical/>
+                    <StaticResource ResourceKey="CalObjs"/>
+                </CompositeCollection>
+            </ItemsControl.ItemsSource>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <cal:Day x:Name="DayPanel" 
-                             ScaleSudoCommand="{Binding Path=ScaleSudoCommand, Mode=OneWay}"
-                             Date="{Binding Path=SelectedDate, Mode=TwoWay}"
-                             Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
-                             ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
-                             ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}" 
-                             IsHighlightable="False"/>
+                    <cal:Day 
+                        x:Name="DayPanel" 
+                        ScaleSudoCommand="{Binding Path=ScaleSudoCommand, Mode=OneWay}"
+                        Date="{Binding Path=SelectedDate, Mode=TwoWay}"
+                        Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
+                        ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
+                        ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}" 
+                        IsHighlightable="False"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <cal:CalendarObject/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
         </ListBox>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <local:LoadingView 
+            Grid.Row="0" Grid.RowSpan="2" 
+            Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

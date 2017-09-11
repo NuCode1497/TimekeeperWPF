@@ -236,9 +236,8 @@ namespace TimekeeperWPF
         {
             PatternsView.Filter = P =>
             {
-                return
-                CurrentEntityIncludesView.Contains(P) == false &&
-                CurrentEntityExcludesView.Contains(P) == false;
+                return CurrentEntityIncludesView.Contains(P) == false 
+                    && CurrentEntityExcludesView.Contains(P) == false;
             };
             OnPropertyChanged(nameof(PatternsView));
             OnPropertyChanged(nameof(CurrentEntityIncludesView));

@@ -21,8 +21,14 @@ namespace TimekeeperWPF.Calendar
     {
         static CalendarObject()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), new FrameworkPropertyMetadata(typeof(CalendarObject)));
-            BackgroundProperty.OverrideMetadata(typeof(CalendarObject), new FrameworkPropertyMetadata(Brushes.Tomato));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), 
+                new FrameworkPropertyMetadata(typeof(CalendarObject)));
+            BackgroundProperty.OverrideMetadata(typeof(CalendarObject), 
+                new FrameworkPropertyMetadata(new SolidColorBrush() { Opacity = 0.5d, Color = Colors.Tomato }));
+            BorderBrushProperty.OverrideMetadata(typeof(CalendarObject), 
+                new FrameworkPropertyMetadata(Brushes.DarkSlateGray));
+            BorderThicknessProperty.OverrideMetadata(typeof(CalendarObject), 
+                new FrameworkPropertyMetadata(new Thickness(2)));
         }
         public CalendarObject()
         {

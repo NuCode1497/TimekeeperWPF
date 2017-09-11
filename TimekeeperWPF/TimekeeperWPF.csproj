@@ -91,13 +91,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Calendar\NowMarkerVertical.xaml.cs">
+      <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Examples\Window1VM.cs" />
     <Compile Include="FakeDayViewModel.cs" />
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />
     <Compile Include="Calendar\CalendarObject.cs" />
     <Compile Include="Calendar\Day.cs" />
-    <Compile Include="Calendar\NowMarker.xaml.cs">
-      <DependentUpon>NowMarker.xaml</DependentUpon>
+    <Compile Include="Calendar\NowMarkerHorizontal.xaml.cs">
+      <DependentUpon>NowMarkerHorizontal.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Day\DayViewModel.cs" />
     <Compile Include="Examples\AnnoyingPanel.cs" />
@@ -210,7 +213,11 @@
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Week\WeekViewModel.cs" />
-    <Page Include="Calendar\NowMarker.xaml">
+    <Page Include="Calendar\NowMarkerVertical.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Calendar\NowMarkerHorizontal.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

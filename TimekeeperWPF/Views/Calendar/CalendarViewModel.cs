@@ -11,13 +11,14 @@ using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Windows.Input;
 using System.Windows.Controls;
+using System.Windows;
 
 namespace TimekeeperWPF
 {
     public abstract class CalendarViewModel : ViewModel<TimeTask>
     {
         #region Fields
-        private CalendarObject _SelectedCalendarObect;
+        private UIElement _SelectedCalendarObect;
         private DateTime _SelectedDate;
         private Orientation _Orientation;
         private bool _Max;
@@ -40,9 +41,9 @@ namespace TimekeeperWPF
         }
         #region Properties
         public CollectionViewSource CalendarObjectsCollection { get; set; }
-        public ObservableCollection<CalendarObject> CalendarObjectsSource => CalendarObjectsCollection?.Source as ObservableCollection<CalendarObject>;
+        public ObservableCollection<UIElement> CalendarObjectsSource => CalendarObjectsCollection?.Source as ObservableCollection<UIElement>;
         public ListCollectionView CalendarObjectsView => CalendarObjectsCollection?.View as ListCollectionView;
-        public CalendarObject SelectedCalendarObject
+        public UIElement SelectedCalendarObject
         {
             get { return _SelectedCalendarObect; }
             set
@@ -132,22 +133,9 @@ namespace TimekeeperWPF
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
 
-            CalendarObjectsCollection = new CollectionViewSource();
-            CalendarObjectsCollection.Source = new ObservableCollection<CalendarObject>()
-            {
-                new CalendarObject()
-                {
-                    Start = DateTime.Now.Date.AddMinutes(10),
-                    End = DateTime.Now.Date.AddHours(1).AddMinutes(20),
-                },
-                new CalendarObject()
-                {
-                    Start = DateTime.Now.Date.AddHours(2).AddMinutes(20),
-                    End = DateTime.Now.Date.AddHours(4),
-                }
-            };
-            OnPropertyChanged(nameof(CalendarObjectsView));
+            SetUpCalendarObjects();
         }
+        protected virtual void SetUpCalendarObjects() { }
         private void Previous() { SelectedDate = SelectedDate.AddDays(-1); }
         private void Next() { SelectedDate = SelectedDate.AddDays(1); }
         private void ToggleOrientation()
