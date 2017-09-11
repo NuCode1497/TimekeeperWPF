@@ -1,13 +1,9 @@
-﻿<Application x:Class="TimekeeperWPF.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TimekeeperWPF"
-             xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
-             xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
-             xmlns:clr="clr-namespace:System;assembly=mscorlib"
-             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
-             StartupUri="/Views/Main/MainWindow.xaml"
-             DispatcherUnhandledException="Application_DispatcherUnhandledException">
+﻿<Application 
+    x:Class="TimekeeperWPF.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    StartupUri="/Views/Main/MainWindow.xaml"
+    DispatcherUnhandledException="Application_DispatcherUnhandledException">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

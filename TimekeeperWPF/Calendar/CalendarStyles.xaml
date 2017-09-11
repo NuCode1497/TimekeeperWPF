@@ -22,24 +22,26 @@
             <ToolBar Band="1" BandIndex="1">
                 <Button x:Name="PreviousButton" Content="&lt;--" Command="{Binding Path=PreviousCommand}"/>
                 <Button x:Name="NextButton" Content="--&gt;" Command="{Binding Path=NextCommand}"/>
-                <Button x:Name="OrientationButton" Content="Orientation" Command="{Binding Path=ToggleOrientationCommand}"/>
+                <Button x:Name="OrientationButton" Content="Orientation" Command="{Binding Path=OrientationCommand}"/>
                 <Button x:Name="ScaleUpButton" Content="Scale Up" Command="{Binding Path=ScaleUpCommand}"/>
                 <Button x:Name="ScaleDownButton" Content="Scale Down" Command="{Binding Path=ScaleDownCommand}"/>
+                <Button x:Name="MaxButton" Content="Max" Command="{Binding Path=MaxCommand}"/>
+                <Button x:Name="TextMarginButton" Content="Margin" Command="{Binding Path=TextMarginCommand}"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>
     <ControlTemplate x:Key="CalObjContainerTemplate" TargetType="ContentControl">
         <Grid>
-            <Border BorderBrush="{DynamicResource CalObjContainer.BorderColor}" 
-                    CornerRadius="2"
+            <Border CornerRadius="2"
+                    BorderBrush="{DynamicResource CalObjContainer.BorderColor}" 
                     BorderThickness="{DynamicResource CalObjContainer.BorderThickness}">
                 <ContentPresenter Opacity="{DynamicResource CalObjContainer.Opacity}"/>
             </Border>
-            <Border x:Name="HighlightBorder" BorderThickness="3" Margin="-1"
+            <Border x:Name="HighlightBorder" BorderThickness="3" Margin="-1" CornerRadius="2"
                     Opacity="{DynamicResource CalObjContainer.Opacity}" 
-                    CornerRadius="2"
                     BorderBrush="{DynamicResource Highlight.BorderColor}">
-                <Rectangle x:Name="HighlightBackground" Opacity="{DynamicResource Highlight.Opacity}"
+                <Rectangle x:Name="HighlightBackground" 
+                           Opacity="{DynamicResource Highlight.Opacity}"
                            Fill="{DynamicResource Highlight.BackgroundColor}"/>
             </Border>
         </Grid>

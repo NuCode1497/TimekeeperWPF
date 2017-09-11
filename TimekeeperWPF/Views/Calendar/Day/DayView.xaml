@@ -23,8 +23,12 @@
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <cal:Day x:Name="DayPanel" 
-                             Orientation="Vertical" ForceMaxScale="False" 
-                             ShowTextMargin="True" IsHighlightable="False"/>
+                             ScaleSudoCommand="{Binding Path=ScaleSudoCommand, Mode=OneWay}"
+                             Date="{Binding Path=SelectedDate, Mode=TwoWay}"
+                             Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
+                             ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
+                             ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}" 
+                             IsHighlightable="False"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>

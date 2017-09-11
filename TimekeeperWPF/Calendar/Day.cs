@@ -76,6 +76,11 @@ namespace TimekeeperWPF.Calendar
                 }
             }
         }
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            CoerceValue(ScaleProperty);
+            base.OnRenderSizeChanged(sizeInfo);
+        }
         #endregion Events
         #region Features
         #region Animation
@@ -127,6 +132,7 @@ namespace TimekeeperWPF.Calendar
         private static void OnForceMaxScaleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             d.CoerceValue(ScaleProperty);
+            d.CoerceValue(OffsetProperty);
         }
         #endregion
         #region Foreground
@@ -378,6 +384,7 @@ namespace TimekeeperWPF.Calendar
                 nameof(Orientation), typeof(Orientation), typeof(Day),
                 new FrameworkPropertyMetadata(Orientation.Vertical,
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
+                    FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender,
                     new PropertyChangedCallback(OnOrientationChanged)),
                 new ValidateValueCallback(IsValidOrientation));
@@ -385,6 +392,8 @@ namespace TimekeeperWPF.Calendar
         {
             Day day = d as Day;
             day.ResetScrolling();
+            day.CoerceValue(OffsetProperty);
+            day.CoerceValue(ScaleProperty);
         }
         protected override bool HasLogicalOrientation => true;
         protected override Orientation LogicalOrientation => Orientation;
@@ -401,7 +410,6 @@ namespace TimekeeperWPF.Calendar
         protected double _ScaleLowerLimit = 0.5d;
         protected double _ScaleUpperLimit = 900d;
         private bool _IsCancellingScaleAnimation = false;
-        public virtual double MaxScale => Orientation == Orientation.Vertical ? DaySeconds / ViewportHeight : DaySeconds / ViewportWidth;
         private Vector PreScaleRelativeOffSetInSeconds = new Vector();
         private Vector RelativeScalingVector = new Vector();
         private ICommand _ScaleUpCommand = null;
@@ -428,8 +436,6 @@ namespace TimekeeperWPF.Calendar
             if (day._IsCancellingScaleAnimation) return;
             Double newValue = (Double)e.NewValue;
             day.FindGridData();
-            //We want to set Offset when scale changes but
-            //We have to clear animations to set depProps because animation value hides backing value
             day.BeginAnimation(OffsetProperty, null);
             day._Offset = day.Offset = (day.PreScaleRelativeOffSetInSeconds / day.Scale) - day.RelativeScalingVector;
         }
@@ -437,11 +443,18 @@ namespace TimekeeperWPF.Calendar
         {
             Day day = d as Day;
             Double newValue = (Double)value;
-            if (day.ForceMaxScale || newValue > day.MaxScale) newValue = day.MaxScale;
+            if (day.ForceMaxScale || newValue > day.GetMaxScale()) newValue = day.GetMaxScale();
             if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
             if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
             if (Double.IsNaN(newValue)) return DependencyProperty.UnsetValue;
             return newValue;
+        }
+        public double GetMaxScale()
+        {
+            if (Orientation == Orientation.Vertical) 
+                return DaySeconds / RenderSize.Height;
+            else 
+                return DaySeconds / RenderSize.Width;
         }
         internal static bool IsValidScale(object value)
         {
@@ -453,16 +466,34 @@ namespace TimekeeperWPF.Calendar
             ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
         public ICommand ScaleDownCommand => _ScaleDownCommand
             ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => CanScaleDown));
+        /// <summary>
+        /// This property expects negative number to trigger scale down, positive for scale up.
+        /// </summary>
+        public int ScaleSudoCommand
+        {
+            get { return (int)GetValue(ScaleSudoCommandProperty); }
+            set { SetValue(ScaleSudoCommandProperty, value); }
+        }
+        public static readonly DependencyProperty ScaleSudoCommandProperty =
+            DependencyProperty.Register(
+                nameof(ScaleSudoCommand), typeof(int), typeof(Day),
+                new FrameworkPropertyMetadata(0, null,
+                    new CoerceValueCallback(OnCoerceScaleSudoCommand)));
+        public static object OnCoerceScaleSudoCommand(DependencyObject d, object value)
+        {
+            //This may be a bit unconventional, but it works great.
+            //I need to redirect the ScaleUp command sent by a button on a toolbar to the VM to this panel.
+            //This is done by sending the information through int properties from VM to this panel.
+            Day day = d as Day;
+            int i = (int)value;
+            if (i < 0) day.TryScaleDown();
+            else if (i > 0) day.TryScaleUp();
+            return 0;
+        }
         private bool CanScaleUp => !ForceMaxScale;
         private bool CanScaleDown => !ForceMaxScale;
-        private void ScaleUp()
-        {
-            ScaleUpOrDownBy(ScaleFactor);
-        }
-        private void ScaleDown()
-        {
-            ScaleUpOrDownBy(-ScaleFactor);
-        }
+        private void ScaleUp() { ScaleUpOrDownBy(ScaleFactor); }
+        private void ScaleDown() { ScaleUpOrDownBy(-ScaleFactor); }
         private void ScaleUpOrDownBy(double ScaleFactor)
         {
             if (IsMouseOver) SetRelativeScalingVector(Mouse.GetPosition(this));
@@ -549,33 +580,28 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(80d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender));
-        private GridTextFormat _GridTextFormatPrevious;
         private void UpdateTextMargin()
         {
             if (ShowTextMargin)
             {
-                if (_GridTextFormatPrevious != _GridData.GridTextFormat)
+                string format = "";
+                if (_GridData.GridTextFormat == GridTextFormat.Long) format = "00:00:00 AM";
+                else if (_GridData.GridTextFormat == GridTextFormat.Medium) format = "00:00 AM";
+                else if (_GridData.GridTextFormat == GridTextFormat.Short) format = "00 AM";
+                else
                 {
-                    _GridTextFormatPrevious = _GridData.GridTextFormat;
-                    string format = "";
-                    if (_GridData.GridTextFormat == GridTextFormat.Long) format = "00:00:00 AM";
-                    else if (_GridData.GridTextFormat == GridTextFormat.Medium) format = "00:00 AM";
-                    else if (_GridData.GridTextFormat == GridTextFormat.Short) format = "00 AM";
-                    else
-                    {
-                        _TextMargin = 0;
-                        AnimateTextMargin();
-                        return;
-                    }
-                    FormattedText lineText = new FormattedText(format,
-                        System.Globalization.CultureInfo.CurrentCulture,
-                        FlowDirection.RightToLeft,
-                        new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
-                        FontSize, Foreground,
-                        VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                    _TextMargin = lineText.Width - _TextOffset.X - _TextOffset.X;
+                    _TextMargin = 0;
                     AnimateTextMargin();
+                    return;
                 }
+                FormattedText lineText = new FormattedText(format,
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    FlowDirection.RightToLeft,
+                    new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
+                    FontSize, Foreground,
+                    VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                _TextMargin = lineText.Width - _TextOffset.X - _TextOffset.X;
+                AnimateTextMargin();
             }
             else
             {
@@ -1261,7 +1287,7 @@ namespace TimekeeperWPF.Calendar
         {
             if (_ScrollOwner != null)
             {
-                InvalidateMeasure();
+                BeginAnimation(OffsetProperty, null);
                 Offset = _Offset = new Vector();
                 _Viewport = _Extent = new Size();
             }

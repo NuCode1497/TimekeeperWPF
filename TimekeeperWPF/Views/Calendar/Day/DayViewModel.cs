@@ -12,6 +12,7 @@ namespace TimekeeperWPF
         public DayViewModel() : base()
         {
         }
+        protected override bool CanSave => false;
         protected override void SaveAs()
         {
             throw new NotImplementedException();
