@@ -57,15 +57,6 @@ namespace TimekeeperWPF.Calendar
         }
         protected bool IsWeekCurrent => Date.WeekStart() == DateTime.Now.WeekStart();
         #endregion
-        #region Scale
-        public override double GetMaxScale()
-        {
-            if (Orientation == Orientation.Vertical)
-                return Date.WeekSeconds() / RenderSize.Height;
-            else
-                return Date.WeekSeconds() / RenderSize.Width;
-        }
-        #endregion
         #endregion
         #region Layout
         protected override Size MeasureVertically(Size availableSize, Size extent)
@@ -155,11 +146,11 @@ namespace TimekeeperWPF.Calendar
                 {
                     if (IsWeekCurrent)
                     {
-                        //get day of week that is today
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
                         x = TextMargin + ((int)DateTime.Now.DayOfWeek * dayWidth);
-                        y = (DateTime.Now - Date.Date).TotalSeconds / Scale;
+                        DateTime dt = DateTime.Now;
+                        y = (dt - dt.Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -182,7 +173,8 @@ namespace TimekeeperWPF.Calendar
                     x = TextMargin + ((startDayOfWeek + CalObj.DayOffset) * dayWidth); //1D
                     //set y relative to object start //1D
                     //y = 0 is Date = 12:00:00 AM //1D
-                    y = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
+                    DateTime dt = CalObj.Start;
+                    y = (dt - dt.Date).TotalSeconds / Scale; //1D
                     biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * 7d) + TextMargin); //1D
                 }
                 else
@@ -220,11 +212,11 @@ namespace TimekeeperWPF.Calendar
                 {
                     if (IsWeekCurrent)
                     {
-                        //get day of week that is today
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
                         y = (int)DateTime.Now.DayOfWeek * dayHeight;
-                        x = (DateTime.Now - Date.Date).TotalSeconds / Scale;
+                        DateTime dt = DateTime.Now;
+                        x = (dt - dt.Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -247,7 +239,8 @@ namespace TimekeeperWPF.Calendar
                     y = (startDayOfWeek + CalObj.DayOffset) * dayHeight; //1D
                     //set x relative to object start //1D
                     //x = 0 is Date = 12:00:00 AM //1D
-                    x = (CalObj.Start - Date.Date).TotalSeconds / Scale; //1D
+                    DateTime dt = CalObj.Start;
+                    x = (dt - dt.Date).TotalSeconds / Scale; //1D
                     biggestChildHeight = Math.Max(biggestChildHeight, (childSize.Height * 7d) + TextMargin); //1D
                 }
                 else
@@ -262,80 +255,75 @@ namespace TimekeeperWPF.Calendar
             extent.Width = DaySize(Date); //1D
             return extent;
         }
-        protected override void DrawHighlight(DrawingContext dc)
+        protected override void OnRender(DrawingContext dc)
         {
-            if (IsWeekCurrent)
+            base.OnRender(dc);
+            DrawSeparators(dc);
+        }
+        protected override void DrawHighlightVertically(DrawingContext dc)
+        {
+            if (!IsWeekCurrent) return;
+            Size size = new Size((RenderSize.Width - TextMargin) / 7d, RenderSize.Height);
+            double dayWidth = (RenderSize.Width - TextMargin) / 7d;
+            double x = TextMargin + ((int)DateTime.Now.DayOfWeek * dayWidth);
+            Point point = new Point(x, 0);
+            Rect rect = new Rect(point, size);
+            dc.DrawRectangle(Highlight, null, rect);
+        }
+        protected override void DrawHighlightHorizontally(DrawingContext dc)
+        {
+            if (!IsWeekCurrent) return;
+            Size size = new Size(RenderSize.Width, (RenderSize.Height - TextMargin) / 7d);
+            double dayHeight = (RenderSize.Height - TextMargin) / 7d;
+            double y = (int)DateTime.Now.DayOfWeek * dayHeight;
+            Point point = new Point(0, y);
+            Rect rect = new Rect(point, size);
+            dc.DrawRectangle(Highlight, null, rect);
+        }
+        protected override void DrawWatermarkVertically(DrawingContext dc)
+        {
+            Size daySize = new Size((RenderSize.Width - TextMargin) / 7d, RenderSize.Height);
+            double textSize = Math.Max(12d, Math.Min(daySize.Width / 4d, daySize.Height / 4d));
+            for (int i = 0; i < 7; i++)
             {
-                if (Orientation == Orientation.Vertical)
-                {
-                    Size size = new Size((RenderSize.Width - TextMargin) / 7d, RenderSize.Height);
-                    double dayWidth = (RenderSize.Width - TextMargin) / 7d;
-                    double x = TextMargin + ((int)DateTime.Now.DayOfWeek * dayWidth);
-                    Point point = new Point(x, 0);
-                    Rect rect = new Rect(point, size);
-                    dc.DrawRectangle(Highlight, null, rect);
-                }
-                else
-                {
-                    Size size = new Size(RenderSize.Width, (RenderSize.Height - TextMargin) / 7d);
-                    double dayHeight = (RenderSize.Height - TextMargin) / 7d;
-                    double y = (int)DateTime.Now.DayOfWeek * dayHeight;
-                    Point point = new Point(0, y);
-                    Rect rect = new Rect(point, size);
-                    dc.DrawRectangle(Highlight, null, rect);
-                }
+                double x = TextMargin + i * daySize.Width + daySize.Width / 2d;
+                double y = daySize.Height / 2d;
+                string text = Date.AddDays(i).ToString(WatermarkFormat);
+                DrawWatermarkText(dc, textSize, x, y, text);
             }
         }
-        protected override void DrawWatermark(DrawingContext dc)
+        protected override void DrawWatermarkHorizontally(DrawingContext dc)
+        {
+            Size daySize = new Size(RenderSize.Width, (RenderSize.Height - TextMargin) / 7d);
+            double textSize = Math.Max(12d, Math.Min(daySize.Width / 4d, daySize.Height / 4d));
+            for (int i = 0; i < 7; i++)
+            {
+                double x = daySize.Width / 2d;
+                double y = i * daySize.Height + daySize.Height / 2d;
+                string text = Date.AddDays(i).ToString(WatermarkFormat);
+                DrawWatermarkText(dc, textSize, x, y, text);
+            }
+        }
+        protected virtual void DrawSeparators(DrawingContext dc)
         {
             if (Orientation == Orientation.Vertical)
             {
-                Size daySize = new Size((RenderSize.Width - TextMargin) / 7d, RenderSize.Height);
-                double textSize = Math.Max(12d, Math.Min(daySize.Width / 4d, daySize.Height / 4d));
                 for (int i = 0; i < 7; i++)
                 {
-                    string text = Date.AddDays(i).ToString(WatermarkFormat);
-                    FormattedText lineText = new FormattedText(text,
-                        System.Globalization.CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight,
-                        new Typeface(WatermarkFontFamily, FontStyles.Normal,
-                        FontWeights.Bold, FontStretches.Normal),
-                        textSize, WatermarkBrush, null,
-                        VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                    lineText.TextAlignment = TextAlignment.Center;
-                    double x = TextMargin + i * daySize.Width + daySize.Width / 2d;
-                    double y = daySize.Height / 2d - lineText.Height / 2d;
-                    dc.DrawText(lineText, new Point(x, y));
+                    double dayWidth = (RenderSize.Width - TextMargin) / 7d;
+                    double x = TextMargin + (i * dayWidth);
+                    dc.DrawLine(GridRegularPen, new Point(x, 0), new Point(x, RenderSize.Height));
                 }
             }
             else
             {
-                Size daySize = new Size(RenderSize.Width, (RenderSize.Height - TextMargin) / 7d);
-                double textSize = Math.Max(12d, Math.Min(daySize.Width / 4d, daySize.Height / 4d));
                 for (int i = 0; i < 7; i++)
                 {
-                    string text = Date.AddDays(i).ToString(WatermarkFormat);
-                    FormattedText lineText = new FormattedText(text,
-                        System.Globalization.CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight,
-                        new Typeface(WatermarkFontFamily, FontStyles.Normal,
-                        FontWeights.Bold, FontStretches.Normal),
-                        textSize, WatermarkBrush, null,
-                        VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                    lineText.TextAlignment = TextAlignment.Center;
-                    double x = daySize.Width / 2d;
-                    double y = i * daySize.Height + daySize.Height / 2d - lineText.Height / 2d;
-                    dc.DrawText(lineText, new Point(x, y));
+                    double dayHeight = (RenderSize.Height - TextMargin) / 7d;
+                    double y = i * dayHeight;
+                    dc.DrawLine(GridRegularPen, new Point(0, y), new Point(RenderSize.Width, y));
                 }
             }
-        }
-        protected override void DrawGridVertically(DrawingContext dc, Rect area)
-        {
-            base.DrawGridVertically(dc, area);
-        }
-        protected override void DrawGridHorizontally(DrawingContext dc, Rect area)
-        {
-            base.DrawGridHorizontally(dc, area);
         }
         #endregion
     }

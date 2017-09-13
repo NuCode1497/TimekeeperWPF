@@ -63,8 +63,8 @@
                 <Button x:Name="OrientationButton" Content="Orientation" Command="{Binding Path=OrientationCommand}"/>
                 <Button x:Name="ScaleUpButton" Content="Scale Up" Command="{Binding Path=ScaleUpCommand}"/>
                 <Button x:Name="ScaleDownButton" Content="Scale Down" Command="{Binding Path=ScaleDownCommand}"/>
-                <Button x:Name="MaxButton" Content="Max" Command="{Binding Path=MaxCommand}"/>
-                <Button x:Name="TextMarginButton" Content="Margin" Command="{Binding Path=TextMarginCommand}"/>
+                <CheckBox x:Name="MaxCheckBox" Content="Max" IsChecked="{Binding Path=Max, Mode=TwoWay}"/>
+                <CheckBox x:Name="TextMarginCheckBox" Content="Margin" IsChecked="{Binding Path=TextMargin, Mode=TwoWay}"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>
@@ -93,6 +93,8 @@
     <Style x:Key="CalObjContainerStyle" TargetType="ListBoxItem">
         <Setter Property="Margin" Value="0"/>
         <Setter Property="Padding" Value="0"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="true">
                 <Setter Property="Template" Value="{StaticResource CalObjContainerTemplate.Hover}"/>

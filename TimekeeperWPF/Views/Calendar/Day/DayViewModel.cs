@@ -45,11 +45,11 @@ namespace TimekeeperWPF
                     || task.End.Date == SelectedDate.Date;
             };
             OnPropertyChanged(nameof(View));
-            foreach(TimeTask T in View)
+            foreach (TimeTask T in View)
             {
                 //Here we want to create CalendarObjects based on the selected TimeTask
                 CalendarObject CalObj = new CalendarObject();
-                //edit
+                //edit CalObj properties
                 CalendarObjectsView.AddNewItem(CalObj);
             }
             OnPropertyChanged(nameof(CalendarObjectsView));

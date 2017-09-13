@@ -18,29 +18,16 @@ namespace TimekeeperWPF
     public class WeekViewModel : CalendarViewModel
     {
         #region Fields
-        private Orientation _WeekOrientation = Orientation.Horizontal;
-        private ICommand _WeekOrientationCommand;
         #endregion
-
         #region Properties
         public override string Name => "Week View";
-        public Orientation WeekOrientation
-        {
-            get { return _WeekOrientation; }
-            set
-            {
-                if (_WeekOrientation == value) return;
-                _WeekOrientation = value;
-                OnPropertyChanged();
-            }
-        }
         public override DateTime SelectedDate
         {
             get => base.SelectedDate;
             set
             {
                 //Here we intercept and set the date to the first of the week
-                base.SelectedDate = value.Date.AddDays(-(int)value.DayOfWeek);
+                base.SelectedDate = value.WeekStart();
             }
         }
         #endregion
@@ -49,8 +36,6 @@ namespace TimekeeperWPF
         protected override bool CanMax => true;
         #endregion
         #region Commands
-        public ICommand WeekOrientationCommand => _WeekOrientationCommand
-            ?? (_WeekOrientationCommand = new RelayCommand(ap => ToggleWeekOrientation(), pp => CanWeekOrientation));
         #endregion
         #region Predicates
         protected override bool CanOrientation => true;
@@ -95,7 +80,6 @@ namespace TimekeeperWPF
             }
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
-
         private void KageBunshinNoJutsu(CalendarObject CalObj)
         {
             if (CalObj.Start.Date != CalObj.End.Date)
@@ -115,27 +99,6 @@ namespace TimekeeperWPF
                     CalendarObjectsView.AddNewItem(shadowClone);
                 }
             }
-        }
-
-        protected override void ToggleMaxScale()
-        {
-            //instead of maxing days, (days are permanently maxed), 
-            //max the week to the viewport
-        }
-        protected override void ScaleUp()
-        {
-            //instead of scaling days, just stretch the week grid
-        }
-        protected override void ScaleDown()
-        {
-
-        }
-        protected virtual void ToggleWeekOrientation()
-        {
-            if (WeekOrientation == Orientation.Horizontal)
-                WeekOrientation = Orientation.Vertical;
-            else
-                WeekOrientation = Orientation.Horizontal;
         }
         #endregion
     }

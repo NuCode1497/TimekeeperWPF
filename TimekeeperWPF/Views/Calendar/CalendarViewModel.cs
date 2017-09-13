@@ -27,8 +27,6 @@ namespace TimekeeperWPF
         private ICommand _PreviousCommand;
         private ICommand _NextCommand;
         private ICommand _OrientationCommand;
-        private ICommand _MaxCommand;
-        private ICommand _TextMarginCommand;
         private ICommand _ScaleUpCommand;
         private ICommand _ScaleDownCommand;
         #endregion
@@ -108,10 +106,6 @@ namespace TimekeeperWPF
             ?? (_NextCommand = new RelayCommand(ap => Next(), pp => CanNext));
         public ICommand OrientationCommand => _OrientationCommand
             ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
-        public ICommand MaxCommand => _MaxCommand
-            ?? (_MaxCommand = new RelayCommand(ap => ToggleMaxScale(), pp => CanMax));
-        public ICommand TextMarginCommand => _TextMarginCommand
-            ?? (_TextMarginCommand = new RelayCommand(ap => ToggleTextMargin(), pp => CanTextMargin));
         public ICommand ScaleUpCommand => _ScaleUpCommand
             ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
         public ICommand ScaleDownCommand => _ScaleDownCommand
@@ -148,8 +142,6 @@ namespace TimekeeperWPF
             else
                 Orientation = Orientation.Horizontal;
         }
-        protected virtual void ToggleMaxScale() { Max = !Max; }
-        protected virtual void ToggleTextMargin() { TextMargin = !TextMargin; }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
         #endregion

@@ -40,9 +40,7 @@
                         Date="{Binding Path=SelectedDate, Mode=TwoWay}"
                         Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
                         ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
-                        ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}" 
-                        Highlight="LightCyan"
-                        IsHighlightable="True"/>
+                        ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListBox>
