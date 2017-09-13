@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="400" Background="LimeGreen">
     <Grid x:Name="SV">
@@ -12,9 +13,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ContentControl 
-            x:Name="CommandsToolbar" Grid.Row="0" 
-            Template="{StaticResource CalendarViewControlsTemplate}"/>
         <ListBox 
             x:Name="CalendarObjectsIC" Grid.Row="1"
             SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
@@ -43,10 +41,14 @@
                         Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
                         ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
                         ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}" 
-                        IsHighlightable="False"/>
+                        Highlight="LightCyan"
+                        IsHighlightable="True"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListBox>
+        <ContentControl 
+            x:Name="CommandsToolbar" Grid.Row="0" 
+            Template="{StaticResource CalendarViewControlsTemplate}"/>
         <local:LoadingView 
             Grid.Row="0" Grid.RowSpan="2" 
             Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>

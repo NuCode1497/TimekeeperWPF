@@ -94,6 +94,7 @@
     <Compile Include="Calendar\NowMarkerVertical.xaml.cs">
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Calendar\Week.cs" />
     <Compile Include="Examples\Window1VM.cs" />
     <Compile Include="FakeDayViewModel.cs" />
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />

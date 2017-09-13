@@ -23,6 +23,7 @@ namespace TimekeeperWPF
                 Navigate(Views[0]);
                 return;
             }
+            Views.Add(new WeekViewModel());
             Views.Add(new DayViewModel());
             Views.Add(new NotesViewModel());
             Views.Add(new LabelsViewModel());
@@ -32,7 +33,6 @@ namespace TimekeeperWPF
             Views.Add(new TimeTasksViewModel());
             Views.Add(new TimePatternsViewModel());
             Views.Add(new MonthViewModel());
-            Views.Add(new WeekViewModel());
             Navigate(Views[0]);
 
             //RadialSample radialSample = new RadialSample();

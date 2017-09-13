@@ -19,10 +19,10 @@ namespace TimekeeperWPF
     {
         #region Fields
         private UIElement _SelectedCalendarObect;
-        private DateTime _SelectedDate;
-        private Orientation _Orientation;
-        private bool _Max;
-        private bool _TextMargin;
+        private DateTime _SelectedDate = DateTime.Now.Date;
+        private Orientation _Orientation = Orientation.Vertical;
+        private bool _Max = false;
+        private bool _TextMargin = true;
         private int _ScaleSudoCommand;
         private ICommand _PreviousCommand;
         private ICommand _NextCommand;
@@ -34,10 +34,6 @@ namespace TimekeeperWPF
         #endregion
         public CalendarViewModel() :base()
         {
-            SelectedDate = DateTime.Now.Date;
-            Orientation = Orientation.Vertical;
-            TextMargin = true;
-            Max = false;
         }
         #region Properties
         public CollectionViewSource CalendarObjectsCollection { get; set; }
@@ -53,7 +49,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        public DateTime SelectedDate
+        public virtual DateTime SelectedDate
         {
             get { return _SelectedDate; }
             set
@@ -107,21 +103,28 @@ namespace TimekeeperWPF
         #endregion
         #region Commands
         public ICommand PreviousCommand => _PreviousCommand
-            ?? (_PreviousCommand = new RelayCommand(ap => Previous(), pp => true));
+            ?? (_PreviousCommand = new RelayCommand(ap => Previous(), pp => CanPrevious));
         public ICommand NextCommand => _NextCommand
-            ?? (_NextCommand = new RelayCommand(ap => Next(), pp => true));
+            ?? (_NextCommand = new RelayCommand(ap => Next(), pp => CanNext));
         public ICommand OrientationCommand => _OrientationCommand
-            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => true));
+            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
         public ICommand MaxCommand => _MaxCommand
-            ?? (_MaxCommand = new RelayCommand(ap => ToggleMaxScale(), pp => true));
+            ?? (_MaxCommand = new RelayCommand(ap => ToggleMaxScale(), pp => CanMax));
         public ICommand TextMarginCommand => _TextMarginCommand
-            ?? (_TextMarginCommand = new RelayCommand(ap => ToggleTextMargin(), pp => true));
+            ?? (_TextMarginCommand = new RelayCommand(ap => ToggleTextMargin(), pp => CanTextMargin));
         public ICommand ScaleUpCommand => _ScaleUpCommand
-            ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => true));
+            ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
         public ICommand ScaleDownCommand => _ScaleDownCommand
-            ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => true));
+            ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => CanScaleDown));
         #endregion
         #region Predicates
+        protected virtual bool CanPrevious => true;
+        protected virtual bool CanNext => true;
+        protected virtual bool CanOrientation => true;
+        protected virtual bool CanMax => true;
+        protected virtual bool CanTextMargin => true;
+        protected virtual bool CanScaleUp => true;
+        protected virtual bool CanScaleDown => true;
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -135,28 +138,20 @@ namespace TimekeeperWPF
 
             SetUpCalendarObjects();
         }
-        protected virtual void SetUpCalendarObjects() { }
-        private void Previous() { SelectedDate = SelectedDate.AddDays(-1); }
-        private void Next() { SelectedDate = SelectedDate.AddDays(1); }
-        private void ToggleOrientation()
+        protected abstract void SetUpCalendarObjects();
+        protected virtual void Previous() { SelectedDate = SelectedDate.AddDays(-1); }
+        protected virtual void Next() { SelectedDate = SelectedDate.AddDays(1); }
+        protected virtual void ToggleOrientation()
         {
             if (Orientation == Orientation.Horizontal)
                 Orientation = Orientation.Vertical;
             else
                 Orientation = Orientation.Horizontal;
         }
-        private void ToggleMaxScale() { Max = !Max; }
-        private void ToggleTextMargin() { TextMargin = !TextMargin; }
-        private void ScaleUp()
-        {
-            ScaleSudoCommand = 1;
-            ScaleSudoCommand = 0;
-        }
-        private void ScaleDown()
-        {
-            ScaleSudoCommand = -1;
-            ScaleSudoCommand = 0;
-        }
+        protected virtual void ToggleMaxScale() { Max = !Max; }
+        protected virtual void ToggleTextMargin() { TextMargin = !TextMargin; }
+        protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
+        protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
         #endregion
     }
 }

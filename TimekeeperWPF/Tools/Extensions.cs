@@ -13,10 +13,7 @@ namespace TimekeeperWPF.Tools
         //Reminder: Exensions are:
         //public static [type] [MethodName](this [type2] [variableName])
 
-        public static string GetTypeName(this object o)
-        {
-            return o.GetType().IgnoreProxy().Name;
-        }
+        public static string GetTypeName(this object o) { return o.GetType().IgnoreProxy().Name; }
 
         //EF does some wierd stuff. When using EF Code First, it will create proxy classes at
         //runtime with some bizarre name ending in a string of letters and numbers. Doesn't matter
@@ -46,9 +43,14 @@ namespace TimekeeperWPF.Tools
             return found ?? parent.FindAncestor<T>();
         }
 
-        public static double Within(this double d, double min, double max)
+        public static double Within(this double d, double min, double max) { return Math.Max(min, Math.Min(d, max)); }
+        public static double DaySeconds(this DateTime d) { return (d.Date.AddDays(1) - d.Date).TotalSeconds; }
+        public static DateTime WeekStart(this DateTime d) { return d.Date.AddDays(-(int)d.DayOfWeek).Date; }
+        public static double WeekSeconds(this DateTime d)
         {
-            return Math.Max(min, Math.Min(d, max));
+            DateTime weekStart = d.WeekStart();
+            return (weekStart.AddDays(7) - weekStart).TotalSeconds;
         }
+
     }
 }

@@ -3,30 +3,91 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="700">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <cal:Day Grid.Column="0" x:Name="Sunday" ForceMaxScale="True">
-            <cal:CalendarObject Background="#7FFF6347" BorderBrush="Green" BorderThickness="5"/>
-            <cal:NowMarkerHorizontal/>
-        </cal:Day>
-        <cal:Day Grid.Column="1" x:Name="Monday" ForceMaxScale="True">
-        </cal:Day>
-        <cal:Day Grid.Column="2" x:Name="Tuesday" ForceMaxScale="True"/>
-        <cal:Day Grid.Column="3" x:Name="Wednesday" ForceMaxScale="True"/>
-        <cal:Day Grid.Column="4" x:Name="Thursday" ForceMaxScale="True"/>
-        <cal:Day Grid.Column="5" x:Name="Friday" ForceMaxScale="True"/>
-        <cal:Day Grid.Column="6" x:Name="Saturday" ForceMaxScale="True"/>
+             d:DesignHeight="300" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ControlTemplate x:Key="VerticalLRWeekTemplate" TargetType="ContentControl">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="WeekGrid" Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding ElementName=Sunday, Path=TextMargin, Mode=OneWayToSource}"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Cool thing here is you only need to set ForceMaxScale on first, set rest to true -->
+                    <!-- TODO: Scale probably only works on the first, but it should scale all -->
+                    <cal:Day Grid.Column="0" Grid.ColumnSpan="2" x:Name="Sunday" ForceMaxScale="False"/>
+                    <cal:Day Grid.Column="2" x:Name="Monday" ForceMaxScale="True" ShowTextMargin="False"/>
+                    <cal:Day Grid.Column="3" x:Name="Tuesday" ForceMaxScale="True" ShowTextMargin="False"/>
+                    <cal:Day Grid.Column="4" x:Name="Wednesday" ForceMaxScale="True" ShowTextMargin="False"/>
+                    <cal:Day Grid.Column="5" x:Name="Thursday" ForceMaxScale="True" ShowTextMargin="False"/>
+                    <cal:Day Grid.Column="6" x:Name="Friday" ForceMaxScale="True" ShowTextMargin="False"/>
+                    <cal:Day Grid.Column="7" x:Name="Saturday" ForceMaxScale="True" ShowTextMargin="False"/>
+                </Grid>
+            </ScrollViewer>
+        </ControlTemplate>
+        <ControlTemplate x:Key="HorizontalLRWeekTemplate" TargetType="ContentControl">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <cal:Day Grid.Column="0" x:Name="Sunday" ForceMaxScale="False" Orientation="Horizontal">
+                    </cal:Day>
+                    <cal:Day Grid.Column="1" x:Name="Monday" ForceMaxScale="True" Orientation="Horizontal"/>
+                    <cal:Day Grid.Column="2" x:Name="Tuesday" ForceMaxScale="True" Orientation="Horizontal"/>
+                    <cal:Day Grid.Column="3" x:Name="Wednesday" ForceMaxScale="True" Orientation="Horizontal"/>
+                    <cal:Day Grid.Column="4" x:Name="Thursday" ForceMaxScale="True" Orientation="Horizontal"/>
+                    <cal:Day Grid.Column="5" x:Name="Friday" ForceMaxScale="True" Orientation="Horizontal"/>
+                    <cal:Day Grid.Column="6" x:Name="Saturday" ForceMaxScale="True" Orientation="Horizontal"/>
+                </Grid>
+            </ScrollViewer>
+        </ControlTemplate>
+        <Style x:Key="WeekStyle" TargetType="ContentControl">
+            <!-- Default Template -->
+            <Setter Property="Template" Value="{StaticResource VerticalLRWeekTemplate}"/>
+            <Style.Triggers>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <!-- Vertical Day, Horizontal Week -->
+                        <Condition Binding="{Binding WeekOrientation}" Value="Horizontal"/>
+                        <Condition Binding="{Binding Orientation}" Value="Vertical"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Template" Value="{StaticResource VerticalLRWeekTemplate}"/>
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <!-- Horizontal Day, Horizontal Week -->
+                        <Condition Binding="{Binding WeekOrientation}" Value="Horizontal"/>
+                        <Condition Binding="{Binding Orientation}" Value="Horizontal"/>
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Template" Value="{StaticResource HorizontalLRWeekTemplate}"/>
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid x:Name="SV">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <ContentControl Grid.Row="1" Style="{StaticResource WeekStyle}"/>
+        <ContentControl
+            x:Name="CommandsToolbar" Grid.Row="0" 
+            Template="{StaticResource CalendarViewControlsTemplate}"/>
     </Grid>
 </UserControl>
