@@ -5,44 +5,6 @@
     xmlns:clr="clr-namespace:System;assembly=mscorlib"
     xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
 
-    <!--#region DataContexts-->
-    <DataTemplate DataType="{x:Type local:NotesViewModel}">
-        <local:NotesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:FakeNotesViewModel}">
-        <local:NotesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:MonthViewModel}">
-        <local:MonthView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:FakeMonthViewModel}">
-        <local:MonthView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:LabelsViewModel}">
-        <local:BasicEntitiesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:ResourcesViewModel}">
-        <local:BasicEntitiesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:TaskTypesViewModel}">
-        <local:BasicEntitiesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:TimePointsViewModel}">
-        <local:BasicEntitiesView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:TimeTasksViewModel}">
-        <local:TimeTasksView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:TimePatternsViewModel}">
-        <local:TimePatternsView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:DayViewModel}">
-        <local:DayView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type local:WeekViewModel}">
-        <local:WeekView/>
-    </DataTemplate>
-    <!--#endregion-->
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     <!--#region Control Syles and Templates-->
     <Style x:Key="WindowStyle" TargetType="Window">

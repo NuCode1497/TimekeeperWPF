@@ -17,7 +17,11 @@ namespace TimekeeperWPF
         public DayViewModel() : base()
         {
         }
+        #region Predicates
         protected override bool CanSave => false;
+        protected override bool CanSelectDay => false;
+        #endregion
+        #region Actions
         protected override void SaveAs()
         {
             throw new NotImplementedException();
@@ -54,5 +58,6 @@ namespace TimekeeperWPF
             }
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
+        #endregion
     }
 }

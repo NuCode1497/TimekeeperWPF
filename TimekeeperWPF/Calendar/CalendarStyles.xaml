@@ -5,7 +5,7 @@
     xmlns:clr="clr-namespace:System;assembly=mscorlib">
 
 
-    <Style TargetType="{x:Type cal:CalendarObject}">
+    <Style TargetType="cal:CalendarObject">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type cal:CalendarObject}">
@@ -16,6 +16,30 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+    <Style TargetType="cal:Day">
+        <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
+        <Setter Property="Background" Value="{StaticResource Day.Background}"/>
+        <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
+        <Setter Property="Date" Value="{Binding Path=SelectedDate, Mode=TwoWay}"/>
+        <Setter Property="Orientation" Value="{Binding Path=Orientation, Mode=TwoWay}"/>
+        <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
+        <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
+        <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
+        <Setter Property="WatermarkBrush" Value="{StaticResource Day.WatermarkBrush}"/>
+        <Setter Property="WatermarkFontFamily" Value="{StaticResource Ayy.FontFamily}"/>
+    </Style>
+    <Style TargetType="cal:Week">
+        <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
+        <Setter Property="Background" Value="{StaticResource Day.Background}"/>
+        <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
+        <Setter Property="Date" Value="{Binding Path=SelectedDate, Mode=TwoWay}"/>
+        <Setter Property="SelectedMonthOverride" Value="{Binding Path=SelectedMonthOverride, Mode=OneWay}"/>
+        <Setter Property="Orientation" Value="{Binding Path=Orientation, Mode=TwoWay}"/>
+        <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
+        <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
+        <Setter Property="MonthBoundsHighlight" Value="{StaticResource Week.MonthBoundsHighlight}"/>
+        <Setter Property="MonthBoundsWatermarkBrush" Value="{StaticResource Week.MonthBoundsWatermarkBrush}"/>
     </Style>
     <Storyboard x:Key="MarkyRGBCycle" RepeatBehavior="Forever" SpeedRatio="3">
         <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="MarkyMcMarkFace">
@@ -55,19 +79,6 @@
             <EasingColorKeyFrame KeyTime="0:0:6" Value="Cyan"/>
         </ColorAnimationUsingKeyFrames>
     </Storyboard>
-    <ControlTemplate x:Key="CalendarViewControlsTemplate" TargetType="ContentControl">
-        <ToolBarTray>
-            <ToolBar Band="1" BandIndex="1">
-                <Button x:Name="PreviousButton" Content="&lt;--" Command="{Binding Path=PreviousCommand}"/>
-                <Button x:Name="NextButton" Content="--&gt;" Command="{Binding Path=NextCommand}"/>
-                <Button x:Name="OrientationButton" Content="Orientation" Command="{Binding Path=OrientationCommand}"/>
-                <Button x:Name="ScaleUpButton" Content="Scale Up" Command="{Binding Path=ScaleUpCommand}"/>
-                <Button x:Name="ScaleDownButton" Content="Scale Down" Command="{Binding Path=ScaleDownCommand}"/>
-                <CheckBox x:Name="MaxCheckBox" Content="Max" IsChecked="{Binding Path=Max, Mode=TwoWay}"/>
-                <CheckBox x:Name="TextMarginCheckBox" Content="Margin" IsChecked="{Binding Path=TextMargin, Mode=TwoWay}"/>
-            </ToolBar>
-        </ToolBarTray>
-    </ControlTemplate>
     <ControlTemplate x:Key="CalObjContainerTemplate.Selected" TargetType="ListBoxItem">
         <Grid>
             <ContentPresenter/>
@@ -104,4 +115,110 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+    <Style x:Key="CalObjsListBoxStyle" TargetType="ListBox">
+        <Setter Property="SelectedItem" Value="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"/>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource CalObjContainerStyle}"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+    </Style>
+    <ControlTemplate x:Key="NakedButtonTemplate" TargetType="Button">
+        <ContentPresenter/>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="Cyan"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Foreground" Value="Blue"/>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+    <Style x:Key="PreviousButtonStyle" TargetType="Button">
+        <Setter Property="Content" Value="&#x2794;"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Command" Value="{Binding Path=PreviousCommand}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="FontSize" Value="25"/>
+        <Setter Property="Margin" Value="2,-10"/>
+        <Setter Property="ToolTip" Value="Previous"/>
+        <Setter Property="Template" Value="{StaticResource NakedButtonTemplate}"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform">
+            <Setter.Value>
+                <TransformGroup>
+                    <ScaleTransform ScaleY="1" ScaleX="-1"/>
+                    <SkewTransform AngleY="0" AngleX="0"/>
+                    <RotateTransform Angle="0"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="NextButtonStyle" TargetType="Button">
+        <Setter Property="Content" Value="&#x2794;"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="Command" Value="{Binding Path=NextCommand}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="ToolTip" Value="Next"/>
+        <Setter Property="FontSize" Value="25"/>
+        <Setter Property="Margin" Value="2,-10"/>
+        <Setter Property="Template" Value="{StaticResource NakedButtonTemplate}"/>
+    </Style>
+    <Style x:Key="CalendarTitleBarTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Segoe UI Black"/>
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="Margin" Value="4,2"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <ControlTemplate x:Key="CalendarTitleBarTemplate" TargetType="ContentControl">
+        <Grid Background="{StaticResource CalendarTitleBar.Background}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button x:Name="PreviousButton" Style="{StaticResource PreviousButtonStyle}"/>
+                <ContentPresenter/>
+                <Button x:Name="NextButton" Style="{StaticResource NextButtonStyle}"/>
+            </StackPanel>
+        </Grid>
+    </ControlTemplate>
+    <ControlTemplate x:Key="CalendarViewControlsTemplate" TargetType="ContentControl">
+        <ToolBarTray>
+            <ToolBar Band="1" BandIndex="1">
+                <!--<Button x:Name="PreviousButton" Style="{StaticResource PreviousButtonStyle}" Command="{Binding Path=PreviousCommand}"/>
+                <Button x:Name="NextButton" Style="{StaticResource NextButtonStyle}" Command="{Binding Path=NextCommand}"/>-->
+                <Button x:Name="OrientationButton" Content="&#x2939;"
+                        ToolTip="Orientation" FontSize="22" Margin="0,-10,0,-5"
+                        Command="{Binding Path=OrientationCommand}"/>
+                <Button x:Name="ScaleUpButton" Content="&#x219f;"
+                        ToolTip="Scale Up" FontSize="22" Margin="0,-10,0,-5"
+                        Command="{Binding Path=ScaleUpCommand}"/>
+                <Button x:Name="ScaleDownButton" Content="&#x21a1;"
+                        ToolTip="Scale Down" FontSize="22" Margin="0,-10,0,-5"
+                        Command="{Binding Path=ScaleDownCommand}"/>
+                <CheckBox x:Name="MaxCheckBox" Content="&#x2927;"
+                          IsEnabled="{Binding Path=CanMax}"
+                        ToolTip="Max Scale" FontSize="22" Margin="0,-10,0,-5"
+                          IsChecked="{Binding Path=Max, Mode=TwoWay}"/>
+                <CheckBox x:Name="TextMarginCheckBox" Content="&#x25a4;"
+                          IsEnabled="{Binding Path=CanTextMargin}"
+                        ToolTip="Text Margin" FontSize="22" Margin="0,-10,0,-5"
+                          IsChecked="{Binding Path=TextMargin, Mode=TwoWay}"/>
+                <Button x:Name="MonthButton" Content="&#x1f4c5;"
+                        ToolTip="Month" FontSize="18" Margin="0,-5,0,-5"
+                        Command="{Binding Path=SelectMonthCommand}"/>
+                <Button x:Name="WeekButton" Content="&#x1f4c6;&#x1f4c6;&#x1f4c6;"
+                        ToolTip="Week" FontSize="12" Margin="0,-5,0,-5"
+                        Command="{Binding Path=SelectWeekCommand}"/>
+                <Button x:Name="DayButton" Content="&#x1f4c6;"
+                        ToolTip="Day" FontSize="18" Margin="0,-5,0,-5"
+                        Command="{Binding Path=SelectDayCommand}"/>
+            </ToolBar>
+        </ToolBarTray>
+    </ControlTemplate>
 </ResourceDictionary>

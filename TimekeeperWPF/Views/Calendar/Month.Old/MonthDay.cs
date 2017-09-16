@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
 
-namespace TimekeeperWPF.Views.Month
+namespace TimekeeperWPF.Old
 {
     public class MonthDay : ObservableObject
     {

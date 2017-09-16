@@ -10,7 +10,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class LabelsViewModel : ViewModel<Label>
+    public class LabelsViewModel : EntityViewModel<Label>
     {
         public LabelsViewModel() : base()
         {

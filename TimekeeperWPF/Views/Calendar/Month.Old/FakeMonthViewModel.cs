@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TimekeeperDAL.EF;
 
-namespace TimekeeperWPF
+namespace TimekeeperWPF.Old
 {
     public class FakeMonthViewModel : MonthViewModel
     {

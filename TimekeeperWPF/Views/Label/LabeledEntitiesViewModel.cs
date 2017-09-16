@@ -16,7 +16,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public abstract class LabeledEntitiesViewModel<ModelType> : ViewModel<ModelType>
+    public abstract class LabeledEntitiesViewModel<ModelType> : EntityViewModel<ModelType>
         where ModelType : LabeledEntity, new()
     {
         #region Fields

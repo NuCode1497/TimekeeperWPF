@@ -1,3 +1,4 @@
+//https://blogs.msdn.microsoft.com/bencon/2006/12/09/iscrollinfo-tutorial-part-iv/
 using System;
 using System.Windows;
 using System.Windows.Controls;

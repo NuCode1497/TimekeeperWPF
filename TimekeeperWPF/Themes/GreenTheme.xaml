@@ -1,15 +1,14 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:clr="clr-namespace:System;assembly=mscorlib">
-
-    <!--#region Colors-->
+    <FontFamily x:Key="Global.FontFamily">"Segoe UI"</FontFamily>
     <SolidColorBrush x:Key="Window.Background" Color="#FF48CD7E"/>
     <SolidColorBrush x:Key="ListBox.Static.Background" Color="Transparent"/>
     <SolidColorBrush x:Key="ListBox.Static.Border" Color="#FFABADB3"/>
     <SolidColorBrush x:Key="ListBox.Disabled.Background" Color="Transparent"/>
     <SolidColorBrush x:Key="ListBox.Disabled.Border" Color="#FFD9D9D9"/>
     <SolidColorBrush x:Key="DataGrid.AlternatingRowBackground" Color="#FFBDFFD8"/>
-    <SolidColorBrush x:Key="DataGrid.RowBackground" Color="White"/>
+    <SolidColorBrush x:Key="DataGrid.RowBackground" Color="MintCream"/>
     <SolidColorBrush x:Key="DataGrid.Background" Color="AliceBlue"/>
     <SolidColorBrush x:Key="BasicEntity.Background" Color="Wheat"/>
     <SolidColorBrush x:Key="BasicEntity.BorderBrush" Color="DarkSlateGray"/>
@@ -24,5 +23,14 @@
     <SolidColorBrush x:Key="Highlight.Hover.BorderColor" Color="DarkCyan"/>
     <SolidColorBrush x:Key="Highlight.Hover.BackgroundColor" Color="Cyan"/>
     <clr:Double x:Key="Highlight.Hover.Opacity">0.8</clr:Double>
-    <!--#endregion-->
+    <SolidColorBrush x:Key="Day.Highlight" Color="LightCyan"/>
+    <SolidColorBrush x:Key="Day.Background" Color="MintCream"/>
+    <clr:String x:Key="Day.WatermarkFormat" xml:space="preserve">ddd
+MMM d</clr:String>
+    <FontFamily x:Key="Day.FontFamily">"Segoe UI"</FontFamily>
+    <StaticResource x:Key="Ayy.FontFamily" ResourceKey="Global.FontFamily"/>
+    <SolidColorBrush x:Key="Day.WatermarkBrush" Color="DarkGray"/>
+    <SolidColorBrush x:Key="Week.MonthBoundsHighlight" Color="LightGray"/>
+    <SolidColorBrush x:Key="Week.MonthBoundsWatermarkBrush" Color="MintCream"/>
+    <SolidColorBrush x:Key="CalendarTitleBar.Background" Color="AliceBlue"/>
 </ResourceDictionary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,8 +18,11 @@ namespace TimekeeperWPF
 {
     public class WeekViewModel : CalendarViewModel
     {
-        #region Fields
-        #endregion
+        private int _SelectedMonthOverride = DateTime.Now.Month;
+        public WeekViewModel() : base()
+        {
+            SelectedDate = DateTime.Now;
+        }
         #region Properties
         public override string Name => "Week View";
         public override DateTime SelectedDate
@@ -28,18 +32,25 @@ namespace TimekeeperWPF
             {
                 //Here we intercept and set the date to the first of the week
                 base.SelectedDate = value.WeekStart();
+                SelectedMonthOverride = value.Month;
+            }
+        }
+        public int SelectedMonthOverride
+        {
+            get { return _SelectedMonthOverride; }
+            set
+            {
+                if (_SelectedMonthOverride == value) return;
+                _SelectedMonthOverride = value;
+                OnPropertyChanged();
             }
         }
         #endregion
         #region Predicates
         protected override bool CanSave => false;
-        protected override bool CanMax => true;
-        #endregion
-        #region Commands
-        #endregion
-        #region Predicates
+        public override bool CanMax => true;
         protected override bool CanOrientation => true;
-        protected virtual bool CanWeekOrientation => true;
+        protected override bool CanSelectWeek => false;
         #endregion
         #region Actions
         protected override void SaveAs()
@@ -100,6 +111,8 @@ namespace TimekeeperWPF
                 }
             }
         }
+        protected override void Previous() { SelectedDate = SelectedDate.AddDays(-7); }
+        protected override void Next() { SelectedDate = SelectedDate.AddDays(7); }
         #endregion
     }
 }

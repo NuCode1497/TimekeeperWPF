@@ -106,13 +106,9 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
                     FrameworkPropertyMetadataOptions.AffectsRender |
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
-                    FrameworkPropertyMetadataOptions.AffectsArrange,
-                    new PropertyChangedCallback(OnDateChanged)));
-        private static void OnDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-
-        }
+                    FrameworkPropertyMetadataOptions.AffectsArrange));
         protected bool IsDateToday(DateTime d) { return d.Date == DateTime.Now.Date; }
+        protected bool IsDateEqual(DateTime d, DateTime d2) { return d.Date == d2.Date; }
         #endregion
         #region ForceMaxScale
         /// <summary>
@@ -400,7 +396,7 @@ namespace TimekeeperWPF.Calendar
         // Scale is in Seconds per Pixel s/px
         protected double ScaleFactor = 0.3d;
         protected double _ScaleLowerLimit = 0.5d;
-        protected double _ScaleUpperLimit = 1800d;
+        protected double _ScaleUpperLimit = 3600d;
         private bool _IsCancellingScaleAnimation = false;
         private Vector PreScaleRelativeOffSetInSeconds = new Vector();
         private Vector RelativeScalingVector = new Vector();
@@ -569,7 +565,7 @@ namespace TimekeeperWPF.Calendar
         private static readonly DependencyProperty TextMarginProperty =
             DependencyProperty.Register(
                 nameof(TextMargin), typeof(double), typeof(Day),
-                new FrameworkPropertyMetadata(80d,
+                new FrameworkPropertyMetadata(0d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender));
         protected void UpdateTextMargin()
@@ -629,6 +625,29 @@ namespace TimekeeperWPF.Calendar
                 nameof(WatermarkFormat), typeof(string), typeof(Day),
                 new FrameworkPropertyMetadata("ddd\nMMM d",
                     FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public Brush WatermarkBrush
+        {
+            get { return (Brush)GetValue(WatermarkBrushProperty); }
+            set { SetValue(WatermarkBrushProperty, value); }
+        }
+        public static readonly DependencyProperty WatermarkBrushProperty =
+            DependencyProperty.Register(
+                nameof(WatermarkBrush), typeof(Brush), typeof(Day),
+                new FrameworkPropertyMetadata(Brushes.DarkGray,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        [Localizability(LocalizationCategory.Font)]
+        public FontFamily WatermarkFontFamily
+        {
+            get { return (FontFamily)GetValue(WatermarkFontFamilyProperty); }
+            set { SetValue(WatermarkFontFamilyProperty, value); }
+        }
+        public static readonly DependencyProperty WatermarkFontFamilyProperty =
+            DependencyProperty.Register(
+                nameof(WatermarkFontFamily), typeof(FontFamily), typeof(Day),
+                new FrameworkPropertyMetadata(new FontFamily("Segoe UI"),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
         #endregion Features
         #region Layout
@@ -671,8 +690,6 @@ namespace TimekeeperWPF.Calendar
         public bool ShowGrid { get; set; } = true; //TODO: dep prop
         public Point _TextOffset { get; set; } = new Point(-4, 0); //TODO: dep prop
         public double _TextRotation { get; set; } = 0d; //TODO: dep prop
-        public Brush WatermarkBrush { get; set; } = new SolidColorBrush(Color.FromArgb(128, 200, 200, 200)); //TODO: dep prop
-        public FontFamily WatermarkFontFamily { get; set; } = new FontFamily("Segoe UI Black"); //TODO: dep prop
         protected double _ScreenInterval;
         protected int MaxIntervals(DateTime d) { return (int)(Date.DaySeconds() / _GridData.SecondsInterval); }
         protected double DaySize(DateTime d) { return d.DaySeconds() / Scale; }
@@ -853,12 +870,12 @@ namespace TimekeeperWPF.Calendar
         protected virtual Size MeasureVertically(Size availableSize, Size extent)
         {
             //Height will be unbound. Width will be bound to UI space.
-            double biggestWidth = TextMargin; //1D
+            double biggestWidth = TextMargin;
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
                 UIElement actualChild = child;
-                Size childSize = new Size(availableSize.Width, double.PositiveInfinity); //1D
+                Size childSize = new Size(availableSize.Width, double.PositiveInfinity);
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
@@ -869,27 +886,27 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarObject)
                 {
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin); //1D
-                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width + TextMargin); //1D
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
+                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width + TextMargin);
                 }
                 else
                 {
-                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width); //1D
+                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width);
                 }
                 child.Measure(childSize);
             }
-            extent.Width = biggestWidth; //1D
-            extent.Height = DaySize(Date); //1D
+            extent.Width = biggestWidth;
+            extent.Height = DaySize(Date);
             return extent;
         }
         protected virtual Size MeasureHorizontally(Size availableSize, Size extent)
         {   //Width will be unbound. Height will be bound to UI space.
-            double biggestHeight = TextMargin; //1D
+            double biggestHeight = TextMargin;
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
                 UIElement actualChild = child;
-                Size childSize = new Size(double.PositiveInfinity, availableSize.Height); //1D
+                Size childSize = new Size(double.PositiveInfinity, availableSize.Height);
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
@@ -900,17 +917,17 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarObject)
                 {
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin); //1D
-                    biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height + TextMargin); //1D
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
+                    biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height + TextMargin);
                 }
                 else
                 {
-                    biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height); //1D
+                    biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height);
                 }
                 child.Measure(childSize);
             }
-            extent.Height = biggestHeight; //1D
-            extent.Width = DaySize(Date); //1D
+            extent.Height = biggestHeight;
+            extent.Width = DaySize(Date);
             return extent;
         }
         protected override Size ArrangeOverride(Size arrangeSize)
@@ -932,14 +949,14 @@ namespace TimekeeperWPF.Calendar
         protected virtual Size ArrangeVertically(Size arrangeSize, Size extent)
         {
             //Height will be unbound. Width will be bound to UI space.
-            double biggestChildWidth = TextMargin; //1D
+            double biggestChildWidth = TextMargin;
             //
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
                 UIElement actualChild = child;
-                double x = 0; //1D
-                double y = 0; //12:00:00 AM //1D
+                double x = 0;
+                double y = 0;
                 Size childSize = child.DesiredSize;
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
@@ -968,44 +985,51 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    CalObj.Scale = Scale;
-                    childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin); //1D
-                    childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
-                    //
-                    //
-                    // 
-                    //
-                    //
-                    //
-                    x = TextMargin; //1D
-                    //set y relative to object start //1D
-                    //y = 0 is Date = 12:00:00 AM //1D
-                    DateTime dt = CalObj.Start;
-                    y = (dt - dt.Date).TotalSeconds / Scale; //1D
-                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin); //1D
+                    if (IsDateToday(CalObj.Start) || IsDateToday(CalObj.End))
+                    {
+                        child.Visibility = Visibility.Visible;
+                        CalObj.Scale = Scale;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
+                        childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                        //
+                        //
+                        //
+                        //
+                        //
+                        //
+                        x = TextMargin;
+                        DateTime dt = CalObj.Start;
+                        y = (dt - dt.Date).TotalSeconds / Scale;
+                        biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin);
+                    }
+                    else
+                    {
+                        child.Visibility = Visibility.Collapsed;
+                        continue;
+                    }
                 }
                 else
                 {
                     //y = 0
                     //x = 0
-                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width); //1D
+                    biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width);
                 }
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
-            extent.Width = biggestChildWidth; //1D
-            extent.Height = DaySize(Date); //1D
+            extent.Width = biggestChildWidth;
+            extent.Height = DaySize(Date);
             return extent;
         }
         protected virtual Size ArrangeHorizontally(Size arrangeSize, Size extent)
         {   //Width will be unbound. Height will be bound to UI space.
-            double biggestChildHeight = TextMargin; //1D
+            double biggestChildHeight = TextMargin;
             //
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
                 UIElement actualChild = child;
-                double y = 0; //1D
-                double x = 0; //12:00:00 AM //1D
+                double y = 0;
+                double x = 0;
                 Size childSize = child.DesiredSize;
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
@@ -1034,32 +1058,39 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    CalObj.Scale = Scale;
-                    childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin); //1D
-                    childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale); //1D
-                    //
-                    //
-                    //
-                    //
-                    //
-                    //
-                    y = arrangeSize.Height - childSize.Height - TextMargin;
-                    //set x relative to object start //1D
-                    //x = 0 is Date = 12:00:00 AM //1D
-                    DateTime dt = CalObj.Start;
-                    x = (dt - dt.Date).TotalSeconds / Scale; //1D
-                    biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + TextMargin); //1D
+                    if (IsDateToday(CalObj.Start) || IsDateToday(CalObj.End))
+                    {
+                        child.Visibility = Visibility.Visible;
+                        CalObj.Scale = Scale;
+                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
+                        childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                        //
+                        //
+                        //
+                        //
+                        //
+                        //
+                        y = arrangeSize.Height - childSize.Height - TextMargin;
+                        DateTime dt = CalObj.Start;
+                        x = (dt - dt.Date).TotalSeconds / Scale;
+                        biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + TextMargin);
+                    }
+                    else
+                    {
+                        child.Visibility = Visibility.Collapsed;
+                        continue;
+                    }
                 }
                 else
                 {
                     //x = 0
                     y = arrangeSize.Height - childSize.Height;
-                    biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height); //1D
+                    biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height);
                 }
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
-            extent.Height = biggestChildHeight; //1D
-            extent.Width = DaySize(Date); //1D
+            extent.Height = biggestChildHeight;
+            extent.Width = DaySize(Date);
             return extent;
         }
         protected override void OnRender(DrawingContext dc)
@@ -1103,7 +1134,7 @@ namespace TimekeeperWPF.Calendar
         {
             DrawWatermarkVertically(dc);
         }
-        protected void DrawWatermarkText(DrawingContext dc, double textSize, double x, double y, string text)
+        protected virtual void DrawWatermarkText(DrawingContext dc, double textSize, double x, double y, string text)
         {
             FormattedText lineText = new FormattedText(text,
                 System.Globalization.CultureInfo.CurrentCulture,
@@ -1123,10 +1154,10 @@ namespace TimekeeperWPF.Calendar
             Pen currentPen = GridRegularPen;
             string timeFormat = "";
             //restrict number of draws to within area
-            int iStart = (int)(area.Y / _ScreenInterval - 1).Within(0, MaxIntervals(Date)); //1D
-            int iEnd = (int)((area.Y + area.Height) / _ScreenInterval + 1).Within(0, MaxIntervals(Date)); //1D
-            double finalX1 = TextMargin - area.X; //1D
-            double finalX2 = area.Width - area.X; //1D
+            int iStart = (int)(area.Y / _ScreenInterval - 1).Within(0, MaxIntervals(Date));
+            int iEnd = (int)((area.Y + area.Height) / _ScreenInterval + 1).Within(0, MaxIntervals(Date));
+            double finalX1 = TextMargin - area.X;
+            double finalX2 = area.Width - area.X;
             for (int i = iStart; i < iEnd; i++)
             {
                 if (_GridData.MajorGridLines && i % _GridData.MajorSkip == 0)
@@ -1145,20 +1176,20 @@ namespace TimekeeperWPF.Calendar
                     timeFormat = _GridData.MinorFormat;
                 }
                 else continue;
-                double y = i * _ScreenInterval; //1D
-                double finalY = y - area.Y; //1D
+                double y = i * _ScreenInterval;
+                double finalY = y - area.Y;
                 dc.DrawLine(currentPen, 
-                    new Point(finalX1, finalY),  //1D
-                    new Point(finalX2, finalY)); //1D
+                    new Point(finalX1, finalY), 
+                    new Point(finalX2, finalY));
                 if ((ShowTextMargin || _ShowTextMarginPrevious) && timeFormat != "")
                 {
-                    string text = Date.Date.AddSeconds(y * Scale).ToString(timeFormat); //1D
-                    DrawMarginText(dc, text, 0d, finalX1, finalY); //1D
+                    string text = Date.Date.AddSeconds(y * Scale).ToString(timeFormat);
+                    DrawMarginText(dc, text, 0d, finalX1, finalY);
                 }
             }
             //Draw Margin separator line
             dc.DrawLine(GridRegularPen, new Point(TextMargin, 0), 
-                new Point(TextMargin, RenderSize.Height)); //1D
+                new Point(TextMargin, RenderSize.Height));
         }
         protected virtual void DrawGridHorizontally(DrawingContext dc)
         {
@@ -1167,10 +1198,10 @@ namespace TimekeeperWPF.Calendar
             Pen currentPen = GridRegularPen;
             string timeFormat = "";
             //restrict number of draws to within area
-            int iStart = (int)(area.X / _ScreenInterval - 1).Within(0, MaxIntervals(Date)); //1D
-            int iEnd = (int)((area.X + area.Width) / _ScreenInterval + 1).Within(0, MaxIntervals(Date)); //1D
-            double finalY1 = area.Height - TextMargin - area.Y; //1D
-            double finalY2 = 0 - area.Y; //1D
+            int iStart = (int)(area.X / _ScreenInterval - 1).Within(0, MaxIntervals(Date));
+            int iEnd = (int)((area.X + area.Width) / _ScreenInterval + 1).Within(0, MaxIntervals(Date));
+            double finalY1 = area.Height - TextMargin - area.Y;
+            double finalY2 = 0 - area.Y;
             for (int i = iStart; i < iEnd; i++)
             {
                 if (_GridData.MajorGridLines && i % _GridData.MajorSkip == 0)
@@ -1189,20 +1220,20 @@ namespace TimekeeperWPF.Calendar
                     timeFormat = _GridData.MinorFormat;
                 }
                 else continue;
-                double x = i * _ScreenInterval; //1D
-                double finalX = x - area.X; //1D
+                double x = i * _ScreenInterval;
+                double finalX = x - area.X;
                 dc.DrawLine(currentPen, 
-                    new Point(finalX, finalY1),  //1D
-                    new Point(finalX, finalY2)); //1D
+                    new Point(finalX, finalY1), 
+                    new Point(finalX, finalY2));
                 if ((ShowTextMargin || _ShowTextMarginPrevious) && timeFormat != "")
                 {
-                    string text = Date.Date.AddSeconds(x * Scale).ToString(timeFormat); //1D
-                    DrawMarginText(dc, text, -90d, finalX, finalY1); //1D
+                    string text = Date.Date.AddSeconds(x * Scale).ToString(timeFormat);
+                    DrawMarginText(dc, text, -90d, finalX, finalY1);
                 }
             }
             //Draw Margin separator line
             dc.DrawLine(GridRegularPen, new Point(0, area.Height - TextMargin),
-                new Point(RenderSize.Width, area.Height - TextMargin)); //1D
+                new Point(RenderSize.Width, area.Height - TextMargin));
         }
         protected void DrawMarginText(DrawingContext dc, string text, double r, double x, double y)
         {
@@ -1219,7 +1250,7 @@ namespace TimekeeperWPF.Calendar
             dc.PushTransform(position);
             dc.PushTransform(rudeboi);
             dc.PushTransform(offset);
-            dc.DrawText(lineText, _TextOffset); //1D
+            dc.DrawText(lineText, _TextOffset);
             dc.Pop();
             dc.Pop();
             dc.Pop();

@@ -96,7 +96,16 @@
     </Compile>
     <Compile Include="Calendar\Week.cs" />
     <Compile Include="Examples\Window1VM.cs" />
-    <Compile Include="FakeDayViewModel.cs" />
+    <Compile Include="Tools\RequestViewChangeEventArgs.cs" />
+    <Compile Include="Views\Calendar\Month\MonthWeekViewModel.cs" />
+    <Compile Include="Views\Calendar\Day\FakeDayViewModel.cs" />
+    <Compile Include="Views\Calendar\Month\MonthView.xaml.cs">
+      <DependentUpon>MonthView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Calendar\Month\MonthViewModel.cs" />
+    <Compile Include="Views\Calendar\Month\MonthWeekView.xaml.cs">
+      <DependentUpon>MonthWeekView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />
     <Compile Include="Calendar\CalendarObject.cs" />
     <Compile Include="Calendar\Day.cs" />
@@ -177,18 +186,18 @@
       <DependentUpon>LabelSelectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\Extensions.cs" />
-    <Compile Include="Views\Calendar\Month\MonthDayView.xaml.cs">
+    <Compile Include="Views\Calendar\Month.Old\MonthDayView.xaml.cs">
       <DependentUpon>MonthDayView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\BoolToGreenConverter.cs" />
-    <Compile Include="Views\Calendar\Month\FakeMonthViewModel.cs" />
-    <Compile Include="Views\Calendar\Month\MonthViewModel.cs" />
+    <Compile Include="Views\Calendar\Month.Old\FakeMonthViewModel.cs" />
+    <Compile Include="Views\Calendar\Month.Old\MonthViewModel.cs" />
     <Compile Include="Tools\BoolToGrayConverter.cs" />
-    <Compile Include="Views\Calendar\Month\MonthDay.cs" />
-    <Compile Include="Views\Calendar\Month\MonthView.xaml.cs">
+    <Compile Include="Views\Calendar\Month.Old\MonthDay.cs" />
+    <Compile Include="Views\Calendar\Month.Old\MonthView.xaml.cs">
       <DependentUpon>MonthView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Calendar\Month\MonthWeek.cs" />
+    <Compile Include="Views\Calendar\Month.Old\MonthWeek.cs" />
     <Compile Include="Views\Label\LabelsViewModel.cs" />
     <Compile Include="Views\LoadingView.xaml.cs">
       <DependentUpon>LoadingView.xaml</DependentUpon>
@@ -209,7 +218,7 @@
       <DependentUpon>NotesView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\ObservableObject.cs" />
-    <Compile Include="Views\ViewModel.cs" />
+    <Compile Include="Views\EntityViewModel.cs" />
     <Compile Include="Views\Calendar\Week\WeekView.xaml.cs">
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
@@ -223,6 +232,18 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Examples\Window1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\DataContexts.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Calendar\Month\MonthView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Calendar\Month\MonthWeekView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -314,11 +335,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Calendar\Month\MonthDayView.xaml">
+    <Page Include="Views\Calendar\Month.Old\MonthDayView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Calendar\Month\MonthView.xaml">
+    <Page Include="Views\Calendar\Month.Old\MonthView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

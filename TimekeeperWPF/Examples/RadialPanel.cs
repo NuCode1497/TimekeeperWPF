@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 namespace TimekeeperWPF.Examples
 {
+    //http://jobijoy.blogspot.com/2008/04/simple-radial-panel-for-wpf-and.html
     public class RadialPanel : Panel
     {
         // Measure each children and give as much room as they want 

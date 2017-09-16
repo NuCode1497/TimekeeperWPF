@@ -11,15 +11,11 @@
     <Grid x:Name="SV">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
-        <ListBox 
-            x:Name="CalendarObjectsIC" Grid.Row="1"
-            SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
-            ItemContainerStyle="{StaticResource CalObjContainerStyle}"
-            ScrollViewer.CanContentScroll="True"
-            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
+                 Style="{StaticResource CalObjsListBoxStyle}">
             <ListBox.Resources>
                 <CollectionContainer 
                     x:Key="CalObjs"
@@ -35,21 +31,32 @@
             </ItemsControl.ItemsSource>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <cal:Week 
-                        x:Name="WeekPanel" 
-                        ScaleSudoCommand="{Binding Path=ScaleSudoCommand, Mode=OneWay}"
-                        Date="{Binding Path=SelectedDate, Mode=TwoWay}"
-                        Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
-                        ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
-                        ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}"/>
+                    <cal:Week/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListBox>
+        <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
+                        Template="{StaticResource CalendarTitleBarTemplate}">
+            <Grid Width="360">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="Week of" 
+                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                    <TextBlock Text="{Binding Path=WeekString, FallbackValue='QQQQQQQQQ 88, 7777'}" 
+                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                </StackPanel>
+            </Grid>
+        </ContentControl>
         <ContentControl
             x:Name="CommandsToolbar" Grid.Row="0" 
             Template="{StaticResource CalendarViewControlsTemplate}"/>
         <local:LoadingView 
-            Grid.Row="0" Grid.RowSpan="2" 
-            Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            Grid.Row="0" Grid.RowSpan="3" 
+            Visibility="{Binding Path=IsLoading, 
+            Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

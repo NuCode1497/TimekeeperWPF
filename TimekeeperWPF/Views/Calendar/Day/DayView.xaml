@@ -7,18 +7,15 @@
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="400" Background="LimeGreen">
+             d:DesignHeight="300" d:DesignWidth="600" Background="LimeGreen">
     <Grid x:Name="SV">
         <Grid.RowDefinitions>
+            <RowDefinition Height="9*"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="80*"/>
         </Grid.RowDefinitions>
-        <ListBox 
-            x:Name="CalendarObjectsIC" Grid.Row="1"
-            SelectedItem="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"
-            ItemContainerStyle="{StaticResource CalObjContainerStyle}"
-            ScrollViewer.CanContentScroll="True"
-            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
+                 Style="{StaticResource CalObjsListBoxStyle}">
             <ListBox.Resources>
                 <CollectionContainer 
                     x:Key="CalObjs"
@@ -34,21 +31,29 @@
             </ItemsControl.ItemsSource>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <cal:Day 
-                        x:Name="DayPanel" 
-                        ScaleSudoCommand="{Binding Path=ScaleSudoCommand, Mode=OneWay}"
-                        Date="{Binding Path=SelectedDate, Mode=TwoWay}"
-                        Orientation="{Binding Path=Orientation, Mode=TwoWay}" 
-                        ForceMaxScale="{Binding Path=Max, Mode=TwoWay}" 
-                        ShowTextMargin="{Binding Path=TextMargin, Mode=TwoWay}"/>
+                    <cal:Day/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListBox>
+        <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
+                        Template="{StaticResource CalendarTitleBarTemplate}">
+            <Grid Width="410">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="{Binding Path=DayLongString, FallbackValue='QQQQQQQQQ, QQQQQQQQQ 88 8888'}" 
+                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                </StackPanel>
+            </Grid>
+        </ContentControl>
         <ContentControl 
             x:Name="CommandsToolbar" Grid.Row="0" 
             Template="{StaticResource CalendarViewControlsTemplate}"/>
         <local:LoadingView 
-            Grid.Row="0" Grid.RowSpan="2" 
+            Grid.Row="0" Grid.RowSpan="3" 
             Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,112 +9,169 @@ using TimekeeperDAL.EF;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Windows.Input;
-using TimekeeperWPF.Views.Month;
+using TimekeeperWPF.Tools;
+using TimekeeperWPF.Calendar;
+using System.Windows.Data;
+using System.Windows;
 
 namespace TimekeeperWPF
 {
-    public class MonthViewModel : ViewModel<Note>
+    public class MonthViewModel : CalendarViewModel
     {
         #region Fields
-        private System.Globalization.Calendar _Calendar => CultureInfo.CurrentCulture.Calendar;
-        private DateTime _SelectedDateTime;
-        private ICommand _NextMonthCommand;
-        private ICommand _PrevMonthCommand;
+        private DateTime _SelectedDate = DateTime.Now.MonthStart();
+        private MonthWeekViewModel _SelectedWeek;
+        private bool _HasSelectedWeek = false;
         #endregion
         public MonthViewModel() : base()
         {
-            _SelectedDateTime = DateTime.Now;
-            Sorter = new NoteDateTimeSorter();
-            LoadData();
-            BuildMonth();
         }
-        public override string Name => "Month";
         #region Properties
-        public DateTime SelectedDateTime
+        public override string Name => "Month View";
+        public CollectionViewSource MonthWeeksCollection { get; set; }
+        public ObservableCollection<MonthWeekViewModel> MonthWeeksSource => MonthWeeksCollection.Source as ObservableCollection<MonthWeekViewModel>;
+        public ListCollectionView MonthWeeksView => MonthWeeksCollection.View as ListCollectionView;
+        public override DateTime SelectedDate
+        {
+            get { return _SelectedDate; }
+            set
+            {
+                DateTime newValue = value.MonthStart();
+                base.SelectedDate = newValue;
+            }
+        }
+        public MonthWeekViewModel SelectedWeek
+        {
+            get { return _SelectedWeek; }
+            set
+            {
+                if (_SelectedWeek == value) return;
+                _SelectedWeek = value;
+                if (SelectedWeek == null)
+                {
+                    HasSelectedWeek = false;
+                }
+                else
+                {
+                    HasSelectedWeek = true;
+                    Status = "Double Click to view week.";
+                }
+                OnPropertyChanged();
+            }
+        }
+        public override bool TextMargin
+        {
+            get => base.TextMargin;
+            set
+            {
+                base.TextMargin = value;
+                SetTextMargin();
+            }
+        }
+        #endregion
+        #region Conditions
+        public bool HasSelectedWeek
         {
             get
             {
-                return _SelectedDateTime;
+                return _HasSelectedWeek;
             }
-            set
+            protected set
             {
-                _SelectedDateTime = value;
+                _HasSelectedWeek = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(SelectedYear));
-                OnPropertyChanged(nameof(SelectedMonth));
-                OnPropertyChanged(nameof(SelectedDay));
-                OnPropertyChanged(nameof(DaysInMonth));
-                OnPropertyChanged(nameof(SelectedMonthString));
-                OnPropertyChanged(nameof(SelectedYearString));
+                OnPropertyChanged(nameof(HasNotSelectedWeek));
             }
         }
-        public int DaysInMonth => _Calendar.GetDaysInMonth(SelectedYear, SelectedMonth);
-        public int SelectedYear => _SelectedDateTime.Year;
-        public int SelectedMonth => _SelectedDateTime.Month;
-        public string SelectedMonthString => SelectedDateTime.ToString("MMMM");
-        public string SelectedYearString => SelectedDateTime.ToString("yyy");
-        public int SelectedDay => _SelectedDateTime.Day;
-        #endregion
-        public List<MonthWeek> Weeks { get; set; }
-        #region Commands
-        public ICommand NextMonthCommand => _NextMonthCommand
-            ?? (_NextMonthCommand = new RelayCommand(ap => NextMonth(), pp => true));
-        public ICommand PrevMonthCommand => _PrevMonthCommand
-            ?? (_PrevMonthCommand = new RelayCommand(ap => PrevMonth(), pp => true));
+        public bool HasNotSelectedWeek => !HasSelectedWeek;
         #endregion
         #region Predicates
+        protected override bool CanAddNew => false;
+        protected override bool CanCancel => false;
+        protected override bool CanCommit => false;
+        protected override bool CanDeselect => false;
+        protected override bool CanEditSelected => false;
+        protected override bool CanDeleteSelected => false;
         protected override bool CanSave => false;
+        protected override bool CanOrientation => false;
+        public override bool CanMax => false;
+        protected override bool CanScaleDown => false;
+        protected override bool CanScaleUp => false;
+        protected override bool CanSelectMonth => false;
         #endregion
         #region Actions
+        protected override void SelectWeek()
+        {
+            DateTime selectedDate = SelectedDate;
+            if (HasSelectedWeek) selectedDate = SelectedWeek.SelectedDate;
+            RequestViewChangeEventArgs e = new RequestViewChangeEventArgs(
+                CalendarViewType.Week, selectedDate);
+            OnRequestViewChange(e);
+        }
+        protected void SetTextMargin()
+        {
+            foreach (var w in MonthWeeksView)
+            {
+                MonthWeekViewModel mwVM = w as MonthWeekViewModel;
+                mwVM.TextMargin = TextMargin;
+            }
+        }
+        protected override async void LoadData()
+        {
+            IsEnabled = false;
+            IsLoading = true;
+            Status = "Loading Data...";
+            try
+            {
+                await GetDataAsync();
+                IsEnabled = true;
+                Status = "Ready";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, String.Format("Error Loading {0} Data", Name), MessageBoxButton.OK, MessageBoxImage.Error);
+                Status = "Failed to get data!";
+            }
+            IsLoading = false;
+        }
         protected override async Task GetDataAsync()
         {
-            Context = new TimeKeeperContext();
-            await Context.Notes.LoadAsync();
-            Items.Source = Context.Notes.Local;
+            await Task.Delay(0);
+            SetUpCalendarObjects();
+        }
+        protected override void Previous()
+        {
+            DateTime previousMonth = SelectedDate.AddMonths(-1);
+            SelectedDate = previousMonth;
+            LoadData();
+        }
+        protected override void Next()
+        {
+            DateTime nextMonth = SelectedDate.AddMonths(1);
+            SelectedDate = nextMonth;
+            LoadData();
+        }
+        protected override void SetUpCalendarObjects()
+        {
+            MonthWeeksCollection = new CollectionViewSource();
+            MonthWeeksCollection.Source = new ObservableCollection<MonthWeekViewModel>();
+            int numWeeks = SelectedDate.MonthWeeks();
+            DateTime firstDay = new DateTime(SelectedYear, SelectedMonth, 1);
+            for (int i = 0; i < numWeeks; i++)
+            {
+                MonthWeekViewModel week = new MonthWeekViewModel();
+                week.GetDataCommand.Execute(null);
+                week.SelectedDate = firstDay.AddDays(7 * i);
+                week.SelectedMonthOverride = SelectedMonth;
+                week.TextMargin = TextMargin;
+                MonthWeeksView.AddNewItem(week);
+                MonthWeeksView.CommitNew();
+            }
+            OnPropertyChanged(nameof(MonthWeeksView));
         }
         protected override void SaveAs()
         {
             throw new NotImplementedException();
-        }
-        private void NextMonth()
-        {
-            SelectedDateTime = SelectedDateTime.AddMonths(1);
-            BuildMonth();
-        }
-        private void PrevMonth()
-        {
-            SelectedDateTime = SelectedDateTime.AddMonths(-1);
-            BuildMonth();
-        }
-        private void BuildMonth()
-        {
-            //We will build a month as a list of weeks and weeks as lists of 7 days.
-            //To align the month correctly, we need to ask how many days are in the month and what day of the week is the first.
-            //Every week starts on Sunday. We need to find the first Sunday of the first week that may or may not be in the month.
-            //Starting from the first Sunday, we fill each week with successive days until we run out of days of the month
-            //and the last week is filled.
-            Weeks = new List<MonthWeek>();
-            DateTime firstDay = new DateTime(SelectedYear, SelectedMonth, 1);
-            DateTime lastDay = firstDay.AddMonths(1).AddDays(-1);
-            DayOfWeek firstDayWeekday = _Calendar.GetDayOfWeek(firstDay);
-            DayOfWeek lastDayWeekday = _Calendar.GetDayOfWeek(lastDay);
-            DateTime firstSunday = firstDay.AddDays(-(int)firstDayWeekday);
-            for (int d = -(int)firstDayWeekday; d < DaysInMonth;)
-            {
-                MonthWeek week = new MonthWeek();
-                for (int wd = 0; wd < 7; wd ++)
-                {
-                    MonthDay day = new MonthDay()
-                    {
-                        DateTime = firstDay.AddDays(d),
-                        IsNotInMonth = d < 0 || d >= DaysInMonth
-                    };
-                    week.Days.Add(day);
-                    d++;
-                }
-                Weeks.Add(week);
-            }
-            OnPropertyChanged(nameof(Weeks));
         }
         #endregion
     }

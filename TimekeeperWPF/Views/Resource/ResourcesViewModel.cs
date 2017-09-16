@@ -10,7 +10,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class ResourcesViewModel : ViewModel<Resource>
+    public class ResourcesViewModel : EntityViewModel<Resource>
     {
         public ResourcesViewModel() : base()
         {
