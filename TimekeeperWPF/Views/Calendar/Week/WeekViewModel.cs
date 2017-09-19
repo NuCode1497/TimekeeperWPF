@@ -113,6 +113,11 @@ namespace TimekeeperWPF
         }
         protected override void Previous() { SelectedDate = SelectedDate.AddDays(-7); }
         protected override void Next() { SelectedDate = SelectedDate.AddDays(7); }
+
+        protected override bool IsTaskRelevant(TimeTask task)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

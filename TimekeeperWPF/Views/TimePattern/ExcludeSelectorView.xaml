@@ -11,7 +11,7 @@
                 <ComboBox Name="ExcludesCbo" DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True" Width="100"
                   SelectedItem="{Binding Path=SelectedExclude, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=ExcludesView}" />
+                  ItemsSource="{Binding Path=PatternsView}" />
                 <Button Name="AddExcludeBtn" Content="Add" 
                     Command="{Binding Path=AddExcludeCommand}" />
             </StackPanel>

@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using TimekeeperDAL.EF;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF.Calendar
@@ -42,17 +43,6 @@ namespace TimekeeperWPF.Calendar
         #endregion Events
         #region Properties
         public int DayOffset { get; set; } = 0;
-        #region Start
-        public DateTime Start
-        {
-            get { return (DateTime)GetValue(StartProperty); }
-            set { SetValue(StartProperty, value); }
-        }
-        public static readonly DependencyProperty StartProperty =
-            DependencyProperty.Register(
-                nameof(Start), typeof(DateTime), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
-        #endregion
         #region End
         public DateTime End
         {
@@ -75,6 +65,21 @@ namespace TimekeeperWPF.Calendar
                 nameof(Scale), typeof(double), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(60d),
                 new ValidateValueCallback(Day.IsValidScale));
+        #endregion
+        #region Start
+        public DateTime Start
+        {
+            get { return (DateTime)GetValue(StartProperty); }
+            set { SetValue(StartProperty, value); }
+        }
+        public static readonly DependencyProperty StartProperty =
+            DependencyProperty.Register(
+                nameof(Start), typeof(DateTime), typeof(CalendarObject),
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
+        #endregion
+        #region TimeTask
+        private TimeTask _TimeTask;
+        public TimeTask TimeTask { get; set; }
         #endregion
         #endregion
         public CalendarObject ShadowClone()

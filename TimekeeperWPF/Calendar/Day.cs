@@ -108,7 +108,7 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
         protected bool IsDateToday(DateTime d) { return d.Date == DateTime.Now.Date; }
-        protected bool IsDateEqual(DateTime d, DateTime d2) { return d.Date == d2.Date; }
+        protected bool IsDateRelevant(DateTime d) { return d.Date == Date; }
         #endregion
         #region ForceMaxScale
         /// <summary>
@@ -985,7 +985,7 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (IsDateToday(CalObj.Start) || IsDateToday(CalObj.End))
+                    if (IsDateRelevant(CalObj.Start) || IsDateRelevant(CalObj.End))
                     {
                         child.Visibility = Visibility.Visible;
                         CalObj.Scale = Scale;
@@ -1058,7 +1058,7 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (IsDateToday(CalObj.Start) || IsDateToday(CalObj.End))
+                    if (IsDateRelevant(CalObj.Start) || IsDateRelevant(CalObj.End))
                     {
                         child.Visibility = Visibility.Visible;
                         CalObj.Scale = Scale;

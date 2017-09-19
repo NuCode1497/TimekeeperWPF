@@ -28,35 +28,55 @@ namespace TimekeeperWPF
         }
         protected override void SetUpCalendarObjects()
         {
-            CalendarObjectsCollection = new CollectionViewSource();
-            CalendarObjectsCollection.Source = new ObservableCollection<UIElement>()
-            {
-                new CalendarObject()
-                {
-                    Start = DateTime.Now.Date.AddHours(2).AddMinutes(20),
-                    End = DateTime.Now.Date.AddHours(4),
-                },
-                new CalendarObject()
-                {
-                    Start = DateTime.Now.Date.AddMinutes(10),
-                    End = DateTime.Now.Date.AddHours(1).AddMinutes(20),
-                },
-            };
-            View.Filter = T =>
-            {
-                TimeTask task = T as TimeTask;
-                return task.Start.Date == SelectedDate.Date
-                    || task.End.Date == SelectedDate.Date;
-            };
-            OnPropertyChanged(nameof(View));
+            base.SetUpCalendarObjects();
             foreach (TimeTask T in View)
             {
                 //Here we want to create CalendarObjects based on the selected TimeTask
                 CalendarObject CalObj = new CalendarObject();
+                CalObj.TimeTask = T;
                 //edit CalObj properties
-                CalendarObjectsView.AddNewItem(CalObj);
+
+                //TimeTask
+                //Start
+                //End
+                //Priority
+                //RaiseOnReschedule
+                //AsksForReschedule
+                //AsksForCheckin
+                //CanBePushed
+                //CanInflate
+                //CanDeflate
+                //CanFill
+                //CanBeEarly
+                //CanBeLate
+                //Dimension
+                //PowerLevel
+                //Labels
+                //Excludes
+                //Includes
+
+                //TimePatern
+                //Duration
+                //ForX
+                //ForNth
+                //ForSkipDuration
+                //Labels
+                //Allocations
+
+                //Allocation
+                //min
+                //max
+                //Resource
+
+                //CalendarObjectsView.AddNewItem(CalObj);
+                //CalendarObjectsView.CommitNew();
             }
             OnPropertyChanged(nameof(CalendarObjectsView));
+        }
+        protected override bool IsTaskRelevant(TimeTask task)
+        {
+            return task.Start.Date == SelectedDate.Date
+                || task.End.Date == SelectedDate.Date;
         }
         #endregion
     }

@@ -177,7 +177,18 @@ namespace TimekeeperWPF
 
             SetUpCalendarObjects();
         }
-        protected abstract void SetUpCalendarObjects();
+        protected virtual void SetUpCalendarObjects()
+        {
+            CalendarObjectsCollection = new CollectionViewSource();
+            CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
+            View.Filter = T =>
+            {
+                TimeTask task = T as TimeTask;
+                return IsTaskRelevant(task);
+            };
+            OnPropertyChanged(nameof(View));
+        }
+        protected abstract bool IsTaskRelevant(TimeTask task);
         protected virtual void Previous() { SelectedDate = SelectedDate.AddDays(-1); }
         protected virtual void Next() { SelectedDate = SelectedDate.AddDays(1); }
         protected virtual void ToggleOrientation()

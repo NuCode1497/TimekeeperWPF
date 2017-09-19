@@ -218,6 +218,7 @@
                 <Button x:Name="DayButton" Content="&#x1f4c6;"
                         ToolTip="Day" FontSize="18" Margin="0,-5,0,-5"
                         Command="{Binding Path=SelectDayCommand}"/>
+                <DatePicker SelectedDate="{Binding Path=SelectedDate, Mode=TwoWay}"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>

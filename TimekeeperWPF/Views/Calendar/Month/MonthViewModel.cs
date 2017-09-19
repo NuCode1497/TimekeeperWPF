@@ -19,7 +19,6 @@ namespace TimekeeperWPF
     public class MonthViewModel : CalendarViewModel
     {
         #region Fields
-        private DateTime _SelectedDate = DateTime.Now.MonthStart();
         private MonthWeekViewModel _SelectedWeek;
         private bool _HasSelectedWeek = false;
         #endregion
@@ -33,7 +32,7 @@ namespace TimekeeperWPF
         public ListCollectionView MonthWeeksView => MonthWeeksCollection.View as ListCollectionView;
         public override DateTime SelectedDate
         {
-            get { return _SelectedDate; }
+            get { return base.SelectedDate; }
             set
             {
                 DateTime newValue = value.MonthStart();
@@ -170,6 +169,11 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(MonthWeeksView));
         }
         protected override void SaveAs()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool IsTaskRelevant(TimeTask task)
         {
             throw new NotImplementedException();
         }
