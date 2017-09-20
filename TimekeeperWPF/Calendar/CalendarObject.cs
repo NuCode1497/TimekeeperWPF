@@ -77,10 +77,6 @@ namespace TimekeeperWPF.Calendar
                 nameof(Start), typeof(DateTime), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
         #endregion
-        #region TimeTask
-        private TimeTask _TimeTask;
-        public TimeTask TimeTask { get; set; }
-        #endregion
         #endregion
         public CalendarObject ShadowClone()
         {

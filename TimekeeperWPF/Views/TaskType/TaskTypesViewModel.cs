@@ -10,7 +10,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class TaskTypesViewModel : EntityViewModel<TaskType>
+    public class TaskTypesViewModel : ViewModel<TaskType>
     {
         public TaskTypesViewModel() : base()
         {

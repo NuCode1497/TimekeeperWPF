@@ -158,6 +158,8 @@ namespace TimekeeperWPF
             DateTime firstDay = new DateTime(SelectedYear, SelectedMonth, 1);
             for (int i = 0; i < numWeeks; i++)
             {
+                //TODO: any way to make this more efficient? This is creating up to 6 copies of
+                //DbContexts for each month. Are these getting disposed?
                 MonthWeekViewModel week = new MonthWeekViewModel();
                 week.GetDataCommand.Execute(null);
                 week.SelectedDate = firstDay.AddDays(7 * i);
@@ -172,8 +174,11 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-
         protected override bool IsTaskRelevant(TimeTask task)
+        {
+            throw new NotImplementedException();
+        }
+        protected override bool IsNoteRelevant(Note note)
         {
             throw new NotImplementedException();
         }

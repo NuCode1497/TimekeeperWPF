@@ -59,36 +59,15 @@ namespace TimekeeperWPF
         }
         protected override void SetUpCalendarObjects()
         {
-            CalendarObjectsCollection = new CollectionViewSource();
-            CalendarObjectsCollection.Source = new ObservableCollection<UIElement>()
-            {
-                new CalendarObject()
-                {
-                    Start = DateTime.Now.Date.AddHours(2).AddMinutes(20),
-                    End = DateTime.Now.Date.AddHours(4),
-                },
-                new CalendarObject()
-                {
-                    Start = DateTime.Now.Date.AddMinutes(10),
-                    End = DateTime.Now.Date.AddHours(1).AddMinutes(20),
-                },
-            };
-            View.Filter = T =>
-            {
-                TimeTask task = T as TimeTask;
-                return task.Start.Date == SelectedDate.Date
-                    || task.End.Date == SelectedDate.Date;
-            };
-            OnPropertyChanged(nameof(View));
-            foreach (TimeTask T in View)
-            {
-                //Here we want to create CalendarObjects based on the selected TimeTask
-                CalendarObject CalObj = new CalendarObject();
-                //edit CalObj properties
-                //assume that CalObj start and/or end is within week
-                CalendarObjectsView.AddNewItem(CalObj);
-                KageBunshinNoJutsu(CalObj);
-            }
+            //foreach (TimeTask T in View)  //TODO: Implnt TimeTask
+            //{ 
+            //    //Here we want to create CalendarObjects based on the selected TimeTask
+            //    CalendarObject CalObj = new CalendarObject();
+            //    //edit CalObj properties
+            //    //assume that CalObj start and/or end is within week
+            //    CalendarObjectsView.AddNewItem(CalObj);
+            //    KageBunshinNoJutsu(CalObj);
+            //}
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
         private void KageBunshinNoJutsu(CalendarObject CalObj)
@@ -111,12 +90,25 @@ namespace TimekeeperWPF
                 }
             }
         }
-        protected override void Previous() { SelectedDate = SelectedDate.AddDays(-7); }
-        protected override void Next() { SelectedDate = SelectedDate.AddDays(7); }
+        protected override void Previous()
+        {
+            SelectedDate = SelectedDate.AddDays(-7);
+            base.Previous();
+        }
+        protected override void Next()
+        {
+            SelectedDate = SelectedDate.AddDays(7);
+            base.Next();
+        }
 
         protected override bool IsTaskRelevant(TimeTask task)
         {
-            throw new NotImplementedException();
+            return task.Start.WeekStart() == SelectedDate.WeekStart()
+                || task.End.WeekStart() == SelectedDate.WeekStart();
+        }
+        protected override bool IsNoteRelevant(Note note)
+        {
+            return note.DateTime.WeekStart() == SelectedDate.WeekStart();
         }
         #endregion
     }

@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace TimekeeperWPF.Old
 {
-    public class MonthViewModel : EntityViewModel<Note>
+    public class MonthViewModel : ViewModel<Note>
     {
         #region Fields
         private System.Globalization.Calendar _Calendar => CultureInfo.CurrentCulture.Calendar;

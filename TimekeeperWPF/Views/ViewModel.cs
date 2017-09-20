@@ -17,7 +17,7 @@ namespace TimekeeperWPF
     /// Generic ViewModel handles CRUD logic for Views. Bind a collection control's ItemsSource to View.
     /// </summary>
     /// <typeparam name="ModelType">EntityBase type</typeparam>
-    public abstract class EntityViewModel<ModelType> : ObservableObject, IView, IDisposable 
+    public abstract class ViewModel<ModelType> : ObservableObject, IView, IDisposable 
         where ModelType: EntityBase, new() 
     {
         #region Fields
@@ -41,7 +41,7 @@ namespace TimekeeperWPF
         private ICommand _DeleteSelectedCommand = null;
         private ICommand _SaveAsCommand = null;
         #endregion
-        public EntityViewModel()
+        public ViewModel()
         {
             NameSorter = new NameSorter();
         }

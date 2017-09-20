@@ -10,7 +10,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class TimePointsViewModel : EntityViewModel<TimePoint>
+    public class TimePointsViewModel : ViewModel<TimePoint>
     {
         public TimePointsViewModel() : base()
         {

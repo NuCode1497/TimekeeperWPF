@@ -13,10 +13,14 @@ namespace TimekeeperWPF
 {
     public class DayViewModel : CalendarViewModel
     {
-        public override string Name => "Day View";
+        #region Fields
+        #endregion
         public DayViewModel() : base()
         {
         }
+        #region Properties
+        public override string Name => "Day View";
+        #endregion
         #region Predicates
         protected override bool CanSave => false;
         protected override bool CanSelectDay => false;
@@ -26,57 +30,24 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void SetUpCalendarObjects()
-        {
-            base.SetUpCalendarObjects();
-            foreach (TimeTask T in View)
-            {
-                //Here we want to create CalendarObjects based on the selected TimeTask
-                CalendarObject CalObj = new CalendarObject();
-                CalObj.TimeTask = T;
-                //edit CalObj properties
-
-                //TimeTask
-                //Start
-                //End
-                //Priority
-                //RaiseOnReschedule
-                //AsksForReschedule
-                //AsksForCheckin
-                //CanBePushed
-                //CanInflate
-                //CanDeflate
-                //CanFill
-                //CanBeEarly
-                //CanBeLate
-                //Dimension
-                //PowerLevel
-                //Labels
-                //Excludes
-                //Includes
-
-                //TimePatern
-                //Duration
-                //ForX
-                //ForNth
-                //ForSkipDuration
-                //Labels
-                //Allocations
-
-                //Allocation
-                //min
-                //max
-                //Resource
-
-                //CalendarObjectsView.AddNewItem(CalObj);
-                //CalendarObjectsView.CommitNew();
-            }
-            OnPropertyChanged(nameof(CalendarObjectsView));
-        }
         protected override bool IsTaskRelevant(TimeTask task)
         {
             return task.Start.Date == SelectedDate.Date
                 || task.End.Date == SelectedDate.Date;
+        }
+        protected override bool IsNoteRelevant(Note note)
+        {
+            return note.DateTime.Date == SelectedDate.Date;
+        }
+        protected override void Previous()
+        {
+            SelectedDate = SelectedDate.AddDays(-1);
+            base.Previous();
+        }
+        protected override void Next()
+        {
+            SelectedDate = SelectedDate.AddDays(1);
+            base.Next();
         }
         #endregion
     }

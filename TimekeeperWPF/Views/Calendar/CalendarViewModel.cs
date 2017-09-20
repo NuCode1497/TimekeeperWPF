@@ -16,7 +16,7 @@ using System.Windows;
 
 namespace TimekeeperWPF
 {
-    public abstract class CalendarViewModel : EntityViewModel<TimeTask>
+    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<Note>
     {
         #region Fields
         private UIElement _SelectedCalendarObect;
@@ -37,6 +37,7 @@ namespace TimekeeperWPF
         #endregion
         public CalendarViewModel() :base()
         {
+            Sorter = new NoteDateTimeSorter();
         }
         #region Events
         public event RequestViewChangeEventHandler RequestViewChange;
@@ -172,25 +173,55 @@ namespace TimekeeperWPF
             //read task data and create CalendarObjects
             //calculate collisions and reorganize CalendarObjects by changing their datetimes
             Context = new TimeKeeperContext();
-            await Context.TimeTasks.LoadAsync();
-            Items.Source = Context.TimeTasks.Local;
+            //await Context.TimeTasks.LoadAsync(); //TODO: Implnt TimeTask
+            //Items.Source = Context.TimeTasks.Local; //TODO: Implnt TimeTask
+            await Context.Notes.LoadAsync();
+            Items.Source = Context.Notes.Local;
 
             SetUpCalendarObjects();
         }
         protected virtual void SetUpCalendarObjects()
         {
+            //TODO: instead of Notes, use TimeTasks. The difference is TimeTasks create 
+            //CalObjs from TimePatterns, have start, end, and do collisions
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            View.Filter = T =>
+            View.Filter = N =>
             {
-                TimeTask task = T as TimeTask;
-                return IsTaskRelevant(task);
+                Note note = N as Note;
+                return IsNoteRelevant(note);
             };
+            CalendarObject prevCalObj = null;
+            foreach (Note N in View)
+            {
+                CalendarObject CalObj = new CalendarObject();
+                CalObj.Start = N.DateTime;
+                CalObj.End = N.DateTime.AddHours(1);
+                if (prevCalObj == null)
+                {
+                    prevCalObj = CalObj;
+                }
+                else
+                {
+                    prevCalObj.End = N.DateTime;
+                    prevCalObj = CalObj;
+                }
+                CalendarObjectsView.AddNewItem(CalObj);
+                CalendarObjectsView.CommitNew();
+            }
+            OnPropertyChanged(nameof(CalendarObjectsView));
             OnPropertyChanged(nameof(View));
         }
+        protected abstract bool IsNoteRelevant(Note note);
         protected abstract bool IsTaskRelevant(TimeTask task);
-        protected virtual void Previous() { SelectedDate = SelectedDate.AddDays(-1); }
-        protected virtual void Next() { SelectedDate = SelectedDate.AddDays(1); }
+        protected virtual void Previous()
+        {
+            SetUpCalendarObjects();
+        }
+        protected virtual void Next()
+        {
+            SetUpCalendarObjects();
+        }
         protected virtual void ToggleOrientation()
         {
             if (Orientation == Orientation.Horizontal)
@@ -200,6 +231,12 @@ namespace TimekeeperWPF
         }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
+        protected override void AddNew()
+        {
+            base.AddNew();
+            CurrentEditItem.DateTime = DateTime.Now;
+            CurrentEditItem.Text = "Your text here.";
+        }
         #endregion
     }
 }
