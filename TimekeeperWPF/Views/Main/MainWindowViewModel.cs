@@ -31,16 +31,16 @@ namespace TimekeeperWPF
                 Navigate(Views[0]);
                 return;
             }
-            Views.Add(new NotesViewModel());
             _MonthVM = new MonthViewModel();
             _WeekVM = new WeekViewModel();
             _DayVM = new DayViewModel();
             _MonthVM.RequestViewChange += OnRequestViewChange;
             _WeekVM.RequestViewChange += OnRequestViewChange;
             _DayVM.RequestViewChange += OnRequestViewChange;
+            Views.Add(_DayVM);
             Views.Add(_MonthVM);
             Views.Add(_WeekVM);
-            Views.Add(_DayVM);
+            Views.Add(new NotesViewModel());
             Views.Add(new LabelsViewModel());
             Views.Add(new ResourcesViewModel());
             Views.Add(new TaskTypesViewModel());

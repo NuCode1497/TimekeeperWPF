@@ -160,9 +160,15 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void AddNew()
+        protected override int AddNew()
         {
-            base.AddNew();
+            int errors = base.AddNew();
+            if (errors != 0) return errors;
+            if (CurrentEditItem == null)
+            {
+                errors++;
+                return errors;
+            }
             CurrentEditItem.Name = "New Task";
             CurrentEditItem.Description = "Your text here.";
             CurrentEditItem.End = DateTime.Now.RoundToHour().AddHours(1); //init before start
@@ -181,6 +187,7 @@ namespace TimekeeperWPF
             CurrentEditItem.CanDeflate = false;
             CurrentEditItem.CanFill = false;
             BeginEdit();
+            return 0;
         }
         protected override void EditSelected()
         {

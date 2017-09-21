@@ -7,7 +7,7 @@ namespace TimekeeperDAL.EF
     {
         public override string ToString()
         {
-            return DateTime.ToString() + " " + Text;
+            return TaskType.Name + " - " + DateTime.ToString() + " - " + Text;
         }
 
         [NotMapped]

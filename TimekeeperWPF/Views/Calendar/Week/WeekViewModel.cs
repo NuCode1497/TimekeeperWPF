@@ -57,18 +57,9 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void SetUpCalendarObjects()
+        protected override void AdditionalCalObjSetup(CalendarObject CalObj)
         {
-            //foreach (TimeTask T in View)  //TODO: Implnt TimeTask
-            //{ 
-            //    //Here we want to create CalendarObjects based on the selected TimeTask
-            //    CalendarObject CalObj = new CalendarObject();
-            //    //edit CalObj properties
-            //    //assume that CalObj start and/or end is within week
-            //    CalendarObjectsView.AddNewItem(CalObj);
-            //    KageBunshinNoJutsu(CalObj);
-            //}
-            OnPropertyChanged(nameof(CalendarObjectsView));
+            KageBunshinNoJutsu(CalObj);
         }
         private void KageBunshinNoJutsu(CalendarObject CalObj)
         {
@@ -87,6 +78,7 @@ namespace TimekeeperWPF
                     CalendarObject shadowClone = CalObj.ShadowClone();
                     shadowClone.DayOffset = i;
                     CalendarObjectsView.AddNewItem(shadowClone);
+                    CalendarObjectsView.CommitNew();
                 }
             }
         }
@@ -100,15 +92,14 @@ namespace TimekeeperWPF
             SelectedDate = SelectedDate.AddDays(7);
             base.Next();
         }
-
+        protected override bool IsNoteRelevant(Note note)
+        {
+            return note.DateTime.WeekStart() == SelectedDate.WeekStart();
+        }
         protected override bool IsTaskRelevant(TimeTask task)
         {
             return task.Start.WeekStart() == SelectedDate.WeekStart()
                 || task.End.WeekStart() == SelectedDate.WeekStart();
-        }
-        protected override bool IsNoteRelevant(Note note)
-        {
-            return note.DateTime.WeekStart() == SelectedDate.WeekStart();
         }
         #endregion
     }

@@ -211,7 +211,7 @@
     <Compile Include="Views\Label\LabelView.xaml.cs">
       <DependentUpon>LabelView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Note\NoteDateTimeSorter.cs" />
+    <Compile Include="Tools\NoteDateTimeSorter.cs" />
     <Compile Include="Views\Note\NotesViewModel.cs" />
     <Compile Include="Tools\RelayCommand.cs" />
     <Compile Include="Views\Note\NotesView.xaml.cs">

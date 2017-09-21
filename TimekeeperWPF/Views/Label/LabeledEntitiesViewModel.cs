@@ -93,10 +93,12 @@ namespace TimekeeperWPF
             LabelsView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(LabelsView));
         }
-        protected override void AddNew()
+        protected override int AddNew()
         {
-            base.AddNew();
+            int errors = base.AddNew();
+            if (errors != 0) return errors;
             BeginEdit();
+            return 0;
         }
         protected override void EditSelected()
         {

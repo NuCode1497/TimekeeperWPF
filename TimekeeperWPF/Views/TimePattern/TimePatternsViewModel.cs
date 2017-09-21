@@ -214,9 +214,15 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void AddNew()
+        protected override int AddNew()
         {
-            base.AddNew();
+            int errors = base.AddNew();
+            if (errors != 0) return errors;
+            if (CurrentEditItem == null)
+            {
+                errors++;
+                return errors;
+            }
             //CurrentEditItem.Allocations;
             //CurrentEditItem.Child;
             //CurrentEditItem.Labels;
@@ -227,6 +233,7 @@ namespace TimekeeperWPF
             CurrentEditItem.ForX = 1;
             CurrentEditItem.Name = "New Time Pattern";
             BeginEdit();
+            return 0;
         }
         protected override void EditSelected()
         {

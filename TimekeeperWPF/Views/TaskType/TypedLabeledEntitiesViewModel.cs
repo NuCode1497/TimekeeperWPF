@@ -37,15 +37,22 @@ namespace TimekeeperWPF
 
             await base.GetDataAsync();
         }
-        protected override void AddNew()
+        protected override int AddNew()
         {
-            base.AddNew();
+            int errors = base.AddNew();
+            if (errors != 0) return errors;
+            if (CurrentEditItem == null)
+            {
+                errors++;
+                return errors;
+            }
             //set type to Note by getting it from the list of types
             var q = from t in TaskTypesSource
                     where t.Name == "Note"
                     select t;
             CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource.First()).First();
             BeginEdit();
+            return 0;
         }
         protected override void EditSelected()
         {

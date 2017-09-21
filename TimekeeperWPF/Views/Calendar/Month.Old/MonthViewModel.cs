@@ -8,6 +8,7 @@ using TimekeeperDAL.EF;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
 using System.Windows.Input;
+using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF.Old
 {
@@ -22,7 +23,7 @@ namespace TimekeeperWPF.Old
         public MonthViewModel() : base()
         {
             _SelectedDateTime = DateTime.Now;
-            Sorter = new NoteDateTimeSorter();
+            Sorter = new NoteDateTimeSorterAsc();
             LoadData();
             BuildMonth();
         }

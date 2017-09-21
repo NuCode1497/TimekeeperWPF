@@ -37,7 +37,6 @@ namespace TimekeeperWPF
         #endregion
         public CalendarViewModel() :base()
         {
-            Sorter = new NoteDateTimeSorter();
         }
         #region Events
         public event RequestViewChangeEventHandler RequestViewChange;
@@ -182,38 +181,53 @@ namespace TimekeeperWPF
         }
         protected virtual void SetUpCalendarObjects()
         {
-            //TODO: instead of Notes, use TimeTasks. The difference is TimeTasks create 
-            //CalObjs from TimePatterns, have start, end, and do collisions
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            View.Filter = N =>
-            {
-                Note note = N as Note;
-                return IsNoteRelevant(note);
-            };
+            View.Filter = N => IsNoteRelevant(N as Note);
+            View.CustomSort = new NoteDateTimeSorterAsc();
+            OnPropertyChanged(nameof(View));
             CalendarObject prevCalObj = null;
             foreach (Note N in View)
             {
-                CalendarObject CalObj = new CalendarObject();
-                CalObj.Start = N.DateTime;
-                CalObj.End = N.DateTime.AddHours(1);
-                if (prevCalObj == null)
+                TaskType type = N.TaskType;
+                if (type.Name == "Note")
                 {
-                    prevCalObj = CalObj;
+                    CalendarObject CalObj = new CalendarObject();
+                    CalObj.Start = N.DateTime;
+                    CalObj.End = N.DateTime.AddMinutes(1);
+                    CalObj.ToolTip = N.ToString();
+                    CalendarObjectsView.AddNewItem(CalObj);
+                    CalendarObjectsView.CommitNew();
                 }
                 else
                 {
-                    prevCalObj.End = N.DateTime;
-                    prevCalObj = CalObj;
+                    CalendarObject CalObj = new CalendarObject();
+                    CalObj.Start = N.DateTime;
+                    CalObj.End = N.DateTime.AddHours(1);
+                    CalObj.ToolTip = N.ToString();
+                    if (prevCalObj == null)
+                    {
+                        prevCalObj = CalObj;
+                    }
+                    else
+                    {
+                        prevCalObj.End = N.DateTime;
+                        prevCalObj.ToolTip += String.Format("\n{0} to {1}",
+                            prevCalObj.Start.ToShortTimeString(),
+                            prevCalObj.End.ToShortTimeString());
+                        prevCalObj = CalObj;
+                    }
+                    CalendarObjectsView.AddNewItem(CalObj);
+                    CalendarObjectsView.CommitNew();
+                    AdditionalCalObjSetup(prevCalObj);
                 }
-                CalendarObjectsView.AddNewItem(CalObj);
-                CalendarObjectsView.CommitNew();
             }
+            //draw notes last
             OnPropertyChanged(nameof(CalendarObjectsView));
-            OnPropertyChanged(nameof(View));
         }
-        protected abstract bool IsNoteRelevant(Note note);
+        protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
         protected abstract bool IsTaskRelevant(TimeTask task);
+        protected abstract bool IsNoteRelevant(Note note);
         protected virtual void Previous()
         {
             SetUpCalendarObjects();
@@ -231,12 +245,6 @@ namespace TimekeeperWPF
         }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
-        protected override void AddNew()
-        {
-            base.AddNew();
-            CurrentEditItem.DateTime = DateTime.Now;
-            CurrentEditItem.Text = "Your text here.";
-        }
         #endregion
     }
 }
