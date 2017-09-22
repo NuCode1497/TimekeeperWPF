@@ -201,6 +201,7 @@ namespace TimekeeperWPF
                 CalObj.Start = N.DateTime;
                 CalObj.End = N.DateTime.AddMinutes(1);
                 CalObj.ToolTip = N.ToString();
+                CalObj.TaskType = N.TaskType;
                 CalendarObjectsView.AddNewItem(CalObj);
                 CalendarObjectsView.CommitNew();
             }
@@ -223,6 +224,7 @@ namespace TimekeeperWPF
                 CalObj.Start = N.DateTime;
                 CalObj.End = N.DateTime.AddHours(1);
                 CalObj.ToolTip = N.ToString();
+                CalObj.TaskType = N.TaskType;
                 if (prevCalObj == null)
                 {
                     prevCalObj = CalObj;

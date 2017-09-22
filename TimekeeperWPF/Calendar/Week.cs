@@ -121,12 +121,20 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarObject)
                 {
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / 7d;
-                    biggestWidth = Math.Max(biggestWidth, (actualChild.DesiredSize.Width * 7d) + TextMargin);
+                    CalendarObject CalObj = actualChild as CalendarObject;
+                    if (CalObj.TaskType.Name == "Note")
+                    {
+                        biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width);
+                    }
+                    else
+                    {
+                        childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / 7d;
+                        biggestWidth = Math.Max(biggestWidth, (child.DesiredSize.Width * 7d) + TextMargin);
+                    }
                 }
                 else
                 {
-                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width);
+                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width);
                 }
                 child.Measure(childSize);
             }
@@ -206,20 +214,28 @@ namespace TimekeeperWPF.Calendar
                     if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
-                        CalObj.Scale = Scale;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
-                        childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
-                        biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * 7d) + TextMargin);
-                        //Figure out which day CalObj goes in.
-                        //Week days are sequential left to right.
-                        //This is configured such that CalendarObjects that normally span across more than 
-                        //one day shall have additional copies for each day it occupies in this week, up to 7.
-                        //A property 'DayOffset' indicates the copy number and offsets by that number of days.
-                        int startDayOfWeek = Math.Max(0, Math.Min((int)(CalObj.Start.Date - Date).TotalDays, 6));
-                        int currentDayofWeek = startDayOfWeek + CalObj.DayOffset;
-                        DateTime currentDate = Date.AddDays(currentDayofWeek);
-                        x = TextMargin + (currentDayofWeek * dayWidth);
-                        y = (CalObj.Start - currentDate).TotalSeconds / Scale;
+                        if (CalObj.TaskType.Name == "Note")
+                        {
+                            childSize.Width = 20;
+                            childSize.Height = 20;
+                            int startDayOfWeek = Math.Max(0, Math.Min((int)(CalObj.Start.Date - Date).TotalDays, 6));
+                            int currentDayofWeek = startDayOfWeek + CalObj.DayOffset;
+                            DateTime currentDate = Date.AddDays(currentDayofWeek);
+                            x = TextMargin + ((currentDayofWeek + 1) * dayWidth) - 20;
+                            y = (CalObj.Start - currentDate).TotalSeconds / Scale;
+                        }
+                        else
+                        {
+                            CalObj.Scale = Scale;
+                            childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
+                            childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                            biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * 7d) + TextMargin);
+                            int startDayOfWeek = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, 6);
+                            int currentDayofWeek = startDayOfWeek + CalObj.DayOffset;
+                            DateTime currentDate = Date.AddDays(currentDayofWeek);
+                            x = TextMargin + (currentDayofWeek * dayWidth);
+                            y = (CalObj.Start - currentDate).TotalSeconds / Scale;
+                        }
                     }
                     else
                     {

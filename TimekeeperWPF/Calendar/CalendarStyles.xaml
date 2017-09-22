@@ -2,6 +2,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
+    xmlns:EF="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
     xmlns:clr="clr-namespace:System;assembly=mscorlib">
 
 
@@ -16,6 +17,34 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="TaskTypeName" Value="Note">
+                <Setter Property="Content">
+                    <Setter.Value>
+                        <Grid>
+                            <TextBlock Text="&#x1f4dc;"/>
+                        </Grid>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Background" Value="{StaticResource CalendarObject.Note.Background}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+            </Trigger>
+            <Trigger Property="TaskTypeName" Value="Sleep">
+                <Setter Property="Background" Value="{StaticResource CalendarObject.Sleep.Background}"/>
+            </Trigger>
+            <Trigger Property="TaskTypeName" Value="Eat">
+                <Setter Property="Background" Value="{StaticResource CalendarObject.Eat.Background}"/>
+            </Trigger>
+            <Trigger Property="TaskTypeName" Value="Work">
+                <Setter Property="Background" Value="{StaticResource CalendarObject.Work.Background}"/>
+            </Trigger>
+            <Trigger Property="TaskTypeName" Value="Chore">
+                <Setter Property="Background" Value="{StaticResource CalendarObject.Chore.Background}"/>
+            </Trigger>
+            <Trigger Property="TaskTypeName" Value="Play">
+                <Setter Property="Background" Value="{StaticResource CalendarObject.Play.Background}"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style TargetType="cal:Day">
         <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
@@ -193,32 +222,72 @@
             <ToolBar Band="1" BandIndex="1">
                 <!--<Button x:Name="PreviousButton" Style="{StaticResource PreviousButtonStyle}" Command="{Binding Path=PreviousCommand}"/>
                 <Button x:Name="NextButton" Style="{StaticResource NextButtonStyle}" Command="{Binding Path=NextCommand}"/>-->
-                <Button x:Name="OrientationButton" Content="&#x2939;"
-                        ToolTip="Orientation" FontSize="22" Margin="0,-10,0,-5"
-                        Command="{Binding Path=OrientationCommand}"/>
-                <Button x:Name="ScaleUpButton" Content="&#x219f;"
-                        ToolTip="Scale Up" FontSize="22" Margin="0,-10,0,-5"
-                        Command="{Binding Path=ScaleUpCommand}"/>
-                <Button x:Name="ScaleDownButton" Content="&#x21a1;"
-                        ToolTip="Scale Down" FontSize="22" Margin="0,-10,0,-5"
-                        Command="{Binding Path=ScaleDownCommand}"/>
-                <CheckBox x:Name="MaxCheckBox" Content="&#x2927;"
+                <Button x:Name="OrientationButton" ToolTip="Orientation" 
+                        Command="{Binding Path=OrientationCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="&#x2939;" FontSize="22" Margin="2,-8,2,-3"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="ScaleUpButton" ToolTip="Scale Up" 
+                        Command="{Binding Path=ScaleUpCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="&#x219f;" FontSize="22" Margin="2,-8,2,-3"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="ScaleDownButton" ToolTip="Scale Down" 
+                        Command="{Binding Path=ScaleDownCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="&#x21a1;" FontSize="22" Margin="2,-8,2,-3"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <CheckBox x:Name="MaxCheckBox" ToolTip="Max Scale"
                           IsEnabled="{Binding Path=CanMax}"
-                        ToolTip="Max Scale" FontSize="22" Margin="0,-10,0,-5"
-                          IsChecked="{Binding Path=Max, Mode=TwoWay}"/>
-                <CheckBox x:Name="TextMarginCheckBox" Content="&#x25a4;"
+                          IsChecked="{Binding Path=Max, Mode=TwoWay}">
+                    <CheckBox.Content>
+                        <Grid>
+                            <TextBlock Text="&#x2927;" FontSize="22" Margin="2,-8,2,-3"/>
+                        </Grid>
+                    </CheckBox.Content>
+                </CheckBox>
+                <CheckBox x:Name="TextMarginCheckBox" ToolTip="Text Margin" 
                           IsEnabled="{Binding Path=CanTextMargin}"
-                        ToolTip="Text Margin" FontSize="22" Margin="0,-10,0,-5"
-                          IsChecked="{Binding Path=TextMargin, Mode=TwoWay}"/>
-                <Button x:Name="MonthButton" Content="&#x1f4c5;"
-                        ToolTip="Month" FontSize="18" Margin="0,-5,0,-5"
-                        Command="{Binding Path=SelectMonthCommand}"/>
-                <Button x:Name="WeekButton" Content="&#x1f4c6;&#x1f4c6;&#x1f4c6;"
-                        ToolTip="Week" FontSize="12" Margin="0,-5,0,-5"
-                        Command="{Binding Path=SelectWeekCommand}"/>
-                <Button x:Name="DayButton" Content="&#x1f4c6;"
-                        ToolTip="Day" FontSize="18" Margin="0,-5,0,-5"
-                        Command="{Binding Path=SelectDayCommand}"/>
+                          IsChecked="{Binding Path=TextMargin, Mode=TwoWay}">
+                    <CheckBox.Content>
+                        <Grid>
+                            <TextBlock Text="&#x25a4;" FontSize="22" Margin="2,-8,2,-3"/>
+                        </Grid>
+                    </CheckBox.Content>
+                </CheckBox>
+                <Button x:Name="MonthButton" ToolTip="Month"
+                        Command="{Binding Path=SelectMonthCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="&#x1f4c5;" FontSize="18" Margin="0"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="WeekButton" ToolTip="Week" 
+                        Command="{Binding Path=SelectWeekCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="&#x1f4c6;&#x1f4c6;&#x1f4c6;" FontSize="12" Margin="0"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="DayButton" ToolTip="Day"
+                        Command="{Binding Path=SelectDayCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="&#x1f4c6;" FontSize="18" Margin="0"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
                 <DatePicker SelectedDate="{Binding Path=SelectedDate, Mode=TwoWay}"/>
             </ToolBar>
         </ToolBarTray>

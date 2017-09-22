@@ -18,7 +18,7 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF.Calendar
 {
-    public class CalendarObject : Control, IDisposable
+    public class CalendarObject : ContentControl, IDisposable
     {
         #region Fields
         #endregion
@@ -28,7 +28,8 @@ namespace TimekeeperWPF.Calendar
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), 
                 new FrameworkPropertyMetadata(typeof(CalendarObject)));
             BackgroundProperty.OverrideMetadata(typeof(CalendarObject), 
-                new FrameworkPropertyMetadata(new SolidColorBrush() { Opacity = 0.5d, Color = Colors.Tomato }));
+                new FrameworkPropertyMetadata(
+                    new SolidColorBrush() { Opacity = 0.5d, Color = Colors.Tomato }));
             BorderBrushProperty.OverrideMetadata(typeof(CalendarObject), 
                 new FrameworkPropertyMetadata(Brushes.DarkSlateGray));
             BorderThicknessProperty.OverrideMetadata(typeof(CalendarObject), 
@@ -53,6 +54,11 @@ namespace TimekeeperWPF.Calendar
         #region Properties
         public bool IsPropagatingMimicry { get; private set; }
         public CalendarObject OriginalCalObj { get; set; } = null;
+        /// <summary>
+        ///This is configured such that CalendarObjects that normally span across more than 
+        ///one day shall have additional copies for each day it occupies in this week, up to 7.
+        ///DayOffset indicates the copy number and offsets by that number of days.
+        /// </summary>
         public int DayOffset { get; set; } = 0;
         #region End
         public DateTime End
@@ -88,6 +94,35 @@ namespace TimekeeperWPF.Calendar
                 nameof(Start), typeof(DateTime), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
         #endregion
+        #region TaskType
+        public TaskType TaskType
+        {
+            get { return (TaskType)GetValue(TaskTypeProperty); }
+            set { SetValue(TaskTypeProperty, value); }
+        }
+        public static readonly DependencyProperty TaskTypeProperty =
+            DependencyProperty.Register(
+                nameof(TaskType), typeof(TaskType), typeof(CalendarObject),
+                new FrameworkPropertyMetadata(null, 
+                    new PropertyChangedCallback(OnTaskTypeChanged)));
+        public static void OnTaskTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            CalendarObject CalObj = d as CalendarObject;
+            TaskType value = (TaskType)e.NewValue;
+            CalObj.SetValue(TaskTypeNamePropertyKey, value.Name);
+        }
+        public string TaskTypeName
+        {
+            get { return (string)GetValue(TaskTypeNameProperty); }
+            private set { SetValue(TaskTypeNamePropertyKey, value); }
+        }
+        private static readonly DependencyPropertyKey TaskTypeNamePropertyKey =
+            DependencyProperty.RegisterReadOnly(
+                nameof(TaskTypeName), typeof(string), typeof(CalendarObject),
+                new FrameworkPropertyMetadata(null));
+        public static readonly DependencyProperty TaskTypeNameProperty =
+            TaskTypeNamePropertyKey.DependencyProperty;
+        #endregion
         #endregion
         #region Kage Bunshin No Jutsu
         private List<CalendarObject> _Clones = null;
@@ -108,6 +143,7 @@ namespace TimekeeperWPF.Calendar
             End = CalObj.End;
             Start = CalObj.Start;
             ToolTip = CalObj.ToolTip;
+            TaskType = CalObj.TaskType;
             PropagateMimicry();
         }
         public void PropagateMimicry()
