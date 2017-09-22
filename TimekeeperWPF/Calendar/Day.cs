@@ -108,7 +108,9 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
         protected bool IsDateToday(DateTime d) { return d.Date == DateTime.Now.Date; }
-        protected bool IsDateRelevant(DateTime d) { return d.Date == Date; }
+        protected virtual bool IsDateRelevant(DateTime d) { return d.Date == Date; }
+        protected bool IsCalObjRelevant(CalendarObject CalObj)
+        { return IsDateRelevant(CalObj.Start) || IsDateRelevant(CalObj.End); }
         #endregion
         #region ForceMaxScale
         /// <summary>
@@ -985,12 +987,15 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (IsDateRelevant(CalObj.Start) || IsDateRelevant(CalObj.End))
+                    if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
                         CalObj.Scale = Scale;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                        biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin);
+                        //
+                        //
                         //
                         //
                         //
@@ -998,9 +1003,7 @@ namespace TimekeeperWPF.Calendar
                         //
                         //
                         x = TextMargin;
-                        DateTime dt = CalObj.Start;
-                        y = (dt - dt.Date).TotalSeconds / Scale;
-                        biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin);
+                        y = (CalObj.Start - Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -1058,12 +1061,15 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (IsDateRelevant(CalObj.Start) || IsDateRelevant(CalObj.End))
+                    if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
                         CalObj.Scale = Scale;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                        biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + TextMargin);
+                        //
+                        //
                         //
                         //
                         //
@@ -1071,9 +1077,7 @@ namespace TimekeeperWPF.Calendar
                         //
                         //
                         y = arrangeSize.Height - childSize.Height - TextMargin;
-                        DateTime dt = CalObj.Start;
-                        x = (dt - dt.Date).TotalSeconds / Scale;
-                        biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + TextMargin);
+                        x = (CalObj.Start - Date).TotalSeconds / Scale;
                     }
                     else
                     {

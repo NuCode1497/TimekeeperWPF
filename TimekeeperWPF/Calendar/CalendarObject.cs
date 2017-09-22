@@ -20,6 +20,9 @@ namespace TimekeeperWPF.Calendar
 {
     public class CalendarObject : Control, IDisposable
     {
+        #region Fields
+        #endregion
+        #region Constructors
         static CalendarObject()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), 
@@ -35,13 +38,21 @@ namespace TimekeeperWPF.Calendar
         {
             Day._Timer.Tick += _Timer_Tick;
         }
+        #endregion
         #region Events
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            PropagateMimicry();
+        }
         private void _Timer_Tick(object sender, EventArgs e)
         {
             InvalidateArrange();
         }
         #endregion Events
         #region Properties
+        public bool IsPropagatingMimicry { get; private set; }
+        public CalendarObject OriginalCalObj { get; set; } = null;
         public int DayOffset { get; set; } = 0;
         #region End
         public DateTime End
@@ -78,15 +89,48 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
         #endregion
         #endregion
+        #region Kage Bunshin No Jutsu
+        private List<CalendarObject> _Clones = null;
         public CalendarObject ShadowClone()
         {
+            //A ShadowClone mimics the original. If either the original or the ShadowClone has
+            //a property changed, the change needs to be propagated to the original and other clones.
             CalendarObject KageBunshin = new CalendarObject();
-            KageBunshin.Scale = Scale;
-            KageBunshin.End = End;
-            KageBunshin.Start = Start;
+            KageBunshin.Mimic(this);
+            KageBunshin.OriginalCalObj = this;
+            if (_Clones == null) _Clones = new List<CalendarObject>();
+            _Clones.Add(KageBunshin);
             return KageBunshin;
         }
-
+        public void Mimic(CalendarObject CalObj)
+        {
+            Scale = CalObj.Scale;
+            End = CalObj.End;
+            Start = CalObj.Start;
+            ToolTip = CalObj.ToolTip;
+            PropagateMimicry();
+        }
+        public void PropagateMimicry()
+        {
+            if (IsPropagatingMimicry) return;
+            IsPropagatingMimicry = true;
+            if (OriginalCalObj != null && !OriginalCalObj.IsPropagatingMimicry)
+            {
+                OriginalCalObj.Mimic(this);
+            }
+            if (_Clones != null)
+            {
+                foreach (var clone in _Clones)
+                {
+                    if (!clone.IsPropagatingMimicry)
+                    {
+                        clone.Mimic(this);
+                    }
+                }
+            }
+            IsPropagatingMimicry = false;
+        }
+        #endregion
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 

@@ -64,7 +64,7 @@ namespace TimekeeperWPF.Calendar
             return newValue;
         }
         protected bool IsWeekCurrent(DateTime d) { return d.WeekStart() == DateTime.Now.WeekStart(); }
-        protected bool IsDateInThisWeek(DateTime d) { return d.WeekStart() == Date; }
+        protected override bool IsDateRelevant(DateTime d) { return d.WeekStart() == Date; }
         #endregion
         #region Highlight
         [Bindable(true), Category("Appearance")]
@@ -192,8 +192,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
                         x = TextMargin + ((int)DateTime.Now.DayOfWeek * dayWidth);
-                        DateTime dt = DateTime.Now;
-                        y = (dt - dt.Date).TotalSeconds / Scale;
+                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -204,22 +203,23 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (IsDateInThisWeek(CalObj.Start) || IsDateInThisWeek(CalObj.End))
+                    if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
                         CalObj.Scale = Scale;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                        biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * 7d) + TextMargin);
                         //Figure out which day CalObj goes in.
                         //Week days are sequential left to right.
                         //This is configured such that CalendarObjects that normally span across more than 
                         //one day shall have additional copies for each day it occupies in this week, up to 7.
-                        //A property DayOffset indicates the copy number and offsets by that number of days.
+                        //A property 'DayOffset' indicates the copy number and offsets by that number of days.
                         int startDayOfWeek = Math.Max(0, Math.Min((int)(CalObj.Start.Date - Date).TotalDays, 6));
-                        x = TextMargin + ((startDayOfWeek + CalObj.DayOffset) * dayWidth);
-                        DateTime dt = CalObj.Start;
-                        y = (dt - dt.Date).TotalSeconds / Scale;
-                        biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * 7d) + TextMargin);
+                        int currentDayofWeek = startDayOfWeek + CalObj.DayOffset;
+                        DateTime currentDate = Date.AddDays(currentDayofWeek);
+                        x = TextMargin + (currentDayofWeek * dayWidth);
+                        y = (CalObj.Start - currentDate).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -265,8 +265,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
                         y = (int)DateTime.Now.DayOfWeek * dayHeight;
-                        DateTime dt = DateTime.Now;
-                        x = (dt - dt.Date).TotalSeconds / Scale;
+                        x = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -277,22 +276,23 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (IsDateInThisWeek(CalObj.Start) || IsDateInThisWeek(CalObj.End))
+                    if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
                         CalObj.Scale = Scale;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
                         childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
+                        biggestChildHeight = Math.Max(biggestChildHeight, (childSize.Height * 7d) + TextMargin);
                         //Figure out which day CalObj goes in.
                         //Week days are sequential top down.
                         //This is configured such that CalendarObjects that normally span across more than 
                         //one day shall have additional copies for each day it occupies in this week, up to 7.
-                        //A property DayOffset indicates the copy number and offsets by that number of days.
+                        //A property 'DayOffset' indicates the copy number and offsets by that number of days.
                         int startDayOfWeek = Math.Max(0, Math.Min((int)(CalObj.Start.Date - Date).TotalDays, 6));
-                        y = (startDayOfWeek + CalObj.DayOffset) * dayHeight;
-                        DateTime dt = CalObj.Start;
-                        x = (dt - dt.Date).TotalSeconds / Scale;
-                        biggestChildHeight = Math.Max(biggestChildHeight, (childSize.Height * 7d) + TextMargin);
+                        int currentDayofWeek = startDayOfWeek + CalObj.DayOffset;
+                        DateTime currentDate = Date.AddDays(currentDayofWeek);
+                        y = currentDayofWeek * dayHeight;
+                        x = (CalObj.Start - currentDate).TotalSeconds / Scale;
                     }
                     else
                     {

@@ -183,47 +183,67 @@ namespace TimekeeperWPF
         {
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            View.Filter = N => IsNoteRelevant(N as Note);
-            View.CustomSort = new NoteDateTimeSorterAsc();
-            OnPropertyChanged(nameof(View));
-            CalendarObject prevCalObj = null;
+            CreateEventObjectsFromNotes();
+            CreateNoteObjects();
+            OnPropertyChanged(nameof(CalendarObjectsView));
+        }
+        private void CreateNoteObjects()
+        {
+            View.Filter = N =>
+            {
+                Note note = (Note)N;
+                return IsNoteRelevant(note)
+                    && note.TaskType.Name == "Note";
+            };
             foreach (Note N in View)
             {
-                TaskType type = N.TaskType;
-                if (type.Name == "Note")
+                CalendarObject CalObj = new CalendarObject();
+                CalObj.Start = N.DateTime;
+                CalObj.End = N.DateTime.AddMinutes(1);
+                CalObj.ToolTip = N.ToString();
+                CalendarObjectsView.AddNewItem(CalObj);
+                CalendarObjectsView.CommitNew();
+            }
+            View.Filter = null;
+        }
+        private void CreateEventObjectsFromNotes()
+        {
+            CalendarObject prevCalObj = null;
+            View.Filter = N =>
+            {
+                Note note = (Note)N;
+                return IsNoteRelevant(note)
+                    && note.TaskType.Name != "Note";
+            };
+            View.CustomSort = new NoteDateTimeSorterAsc();
+            List<CalendarObject> CalObjs = new List<CalendarObject>();
+            foreach (Note N in View)
+            {
+                CalendarObject CalObj = new CalendarObject();
+                CalObj.Start = N.DateTime;
+                CalObj.End = N.DateTime.AddHours(1);
+                CalObj.ToolTip = N.ToString();
+                if (prevCalObj == null)
                 {
-                    CalendarObject CalObj = new CalendarObject();
-                    CalObj.Start = N.DateTime;
-                    CalObj.End = N.DateTime.AddMinutes(1);
-                    CalObj.ToolTip = N.ToString();
-                    CalendarObjectsView.AddNewItem(CalObj);
-                    CalendarObjectsView.CommitNew();
+                    prevCalObj = CalObj;
                 }
                 else
                 {
-                    CalendarObject CalObj = new CalendarObject();
-                    CalObj.Start = N.DateTime;
-                    CalObj.End = N.DateTime.AddHours(1);
-                    CalObj.ToolTip = N.ToString();
-                    if (prevCalObj == null)
-                    {
-                        prevCalObj = CalObj;
-                    }
-                    else
-                    {
-                        prevCalObj.End = N.DateTime;
-                        prevCalObj.ToolTip += String.Format("\n{0} to {1}",
-                            prevCalObj.Start.ToShortTimeString(),
-                            prevCalObj.End.ToShortTimeString());
-                        prevCalObj = CalObj;
-                    }
-                    CalendarObjectsView.AddNewItem(CalObj);
-                    CalendarObjectsView.CommitNew();
-                    AdditionalCalObjSetup(prevCalObj);
+                    prevCalObj.End = N.DateTime;
+                    prevCalObj.ToolTip += String.Format("\n{0} to\n{1}",
+                        prevCalObj.Start.ToString(),
+                        prevCalObj.End.ToString());
+                    prevCalObj = CalObj;
                 }
+                CalObjs.Add(CalObj);
             }
-            //draw notes last
-            OnPropertyChanged(nameof(CalendarObjectsView));
+            foreach (var CalObj in CalObjs)
+            {
+                CalendarObjectsView.AddNewItem(CalObj);
+                CalendarObjectsView.CommitNew();
+                AdditionalCalObjSetup(CalObj);
+            }
+            View.Filter = null;
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
         protected abstract bool IsTaskRelevant(TimeTask task);
