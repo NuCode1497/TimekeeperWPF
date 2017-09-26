@@ -1,3 +1,4 @@
+using System;
 using System.Data.Entity;
 
 namespace TimekeeperDAL.EF
@@ -7,6 +8,7 @@ namespace TimekeeperDAL.EF
         public TimeKeeperContext()
             : base("name=TimeKeeperContext")
         {
+            AppDomain.CurrentDomain.SetData("DataDirectory", System.IO.Directory.GetCurrentDirectory());
         }
 
         public virtual IDbSet<Allocation> Allocations { get; set; }

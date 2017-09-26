@@ -232,7 +232,8 @@ namespace TimekeeperWPF
                 else
                 {
                     prevCalObj.End = N.DateTime;
-                    prevCalObj.ToolTip += String.Format("\n{0} to\n{1}",
+                    prevCalObj.ToolTip += String.Format("\n{0}\n{1} to\n{2}",
+                        prevCalObj.DurationString(), 
                         prevCalObj.Start.ToString(),
                         prevCalObj.End.ToString());
                     prevCalObj = CalObj;

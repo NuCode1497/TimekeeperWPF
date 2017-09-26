@@ -60,6 +60,15 @@ namespace TimekeeperWPF.Calendar
         ///DayOffset indicates the copy number and offsets by that number of days.
         /// </summary>
         public int DayOffset { get; set; } = 0;
+        public TimeSpan Duration => End - Start;
+        public string DurationString()
+        {
+            string s = "";
+            if (Duration.Days > 0) s += Duration.Days + " days ";
+            if (Duration.Hours > 0) s += Duration.Hours + " hours ";
+            if (Duration.Minutes > 0) s += Duration.Minutes + " minutes ";
+            return s;
+        }
         #region End
         public DateTime End
         {
