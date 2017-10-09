@@ -16,7 +16,7 @@ using System.Windows;
 
 namespace TimekeeperWPF
 {
-    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<Note>
+    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<TimeTask>
     {
         #region Fields
         private UIElement _SelectedCalendarObect;
@@ -183,8 +183,7 @@ namespace TimekeeperWPF
         {
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            CreateEventObjectsFromNotes();
-            CreateNoteObjects();
+            CreateEventObjectsFromTimeTasks();
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
         private void CreateNoteObjects()
@@ -247,6 +246,22 @@ namespace TimekeeperWPF
                 AdditionalCalObjSetup(CalObj);
             }
             View.Filter = null;
+        }
+        private void CreateEventObjectsFromTimeTasks()
+        {
+            //Filter
+            //Sort
+            List<CalendarObject> CalObjs = new List<CalendarObject>();
+            foreach (TimeTask T in View)
+            {
+                //create calendar objects based on T properties
+                //T has included and excluded patterns
+                //Create objs during included but not during excluded
+                //How many objects will there be?
+                //where will they be placed?
+                //create blocks for each pattern
+                //
+            }
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
         protected abstract bool IsTaskRelevant(TimeTask task);

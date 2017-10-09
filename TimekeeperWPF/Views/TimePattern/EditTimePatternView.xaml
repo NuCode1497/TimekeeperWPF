@@ -59,6 +59,10 @@
                 </StackPanel>
             </StackPanel>
         </GroupBox>
+        <GroupBox Header="Pacing Settings" Margin="2">
+            <StackPanel>
+            </StackPanel>
+        </GroupBox>
         <local:AllocationSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
         <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
     </StackPanel>
