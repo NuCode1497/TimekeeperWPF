@@ -16,7 +16,7 @@ using System.Windows;
 
 namespace TimekeeperWPF
 {
-    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<TimeTask>
+    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<Note>
     {
         #region Fields
         private UIElement _SelectedCalendarObect;
@@ -183,7 +183,9 @@ namespace TimekeeperWPF
         {
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            CreateEventObjectsFromTimeTasks();
+            CreateNoteObjects();
+            CreateEventObjectsFromNotes();
+            //CreateEventObjectsFromTimeTasks();
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
         private void CreateNoteObjects()
