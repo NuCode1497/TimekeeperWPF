@@ -39,4 +39,46 @@ MMM d</clr:String>
     <SolidColorBrush x:Key="CalendarObject.Work.Background" Color="#7FE81E33"/>
     <SolidColorBrush x:Key="CalendarObject.Chore.Background" Color="#7FE8DF1E"/>
     <SolidColorBrush x:Key="CalendarObject.Play.Background" Color="#7F21FF49"/>
+    <RadialGradientBrush x:Key="TinyButton.Delete.Background.Static">
+        <GradientStop Color="Red" Offset="0.432"/>
+        <GradientStop Color="Black" Offset="0.932"/>
+        <GradientStop Color="DarkRed" Offset="0.911"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="TinyButton.Delete.Foreground.Static" Color="Wheat"/>
+    <RadialGradientBrush x:Key="TinyButton.Delete.Background.Pressed">
+        <GradientStop Color="MediumVioletRed" Offset="0.432"/>
+        <GradientStop Color="Black" Offset="0.932"/>
+        <GradientStop Color="PaleVioletRed" Offset="0.911"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="TinyButton.Delete.Foreground.Pressed" Color="Wheat"/>
+    <SolidColorBrush x:Key="TinyButton.Delete.Background.MouseOver" Color="Cyan"/>
+    <SolidColorBrush x:Key="TinyButton.Delete.Foreground.MouseOver" Color="Black"/>
+    <RadialGradientBrush x:Key="TinyButton.Commit.Background.Static">
+        <GradientStop Color="Green" Offset="0.432"/>
+        <GradientStop Color="Black" Offset="0.932"/>
+        <GradientStop Color="DarkGreen" Offset="0.911"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="TinyButton.Commit.Foreground.Static" Color="Wheat"/>
+    <RadialGradientBrush x:Key="TinyButton.Commit.Background.Pressed">
+        <GradientStop Color="MediumTurquoise" Offset="0.432"/>
+        <GradientStop Color="Black" Offset="0.932"/>
+        <GradientStop Color="PaleTurquoise" Offset="0.911"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="TinyButton.Commit.Foreground.Pressed" Color="Wheat"/>
+    <SolidColorBrush x:Key="TinyButton.Commit.Background.MouseOver" Color="Cyan"/>
+    <SolidColorBrush x:Key="TinyButton.Commit.Foreground.MouseOver" Color="Black"/>
+    <RadialGradientBrush x:Key="TinyButton.Add.Background.Static">
+        <GradientStop Color="Green" Offset="0.432"/>
+        <GradientStop Color="Black" Offset="0.932"/>
+        <GradientStop Color="DarkGreen" Offset="0.911"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="TinyButton.Add.Foreground.Static" Color="Wheat"/>
+    <RadialGradientBrush x:Key="TinyButton.Add.Background.Pressed">
+        <GradientStop Color="MediumTurquoise" Offset="0.432"/>
+        <GradientStop Color="Black" Offset="0.932"/>
+        <GradientStop Color="PaleTurquoise" Offset="0.911"/>
+    </RadialGradientBrush>
+    <SolidColorBrush x:Key="TinyButton.Add.Foreground.Pressed" Color="Wheat"/>
+    <SolidColorBrush x:Key="TinyButton.Add.Background.MouseOver" Color="Cyan"/>
+    <SolidColorBrush x:Key="TinyButton.Add.Foreground.MouseOver" Color="Black"/>
 </ResourceDictionary>

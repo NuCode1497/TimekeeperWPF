@@ -69,7 +69,7 @@
             <ToggleButton Content="CanFill" IsChecked="{Binding Path=CanFill}"/>
         </WrapPanel>-->
         <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-        <!--<local:IncludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-        <local:ExcludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>-->
+        <local:IncludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+        <!--<local:ExcludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>-->
     </StackPanel>
 </UserControl>

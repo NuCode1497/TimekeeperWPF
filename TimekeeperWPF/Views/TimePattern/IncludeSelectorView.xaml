@@ -8,12 +8,6 @@
     <GroupBox Header="Includes" Margin="2">
         <StackPanel Name="IncludeEditorPanel">
             <StackPanel Orientation="Horizontal">
-                <ComboBox Name="IncludesCbo" DisplayMemberPath="Name"
-                  IsSynchronizedWithCurrentItem="True" Width="100"
-                  SelectedItem="{Binding Path=SelectedInclude, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=PatternsView}" />
-                <Button Name="AddIncludeBtn" Content="Add" 
-                    Command="{Binding Path=AddIncludeCommand}" />
             </StackPanel>
             <Border Name="IncludeListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
                 <ItemsControl Name="IncludeListIC" IsTabStop="False" 

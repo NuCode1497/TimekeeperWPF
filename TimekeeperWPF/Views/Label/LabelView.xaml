@@ -8,7 +8,7 @@
     <ContentControl Template="{StaticResource BasicEntityTemplate}" IsTabStop="False">
         <StackPanel Orientation="Horizontal">
             <Button Name="DeleteButton" IsTabStop="False"
-                Style="{StaticResource EntityDeleteButtonStyle}" 
+                Style="{StaticResource TinyButtonDeleteStyle}" 
                 CommandParameter="{Binding}"
                 Command="{Binding Path=DataContext.RemoveLabelCommand, 
             RelativeSource={RelativeSource AncestorType={x:Type GroupBox}}}"/>

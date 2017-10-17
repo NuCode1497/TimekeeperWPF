@@ -261,8 +261,7 @@ namespace TimekeeperWPF
                 //Create objs during included but not during excluded
                 //How many objects will there be?
                 //where will they be placed?
-                //create blocks for each pattern
-                //
+
             }
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }

@@ -22,10 +22,10 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="New Allocation" Margin="2"/>
                         <Button Name="CommitButton" IsTabStop="False" Margin="2"
-                                Style="{StaticResource EntityAddButtonStyle}" 
+                                Style="{StaticResource TinyButtonCommitStyle}" 
                                 Command="{Binding Path=CommitAllocationCommand}"/>
                         <Button Name="CancelButton" IsTabStop="False" Margin="2"
-                                Style="{StaticResource EntityDeleteButtonStyle}" 
+                                Style="{StaticResource TinyButtonDeleteStyle}" 
                                 Command="{Binding Path=CancelAllocationCommand}"/>
                     </StackPanel>
                 </GroupBox.Header>

@@ -112,6 +112,7 @@
     <Compile Include="Calendar\Week.cs" />
     <Compile Include="Examples\Window1VM.cs" />
     <Compile Include="Tools\RequestViewChangeEventArgs.cs" />
+    <Compile Include="Tools\ResourceFinder.cs" />
     <Compile Include="Views\Calendar\Month\MonthWeekViewModel.cs" />
     <Compile Include="Views\Calendar\Day\FakeDayViewModel.cs" />
     <Compile Include="Views\Calendar\Month\MonthView.xaml.cs">

@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:TimekeeperWPF"
     xmlns:clr="clr-namespace:System;assembly=mscorlib"
+    xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
     xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
 
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -200,22 +201,14 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
-    <Style x:Key="EntityDeleteButtonStyle" TargetType="Button">
+    <Style x:Key="TinyButtonDeleteStyle" TargetType="Button">
         <Style.Resources>
-            <RadialGradientBrush x:Key="Background.Static">
-                <GradientStop Color="Red" Offset="0.432"/>
-                <GradientStop Color="Black" Offset="0.932"/>
-                <GradientStop Color="DarkRed" Offset="0.911"/>
-            </RadialGradientBrush>
-            <SolidColorBrush x:Key="Foreground.Static" Color="Wheat"/>
-            <RadialGradientBrush x:Key="Background.Pressed">
-                <GradientStop Color="MediumVioletRed" Offset="0.432"/>
-                <GradientStop Color="Black" Offset="0.932"/>
-                <GradientStop Color="PaleVioletRed" Offset="0.911"/>
-            </RadialGradientBrush>
-            <SolidColorBrush x:Key="Foreground.Pressed" Color="Wheat"/>
-            <SolidColorBrush x:Key="Background.MouseOver" Color="Cyan"/>
-            <SolidColorBrush x:Key="Foreground.MouseOver" Color="Black"/>
+            <tools:ResourceFinder x:Key="Background.Static" ResourceKey="TinyButton.Delete.Background.Static"/>
+            <tools:ResourceFinder x:Key="Foreground.Static" ResourceKey="TinyButton.Delete.Foreground.Static"/>
+            <tools:ResourceFinder x:Key="Background.Pressed" ResourceKey="TinyButton.Delete.Background.Pressed"/>
+            <tools:ResourceFinder x:Key="Foreground.Pressed" ResourceKey="TinyButton.Delete.Foreground.Pressed"/>
+            <tools:ResourceFinder x:Key="Background.MouseOver" ResourceKey="TinyButton.Delete.Background.MouseOver"/>
+            <tools:ResourceFinder x:Key="Foreground.MouseOver" ResourceKey="TinyButton.Delete.Foreground.MouseOver"/>
             <clr:Double x:Key="TranslateX">0.5</clr:Double>
             <clr:Double x:Key="TranslateY">1</clr:Double>
         </Style.Resources>
@@ -225,22 +218,31 @@
         <Setter Property="FontSize" Value="8"/>
         <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
     </Style>
-    <Style x:Key="EntityAddButtonStyle" TargetType="Button">
+    <Style x:Key="TinyButtonCommitStyle" TargetType="Button">
         <Style.Resources>
-            <RadialGradientBrush x:Key="Background.Static">
-                <GradientStop Color="Green" Offset="0.432"/>
-                <GradientStop Color="Black" Offset="0.932"/>
-                <GradientStop Color="DarkGreen" Offset="0.911"/>
-            </RadialGradientBrush>
-            <SolidColorBrush x:Key="Foreground.Static" Color="Wheat"/>
-            <RadialGradientBrush x:Key="Background.Pressed">
-                <GradientStop Color="MediumTurquoise" Offset="0.432"/>
-                <GradientStop Color="Black" Offset="0.932"/>
-                <GradientStop Color="PaleTurquoise" Offset="0.911"/>
-            </RadialGradientBrush>
-            <SolidColorBrush x:Key="Foreground.Pressed" Color="Wheat"/>
-            <SolidColorBrush x:Key="Background.MouseOver" Color="Cyan"/>
-            <SolidColorBrush x:Key="Foreground.MouseOver" Color="Black"/>
+            <tools:ResourceFinder x:Key="Background.Static" ResourceKey="TinyButton.Commit.Background.Static"/>
+            <tools:ResourceFinder x:Key="Foreground.Static" ResourceKey="TinyButton.Commit.Foreground.Static"/>
+            <tools:ResourceFinder x:Key="Background.Pressed" ResourceKey="TinyButton.Commit.Background.Pressed"/>
+            <tools:ResourceFinder x:Key="Foreground.Pressed" ResourceKey="TinyButton.Commit.Foreground.Pressed"/>
+            <tools:ResourceFinder x:Key="Background.MouseOver" ResourceKey="TinyButton.Commit.Background.MouseOver"/>
+            <tools:ResourceFinder x:Key="Foreground.MouseOver" ResourceKey="TinyButton.Commit.Foreground.MouseOver"/>
+            <clr:Double x:Key="TranslateX">-0.5</clr:Double>
+            <clr:Double x:Key="TranslateY">-0.5</clr:Double>
+        </Style.Resources>
+        <Setter Property="Content" Value="a"/>
+        <Setter Property="FontFamily" Value="Webdings"/>
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
+    </Style>
+    <Style x:Key="TinyButtonAddStyle" TargetType="Button">
+        <Style.Resources>
+            <tools:ResourceFinder x:Key="Background.Static" ResourceKey="TinyButton.Add.Background.Static"/>
+            <tools:ResourceFinder x:Key="Foreground.Static" ResourceKey="TinyButton.Add.Foreground.Static"/>
+            <tools:ResourceFinder x:Key="Background.Pressed" ResourceKey="TinyButton.Add.Background.Pressed"/>
+            <tools:ResourceFinder x:Key="Foreground.Pressed" ResourceKey="TinyButton.Add.Foreground.Pressed"/>
+            <tools:ResourceFinder x:Key="Background.MouseOver" ResourceKey="TinyButton.Add.Background.MouseOver"/>
+            <tools:ResourceFinder x:Key="Foreground.MouseOver" ResourceKey="TinyButton.Add.Foreground.MouseOver"/>
             <clr:Double x:Key="TranslateX">-0.5</clr:Double>
             <clr:Double x:Key="TranslateY">-0.5</clr:Double>
         </Style.Resources>
