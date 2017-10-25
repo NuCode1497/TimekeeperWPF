@@ -1,0 +1,47 @@
+﻿<UserControl x:Class="TimekeeperWPF.TimePatternOptionsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TimekeeperWPF"
+             Name="ThisControl">
+    <Border BorderBrush="Black" BorderThickness="1" Margin="1" Padding="1">
+        <StackPanel Name="PatternOptionsPanel">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Name"/>
+                <TextBox MinWidth="100" MaxWidth="300" MaxLength="50"
+                     Text="{Binding Path=Name, Mode=TwoWay, ValidatesOnDataErrors=True, 
+                ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Style="{StaticResource TinyButtonDeleteStyle}"
+                        Command="{Binding ElementName=ThisControl, Path=RemoveCommand}"/>
+            </StackPanel>
+            <local:TimePatternOptionsCombosView/>
+            <GroupBox Header="of" Margin="0"
+                  Visibility="{Binding Path=ChildVisibility, FallbackValue=Collapsed}"
+                  DataContext="{Binding Path=Child}">
+                <Grid>
+                    <local:TimePatternOptionsCombosView/>
+                    <GroupBox Header="of" Margin="0"
+                  Visibility="{Binding Path=ChildVisibility, FallbackValue=Collapsed}"
+                  DataContext="{Binding Path=Child}">
+                        <Grid>
+                            <local:TimePatternOptionsCombosView/>
+                            <GroupBox Header="of" Margin="0"
+                  Visibility="{Binding Path=ChildVisibility, FallbackValue=Collapsed}"
+                  DataContext="{Binding Path=Child}">
+                                <Grid>
+                                    <local:TimePatternOptionsCombosView/>
+                                    <GroupBox Header="of" Margin="0"
+                  Visibility="{Binding Path=ChildVisibility, FallbackValue=Collapsed}"
+                  DataContext="{Binding Path=Child}">
+                                        <Grid>
+                                            <local:TimePatternOptionsCombosView/>
+                                        </Grid>
+                                    </GroupBox>
+                                </Grid>
+                            </GroupBox>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </GroupBox>
+        </StackPanel>
+    </Border>
+</UserControl>

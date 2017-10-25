@@ -51,7 +51,11 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:AllocationView/>
+                            <local:EntityTagView
+                                Text="{Binding Path=AllocationString}"
+                                RemoveButtonVisibility="Visible"
+                                RemoveCommand="{Binding ElementName=AllocationListIC,
+                                Path=DataContext.DeleteAllocationCommand}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

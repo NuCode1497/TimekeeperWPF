@@ -10,9 +10,9 @@
     <SolidColorBrush x:Key="DataGrid.AlternatingRowBackground" Color="#FFBDFFD8"/>
     <SolidColorBrush x:Key="DataGrid.RowBackground" Color="MintCream"/>
     <SolidColorBrush x:Key="DataGrid.Background" Color="AliceBlue"/>
-    <SolidColorBrush x:Key="BasicEntity.Background" Color="Wheat"/>
-    <SolidColorBrush x:Key="BasicEntity.BorderBrush" Color="DarkSlateGray"/>
-    <SolidColorBrush x:Key="BasicEntity.Foreground" Color="Black"/>
+    <SolidColorBrush x:Key="EntityTag.Background" Color="Wheat"/>
+    <SolidColorBrush x:Key="EntityTag.BorderBrush" Color="DarkSlateGray"/>
+    <SolidColorBrush x:Key="EntityTag.Foreground" Color="Black"/>
     <SolidColorBrush x:Key="PopUp.Behind.Background" Color="#9980B0A0"/>
     <SolidColorBrush x:Key="PopUp.Window.Background" Color="#FFBDFFD8"/>
     <SolidColorBrush x:Key="PopUp.Window.Border" Color="Gray"/>

@@ -12,17 +12,20 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF
 {
     /// <summary>
-    /// Interaction logic for LabelView.xaml
+    /// Interaction logic for TimePatternOptionsView.xaml
     /// </summary>
-    public partial class LabelView : UserControl
+    public partial class TimePatternOptionsView : UserControl
     {
-        public LabelView()
+        public TimePatternOptionsView()
         {
             InitializeComponent();
         }
+
+        public ICommand RemoveCommand { get; set; }
     }
 }

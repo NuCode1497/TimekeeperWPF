@@ -24,7 +24,9 @@
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <ContentControl Template="{StaticResource BasicEntityTemplate}"/>
+                    <local:EntityTagView 
+                        Text="{Binding Path=Name}"
+                        RemoveButtonVisibility="Collapsed"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

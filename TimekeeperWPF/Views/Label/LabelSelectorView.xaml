@@ -20,14 +20,16 @@
                           ItemsSource="{Binding Path=CurrentEntityLabelsView}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" Name="LabelListPnl">
-
-                            </WrapPanel>
+                            <WrapPanel Orientation="Horizontal" Name="LabelListPnl"/> 
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <local:LabelView/>
+                            <local:EntityTagView 
+                                RemoveCommand="{Binding ElementName=LabelListIC, 
+                                Path=DataContext.RemoveLabelCommand}"
+                                RemoveButtonVisibility="Visible"
+                                Text="{Binding Path=Name}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

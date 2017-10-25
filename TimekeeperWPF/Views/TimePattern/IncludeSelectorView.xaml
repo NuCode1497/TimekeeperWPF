@@ -4,26 +4,21 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" >
+             mc:Ignorable="d">
     <GroupBox Header="Includes" Margin="2">
         <StackPanel Name="IncludeEditorPanel">
-            <StackPanel Orientation="Horizontal">
-            </StackPanel>
-            <Border Name="IncludeListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
-                <ItemsControl Name="IncludeListIC" IsTabStop="False" 
+            <ItemsControl Name="IncludeListIC" IsTabStop="False" 
                           ItemsSource="{Binding Path=CurrentEntityIncludesView}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" Name="IncludeListPnl"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <local:IncludeView/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:TimePatternOptionsView 
+                            RemoveCommand="{Binding Path=RemoveIncludeCommand}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Button Margin="4" 
+                    Style="{StaticResource TinyButtonAddStyle}" 
+                    Command="{Binding Path=AddIncludeCommand}"/>
         </StackPanel>
     </GroupBox>
 </UserControl>

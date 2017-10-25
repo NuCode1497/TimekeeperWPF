@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace TimekeeperWPF
 {
     /// <summary>
-    /// Interaction logic for AllocationView.xaml
+    /// Interaction logic for TimePatternOptionsCombosView.xaml
     /// </summary>
-    public partial class AllocationView : UserControl
+    public partial class TimePatternOptionsCombosView : UserControl
     {
-        public AllocationView()
+        public TimePatternOptionsCombosView()
         {
             InitializeComponent();
         }

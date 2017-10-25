@@ -27,9 +27,10 @@
                     SelectedItem="{Binding Path=Child, Mode=TwoWay}"
                     ItemsSource="{Binding Path=DataContext.PatternsView,
                     RelativeSource={RelativeSource AncestorType=Grid}}" />
-            <local:TimePatternChildView Visibility="{Binding Path=DataContext.CurrentEntityHasChild, 
-                RelativeSource={RelativeSource AncestorType=Grid}, 
-                Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <local:EntityTagView
+                    Visibility="{Binding Path=DataContext.CurrentEntityHasChild, 
+                    RelativeSource={RelativeSource AncestorType=Grid}, 
+                    Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </StackPanel>
         <GroupBox Header="Repeat Settings" Margin="2">
             <StackPanel>
