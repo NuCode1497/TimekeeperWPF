@@ -1,0 +1,89 @@
+﻿<UserControl x:Class="TimekeeperWPF.TimePatternClauseView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:wpftk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:dal="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
+             Name="ThisControl">
+    <!--DataContext is TimePatternClause-->
+    <Grid>
+        <Grid.Resources>
+            <ControlTemplate x:Key="IntegerTemplate">
+                <wpftk:IntegerUpDown Text="{Binding TimePropertyValue,
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True,
+                    UpdateSourceTrigger=PropertyChanged}"/>
+            </ControlTemplate>
+            <ControlTemplate x:Key="WeekDayTemplate">
+                <ComboBox SelectedIndex="0"
+                          ItemsSource="{x:Static dal:TimePatternClause.WeekDayChoices}"
+                          SelectedItem="{Binding TimePropertyValue,
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
+            </ControlTemplate>
+            <ControlTemplate x:Key="MonthTemplate">
+                <ComboBox SelectedIndex="0"
+                          ItemsSource="{x:Static dal:TimePatternClause.MonthChoices}"
+                          SelectedItem="{Binding TimePropertyValue,
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
+            </ControlTemplate>
+            <ControlTemplate x:Key="TimeTemplate">
+                <wpftk:TimePicker Text="{Binding TimePropertyValue,
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True,
+                    UpdateSourceTrigger=PropertyChanged}"/>
+            </ControlTemplate>
+            <ControlTemplate x:Key="AllEquivsTemplate" >
+                <ComboBox SelectedIndex="0"
+                          ItemsSource="{x:Static dal:TimePatternClause.AllEquivalencyChoices}"
+                          SelectedItem="{Binding Equivalency,
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
+            </ControlTemplate>
+            <ControlTemplate x:Key="BinaryEquivsTemplate">
+                <ComboBox SelectedIndex="0"
+                          ItemsSource="{x:Static dal:TimePatternClause.BinaryEquivalencyChoices}"
+                          SelectedItem="{Binding Equivalency,
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
+            </ControlTemplate>
+        </Grid.Resources>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <ComboBox Grid.Column="0" Name="TPComboBox" MinWidth="50"
+                  ItemsSource="{x:Static dal:TimePatternClause.TimePropertyChoices}"
+                  SelectedIndex="0"
+                  SelectedItem="{Binding TimeProperty, 
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
+        <Control Grid.Column="1" MinWidth="50" Template="{StaticResource AllEquivsTemplate}">
+            <Control.Style>
+                <Style TargetType="Control">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=TPComboBox}" Value="WeekDay">
+                            <Setter Property="Template" Value="{StaticResource BinaryEquivsTemplate}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Control.Style>
+        </Control>
+        <Control Grid.Column="2" MinWidth="70" Template="{StaticResource WeekDayTemplate}">
+            <Control.Style>
+                <Style TargetType="Control">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=TPComboBox}" Value="WeekDay">
+                            <Setter Property="Template" Value="{StaticResource WeekDayTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ElementName=TPComboBox}" Value="Month">
+                            <Setter Property="Template" Value="{StaticResource MonthTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ElementName=TPComboBox}" Value="Time">
+                            <Setter Property="Template" Value="{StaticResource TimeTemplate}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Control.Style>
+        </Control>
+        <Button x:Name="RemoveButton" Grid.Column="3" Margin="2"
+                Style="{StaticResource TinyButtonDeleteStyle}"
+                CommandParameter="{Binding}"
+                Command="{Binding RemoveCommand, ElementName=ThisControl}"/>
+    </Grid>
+</UserControl>

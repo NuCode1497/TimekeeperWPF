@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TimekeeperDAL.EF;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF.Tools
 {

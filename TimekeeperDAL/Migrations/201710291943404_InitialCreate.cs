@@ -3,7 +3,7 @@ namespace TimekeeperDAL.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class IntialCreate : DbMigration
+    public partial class InitialCreate : DbMigration
     {
         public override void Up()
         {
@@ -12,17 +12,16 @@ namespace TimekeeperDAL.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        minAmount = c.Long(nullable: false),
-                        maxAmount = c.Long(nullable: false),
+                        Amount = c.Long(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
                         Resource_Id = c.Int(nullable: false),
-                        TimePattern_Id = c.Int(nullable: false),
+                        TimeTask_Id = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.Resources", t => t.Resource_Id, cascadeDelete: true)
-                .ForeignKey("dbo.TimePatterns", t => t.TimePattern_Id, cascadeDelete: true)
+                .ForeignKey("dbo.TimeTasks", t => t.TimeTask_Id, cascadeDelete: true)
                 .Index(t => t.Resource_Id)
-                .Index(t => t.TimePattern_Id);
+                .Index(t => t.TimeTask_Id);
             
             CreateTable(
                 "dbo.Resources",
@@ -33,26 +32,6 @@ namespace TimekeeperDAL.Migrations
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
                     })
                 .PrimaryKey(t => t.Id);
-            
-            CreateTable(
-                "dbo.TimePatterns",
-                c => new
-                    {
-                        Id = c.Int(nullable: false, identity: true),
-                        Name = c.String(nullable: false, maxLength: 50),
-                        Duration = c.Long(nullable: false),
-                        ForX = c.Int(nullable: false),
-                        ForNth = c.Int(nullable: false),
-                        ForSkipDuration = c.Long(nullable: false),
-                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
-                        Child_Id = c.Int(),
-                        ForTimePoint_Id = c.Int(),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.TimePatterns", t => t.Child_Id)
-                .ForeignKey("dbo.TimePoints", t => t.ForTimePoint_Id)
-                .Index(t => t.Child_Id)
-                .Index(t => t.ForTimePoint_Id);
             
             CreateTable(
                 "dbo.TimeTasks",
@@ -82,6 +61,16 @@ namespace TimekeeperDAL.Migrations
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.TaskTypes", t => t.TaskType_Id, cascadeDelete: true)
                 .Index(t => t.TaskType_Id);
+            
+            CreateTable(
+                "dbo.TimePatterns",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        Name = c.String(nullable: false, maxLength: 50),
+                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
+                    })
+                .PrimaryKey(t => t.Id);
             
             CreateTable(
                 "dbo.Labels",
@@ -118,14 +107,19 @@ namespace TimekeeperDAL.Migrations
                 .PrimaryKey(t => t.Id);
             
             CreateTable(
-                "dbo.TimePoints",
+                "dbo.TimePatternClauses",
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        Name = c.String(nullable: false, maxLength: 20),
+                        TimeProperty = c.String(nullable: false),
+                        Equivalency = c.String(nullable: false),
+                        TimePropertyValue = c.String(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
+                        TimePattern_Id = c.Int(nullable: false),
                     })
-                .PrimaryKey(t => t.Id);
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.TimePatterns", t => t.TimePattern_Id, cascadeDelete: true)
+                .Index(t => t.TimePattern_Id);
             
             CreateTable(
                 "dbo.Excludes",
@@ -135,8 +129,8 @@ namespace TimekeeperDAL.Migrations
                         TimePatternId = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => new { t.TimeTaskId, t.TimePatternId })
-                .ForeignKey("dbo.TimeTasks", t => t.TimeTaskId, cascadeDelete: true)
-                .ForeignKey("dbo.TimePatterns", t => t.TimePatternId, cascadeDelete: true)
+                .ForeignKey("dbo.TimePatterns", t => t.TimeTaskId, cascadeDelete: true)
+                .ForeignKey("dbo.TimeTasks", t => t.TimePatternId, cascadeDelete: true)
                 .Index(t => t.TimeTaskId)
                 .Index(t => t.TimePatternId);
             
@@ -148,8 +142,8 @@ namespace TimekeeperDAL.Migrations
                         TimePatternId = c.Int(nullable: false),
                     })
                 .PrimaryKey(t => new { t.TimeTaskId, t.TimePatternId })
-                .ForeignKey("dbo.TimeTasks", t => t.TimeTaskId, cascadeDelete: true)
-                .ForeignKey("dbo.TimePatterns", t => t.TimePatternId, cascadeDelete: true)
+                .ForeignKey("dbo.TimePatterns", t => t.TimeTaskId, cascadeDelete: true)
+                .ForeignKey("dbo.TimeTasks", t => t.TimePatternId, cascadeDelete: true)
                 .Index(t => t.TimeTaskId)
                 .Index(t => t.TimePatternId);
             
@@ -196,9 +190,9 @@ namespace TimekeeperDAL.Migrations
         
         public override void Down()
         {
-            DropForeignKey("dbo.Allocations", "TimePattern_Id", "dbo.TimePatterns");
-            DropForeignKey("dbo.TimePatterns", "ForTimePoint_Id", "dbo.TimePoints");
+            DropForeignKey("dbo.Allocations", "TimeTask_Id", "dbo.TimeTasks");
             DropForeignKey("dbo.TimeTasks", "TaskType_Id", "dbo.TaskTypes");
+            DropForeignKey("dbo.TimePatternClauses", "TimePattern_Id", "dbo.TimePatterns");
             DropForeignKey("dbo.LabelTimeTasks", "TimeTask_Id", "dbo.TimeTasks");
             DropForeignKey("dbo.LabelTimeTasks", "Label_Id", "dbo.Labels");
             DropForeignKey("dbo.LabelTimePatterns", "TimePattern_Id", "dbo.TimePatterns");
@@ -206,11 +200,10 @@ namespace TimekeeperDAL.Migrations
             DropForeignKey("dbo.Notes", "TaskType_Id", "dbo.TaskTypes");
             DropForeignKey("dbo.NoteLabels", "Label_Id", "dbo.Labels");
             DropForeignKey("dbo.NoteLabels", "Note_Id", "dbo.Notes");
-            DropForeignKey("dbo.Includes", "TimePatternId", "dbo.TimePatterns");
-            DropForeignKey("dbo.Includes", "TimeTaskId", "dbo.TimeTasks");
-            DropForeignKey("dbo.Excludes", "TimePatternId", "dbo.TimePatterns");
-            DropForeignKey("dbo.Excludes", "TimeTaskId", "dbo.TimeTasks");
-            DropForeignKey("dbo.TimePatterns", "Child_Id", "dbo.TimePatterns");
+            DropForeignKey("dbo.Includes", "TimePatternId", "dbo.TimeTasks");
+            DropForeignKey("dbo.Includes", "TimeTaskId", "dbo.TimePatterns");
+            DropForeignKey("dbo.Excludes", "TimePatternId", "dbo.TimeTasks");
+            DropForeignKey("dbo.Excludes", "TimeTaskId", "dbo.TimePatterns");
             DropForeignKey("dbo.Allocations", "Resource_Id", "dbo.Resources");
             DropIndex("dbo.LabelTimeTasks", new[] { "TimeTask_Id" });
             DropIndex("dbo.LabelTimeTasks", new[] { "Label_Id" });
@@ -222,23 +215,22 @@ namespace TimekeeperDAL.Migrations
             DropIndex("dbo.Includes", new[] { "TimeTaskId" });
             DropIndex("dbo.Excludes", new[] { "TimePatternId" });
             DropIndex("dbo.Excludes", new[] { "TimeTaskId" });
+            DropIndex("dbo.TimePatternClauses", new[] { "TimePattern_Id" });
             DropIndex("dbo.Notes", new[] { "TaskType_Id" });
             DropIndex("dbo.TimeTasks", new[] { "TaskType_Id" });
-            DropIndex("dbo.TimePatterns", new[] { "ForTimePoint_Id" });
-            DropIndex("dbo.TimePatterns", new[] { "Child_Id" });
-            DropIndex("dbo.Allocations", new[] { "TimePattern_Id" });
+            DropIndex("dbo.Allocations", new[] { "TimeTask_Id" });
             DropIndex("dbo.Allocations", new[] { "Resource_Id" });
             DropTable("dbo.LabelTimeTasks");
             DropTable("dbo.LabelTimePatterns");
             DropTable("dbo.NoteLabels");
             DropTable("dbo.Includes");
             DropTable("dbo.Excludes");
-            DropTable("dbo.TimePoints");
+            DropTable("dbo.TimePatternClauses");
             DropTable("dbo.TaskTypes");
             DropTable("dbo.Notes");
             DropTable("dbo.Labels");
-            DropTable("dbo.TimeTasks");
             DropTable("dbo.TimePatterns");
+            DropTable("dbo.TimeTasks");
             DropTable("dbo.Resources");
             DropTable("dbo.Allocations");
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {

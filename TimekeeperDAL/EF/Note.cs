@@ -13,10 +13,8 @@ namespace TimekeeperDAL.EF
         }
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
-
         [Required]
         [StringLength(150)]
         public string Text { get; set; }
-        
     }
 }

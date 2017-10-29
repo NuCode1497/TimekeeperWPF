@@ -110,16 +110,16 @@
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\Week.cs" />
+    <Compile Include="Examples\UserControl1.xaml.cs">
+      <DependentUpon>UserControl1.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TimePattern\TimePatternClauseView.xaml.cs">
+      <DependentUpon>TimePatternClauseView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\EntityTagView.xaml.cs">
       <DependentUpon>EntityTagView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Examples\Window1VM.cs" />
-    <Compile Include="TimePatternOptionsCombosView.xaml.cs">
-      <DependentUpon>TimePatternOptionsCombosView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\TimePattern\TimePatternOptionsView.xaml.cs">
-      <DependentUpon>TimePatternOptionsView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Tools\RequestViewChangeEventArgs.cs" />
     <Compile Include="Tools\ResourceFinder.cs" />
     <Compile Include="Views\Calendar\Month\MonthWeekViewModel.cs" />
@@ -190,7 +190,6 @@
     <Compile Include="Views\TimeTask\TimeTasksViewModel.cs" />
     <Compile Include="Views\Resource\ResourcesViewModel.cs" />
     <Compile Include="Views\TaskType\TaskTypesViewModel.cs" />
-    <Compile Include="Views\TimePoint\TimePointsViewModel.cs" />
     <Compile Include="Views\TimeTask\TimeTasksView.xaml.cs">
       <DependentUpon>TimeTasksView.xaml</DependentUpon>
     </Compile>
@@ -199,18 +198,8 @@
       <DependentUpon>LabelSelectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\Extensions.cs" />
-    <Compile Include="Views\Calendar\Month.Old\MonthDayView.xaml.cs">
-      <DependentUpon>MonthDayView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Tools\BoolToGreenConverter.cs" />
-    <Compile Include="Views\Calendar\Month.Old\FakeMonthViewModel.cs" />
-    <Compile Include="Views\Calendar\Month.Old\MonthViewModel.cs" />
     <Compile Include="Tools\BoolToGrayConverter.cs" />
-    <Compile Include="Views\Calendar\Month.Old\MonthDay.cs" />
-    <Compile Include="Views\Calendar\Month.Old\MonthView.xaml.cs">
-      <DependentUpon>MonthView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\Calendar\Month.Old\MonthWeek.cs" />
     <Compile Include="Views\Label\LabelsViewModel.cs" />
     <Compile Include="Views\LoadingView.xaml.cs">
       <DependentUpon>LoadingView.xaml</DependentUpon>
@@ -241,6 +230,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Examples\UserControl1.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TimePattern\TimePatternClauseView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\EntityTagView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -250,14 +247,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Themes\DataContexts.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="TimePatternOptionsCombosView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\TimePattern\TimePatternOptionsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -341,14 +330,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\Calendar\Month.Old\MonthDayView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Calendar\Month.Old\MonthView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Views\LoadingView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -414,15 +395,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="TimekeeperDB.mdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="TimekeeperDB_log.ldf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <DependentUpon>TimekeeperDB.mdf</DependentUpon>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

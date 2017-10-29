@@ -19,41 +19,17 @@
                   CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
-                <DataGridTextColumn Binding="{Binding Path=DurationTS}" Header="Duration"/>
-                <DataGridTextColumn Binding="{Binding Path=Child.Name}" Header="Child"/>
-                <DataGridTextColumn Binding="{Binding Path=ForX}" Header="For X" />
-                <DataGridTextColumn Binding="{Binding Path=ForNth}" Header="Nth" />
-                <DataGridTextColumn Binding="{Binding Path=ForTimePoint}" Header="TimePoint" />
-                <DataGridTextColumn Binding="{Binding Path=ForSkipDurationTS}" Header="Skip" />
-                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels" Width="150">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style>
-                            <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
-                            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
-                            <Setter Property="TextBlock.FontSize" Value="12"/>
-                            <Setter Property="TextBlock.LineHeight" Value="14"/>
-                            <Setter Property="TextBlock.MaxHeight" Value="42"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations" Width="150">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style>
-                            <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
-                            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
-                            <Setter Property="TextBlock.FontSize" Value="12"/>
-                            <Setter Property="TextBlock.LineHeight" Value="14"/>
-                            <Setter Property="TextBlock.MaxHeight" Value="42"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Path=Query}" Header="Query"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
         <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp" IsTabStop="False"
                         Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
                         Template="{StaticResource EditPopUpTemplate}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditTimePatternView x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
+                <local:EditTimePatternView/>
             </ScrollViewer>
         </ContentControl>
         <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>

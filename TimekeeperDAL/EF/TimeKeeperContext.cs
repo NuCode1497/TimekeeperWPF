@@ -18,13 +18,13 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<TimeTask> TimeTasks { get; set; }
         public virtual IDbSet<TaskType> TaskTypes { get; set; }
         public virtual IDbSet<TimePattern> TimePatterns { get; set; }
-        public virtual IDbSet<TimePoint> TimePoints { get; set; }
+        public virtual IDbSet<TimePatternClause> TimePatternClauses { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TimeTask>()
                 .HasMany(task => task.IncludedPatterns)
-                .WithMany(pattern => pattern.Inclusions)
+                .WithMany(pattern => pattern.IncludedBy)
                 .Map(c =>
                 {
                     c.ToTable("Includes");
@@ -34,7 +34,7 @@ namespace TimekeeperDAL.EF
 
             modelBuilder.Entity<TimeTask>()
                 .HasMany(task => task.ExcludedPatterns)
-                .WithMany(pattern => pattern.Exclusions)
+                .WithMany(pattern => pattern.ExcludedBy)
                 .Map(c =>
                 {
                     c.ToTable("Excludes");

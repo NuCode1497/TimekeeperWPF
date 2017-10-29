@@ -60,26 +60,25 @@
   <ItemGroup>
     <Compile Include="EF\Allocation.cs" />
     <Compile Include="EF\Label.cs" />
-    <Compile Include="Migrations\201708221824327_TimeTasksRename.cs" />
-    <Compile Include="Migrations\201708221824327_TimeTasksRename.Designer.cs">
-      <DependentUpon>201708221824327_TimeTasksRename.cs</DependentUpon>
+    <Compile Include="EF\TimePatternClause.cs" />
+    <Compile Include="Migrations\201710291943404_InitialCreate.cs" />
+    <Compile Include="Migrations\201710291943404_InitialCreate.Designer.cs">
+      <DependentUpon>201710291943404_InitialCreate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Models\INamedObject.cs" />
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\TimePatternClause.cs" />
+    <Compile Include="Tools\EditableObject.cs" />
+    <Compile Include="Tools\Extensions.cs" />
+    <Compile Include="Tools\INamedObject.cs" />
     <Compile Include="Models\LabeledEntity.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
-    <Compile Include="Migrations\201708172004465_IntialCreate.cs" />
-    <Compile Include="Migrations\201708172004465_IntialCreate.Designer.cs">
-      <DependentUpon>201708172004465_IntialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Allocation.cs" />
-    <Compile Include="Models\BasicEntity.cs" />
+    <Compile Include="Tools\BasicEntity.cs" />
     <Compile Include="Models\Label.cs" />
-    <Compile Include="Models\ObservableObject.cs" />
+    <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="Models\Resource.cs" />
     <Compile Include="EF\TimePattern.cs" />
-    <Compile Include="EF\TimePoint.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />
     <Compile Include="Fake\FakeDbContext.cs" />
     <Compile Include="Fake\FakeDbSet.cs" />
@@ -90,12 +89,11 @@
     <Compile Include="EF\TaskType.cs" />
     <Compile Include="EF\TimeKeeperContext.cs" />
     <Compile Include="Interception\Interceptor.cs" />
-    <Compile Include="Models\EntityBase.cs" />
+    <Compile Include="Tools\EntityBase.cs" />
     <Compile Include="Models\Note.cs" />
     <Compile Include="Models\TimeTask.cs" />
     <Compile Include="Models\TaskType.cs" />
     <Compile Include="Models\TimePattern.cs" />
-    <Compile Include="Models\TimePoint.cs" />
     <Compile Include="Models\TypedLabeledEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -110,11 +108,8 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201708172004465_IntialCreate.resx">
-      <DependentUpon>201708172004465_IntialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201708221824327_TimeTasksRename.resx">
-      <DependentUpon>201708221824327_TimeTasksRename.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201710291943404_InitialCreate.resx">
+      <DependentUpon>201710291943404_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

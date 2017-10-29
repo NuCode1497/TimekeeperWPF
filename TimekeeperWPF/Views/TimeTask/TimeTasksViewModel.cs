@@ -19,6 +19,14 @@ namespace TimekeeperWPF
     public class TimeTasksViewModel : TypedLabeledEntitiesViewModel<TimeTask>
     {
         #region Fields
+        private bool _HasSelectedResource = false;
+        private bool _IsAddingNewAllocation = false;
+        private Resource _SelectedResource;
+        private Allocation _CurrentEditAllocation;
+        private ICommand _DeleteAllocationCommand;
+        private ICommand _AddNewAllocationCommand;
+        private ICommand _CancelAllocationCommand;
+        private ICommand _CommitAllocationCommand;
         private bool _HasSelectedInclude = false;
         private bool _HasSelectedExclude = false;
         private TimePattern _SelectedInclude;
@@ -28,12 +36,61 @@ namespace TimekeeperWPF
         private ICommand _AddIncludeCommand;
         private ICommand _AddExcludeCommand;
         #endregion
-        public TimeTasksViewModel() : base()
-        {
-
-        }
+        public TimeTasksViewModel() : base() { }
         #region Properties
         public override string Name => nameof(Context.TimeTasks) + " Editor";
+        #region Allocations
+        public CollectionViewSource ResourcesCollection { get; set; }
+        public ObservableCollection<Resource> ResourcesSource => ResourcesCollection?.Source as ObservableCollection<Resource>;
+        public ListCollectionView ResourcesView => ResourcesCollection?.View as ListCollectionView;
+        public CollectionViewSource CurrentEntityAllocationsCollection { get; set; }
+        public ObservableCollection<Allocation> CurrentEntityAllocationsSource => CurrentEntityAllocationsCollection?.Source as ObservableCollection<Allocation>;
+        public ListCollectionView CurrentEntityAllocationsView => CurrentEntityAllocationsCollection?.View as ListCollectionView;
+        public Resource SelectedResource
+        {
+            get { return _SelectedResource; }
+            set
+            {
+                //Must not be adding new allocation
+                if (IsAddingNewAllocation)
+                {
+                    //prevent change and cause two way bindings to reselect this
+                    OnPropertyChanged();
+                    return;
+                }
+                //Resource must not be itself and must be in ResourcesSource
+                if ((value == _SelectedResource) || (value != null && (!ResourcesSource?.Contains(value) ?? false))) return;
+                _SelectedResource = value;
+                if (SelectedResource == null)
+                {
+                    HasSelectedResource = false;
+                }
+                else
+                {
+                    HasSelectedResource = true;
+                }
+                OnPropertyChanged();
+            }
+        }
+        public Allocation CurrentEditAllocation
+        {
+            get { return _CurrentEditAllocation; }
+            protected set
+            {
+                //Must not be adding new allocation
+                if (IsAddingNewAllocation)
+                {
+                    //prevent change and cause two way bindings to reselect this
+                    OnPropertyChanged();
+                    return;
+                }
+                if (value == _CurrentEditAllocation) return;
+                _CurrentEditAllocation = value;
+                OnPropertyChanged();
+            }
+        }
+        #endregion
+        #region Patterns
         public CollectionViewSource PatternsCollection { get; set; }
         public CollectionViewSource CurrentEntityIncludesCollection { get; set; }
         public CollectionViewSource CurrentEntityExcludesCollection { get; set; }
@@ -45,10 +102,7 @@ namespace TimekeeperWPF
         public ListCollectionView CurrentEntityExcludesView => CurrentEntityExcludesCollection?.View as ListCollectionView;
         public TimePattern SelectedInclude
         {
-            get
-            {
-                return _SelectedInclude;
-            }
+            get { return _SelectedInclude; }
             set
             {
                 //Pattern must not be itself and must be in PatternsSource
@@ -71,10 +125,7 @@ namespace TimekeeperWPF
         }
         public TimePattern SelectedExclude
         {
-            get
-            {
-                return _SelectedExclude;
-            }
+            get { return _SelectedExclude; }
             set
             {
                 //Pattern must not be itself and must be in PatternsSource
@@ -96,13 +147,33 @@ namespace TimekeeperWPF
             }
         }
         #endregion
+        #endregion
         #region Conditions
+        public bool HasSelectedResource
+        {
+            get { return _HasSelectedResource; }
+            protected set
+            {
+                _HasSelectedResource = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasNotSelectedResource));
+            }
+        }
+        public bool IsAddingNewAllocation
+        {
+            get { return _IsAddingNewAllocation; }
+            set
+            {
+                _IsAddingNewAllocation = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotAddingNewAllocation));
+            }
+        }
+        public bool HasNotSelectedResource => !HasSelectedResource;
+        public bool IsNotAddingNewAllocation => !IsAddingNewAllocation;
         public bool HasSelectedInclude
         {
-            get
-            {
-                return _HasSelectedInclude;
-            }
+            get { return _HasSelectedInclude; }
             protected set
             {
                 _HasSelectedInclude = value;
@@ -112,10 +183,7 @@ namespace TimekeeperWPF
         }
         public bool HasSelectedExclude
         {
-            get
-            {
-                return _HasSelectedExclude;
-            }
+            get { return _HasSelectedExclude; }
             protected set
             {
                 _HasSelectedExclude = value;
@@ -127,6 +195,14 @@ namespace TimekeeperWPF
         public bool HasNotSelectedExclude => !HasSelectedExclude;
         #endregion
         #region Commands
+        public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
+            ?? (_DeleteAllocationCommand = new RelayCommand(ap => DeleteAllocation(ap as Allocation), pp => CanDeleteAllocation(pp)));
+        public ICommand AddNewAllocationCommand => _AddNewAllocationCommand
+            ?? (_AddNewAllocationCommand = new RelayCommand(ap => AddNewAllocation(), pp => CanAddNewAllocation));
+        public ICommand CancelAllocationCommand => _CancelAllocationCommand
+            ?? (_CancelAllocationCommand = new RelayCommand(ap => CancelAllocation(), pp => CanCancelAllocation));
+        public ICommand CommitAllocationCommand => _CommitAllocationCommand
+            ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
         public ICommand RemoveIncludeCommand => _RemoveIncludeCommand
             ?? (_RemoveIncludeCommand = new RelayCommand(ap => RemoveInclude(ap as TimePattern), pp => pp is TimePattern));
         public ICommand RemoveExcludeCommand => _RemoveExcludeCommand
@@ -137,7 +213,16 @@ namespace TimekeeperWPF
             ?? (_AddExcludeCommand = new RelayCommand(ap => AddExclude(), pp => CanAddExclude));
         #endregion
         #region Predicates
+        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation;
         protected override bool CanSave => false;
+        private bool CanAddNewAllocation => HasSelectedResource && !IsResourceAllocated(SelectedResource);
+        private bool CanCancelAllocation => IsAddingNewAllocation;
+        private bool CanCommitAllocation => IsAddingNewAllocation && !CurrentEditAllocation.HasErrors;
+        private bool CanDeleteAllocation(object pp)
+        {
+            return pp is Allocation
+                && IsNotAddingNewAllocation;
+        }
         private bool CanAddInclude => HasSelectedInclude && !(CurrentEntityIncludesSource?.Contains(SelectedInclude)??false);
         private bool CanAddExclude => HasSelectedExclude && !(CurrentEntityExcludesSource?.Contains(SelectedExclude)??false);
         #endregion
@@ -147,6 +232,12 @@ namespace TimekeeperWPF
             Context = new TimeKeeperContext();
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
+
+            ResourcesCollection = new CollectionViewSource();
+            await Context.Resources.LoadAsync();
+            ResourcesCollection.Source = Context.Resources.Local;
+            ResourcesView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(ResourcesView));
 
             PatternsCollection = new CollectionViewSource();
             await Context.TimePatterns.LoadAsync();
@@ -197,6 +288,11 @@ namespace TimekeeperWPF
         private void BeginEdit()
         {
             if (!IsEditingItemOrAddingNew) return;
+
+            CurrentEntityAllocationsCollection = new CollectionViewSource();
+            CurrentEntityAllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
+            UpdateAllocationsView();
+
             CurrentEntityIncludesCollection = new CollectionViewSource();
             CurrentEntityIncludesCollection.Source = new ObservableCollection<TimePattern>(CurrentEditItem.IncludedPatterns);
             CurrentEntityExcludesCollection = new CollectionViewSource();
@@ -205,12 +301,22 @@ namespace TimekeeperWPF
         }
         protected override void EndEdit()
         {
+            ResourcesView.Filter = null;
+            EndEditAllocation();
+            CurrentEntityAllocationsCollection = null;
+
             CurrentEntityIncludesCollection = null;
             CurrentEntityExcludesCollection = null;
             base.EndEdit();
         }
+        protected override void Cancel()
+        {
+            CancelAllocation();
+            base.Cancel();
+        }
         protected override void Commit()
         {
+            CurrentEditItem.Allocations = new HashSet<Allocation>(CurrentEntityAllocationsSource);
             CurrentEditItem.IncludedPatterns = new HashSet<TimePattern>(CurrentEntityIncludesSource);
             CurrentEditItem.ExcludedPatterns = new HashSet<TimePattern>(CurrentEntityExcludesSource);
             base.Commit();
@@ -249,6 +355,53 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(PatternsView));
             OnPropertyChanged(nameof(CurrentEntityIncludesView));
             OnPropertyChanged(nameof(CurrentEntityExcludesView));
+        }
+        private void AddNewAllocation()
+        {
+            CurrentEditAllocation = new Allocation()
+            {
+                Amount = 0,
+                Resource = SelectedResource,
+                TimeTask = CurrentEditItem
+            };
+            IsAddingNewAllocation = true;
+        }
+        private void EndEditAllocation()
+        {
+            IsAddingNewAllocation = false;
+            CurrentEditAllocation = null;
+        }
+        private void CancelAllocation()
+        {
+            if (IsAddingNewAllocation) EndEditAllocation();
+        }
+        private void CommitAllocation()
+        {
+            if (IsAddingNewAllocation)
+            {
+                CurrentEntityAllocationsView.AddNewItem(CurrentEditAllocation);
+                CurrentEntityAllocationsView.CommitNew();
+                EndEditAllocation();
+                UpdateAllocationsView();
+            }
+        }
+        private void DeleteAllocation(Allocation ap)
+        {
+            CurrentEntityAllocationsView.Remove(ap);
+            UpdateAllocationsView();
+        }
+        private void UpdateAllocationsView()
+        {
+            //filter out allocated resources
+            ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
+            OnPropertyChanged(nameof(ResourcesView));
+            OnPropertyChanged(nameof(CurrentEntityAllocationsView));
+        }
+        private bool IsResourceAllocated(Resource R)
+        {
+            //count number of allocations of resource R
+            //if count is > 0 then yes resource is allocated return true
+            return (CurrentEntityAllocationsSource?.Count(A => A.Resource == R) > 0);
         }
         #endregion
     }

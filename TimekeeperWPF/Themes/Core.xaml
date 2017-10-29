@@ -15,7 +15,7 @@
             <Setter.Value>
                 <ControlTemplate>
                     <DockPanel LastChildFill="True">
-                        <TextBlock Foreground="Red" FontSize="20" Text="!" 
+                        <TextBlock Foreground="Red" FontSize="18" Text="!" 
                                        ToolTip="{Binding ElementName=controlWithError, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
                         <Border BorderBrush="Red" BorderThickness="1">
                             <AdornedElementPlaceholder Name="controlWithError"/>
@@ -108,6 +108,13 @@
         <Setter Property="CanUserAddRows" Value="False"/>
         <Setter Property="AutoGenerateColumns" Value="False"/>
         <Setter Property="Background" Value="{StaticResource DataGrid.Background}"/>
+    </Style>
+    <Style x:Key="DGLongTextStyle" TargetType="TextBlock">
+        <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+        <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+        <Setter Property="TextBlock.FontSize" Value="12"/>
+        <Setter Property="TextBlock.LineHeight" Value="14"/>
+        <Setter Property="TextBlock.MaxHeight" Value="42"/>
     </Style>
     <Style TargetType="{x:Type ListView}">
         <Setter Property="Background" Value="{StaticResource ListBox.Static.Background}"/>
@@ -229,7 +236,12 @@
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
-    <Style x:Key="TinyButtonDeleteStyle" TargetType="Button">
+    <Style x:Key="TinyButtonStyle" TargetType="Button">
+        <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
+        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
+    </Style>
+    <Style x:Key="TinyButtonDeleteStyle" TargetType="Button" BasedOn="{StaticResource TinyButtonStyle}">
         <Style.Resources>
             <tools:ResourceFinder x:Key="Background.Static" ResourceKey="TinyButton.Delete.Background.Static"/>
             <tools:ResourceFinder x:Key="Foreground.Static" ResourceKey="TinyButton.Delete.Foreground.Static"/>
@@ -247,9 +259,8 @@
         <Setter Property="FontFamily" Value="Webdings"/>
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="FontSize" Value="8"/>
-        <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
     </Style>
-    <Style x:Key="TinyButtonCommitStyle" TargetType="Button">
+    <Style x:Key="TinyButtonCommitStyle" TargetType="Button" BasedOn="{StaticResource TinyButtonStyle}">
         <Style.Resources>
             <tools:ResourceFinder x:Key="Background.Static" ResourceKey="TinyButton.Commit.Background.Static"/>
             <tools:ResourceFinder x:Key="Foreground.Static" ResourceKey="TinyButton.Commit.Foreground.Static"/>
@@ -267,9 +278,8 @@
         <Setter Property="FontFamily" Value="Webdings"/>
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="FontSize" Value="12"/>
-        <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
     </Style>
-    <Style x:Key="TinyButtonAddStyle" TargetType="Button">
+    <Style x:Key="TinyButtonAddStyle" TargetType="Button" BasedOn="{StaticResource TinyButtonStyle}">
         <Style.Resources>
             <tools:ResourceFinder x:Key="Background.Static" ResourceKey="TinyButton.Add.Background.Static"/>
             <tools:ResourceFinder x:Key="Foreground.Static" ResourceKey="TinyButton.Add.Foreground.Static"/>
@@ -286,7 +296,6 @@
         <Setter Property="Content" Value="+"/>
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="FontSize" Value="8"/>
-        <Setter Property="Template" Value="{StaticResource TinyButtonTemplate}"/>
     </Style>
     <ControlTemplate x:Key="PopUpTemplate" TargetType="ContentControl">
         <!--Grey out background content-->

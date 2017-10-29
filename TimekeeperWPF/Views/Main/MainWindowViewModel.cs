@@ -38,6 +38,7 @@ namespace TimekeeperWPF
             _WeekVM.RequestViewChange += OnRequestViewChange;
             _DayVM.RequestViewChange += OnRequestViewChange;
 
+            Views.Add(new TimePatternsViewModel());
             Views.Add(new TimeTasksViewModel());
             Views.Add(new NotesViewModel());
             Views.Add(_WeekVM);
@@ -46,8 +47,6 @@ namespace TimekeeperWPF
             Views.Add(new LabelsViewModel());
             Views.Add(new ResourcesViewModel());
             Views.Add(new TaskTypesViewModel());
-            Views.Add(new TimePointsViewModel());
-            Views.Add(new TimePatternsViewModel());
             Navigate(Views[0]);
 
             //RadialSample radialSample = new RadialSample();

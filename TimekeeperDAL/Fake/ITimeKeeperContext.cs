@@ -19,7 +19,6 @@ namespace TimekeeperDAL.EF
         IDbSet<TimeTask> TimeTasks { get; set; }
         IDbSet<TaskType> TaskTypes { get; set; }
         IDbSet<TimePattern> TimePatterns { get; set; }
-        IDbSet<TimePoint> TimePoints { get; set; }
         int SaveChanges();
         Task<int> SaveChangesAsync();
     }

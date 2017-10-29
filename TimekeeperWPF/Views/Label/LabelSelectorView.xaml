@@ -17,7 +17,7 @@
             </StackPanel>
             <Border Name="LabelListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
                 <ItemsControl Name="LabelListIC" IsTabStop="False" 
-                          ItemsSource="{Binding Path=CurrentEntityLabelsView}">
+                              ItemsSource="{Binding Path=CurrentEntityLabelsView}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" Name="LabelListPnl"/> 

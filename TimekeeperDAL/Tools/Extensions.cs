@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TimekeeperDAL.EF
+namespace TimekeeperDAL.Tools
 {
-    public interface INamedObject
+    public static class Extensions
     {
-        string Name { get; set; }
     }
 }

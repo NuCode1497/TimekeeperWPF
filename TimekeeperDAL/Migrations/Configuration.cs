@@ -10,6 +10,7 @@ namespace TimekeeperDAL.Migrations
         public Configuration()
         {
             AutomaticMigrationsEnabled = false;
+            ContextKey = "TimekeeperDAL.EF.TimeKeeperContext";
         }
 
         protected override void Seed(TimekeeperDAL.EF.TimeKeeperContext context)

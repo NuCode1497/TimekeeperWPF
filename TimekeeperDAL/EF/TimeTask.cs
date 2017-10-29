@@ -9,6 +9,7 @@ namespace TimekeeperDAL.EF
     {
         public TimeTask()
         {
+            Allocations = new HashSet<Allocation>();
             Labels = new HashSet<Label>();
             IncludedPatterns = new HashSet<TimePattern>();
             ExcludedPatterns = new HashSet<TimePattern>();
@@ -54,10 +55,12 @@ namespace TimekeeperDAL.EF
 
         #region Navigation
 
-        [InverseProperty("Inclusions")]
+        public virtual ICollection<Allocation> Allocations { get; set; }
+
+        [InverseProperty(nameof(TimePattern.IncludedBy))]
         public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
 
-        [InverseProperty("Exclusions")]
+        [InverseProperty(nameof(TimePattern.ExcludedBy))]
         public virtual ICollection<TimePattern> ExcludedPatterns { get; set; }
 
         #endregion

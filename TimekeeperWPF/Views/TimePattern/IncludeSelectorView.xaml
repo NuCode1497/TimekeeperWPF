@@ -11,8 +11,6 @@
                           ItemsSource="{Binding Path=CurrentEntityIncludesView}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:TimePatternOptionsView 
-                            RemoveCommand="{Binding Path=RemoveIncludeCommand}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

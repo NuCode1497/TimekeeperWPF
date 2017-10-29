@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {
@@ -6,16 +7,7 @@ namespace TimekeeperDAL.EF
     {
         public override string ToString()
         {
-            return minAmount + " - " + maxAmount + " of " + Resource.ToString();
-        }
-
-        [NotMapped]
-        public string AllocationString
-        {
-            get
-            {
-                return Resource.ToString() + ": " + minAmount + " - " + maxAmount;
-            }
+            return Amount + " of " + Resource.ToString();
         }
 
         [NotMapped]
@@ -27,23 +19,9 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(minAmount):
-                        if (minAmount > maxAmount)
-                        {
-                            AddError(nameof(minAmount), "minAmount must be less than maxAmount");
-                            hasError = true;
-                        }
-                        if (!hasError) ClearErrors(nameof(minAmount));
-                        errors = GetErrorsFromAnnotations(nameof(minAmount), minAmount);
-                        break;
-                    case nameof(maxAmount):
-                        if (maxAmount < minAmount)
-                        {
-                            AddError(nameof(maxAmount), "maxAmount must be greater than minAmount");
-                            hasError = true;
-                        }
-                        if (!hasError) ClearErrors(nameof(maxAmount));
-                        errors = GetErrorsFromAnnotations(nameof(maxAmount), maxAmount);
+                    case nameof(Amount):
+                        if (!hasError) ClearErrors(nameof(Amount));
+                        errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
                         break;
                 }
                 if (errors != null && errors.Length != 0)

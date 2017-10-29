@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using TimekeeperDAL.EF;
+using TimekeeperDAL.Tools;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF

@@ -28,7 +28,7 @@ namespace TimekeeperWPF
         public string Text
         {
             get { return (string)GetValue(TextProperty); }
-            set { SetValue(TextProperty, (string)value); }
+            set { SetValue(TextProperty, value); }
         }
         public static DependencyProperty TextProperty =
             DependencyProperty.Register(
@@ -36,7 +36,7 @@ namespace TimekeeperWPF
         public Visibility RemoveButtonVisibility
         {
             get { return (Visibility)GetValue(RemoveButtonVisibilityProperty); }
-            set { SetValue(RemoveButtonVisibilityProperty, (Visibility)value); }
+            set { SetValue(RemoveButtonVisibilityProperty, value); }
         }
         public static DependencyProperty RemoveButtonVisibilityProperty =
             DependencyProperty.Register(
@@ -45,7 +45,7 @@ namespace TimekeeperWPF
         public ICommand RemoveCommand
         {
             get { return (ICommand)GetValue(RemoveCommandProperty); }
-            set { SetValue(RemoveCommandProperty, (ICommand)value); }
+            set { SetValue(RemoveCommandProperty, value); }
         }
         public static DependencyProperty RemoveCommandProperty =
             DependencyProperty.Register(

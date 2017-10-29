@@ -11,9 +11,9 @@ namespace TimekeeperDAL.EF
         {
             return 0;
         }
-        public System.Threading.Tasks.Task<int> SaveChangesAsync()
+        public Task<int> SaveChangesAsync()
         {
-            return System.Threading.Tasks.Task.Run(() =>
+            return Task.Run(() =>
             {
                 //Thread.Sleep(3000);
                 return 0;

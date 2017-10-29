@@ -1,21 +1,15 @@
-﻿using System;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PropertyChanged;
-using System.Reflection;
 
-namespace TimekeeperDAL.EF
+namespace TimekeeperDAL.Tools
 {
-    //This annotation from PropertyChanged.Fody weaver injects INotifyPropertyChanged into each model.
-    //Implementing INotifyProperyChanged creates an Observable Model that lets the UI update when data changes.
-    [AddINotifyPropertyChangedInterface]
-    public abstract class EntityBase : ObservableObject, IDataErrorInfo, INotifyDataErrorInfo, IEditableObject
+    public abstract class EntityBase : EditableObject, IDataErrorInfo, INotifyDataErrorInfo
     {
         [Key]
         public int Id { get; set; }
@@ -24,12 +18,6 @@ namespace TimekeeperDAL.EF
         [MaxLength(8)]
         [Column(TypeName = "timestamp")]
         public byte[] RowVersion { get; set; }
-
-        /// <summary>
-        /// Implemented with INotifyPropertyChanged. Flagged true when a property is changed. You must manually flag false.
-        /// </summary>
-        [NotMapped]
-        public bool IsChanged { get; set; }
 
         #region Validations
         private readonly Dictionary<string, List<string>> _errors = new Dictionary<string, List<string>>();
@@ -134,54 +122,6 @@ namespace TimekeeperDAL.EF
             // if not, returns false and populates results list with errors
             var isValid = Validator.TryValidateProperty(value, vc, results);
             return (isValid) ? null : Array.ConvertAll(results.ToArray(), o => o.ErrorMessage);
-        }
-        #endregion
-
-        #region IEditableObject
-        //These functions are used in a collection that implements IEditableObject for change tracking.
-        //For example, a CollectionView wrapper on the entity collection.
-        private object ShadowClone;
-        //Setting this flag from the VM because only the VM should handle change tracking. Not DataGrids.
-        [NotMapped]
-        public bool IsEditing { get; set; } = false;
-        public void BeginEdit()
-        {
-            if (!IsEditing)
-            {
-                //Kage Bunshin no Jutsu
-                //Create an object that looks like this object by copying mapped public properties
-                ShadowClone = Activator.CreateInstance(GetType());
-                CopyMappedProperties(this, ShadowClone);
-            }
-        }
-        public void EndEdit()
-        {
-            if (IsEditing)
-            {
-                ShadowClone = null;
-            }
-        }
-        public void CancelEdit()
-        {
-            if (IsEditing)
-            {
-                CopyMappedProperties(ShadowClone, this);
-                ShadowClone = null;
-            }
-            IsChanged = false;
-        }
-        private void CopyMappedProperties(object source, object target)
-        {
-            if (source.GetType() != target.GetType())
-                throw new ArgumentException("Objects must be the same type.");
-            //Get mapped public properties
-            var properties = from p in source.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                             where p.GetCustomAttributes(typeof(NotMappedAttribute), false).Length == 0
-                             select p;
-            foreach (var p in properties)
-            {
-                p.SetValue(target, p.GetValue(source));
-            }
         }
         #endregion
     }

@@ -9,9 +9,6 @@ namespace TimekeeperDAL.EF
         {
             Allocations = new HashSet<Allocation>();
         }
-        #region Navigation
         public virtual ICollection<Allocation> Allocations { get; set; }
-
-        #endregion
     }
 }
