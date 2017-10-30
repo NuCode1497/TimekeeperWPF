@@ -10,7 +10,7 @@
         <Setter Property="Background" Value="{StaticResource Window.Background}"/>
     </Style>
     <Style x:Key="BasicErrorTemplate" TargetType="Control">
-        <Setter Property="Margin" Value="2"/>
+        <Setter Property="Margin" Value="1"/>
         <Setter Property="Validation.ErrorTemplate">
             <Setter.Value>
                 <ControlTemplate>
@@ -68,6 +68,7 @@
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource TextBoxStyle}"/>
     <Style TargetType="{x:Type wpftk:MaskedTextBox}" BasedOn="{StaticResource TextBoxStyle}"/>
     <Style TargetType="{x:Type wpftk:TimeSpanUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+    <Style TargetType="{x:Type wpftk:TimePicker}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type wpftk:DateTimePicker}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type wpftk:IntegerUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type wpftk:DoubleUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
@@ -81,9 +82,8 @@
     </Style>
     <Style TargetType="GroupBox">
         <Setter Property="BorderBrush" Value="{StaticResource GroupBox.BorderBrush}"/>
-        <Setter Property="Margin" Value="12,12,12,6"/>
+        <Setter Property="Margin" Value="5"/>
         <Setter Property="Header" Value="Features"/>
-        <Setter Property="Padding" Value="0,0,-2,-2"/>
     </Style>
     <Style TargetType="ToggleButton">
         <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -92,9 +92,7 @@
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
     </Style>
-    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}">
-        <Setter Property="Margin" Value="2"/>
-    </Style>
+    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type DataGrid}">
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
         <Setter Property="AlternatingRowBackground" Value="{StaticResource DataGrid.AlternatingRowBackground}"/>

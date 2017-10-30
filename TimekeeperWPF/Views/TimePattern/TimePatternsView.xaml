@@ -19,7 +19,7 @@
                   CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
-                <DataGridTextColumn Binding="{Binding Path=Query}" Header="Query"
+                <DataGridTextColumn Binding="{Binding Path=QueryToString}" Header="Query"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>

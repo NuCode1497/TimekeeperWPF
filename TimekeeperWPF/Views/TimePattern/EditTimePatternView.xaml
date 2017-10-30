@@ -11,7 +11,7 @@
                 ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
                 UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
-        <GroupBox Header="where" Margin="2">
+        <GroupBox Header="where" Margin="2,-4">
             <StackPanel>
                 <ItemsControl Name="TPClauseListIC" IsTabStop="False"
                               ItemsSource="{Binding Path=ClausesView}">

@@ -11,6 +11,22 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
+        public string QueryToString
+        {
+            get
+            {
+                string s = "where ";
+                foreach (TimePatternClause c in Query)
+                {
+                    s += c.ToString() + ", ";
+                }
+                if (s.Length >= 2)
+                    s = s.Substring(0, s.Length - 2);
+                return s;
+            }
+        }
+
+        [NotMapped]
         public override string this[string columnName]
         {
             get

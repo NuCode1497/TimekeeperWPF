@@ -340,39 +340,33 @@ namespace TimekeeperWPF
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                //Thrown when there is a concurrency error
-                //for now, just rethrow
-                throw ex;
+                Status = "There was a problem updating the database";
+                ExceptionViewer ev = new ExceptionViewer(Status + ": Concurrency Error", ex);
+                ev.ShowDialog();
             }
             catch (DbUpdateException ex)
             {
-                //Thrown when db update fails
-                //Examine the intter exceptions for more details and affected objects
-                //for now, just rethrow
-                throw ex;
+                Status = "There was a problem updating the database";
+                ExceptionViewer ev = new ExceptionViewer(Status + ": Database Update Failed", ex);
+                ev.ShowDialog();
             }
             catch (CommitFailedException ex)
             {
-                //handle transaction failures here
-                throw ex;
+                Status = "There was a problem updating the database";
+                ExceptionViewer ev = new ExceptionViewer(Status + ": Transaction Failure", ex);
+                ev.ShowDialog();
             }
             catch (System.Data.Entity.Validation.DbEntityValidationException ex)
             {
-                string result = ex.Message + "\n";
-                foreach (var e in ex.EntityValidationErrors)
-                {
-                    foreach (var err in e.ValidationErrors)
-                    {
-                        result += err.ErrorMessage + "\n";
-                    }
-                }
-                MessageBox.Show(result, "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Status = "There was a problem updating the database.";
+                Status = "There was a problem updating the database";
+                ExceptionViewer ev = new ExceptionViewer(Status + ": Validation Error", ex);
+                ev.ShowDialog();
             }
             catch (Exception ex)
             {
-                Status = "There was a problem updating the database.";
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Status = "There was a problem updating the database";
+                ExceptionViewer ev = new ExceptionViewer(Status, ex);
+                ev.ShowDialog();
             }
             return success;
         }

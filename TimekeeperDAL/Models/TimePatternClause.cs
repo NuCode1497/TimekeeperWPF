@@ -19,6 +19,12 @@ namespace TimekeeperDAL.EF
             Equivalency = BinaryEquivalencyChoices[0];
             TimePropertyValue = WeekDayChoices[0];
         }
+
+        public override string ToString()
+        {
+            return "[" + TimeProperty + " " + Equivalency + " " + TimePropertyValue + "]";
+        }
+
         [NotMapped]
         public override string this[string columnName]
         {
