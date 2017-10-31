@@ -19,7 +19,8 @@
                   SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" MaxWidth="{Binding ElementName=DG, Path=ActualWidth}"/>
+                    <WrapPanel Orientation="Horizontal" 
+                               MaxWidth="{Binding ElementName=DG, Path=ActualWidth}"/>
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>
@@ -30,21 +31,29 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp" IsTabStop="False"
-                        Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
+        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp"
+                        IsVisibleChanged="EditPopUp_IsVisibleChanged"
+                        Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+            Converter={StaticResource BooleanToVisibilityConverter}}"
                         Template="{StaticResource EditPopUpTemplate}" >
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <Grid x:Name="DataEditor" Margin="1">
+                <Grid x:Name="DataEditor" Margin="1"
+                      DataContext="{Binding Path=CurrentEditItem}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="50"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Label Content="Name"/>
-                    <TextBox Grid.Column="1" Width="150" HorizontalAlignment="Left" VerticalContentAlignment="Center" 
-                             Text="{Binding Path=CurrentEditItem.Name, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Grid.Column="1" Width="150" Name="NameTextBox"
+                             HorizontalAlignment="Left" VerticalContentAlignment="Center"
+                             Text="{Binding Path=Name, 
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </ScrollViewer>
         </ContentControl>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" 
+                           Visibility="{Binding Path=IsLoading, 
+            Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

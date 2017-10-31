@@ -72,6 +72,9 @@
     <Style TargetType="{x:Type wpftk:DateTimePicker}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type wpftk:IntegerUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type wpftk:DoubleUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+    <Style TargetType="ContentControl">
+        <Setter Property="IsTabStop" Value="False"/>
+    </Style>
     <Style TargetType="{x:Type Button}">
         <Setter Property="Margin" Value="2"/>
         <Setter Property="Padding" Value="4,1"/>
@@ -110,6 +113,7 @@
     <Style x:Key="DGLongTextStyle" TargetType="TextBlock">
         <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
         <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
+        <Setter Property="MaxWidth" Value="400"/>
         <Setter Property="TextBlock.FontSize" Value="12"/>
         <Setter Property="TextBlock.LineHeight" Value="14"/>
         <Setter Property="TextBlock.MaxHeight" Value="42"/>
@@ -257,6 +261,10 @@
         <Setter Property="FontFamily" Value="Webdings"/>
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="FontSize" Value="8"/>
+        <Setter Property="ToolTip" Value="Remove"/>
+        <Setter Property="CommandParameter" Value="{Binding}"/>
+        <Setter Property="Command" Value="{Binding RemoveCommand, ElementName=ThisControl}"/>
+        <Setter Property="Visibility" Value="{Binding Path=RemoveButtonVisibility, ElementName=ThisControl}"/>
     </Style>
     <Style x:Key="TinyButtonCommitStyle" TargetType="Button" BasedOn="{StaticResource TinyButtonStyle}">
         <Style.Resources>
@@ -276,6 +284,7 @@
         <Setter Property="FontFamily" Value="Webdings"/>
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="FontSize" Value="12"/>
+        <Setter Property="ToolTip" Value="Commit"/>
     </Style>
     <Style x:Key="TinyButtonAddStyle" TargetType="Button" BasedOn="{StaticResource TinyButtonStyle}">
         <Style.Resources>
@@ -294,6 +303,7 @@
         <Setter Property="Content" Value="+"/>
         <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="FontSize" Value="8"/>
+        <Setter Property="ToolTip" Value="Add"/>
     </Style>
     <ControlTemplate x:Key="PopUpTemplate" TargetType="ContentControl">
         <!--Grey out background content-->
@@ -318,16 +328,6 @@
     </ControlTemplate>
     <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl" >
         <ContentControl Template="{StaticResource PopUpTemplate}" x:Name="EditPopUp" IsTabStop="False">
-            <ContentControl.Style>
-                <Style TargetType="ContentControl">
-                    <Setter Property="Visibility" Value="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                    <Style.Triggers>
-                        <Trigger Property="Visibility" Value="Visible">
-                            <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </ContentControl.Style>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -340,9 +340,7 @@
                     <RowDefinition Height="12"/>
                 </Grid.RowDefinitions>
                 <!--Properties Editor-->
-                <GroupBox Header="Properties" Grid.Row="0" Grid.ColumnSpan="2" >
-                    <ContentPresenter x:Name="PropEditorCP" />
-                </GroupBox>
+                <ContentPresenter x:Name="PropEditorCP" Grid.Row="0" Grid.ColumnSpan="2" Margin="5"/>
                 <!--Validations List-->
                 <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="Auto"
                               VerticalScrollBarVisibility="Auto"
@@ -351,8 +349,7 @@
                                   ItemsSource="{Binding ElementName=DataEditor, Path=(Validation.Errors)}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <ItemsControl Name="ValidationsItem" IsTabStop="False" 
-                                                  ItemsSource="{Binding Path=ErrorContent}"/>
+                                <ItemsControl Name="ValidationsItem" IsTabStop="False" ItemsSource="{Binding Path=ErrorContent}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

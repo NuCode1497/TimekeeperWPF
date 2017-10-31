@@ -54,7 +54,7 @@
                   SelectedIndex="0"
                   SelectedItem="{Binding Path=TimeProperty, 
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
-        <Control Grid.Column="1" Width="50" HorizontalAlignment="Right">
+        <Control Name="Input2" Grid.Column="1" Width="50" HorizontalAlignment="Right">
             <Control.Style>
                 <Style TargetType="Control">
                     <Setter Property="Template" Value="{StaticResource AllEquivsTemplate}"/>
@@ -69,7 +69,7 @@
                 </Style>
             </Control.Style>
         </Control>
-        <Control Grid.Column="2" Width="100" HorizontalAlignment="Left">
+        <Control Name="Input3" Grid.Column="2" Width="100" HorizontalAlignment="Left">
             <Control.Style>
                 <Style TargetType="Control">
                     <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
@@ -87,9 +87,6 @@
                 </Style>
             </Control.Style>
         </Control>
-        <Button x:Name="RemoveButton" Grid.Column="3" Margin="2"
-                Style="{StaticResource TinyButtonDeleteStyle}"
-                CommandParameter="{Binding}"
-                Command="{Binding RemoveCommand, ElementName=ThisControl}"/>
+        <Button Grid.Column="3" Style="{StaticResource TinyButtonDeleteStyle}"/>
     </Grid>
 </UserControl>

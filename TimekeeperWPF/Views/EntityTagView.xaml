@@ -9,11 +9,7 @@
                    FontSize="14" 
                    Foreground="{StaticResource EntityTag.Foreground}" 
                    FontWeight="Bold"/>
-            <Button Name="RemoveButton" IsTabStop="False"
-                    Visibility="{Binding Path=RemoveButtonVisibility, ElementName=ThisControl}"
-                    Style="{StaticResource TinyButtonDeleteStyle}" 
-                    CommandParameter="{Binding}"
-                    Command="{Binding Path=RemoveCommand, ElementName=ThisControl}"/>
+            <Button Style="{StaticResource TinyButtonDeleteStyle}"/>
         </StackPanel>
     </ContentControl>
 </UserControl>

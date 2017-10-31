@@ -9,25 +9,27 @@
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Name" Width="80"/>
-            <TextBox Width="300" MaxLength="50"
+            <TextBox Width="300" MaxLength="50" x:Name="NameTextBox"
                      Text="{Binding Path=Name, Mode=TwoWay, ValidatesOnDataErrors=True, 
                 ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Description" Width="80"/>
-            <TextBox Width="300" TextWrapping="Wrap" MaxLength="160" 
+            <TextBox Width="300" TextWrapping="Wrap" MaxLength="160" x:Name="DescriptionTextBox"
                      Text="{Binding Path=Description, Mode=TwoWay, ValidatesOnDataErrors=True, 
                 ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Start" Width="80"/>
-            <wpftools:DateTimePicker Width="300" Value="{Binding Path=Start, Mode=TwoWay, 
+            <wpftools:DateTimePicker Width="300" x:Name="StartTextBox"
+                                     Value="{Binding Path=Start, Mode=TwoWay, 
                 UpdateSourceTrigger=PropertyChanged,
                 ValidatesOnDataErrors=True,ValidatesOnExceptions=True}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="End" Width="80"/>
-            <wpftools:DateTimePicker Width="300" Value="{Binding Path=End, Mode=TwoWay, 
+            <wpftools:DateTimePicker Width="300" x:Name="EndTextBox"
+                                     Value="{Binding Path=End, Mode=TwoWay, 
                 UpdateSourceTrigger=PropertyChanged,
                 ValidatesOnDataErrors=True,ValidatesOnExceptions=True}" />
         </StackPanel>

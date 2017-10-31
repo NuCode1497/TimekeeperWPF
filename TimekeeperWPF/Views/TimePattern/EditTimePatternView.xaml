@@ -2,16 +2,18 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TimekeeperWPF">
-    <!--DataContext is TimePatternsViewModel-->
+    <!--DataContext is TimePattern-->
     <StackPanel>
         <DockPanel LastChildFill="True">
-            <TextBlock Text="Name: " VerticalAlignment="Center"/>
+            <TextBlock x:Name="NameTextBox" Text="Name: " VerticalAlignment="Center"/>
             <TextBox MinWidth="200" MaxLength="50" 
-                     Text="{Binding Path=CurrentEditItem.Name, Mode=TwoWay,
+                     Text="{Binding Path=Name, Mode=TwoWay,
                 ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
                 UpdateSourceTrigger=PropertyChanged}" />
         </DockPanel>
-        <GroupBox Header="where" Margin="2,-4">
+        <GroupBox Header="where" Margin="2,-4"
+                  DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}">
+            <!--DataContext is TimePatternsViewModel-->
             <StackPanel>
                 <ItemsControl Name="TPClauseListIC" IsTabStop="False"
                               ItemsSource="{Binding Path=ClausesView}">
@@ -28,6 +30,6 @@
                         Command="{Binding Path=AddClauseCommand}"/>
             </StackPanel>
         </GroupBox>
-        <local:LabelSelectorView/>
+        <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
     </StackPanel>
 </UserControl>

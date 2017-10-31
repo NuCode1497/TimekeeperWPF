@@ -24,6 +24,7 @@ namespace TimekeeperWPF
         private Label _SelectedLabel;
         private ICommand _RemoveLabelCommand;
         private ICommand _AddLabelCommand;
+        private LabelsViewModel LVM;
         #endregion
         public LabeledEntitiesViewModel() : base()
         {

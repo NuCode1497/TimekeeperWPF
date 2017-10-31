@@ -5,35 +5,38 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="100">
+    <!--DataContext is LabeledEntitiesViewModel-->
     <GroupBox Header="Labels" Margin="2">
         <StackPanel Name="LabelEditorPanel">
             <StackPanel Orientation="Horizontal">
-                <ComboBox Name="LabelsCbo" DisplayMemberPath="Name"
-                  IsSynchronizedWithCurrentItem="True" Width="100"
-                  SelectedItem="{Binding Path=SelectedLabel, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=LabelsView}" />
-                <Button Name="AddLabelBtn" Content="Add" 
-                    Command="{Binding Path=AddLabelCommand}" />
+                <Button Style="{StaticResource TinyButtonAddStyle}"
+                        ToolTip="Create New Label"
+                        Command="{Binding Path=NewLabelCommand}"/>
+                <ComboBox Name="LabelsCbo" Width="100"
+                          DisplayMemberPath="Name"
+                          SelectedItem="{Binding Path=SelectedLabel}"
+                          ItemsSource="{Binding Path=LabelsView}"/>
+                <Button Style="{StaticResource TinyButtonCommitStyle}"
+                        ToolTip="Add Selected Label"
+                        Command="{Binding Path=AddLabelCommand}"/>
             </StackPanel>
-            <Border Name="LabelListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
-                <ItemsControl Name="LabelListIC" IsTabStop="False" 
+            <ItemsControl Name="LabelListIC" IsTabStop="False" 
                               ItemsSource="{Binding Path=CurrentEntityLabelsView}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" Name="LabelListPnl"/> 
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <local:EntityTagView 
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:EntityTagView 
                                 RemoveCommand="{Binding ElementName=LabelListIC, 
                                 Path=DataContext.RemoveLabelCommand}"
                                 RemoveButtonVisibility="Visible"
                                 Text="{Binding Path=Name}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
     </GroupBox>
 </UserControl>

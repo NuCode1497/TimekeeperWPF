@@ -53,6 +53,7 @@ namespace TimekeeperWPF
             }
             CurrentEditItem.Name = "New Time Pattern";
             BeginEdit();
+            AddClause();
             return 0;
         }
         protected override void EditSelected()
@@ -66,7 +67,6 @@ namespace TimekeeperWPF
 
             ClausesCollection = new CollectionViewSource();
             ClausesCollection.Source = new ObservableCollection<TimePatternClause>(CurrentEditItem.Query);
-            AddClause();
         }
         protected override void EndEdit()
         {

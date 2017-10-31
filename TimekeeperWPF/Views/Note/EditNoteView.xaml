@@ -1,19 +1,18 @@
 ﻿<UserControl x:Class="TimekeeperWPF.EditNoteView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:TimekeeperWPF"
-             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
-             mc:Ignorable="d" >
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Date &amp; Time" Width="80"/>
-            <wpftools:DateTimePicker Width="300" Value="{Binding Path=DateTime, Mode=TwoWay}" />
+            <wpftools:DateTimePicker x:Name="DateTimeTextBox" Width="300" 
+                                     Value="{Binding Path=DateTime, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Note" Width="80"/>
-            <TextBox Width="300" HorizontalAlignment="Left" TextWrapping="Wrap" MaxLength="160" 
+            <TextBox x:Name="NoteTextBox" Width="300" HorizontalAlignment="Left" 
+                     TextWrapping="Wrap" MaxLength="160" 
                      Text="{Binding Path=Text, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <local:TaskTypeSelectorView/>
