@@ -36,16 +36,5 @@ namespace TimekeeperWPF
                 }, DispatcherPriority.Render);
             }
         }
-
-        private void EditLabelPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (EditLabelPopUp.Visibility == Visibility.Visible)
-            {
-                Dispatcher.BeginInvoke((Action)delegate
-                {
-                    LabelEditor.NameTextBox.Focus();
-                }, DispatcherPriority.Render);
-            }
-        }
     }
 }

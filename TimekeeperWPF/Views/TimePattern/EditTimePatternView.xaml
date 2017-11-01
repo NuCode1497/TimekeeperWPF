@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:TimekeeperWPF"
              x:Name="DataEditor">
     <!--DataContext is TimePattern-->
-    <ScrollViewer>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <DockPanel LastChildFill="True">
                 <TextBlock x:Name="NameTextBox" Text="Name: " VerticalAlignment="Center"/>

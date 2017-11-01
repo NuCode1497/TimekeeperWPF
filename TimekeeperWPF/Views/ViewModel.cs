@@ -68,10 +68,7 @@ namespace TimekeeperWPF
         /// </summary>
         public ModelType SelectedItem
         {
-            get
-            {
-                return _SelectedItem;
-            }
+            get { return _SelectedItem; }
             set
             {
                 if (IsEditingItemOrAddingNew)
@@ -99,10 +96,7 @@ namespace TimekeeperWPF
         /// </summary>
         public ModelType CurrentEditItem
         {
-            get
-            {
-                return _CurrentEditItem;
-            }
+            get { return _CurrentEditItem; }
             protected set
             {
                 if (IsEditingItemOrAddingNew)
@@ -119,10 +113,7 @@ namespace TimekeeperWPF
         #region Conditions
         public bool IsEnabled
         {
-            get
-            {
-                return _IsEnabled;
-            }
+            get { return _IsEnabled; }
             protected set
             {
                 _IsEnabled = value;
@@ -132,10 +123,7 @@ namespace TimekeeperWPF
         }
         public bool IsLoading
         {
-            get
-            {
-                return _IsLoading;
-            }
+            get { return _IsLoading; }
             protected set
             {
                 _IsLoading = value;
@@ -145,10 +133,7 @@ namespace TimekeeperWPF
         }
         public bool IsEditingItem
         {
-            get
-            {
-                return _IsEditingItem;
-            }
+            get { return _IsEditingItem; }
             protected set
             {
                 _IsEditingItem = value;
@@ -160,10 +145,7 @@ namespace TimekeeperWPF
         }
         public bool IsAddingNew
         {
-            get
-            {
-                return _IsAddingNew;
-            }
+            get { return _IsAddingNew; }
             protected set
             {
                 _IsAddingNew = value;
@@ -175,10 +157,7 @@ namespace TimekeeperWPF
         }
         public bool IsSaving
         {
-            get
-            {
-                return _IsSaving;
-            }
+            get { return _IsSaving; }
             set
             {
                 _IsSaving = value;
@@ -187,10 +166,7 @@ namespace TimekeeperWPF
         }
         public bool HasSelected
         {
-            get
-            {
-                return _HasSelected;
-            }
+            get { return _HasSelected; }
             protected set
             {
                 _HasSelected = value;
@@ -358,8 +334,17 @@ namespace TimekeeperWPF
             }
             catch (System.Data.Entity.Validation.DbEntityValidationException ex)
             {
+                string s = "";
+                foreach (var e in ex.EntityValidationErrors)
+                {
+                    foreach (var ve in e.ValidationErrors)
+                    {
+                        s += ve.PropertyName + ": " + ve.ErrorMessage + "\n";
+                    }
+                }
+                
                 Status = "There was a problem updating the database";
-                ExceptionViewer ev = new ExceptionViewer(Status + ": Validation Error", ex);
+                ExceptionViewer ev = new ExceptionViewer(Status + ":\nValidation Errors on: \n" + s, ex);
                 ev.ShowDialog();
             }
             catch (Exception ex)

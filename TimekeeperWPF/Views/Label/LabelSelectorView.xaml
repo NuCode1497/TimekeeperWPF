@@ -9,9 +9,6 @@
     <GroupBox Header="Labels" Margin="2">
         <StackPanel Name="LabelEditorPanel">
             <StackPanel Orientation="Horizontal">
-                <Button Style="{StaticResource TinyButtonAddStyle}"
-                        ToolTip="Create New Label"
-                        Command="{Binding Path=NewLabelCommand}"/>
                 <ComboBox Name="LabelsCbo" Width="100"
                           DisplayMemberPath="Name"
                           SelectedItem="{Binding Path=SelectedLabel}"

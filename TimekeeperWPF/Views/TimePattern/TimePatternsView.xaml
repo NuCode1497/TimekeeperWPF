@@ -36,15 +36,6 @@
             FallbackValue=Collapsed}">
             <local:EditTimePatternView x:Name="TPEditor" DataContext="{Binding Path=CurrentEditItem}"/>
         </ContentControl>
-        <ContentControl 
-            Grid.Row="0" Grid.RowSpan="2" x:Name="EditLabelPopUp"
-            Template="{StaticResource EditPopUpTemplate}"
-            IsVisibleChanged="EditLabelPopUp_IsVisibleChanged"
-            Visibility="{Binding Path=IsCreatingNewLabel, 
-            Converter={StaticResource BooleanToVisibilityConverter}, 
-            FallbackValue=Collapsed}">
-            <local:EditBasicEntityView x:Name="LabelEditor" DataContext="{Binding Path=SelectedLabel}"/>
-        </ContentControl>
         <local:LoadingView Grid.Row="0" Grid.RowSpan="2"/>
     </Grid>
 </UserControl>
