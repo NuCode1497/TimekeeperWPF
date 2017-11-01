@@ -327,7 +327,7 @@
         </Grid>
     </ControlTemplate>
     <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl" >
-        <ContentControl Template="{StaticResource PopUpTemplate}" x:Name="EditPopUp" IsTabStop="False">
+        <ContentControl Template="{StaticResource PopUpTemplate}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -346,10 +346,12 @@
                               VerticalScrollBarVisibility="Auto"
                               IsTabStop="False" Margin="12,0,12,6">
                     <ItemsControl Margin="8" Foreground="Red" Name="ValidationsItemsControl" IsTabStop="False"
-                                  ItemsSource="{Binding ElementName=DataEditor, Path=(Validation.Errors)}">
+                                  DataContext="{Binding Path=Content, ElementName=PropEditorCP}"
+                                  ItemsSource="{Binding Path=(Validation.Errors)}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <ItemsControl Name="ValidationsItem" IsTabStop="False" ItemsSource="{Binding Path=ErrorContent}"/>
+                                <ItemsControl Name="ValidationsItem" IsTabStop="False" 
+                                              ItemsSource="{Binding Path=ErrorContent}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

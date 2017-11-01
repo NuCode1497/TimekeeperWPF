@@ -1,22 +1,24 @@
-﻿<UserControl x:Class="TimekeeperWPF.TimePatternsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="600">
+﻿<UserControl 
+    x:Class="TimekeeperWPF.TimePatternsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:local="clr-namespace:TimekeeperWPF"
+    mc:Ignorable="d" 
+    d:DesignHeight="400" d:DesignWidth="600">
     <Grid x:Name="SV">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
-        <DataGrid x:Name="DG" Grid.Row="1" Margin="1"
-                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-                  IsEnabled="{Binding Path=IsEnabled}"
-                  ItemsSource="{Binding Path=View}"
-                  CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+        <DataGrid 
+            x:Name="DG" Grid.Row="1" Margin="1"
+            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+            IsEnabled="{Binding Path=IsEnabled}"
+            ItemsSource="{Binding Path=View}"
+            CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
                 <DataGridTextColumn Binding="{Binding Path=QueryToString}" Header="Query"
@@ -25,15 +27,24 @@
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
-        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp"
-                        IsVisibleChanged="EditPopUp_IsVisibleChanged"
-                        Visibility="{Binding Path=IsEditingItemOrAddingNew, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Template="{StaticResource EditPopUpTemplate}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditTimePatternView x:Name="DataEditor"
-                                           DataContext="{Binding Path=CurrentEditItem}"/>
-            </ScrollViewer>
+        <ContentControl 
+            Grid.Row="0" Grid.RowSpan="2" x:Name="EditTPPopUp"
+            Template="{StaticResource EditPopUpTemplate}"
+            IsVisibleChanged="EditTPPopUp_IsVisibleChanged"
+            Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+            Converter={StaticResource BooleanToVisibilityConverter}, 
+            FallbackValue=Collapsed}">
+            <local:EditTimePatternView x:Name="TPEditor" DataContext="{Binding Path=CurrentEditItem}"/>
         </ContentControl>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <ContentControl 
+            Grid.Row="0" Grid.RowSpan="2" x:Name="EditLabelPopUp"
+            Template="{StaticResource EditPopUpTemplate}"
+            IsVisibleChanged="EditLabelPopUp_IsVisibleChanged"
+            Visibility="{Binding Path=IsCreatingNewLabel, 
+            Converter={StaticResource BooleanToVisibilityConverter}, 
+            FallbackValue=Collapsed}">
+            <local:EditBasicEntityView x:Name="LabelEditor" DataContext="{Binding Path=SelectedLabel}"/>
+        </ContentControl>
+        <local:LoadingView Grid.Row="0" Grid.RowSpan="2"/>
     </Grid>
 </UserControl>

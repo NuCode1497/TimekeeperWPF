@@ -21,7 +21,7 @@
                         Command="{Binding Path=AddLabelCommand}"/>
             </StackPanel>
             <ItemsControl Name="LabelListIC" IsTabStop="False" 
-                              ItemsSource="{Binding Path=CurrentEntityLabelsView}">
+                          ItemsSource="{Binding Path=CurrentEntityLabelsView}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel/>
@@ -30,10 +30,10 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <local:EntityTagView 
-                                RemoveCommand="{Binding ElementName=LabelListIC, 
-                                Path=DataContext.RemoveLabelCommand}"
-                                RemoveButtonVisibility="Visible"
-                                Text="{Binding Path=Name}"/>
+                            RemoveCommand="{Binding ElementName=LabelListIC, 
+                            Path=DataContext.RemoveLabelCommand}"
+                            RemoveButtonVisibility="Visible"
+                            Text="{Binding Path=Name}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

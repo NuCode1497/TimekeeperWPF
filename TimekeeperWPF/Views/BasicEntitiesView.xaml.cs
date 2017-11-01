@@ -28,11 +28,11 @@ namespace TimekeeperWPF
 
         private void EditPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (EditPopUp.Visibility == Visibility.Visible)
+            if (EditEntityPopUp.Visibility == Visibility.Visible)
             {
                 Dispatcher.BeginInvoke((Action)delegate
                 {
-                    NameTextBox.Focus();
+                    EntityEditor.NameTextBox.Focus();
                 }, DispatcherPriority.Render);
             }
         }

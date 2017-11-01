@@ -26,13 +26,24 @@ namespace TimekeeperWPF
             InitializeComponent();
         }
 
-        private void EditPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void EditTPPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (EditPopUp.Visibility == Visibility.Visible)
+            if (EditTPPopUp.Visibility == Visibility.Visible)
             {
                 Dispatcher.BeginInvoke((Action)delegate
                 {
-                    DataEditor.NameTextBox.Focus();
+                    TPEditor.NameTextBox.Focus();
+                }, DispatcherPriority.Render);
+            }
+        }
+
+        private void EditLabelPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (EditLabelPopUp.Visibility == Visibility.Visible)
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    LabelEditor.NameTextBox.Focus();
                 }, DispatcherPriority.Render);
             }
         }
