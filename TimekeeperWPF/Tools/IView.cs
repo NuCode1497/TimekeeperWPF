@@ -12,5 +12,8 @@ namespace TimekeeperWPF.Tools
         string Name { get; }
         ICommand SaveAsCommand { get; }
         ICommand GetDataCommand { get; }
+        ICommand NewItemCommand { get; }
+        ICommand EditSelectedCommand { get; }
+        ICommand DeleteSelectedCommand { get; }
     }
 }

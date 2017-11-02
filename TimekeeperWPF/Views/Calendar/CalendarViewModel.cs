@@ -156,6 +156,11 @@ namespace TimekeeperWPF
         protected virtual bool CanSelectDay => true;
         protected virtual bool CanSelectYear => true;
         protected virtual bool CanSelectMonth => true;
+        //TODO
+        protected override bool CanAddNew => false;
+        protected override bool CanEditSelected => false;
+        protected override bool CanSave => false;
+        protected override bool CanDeleteSelected => false;
         #endregion
         #region Actions
         protected virtual void SelectWeek()
@@ -178,6 +183,8 @@ namespace TimekeeperWPF
             Items.Source = Context.Notes.Local;
 
             SetUpCalendarObjects();
+
+            await base.GetDataAsync();
         }
         protected virtual void SetUpCalendarObjects()
         {

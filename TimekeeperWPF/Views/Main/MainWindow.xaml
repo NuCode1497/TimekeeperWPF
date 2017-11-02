@@ -8,6 +8,16 @@
     <Window.DataContext>
         <l:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding Path=CurrentView.NewItemCommand}" Gesture="CTRL+N"/>
+        <KeyBinding Command="{Binding Path=CurrentView.EditSelectedCommand}" Gesture="CTRL+E"/>
+        <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Gesture="CTRL+D"/>
+        <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Gesture="CTRL+R"/>
+        <KeyBinding Command="{Binding Path=CurrentView.PreviousCommand}" Gesture="Left"/>
+        <KeyBinding Command="{Binding Path=CurrentView.NextCommand}" Gesture="Right"/>
+        <KeyBinding Command="{Binding Path=CurrentView.ScaleUpCommand}" Gesture="Up"/>
+        <KeyBinding Command="{Binding Path=CurrentView.ScaleDownCommand}" Gesture="Down"/>
+    </Window.InputBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">

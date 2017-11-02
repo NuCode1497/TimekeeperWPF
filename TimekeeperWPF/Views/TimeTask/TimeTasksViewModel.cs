@@ -114,10 +114,6 @@ namespace TimekeeperWPF
                 }
                 else
                 {
-                    if (SelectedInclude == SelectedExclude)
-                    {
-                        SelectedExclude = null;
-                    }
                     HasSelectedInclude = true;
                 }
                 OnPropertyChanged();
@@ -137,10 +133,6 @@ namespace TimekeeperWPF
                 }
                 else
                 {
-                    if (SelectedExclude == SelectedInclude)
-                    {
-                        SelectedInclude = null;
-                    }
                     HasSelectedExclude = true;
                 }
                 OnPropertyChanged();

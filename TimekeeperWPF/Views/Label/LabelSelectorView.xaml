@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="100">
+             xmlns:local="clr-namespace:TimekeeperWPF">
     <!--DataContext is LabeledEntitiesViewModel-->
     <GroupBox Header="Labels" Margin="2">
         <StackPanel Name="LabelEditorPanel">
@@ -17,7 +16,7 @@
                         ToolTip="Add Selected Label"
                         Command="{Binding Path=AddLabelCommand}"/>
             </StackPanel>
-            <ItemsControl Name="LabelListIC" IsTabStop="False" 
+            <ItemsControl Name="LabelListIC"
                           ItemsSource="{Binding Path=CurrentEntityLabelsView}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

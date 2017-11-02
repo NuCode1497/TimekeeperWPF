@@ -83,10 +83,56 @@
     <Style TargetType="Label">
         <Setter Property="Margin" Value="2"/>
     </Style>
-    <Style TargetType="GroupBox">
+    <BorderGapMaskConverter x:Key="BorderGapMaskConverter"/>
+    <Style x:Key="{x:Type GroupBox}" TargetType="{x:Type GroupBox}">
         <Setter Property="BorderBrush" Value="{StaticResource GroupBox.BorderBrush}"/>
+        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Margin" Value="5"/>
         <Setter Property="Header" Value="Features"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type GroupBox}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="4"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="4"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="4"/>
+                        </Grid.RowDefinitions>
+                        <Border CornerRadius="4" Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="4"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                BorderBrush="Transparent"
+                                Background="{TemplateBinding Background}"/>
+                        <!-- ContentPresenter for the header -->
+                        <Border x:Name="Header" Padding="6,0,6,0"
+                                Grid.Row="0" Grid.RowSpan="2" Grid.Column="1">
+                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+                        </Border>
+                        <!-- Primary content for GroupBox -->
+                        <ContentPresenter Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                                          Margin="{TemplateBinding Padding}"/>
+                        <Border CornerRadius="5" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="4"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                BorderBrush="{TemplateBinding BorderBrush}">
+                            <Border.OpacityMask>
+                                <MultiBinding Converter="{StaticResource BorderGapMaskConverter}" ConverterParameter="6">
+                                    <Binding ElementName="Header" Path="ActualWidth"/>
+                                    <Binding RelativeSource="{RelativeSource Self}" Path="ActualWidth"/>
+                                    <Binding RelativeSource="{RelativeSource Self}" Path="ActualHeight"/>
+                                </MultiBinding>
+                            </Border.OpacityMask>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     <Style TargetType="ToggleButton">
         <Setter Property="HorizontalAlignment" Value="Left"/>
@@ -366,8 +412,9 @@
     </ControlTemplate>
     <ControlTemplate x:Key="EntityTagTemplate" TargetType="ContentControl">
         <Border Name="LabelBdr" Margin="2" CornerRadius="4" BorderThickness="1" 
-                    Background="{StaticResource EntityTag.Background}" 
-                    BorderBrush="{StaticResource EntityTag.BorderBrush}">
+                SnapsToDevicePixels="True" 
+                Background="{StaticResource EntityTag.Background}" 
+                BorderBrush="{StaticResource EntityTag.BorderBrush}">
             <Grid Name="LabelLayoutGrid" Height="20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2"/>
@@ -382,10 +429,10 @@
     <ControlTemplate x:Key="TableViewControlsTemplate" TargetType="ContentControl">
         <ToolBarTray>
             <ToolBar Band="1" BandIndex="1">
-                <Button Content="New" x:Name="NewItemBtn" Command="{Binding Path=NewItemCommand}"/>
-                <Button Content="Edit" x:Name="EditSelectedBtn" Command="{Binding Path=EditSelectedCommand}"/>
-                <Button Content="Delete" x:Name="DeleteSelectedBtn" Command="{Binding Path=DeleteSelectedCommand}"/>
-                <Button Margin="2" Content="Refresh" x:Name="GetDataBtn" Command="{Binding Path=GetDataCommand}"/>
+                <Button Content="New" x:Name="NewItemBtn" ToolTip="Ctrl+N" Command="{Binding Path=NewItemCommand}"/>
+                <Button Content="Edit" x:Name="EditSelectedBtn" ToolTip="Ctrl+E" Command="{Binding Path=EditSelectedCommand}"/>
+                <Button Content="Delete" x:Name="DeleteSelectedBtn" ToolTip="Ctrl+D" Command="{Binding Path=DeleteSelectedCommand}"/>
+                <Button Margin="2" Content="Refresh" x:Name="GetDataBtn" ToolTip="Ctrl+R" Command="{Binding Path=GetDataCommand}"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>

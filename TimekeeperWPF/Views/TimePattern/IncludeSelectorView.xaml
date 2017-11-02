@@ -7,16 +7,34 @@
              mc:Ignorable="d">
     <GroupBox Header="Includes" Margin="2">
         <StackPanel Name="IncludeEditorPanel">
-            <ItemsControl Name="IncludeListIC" IsTabStop="False" 
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Patterns " VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                <ComboBox Name="PatternsCbo" Width="100"
+                          DisplayMemberPath="Name"
+                          IsSynchronizedWithCurrentItem="False"
+                          SelectedItem="{Binding Path=SelectedInclude}"
+                          ItemsSource="{Binding Path=PatternsView}"/>
+                <Button Style="{StaticResource TinyButtonCommitStyle}"
+                        ToolTip="Include Selected Pattern"
+                        Command="{Binding Path=AddIncludeCommand}"/>
+            </StackPanel>
+            <ItemsControl Name="IncludeListIC"
                           ItemsSource="{Binding Path=CurrentEntityIncludesView}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
+                        <local:EntityTagView 
+                            RemoveCommand="{Binding ElementName=IncludeListIC, 
+                            Path=DataContext.RemoveIncludeCommand}"
+                            RemoveButtonVisibility="Visible"
+                            Text="{Binding Path=Name}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <Button Margin="4" 
-                    Style="{StaticResource TinyButtonAddStyle}" 
-                    Command="{Binding Path=AddIncludeCommand}"/>
         </StackPanel>
     </GroupBox>
 </UserControl>

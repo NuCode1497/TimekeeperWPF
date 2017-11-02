@@ -36,14 +36,12 @@
         <StackPanel Orientation="Horizontal">
             <StackPanel>
                 <local:TaskTypeSelectorView/>
-                <!--<StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal">
                     <Label Content="Priority" Width="80" />
                     <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Priority, Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
-                </StackPanel>-->
-            </StackPanel>
-            <!--<StackPanel>
+                </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Dimension" Width="80" />
                     <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Dimension, Mode=TwoWay, 
@@ -51,27 +49,61 @@
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="IsEnabled" Value="False"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=CanBePushed}" Value="True">
+                                    <Setter Property="IsEnabled" Value="True"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
                     <Label Content="Power Level" Width="80"/>
                     <wpftools:IntegerUpDown Width="100" Value="{Binding Path=PowerLevel, Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
-            </StackPanel>-->
+            </StackPanel>
+            <StackPanel>
+                <StackPanel Margin="20,5">
+                    <CheckBox Content="Request Check-in" IsChecked="{Binding Path=AsksForCheckin}"/>
+                    <CheckBox Content="Can Reschedule" IsChecked="{Binding Path=CanReschedule}"/>
+                    <CheckBox Margin="20,0,0,0" Content="Automatically" IsChecked="{Binding Path=AsksForReschedule}">
+                        <CheckBox.Style>
+                            <Style TargetType="CheckBox">
+                                <Setter Property="IsEnabled" Value="False"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=CanReschedule}" Value="True">
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </CheckBox.Style>
+                    </CheckBox>
+                    <CheckBox Margin="20,0,0,0" Content="Raise Priority" IsChecked="{Binding Path=RaiseOnReschedule}">
+                        <CheckBox.Style>
+                            <Style TargetType="CheckBox">
+                                <Setter Property="IsEnabled" Value="False"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=CanReschedule}" Value="True">
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </CheckBox.Style>
+                    </CheckBox>
+                    <CheckBox Content="Can Be Early" IsChecked="{Binding Path=CanBeEarly}"/>
+                    <CheckBox Content="Can Be Late" IsChecked="{Binding Path=CanBeLate}"/>
+                    <CheckBox Content="Can Be Pushed" IsChecked="{Binding Path=CanBePushed}"/>
+                    <CheckBox Content="Can Inflate" IsChecked="{Binding Path=CanInflate}"/>
+                    <CheckBox Content="Can Deflate" IsChecked="{Binding Path=CanDeflate}"/>
+                    <CheckBox Content="Can Fill" IsChecked="{Binding Path=CanFill}"/>
+                </StackPanel>
+            </StackPanel>
         </StackPanel>
-        <!--<WrapPanel MaxWidth="380" Margin="10,4,4,4" Background="Transparent" HorizontalAlignment="Left">
-            <ToggleButton Content="AsksForCheckin" IsChecked="{Binding Path=AsksForCheckin}"/>
-            <ToggleButton Content="AsksForReschedule" IsChecked="{Binding Path=AsksForReschedule}"/>
-            <ToggleButton Content="CanReschedule" IsChecked="{Binding Path=CanReschedule}"/>
-            <ToggleButton Content="RaiseOnReschedule" IsChecked="{Binding Path=RaiseOnReschedule}"/>
-            <ToggleButton Content="CanBeEarly" IsChecked="{Binding Path=CanBeEarly}"/>
-            <ToggleButton Content="CanBeLate" IsChecked="{Binding Path=CanBeLate}"/>
-            <ToggleButton Content="CanBePushed" IsChecked="{Binding Path=CanBePushed}"/>
-            <ToggleButton Content="CanInflate" IsChecked="{Binding Path=CanInflate}"/>
-            <ToggleButton Content="CanDeflate" IsChecked="{Binding Path=CanDeflate}"/>
-            <ToggleButton Content="CanFill" IsChecked="{Binding Path=CanFill}"/>
-        </WrapPanel>-->
         <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
         <local:IncludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-        <!--<local:ExcludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>-->
+        <local:ExcludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
     </StackPanel>
 </UserControl>

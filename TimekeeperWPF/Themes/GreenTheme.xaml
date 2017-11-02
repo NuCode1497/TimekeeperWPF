@@ -13,10 +13,10 @@
     <SolidColorBrush x:Key="EntityTag.Background" Color="Wheat"/>
     <SolidColorBrush x:Key="EntityTag.BorderBrush" Color="DarkSlateGray"/>
     <SolidColorBrush x:Key="EntityTag.Foreground" Color="Black"/>
-    <SolidColorBrush x:Key="PopUp.Behind.Background" Color="#9980B0A0"/>
-    <SolidColorBrush x:Key="PopUp.Window.Background" Color="#FFBDFFD8"/>
+    <SolidColorBrush x:Key="PopUp.Behind.Background" Color="#7F008B8B"/>
+    <SolidColorBrush x:Key="PopUp.Window.Background" Color="Azure"/>
     <SolidColorBrush x:Key="PopUp.Window.Border" Color="Gray"/>
-    <SolidColorBrush x:Key="GroupBox.BorderBrush" Color="DarkGreen"/>
+    <SolidColorBrush x:Key="GroupBox.BorderBrush" Color="SlateGray"/>
     <SolidColorBrush x:Key="Highlight.Selected.BorderColor" Color="DarkCyan"/>
     <SolidColorBrush x:Key="Highlight.Selected.BackgroundColor" Color="Cyan"/>
     <clr:Double x:Key="Highlight.Selected.Opacity">0.5</clr:Double>
