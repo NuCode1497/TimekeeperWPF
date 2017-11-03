@@ -1,12 +1,13 @@
 ﻿<Window x:Class="TimekeeperWPF.Tools.ExceptionViewer"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Width="520"
-        Height="300"
+        Width="600"
+        Height="400"
         MinWidth="350"
         MinHeight="200"
         Name="ExpressionViewerWindow"
         Loaded="Window_Loaded"
+        WindowStartupLocation="CenterScreen"
         SizeChanged="ExpressionViewerWindow_SizeChanged">
     <Grid Name="mainGrid"          >
         <Grid.RowDefinitions>
@@ -14,11 +15,11 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"
+            <ColumnDefinition Width="*"
                               Name="treeCol"
                               MaxWidth="250"
                               MinWidth="90" />
-            <ColumnDefinition Width="*"
+            <ColumnDefinition Width="2*"
                               Name="textCol"
                               MinWidth="90" />
         </Grid.ColumnDefinitions>
@@ -53,7 +54,7 @@
                       VerticalAlignment="center"
                       Checked="chkWrap_Checked"
                       Unchecked="chkWrap_Unchecked"
-                      IsChecked="True" />
+                      IsChecked="False" />
             <Button Content="_Copy All To Clipboard"
                     Name="btnCopy"
                     Click="btnCopy_Click"

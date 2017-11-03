@@ -48,8 +48,7 @@ namespace TimekeeperWPF
             var q = from t in TaskTypesSource
                     where t.Name == "Note"
                     select t;
-            CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource.First()).First();
-            BeginEdit();
+            CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource.FirstOrDefault()).First();
             return 0;
         }
         protected override void EditSelected()

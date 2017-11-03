@@ -45,7 +45,6 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(Start), "Start must come before End");
                             hasError = true;
                         }
-                        if (!hasError) ClearErrors();
                         errors = GetErrorsFromAnnotations(nameof(Start), Start);
                         break;
                     case nameof(End):
@@ -54,7 +53,6 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(End), "Start must come before End");
                             hasError = true;
                         }
-                        if (!hasError) ClearErrors();
                         errors = GetErrorsFromAnnotations(nameof(End), End);
                         break;
                     case nameof(Description):
@@ -66,7 +64,6 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(Priority), "Priority must be greater than 0");
                             hasError = true;
                         }
-                        if (!hasError) ClearErrors();
                         errors = GetErrorsFromAnnotations(nameof(Priority), Priority);
                         break;
                     case nameof(Dimension):
@@ -75,7 +72,6 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(Dimension), "Dimension must be greater than 0");
                             hasError = true;
                         }
-                        if (!hasError) ClearErrors();
                         errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);
                         break;
                     case nameof(PowerLevel):
@@ -84,7 +80,6 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(PowerLevel), "PowerLevel must be greater than 0");
                             hasError = true;
                         }
-                        if (!hasError) ClearErrors();
                         errors = GetErrorsFromAnnotations(nameof(PowerLevel), PowerLevel);
                         break;
                 }
