@@ -19,7 +19,7 @@ namespace TimekeeperDAL.EF
         IDbSet<TimeTask> TimeTasks { get; set; }
         IDbSet<TaskType> TaskTypes { get; set; }
         IDbSet<TimePattern> TimePatterns { get; set; }
-        IDbSet<Filter> Filters { get; set; }
+        IDbSet<TimeTaskFilter> Filters { get; set; }
         IDbSet<Filterable> Filterables { get; set; }
         IDbSet<LabeledEntity> LabeledEntities { get; set; }
         IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }

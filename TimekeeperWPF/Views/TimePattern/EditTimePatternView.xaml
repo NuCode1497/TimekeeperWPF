@@ -13,23 +13,29 @@
                 ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
                 UpdateSourceTrigger=PropertyChanged}" />
             </DockPanel>
-            <StackPanel DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}">
+            <StackPanel DataContext="{Binding Path=DataContext, 
+                RelativeSource={RelativeSource AncestorType=Grid}}">
                 <!--DataContext is TimePatternsViewModel-->
-                <GroupBox Header="where" Margin="2,-4">
+                <GroupBox>
+                    <GroupBox.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Where "/>
+                            <Button x:Name="AddClauseButton" Margin="2"
+                                Style="{StaticResource TinyButtonAddStyle}"
+                                Command="{Binding Path=AddClauseCommand}"/>
+                        </StackPanel>
+                    </GroupBox.Header>
                     <StackPanel>
                         <ItemsControl Name="TPClauseListIC" IsTabStop="False"
-                                  ItemsSource="{Binding Path=ClausesView}">
+                                      ItemsSource="{Binding Path=ClausesView}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <local:TimePatternClauseView
-                                    RemoveCommand="{Binding ElementName=TPClauseListIC,
-                                    Path=DataContext.RemoveClauseCommand}"/>
+                                        RemoveCommand="{Binding ElementName=TPClauseListIC,
+                                        Path=DataContext.RemoveClauseCommand}"/>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <Button x:Name="AddClauseButton" Margin="2"
-                        Style="{StaticResource TinyButtonAddStyle}"
-                        Command="{Binding Path=AddClauseCommand}"/>
                     </StackPanel>
                 </GroupBox>
                 <local:LabelSelectorView/>

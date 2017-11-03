@@ -4,7 +4,6 @@
              xmlns:wpftk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:dal="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
              Name="ThisControl">
-    <!--DataContext is TimePatternClause-->
     <Grid>
         <Grid.Resources>
             <ControlTemplate x:Key="IntegerTemplate">
@@ -48,12 +47,13 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <ComboBox Grid.Column="0" Name="TPComboBox" Width="100"
-                  HorizontalAlignment="Right"
-                  ItemsSource="{x:Static dal:TimePatternClause.TimePropertyChoices}"
-                  SelectedIndex="0"
-                  SelectedItem="{Binding Path=TimeProperty, 
-                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
+        <ComboBox 
+            Grid.Column="0" Name="TPComboBox" Width="100"
+            HorizontalAlignment="Right"
+            ItemsSource="{x:Static dal:TimePatternClause.TimePropertyChoices}"
+            SelectedIndex="0"
+            SelectedItem="{Binding Path=TimeProperty, 
+            ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
         <Control Name="Input2" Grid.Column="1" Width="50" HorizontalAlignment="Right">
             <Control.Style>
                 <Style TargetType="Control">

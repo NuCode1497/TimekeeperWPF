@@ -14,7 +14,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <ContentControl x:Name="CommandsToolbar" Grid.Row="0" Template="{StaticResource TableViewControlsTemplate}"/>
-        <DataGrid x:Name="DG" Grid.Row="1" Margin="1"
+        <DataGrid x:Name="DG" Grid.Row="1"
                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   IsEnabled="{Binding Path=IsEnabled}"
                   ItemsSource="{Binding Path=View}"

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using TimekeeperDAL.EF;
 
-namespace TimekeeperWPF.Tools
+namespace TimekeeperWPF
 {
     public class NoteDateTimeSorterAsc : IComparer
     {

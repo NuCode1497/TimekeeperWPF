@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
         <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
         <ListView 
-            x:Name="DG" Grid.Row="1" Margin="1"
+            x:Name="DG" Grid.Row="1"
             IsEnabled="{Binding Path=IsEnabled}"
             ItemsSource="{Binding Path=View}"
             SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}">

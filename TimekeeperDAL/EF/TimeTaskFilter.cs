@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Filter
+    public partial class TimeTaskFilter
     {
         [Required]
         public bool Include { get; set; }
@@ -11,6 +11,7 @@ namespace TimekeeperDAL.EF
         [Required]
         public virtual Filterable Filterable { get; set; }
 
+        [Required]
         public virtual TimeTask TimeTask { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace TimekeeperWPF
         #region Fields
         protected ITimeKeeperContext Context;
         protected IComparer Sorter;
-        protected IComparer NameSorter;
+        protected static IComparer NameSorter = new NameSorter();
         private String _status = "Ready";
         private bool _IsEnabled = true;
         private bool _IsLoading = false;
@@ -42,10 +42,6 @@ namespace TimekeeperWPF
         private ICommand _DeleteSelectedCommand = null;
         private ICommand _SaveAsCommand = null;
         #endregion
-        public ViewModel()
-        {
-            NameSorter = new NameSorter();
-        }
         #region Properties
         public abstract string Name { get; }
         public String Status

@@ -31,7 +31,7 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<TimeTask> TimeTasks { get; set; }
         public virtual IDbSet<TaskType> TaskTypes { get; set; }
         public virtual IDbSet<TimePattern> TimePatterns { get; set; }
-        public virtual IDbSet<Filter> Filters { get; set; }
+        public virtual IDbSet<TimeTaskFilter> Filters { get; set; }
         public virtual IDbSet<Filterable> Filterables { get; set; }
         public virtual IDbSet<LabeledEntity> LabeledEntities { get; set; }
         public virtual IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }

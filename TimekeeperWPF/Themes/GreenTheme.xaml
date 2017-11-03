@@ -81,4 +81,5 @@ MMM d</clr:String>
     <SolidColorBrush x:Key="TinyButton.Add.Foreground.Pressed" Color="Wheat"/>
     <SolidColorBrush x:Key="TinyButton.Add.Background.MouseOver" Color="Cyan"/>
     <SolidColorBrush x:Key="TinyButton.Add.Foreground.MouseOver" Color="Black"/>
+    <SolidColorBrush x:Key="ToggleButton.BorderBrush" Color="Gray"/>
 </ResourceDictionary>

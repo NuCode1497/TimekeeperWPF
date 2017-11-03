@@ -110,8 +110,8 @@
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\Week.cs" />
-    <Compile Include="FilterSelectorView.xaml.cs">
-      <DependentUpon>FilterSelectorView.xaml</DependentUpon>
+    <Compile Include="FilterView.xaml.cs">
+      <DependentUpon>FilterView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\EditBasicEntityView.xaml.cs">
       <DependentUpon>EditBasicEntityView.xaml</DependentUpon>
@@ -209,7 +209,7 @@
       <DependentUpon>EditNoteView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Note\FakeNotesViewModel.cs" />
-    <Compile Include="Tools\NoteDateTimeSorter.cs" />
+    <Compile Include="Views\Note\NoteDateTimeSorter.cs" />
     <Compile Include="Views\Note\NotesViewModel.cs" />
     <Compile Include="Tools\RelayCommand.cs" />
     <Compile Include="Views\Note\NotesView.xaml.cs">
@@ -229,7 +229,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FilterSelectorView.xaml">
+    <Page Include="FilterView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

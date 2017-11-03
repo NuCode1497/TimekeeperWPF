@@ -20,13 +20,15 @@ namespace TimekeeperWPF
     {
         private ICommand _RemoveClauseCommand;
         private ICommand _AddClauseCommand;
-        public TimePatternsViewModel() : base() { }
         public override string Name => nameof(Context.TimePatterns) + " Editor";
         public CollectionViewSource ClausesCollection { get; set; }
-        public ObservableCollection<TimePatternClause> ClausesSource => ClausesCollection?.Source as ObservableCollection<TimePatternClause>;
-        public ListCollectionView ClausesView => ClausesCollection?.View as ListCollectionView;
+        public ObservableCollection<TimePatternClause> ClausesSource => 
+            ClausesCollection?.Source as ObservableCollection<TimePatternClause>;
+        public ListCollectionView ClausesView => 
+            ClausesCollection?.View as ListCollectionView;
         public ICommand RemoveClauseCommand => _RemoveClauseCommand
-            ?? (_RemoveClauseCommand = new RelayCommand(ap => RemoveClause(ap as TimePatternClause), pp => pp is TimePatternClause));
+            ?? (_RemoveClauseCommand = new RelayCommand(ap => 
+            RemoveClause(ap as TimePatternClause), pp => pp is TimePatternClause));
         public ICommand AddClauseCommand => _AddClauseCommand
             ?? (_AddClauseCommand = new RelayCommand(ap => AddClause(), pp => true));
         #region Actions

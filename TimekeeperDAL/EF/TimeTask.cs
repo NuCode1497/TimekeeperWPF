@@ -11,7 +11,7 @@ namespace TimekeeperDAL.EF
         public TimeTask() : base()
         {
             Allocations = new HashSet<Allocation>();
-            Filters = new HashSet<Filter>();
+            Filters = new HashSet<TimeTaskFilter>();
         }
 
         [Column(TypeName = "datetime2")]
@@ -51,6 +51,6 @@ namespace TimekeeperDAL.EF
 
         public virtual ICollection<Allocation> Allocations { get; set; }
 
-        public virtual ICollection<Filter> Filters { get; set; }
+        public virtual ICollection<TimeTaskFilter> Filters { get; set; }
     }
 }

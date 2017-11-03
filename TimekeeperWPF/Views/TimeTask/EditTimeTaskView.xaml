@@ -104,8 +104,31 @@
         </StackPanel>
         <StackPanel DataContext="{Binding Path=DataContext, 
             RelativeSource={RelativeSource AncestorType=Grid}}">
-            <local:LabelSelectorView/>
+            <!--DataContext is TimeTasksViewModel-->
+            <GroupBox Margin="2,-4">
+                <GroupBox.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Filters "/>
+                        <Button x:Name="AddFilterButton" Margin="2"
+                        Style="{StaticResource TinyButtonAddStyle}"
+                        Command="{Binding Path=AddNewFilterCommand}"/>
+                    </StackPanel>
+                </GroupBox.Header>
+                <StackPanel>
+                    <ItemsControl Name="FilterListIC" IsTabStop="False"
+                                  ItemsSource="{Binding Path=FiltersView}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <local:FilterView
+                                    RemoveCommand="{Binding ElementName=FilterListIC,
+                                    Path=DataContext.DeleteFilterCommand}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </GroupBox>
             <local:AllocationSelectorView/>
+            <local:LabelSelectorView/>
         </StackPanel>
     </StackPanel>
 </UserControl>

@@ -15,8 +15,10 @@
             <Setter.Value>
                 <ControlTemplate>
                     <DockPanel LastChildFill="True">
-                        <TextBlock Foreground="Red" FontSize="18" Text="!" 
-                                       ToolTip="{Binding ElementName=controlWithError, Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
+                        <TextBlock 
+                            Foreground="Red" FontSize="16" Text="!" 
+                            ToolTip="{Binding ElementName=controlWithError, 
+                            Path=AdornedElement.(Validation.Errors)[0].ErrorContent}"/>
                         <Border BorderBrush="Red" BorderThickness="1">
                             <AdornedElementPlaceholder Name="controlWithError"/>
                         </Border>
@@ -62,20 +64,31 @@
         </Style.Triggers>
     </Style>
     <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource BasicErrorTemplate}">
-        <Setter Property="MinHeight" Value="26"/>
+        <Setter Property="MinHeight" Value="22"/>
+    </Style>
+    <Style x:Key="InputBaseStyle" TargetType="{x:Type wpftk:InputBase}" BasedOn="{StaticResource BasicErrorTemplate}">
+        <Setter Property="MinHeight" Value="22"/>
     </Style>
     <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource TextBoxStyle}"/>
     <Style TargetType="{x:Type wpftk:MaskedTextBox}" BasedOn="{StaticResource TextBoxStyle}"/>
-    <Style TargetType="{x:Type wpftk:TimeSpanUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
-    <Style TargetType="{x:Type wpftk:TimePicker}" BasedOn="{StaticResource BasicErrorTemplate}"/>
-    <Style TargetType="{x:Type wpftk:DateTimePicker}" BasedOn="{StaticResource BasicErrorTemplate}"/>
-    <Style TargetType="{x:Type wpftk:IntegerUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
-    <Style TargetType="{x:Type wpftk:DoubleUpDown}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+    <Style TargetType="{x:Type wpftk:TimeSpanUpDown}" BasedOn="{StaticResource InputBaseStyle}"/>
+    <Style TargetType="{x:Type wpftk:TimePicker}" BasedOn="{StaticResource InputBaseStyle}"/>
+    <Style TargetType="{x:Type wpftk:DateTimePicker}" BasedOn="{StaticResource InputBaseStyle}"/>
+    <Style TargetType="{x:Type wpftk:IntegerUpDown}" BasedOn="{StaticResource InputBaseStyle}"/>
+    <Style TargetType="{x:Type wpftk:DoubleUpDown}" BasedOn="{StaticResource InputBaseStyle}"/>
+    <Style TargetType="{x:Type wpftk:DecimalUpDown}" BasedOn="{StaticResource InputBaseStyle}"/>
     <Style TargetType="ContentControl">
         <Setter Property="IsTabStop" Value="False"/>
     </Style>
     <Style TargetType="{x:Type Button}">
         <Setter Property="Padding" Value="4,1"/>
+    </Style>
+    <Style TargetType="ToggleButton">
+        <Setter Property="HorizontalAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="2"/>
+        <Setter Property="Margin" Value="2,1"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ToggleButton.BorderBrush}"/>
     </Style>
     <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <BorderGapMaskConverter x:Key="BorderGapMaskConverter"/>
@@ -128,13 +141,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
-    <Style TargetType="ToggleButton">
-        <Setter Property="HorizontalAlignment" Value="Left"/>
-        <Setter Property="Padding" Value="2"/>
-        <Setter Property="Margin" Value="2,1"/>
-        <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="0"/>
     </Style>
     <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type DataGrid}">

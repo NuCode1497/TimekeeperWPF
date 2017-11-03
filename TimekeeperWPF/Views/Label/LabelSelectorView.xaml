@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TimekeeperWPF">
     <!--DataContext is LabeledEntitiesViewModel-->
-    <GroupBox Header="Labels" Margin="2">
+    <GroupBox Header="Labels">
         <StackPanel Name="LabelEditorPanel">
             <StackPanel Orientation="Horizontal">
                 <ComboBox Name="LabelsCbo" Width="100"

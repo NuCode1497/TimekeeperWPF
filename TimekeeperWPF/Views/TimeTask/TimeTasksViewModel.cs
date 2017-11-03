@@ -27,16 +27,70 @@ namespace TimekeeperWPF
         private ICommand _AddNewAllocationCommand;
         private ICommand _CancelAllocationCommand;
         private ICommand _CommitAllocationCommand;
+        private ICommand _DeleteFilterCommand;
+        private ICommand _AddNewFilterCommand;
         #endregion
         #region Properties
         public override string Name => nameof(Context.TimeTasks) + " Editor";
-        #region Allocations
+
+        //List of resources to choose from when creating an allocation
         public CollectionViewSource ResourcesCollection { get; set; }
-        public ObservableCollection<Resource> ResourcesSource => ResourcesCollection?.Source as ObservableCollection<Resource>;
-        public ListCollectionView ResourcesView => ResourcesCollection?.View as ListCollectionView;
-        public CollectionViewSource CurrentEntityAllocationsCollection { get; set; }
-        public ObservableCollection<Allocation> CurrentEntityAllocationsSource => CurrentEntityAllocationsCollection?.Source as ObservableCollection<Allocation>;
-        public ListCollectionView CurrentEntityAllocationsView => CurrentEntityAllocationsCollection?.View as ListCollectionView;
+        public ObservableCollection<Resource> ResourcesSource => 
+            ResourcesCollection?.Source as ObservableCollection<Resource>;
+        public ListCollectionView ResourcesView => 
+            ResourcesCollection?.View as ListCollectionView;
+
+        //The current editing TimeTask's allocations
+        public CollectionViewSource AllocationsCollection { get; set; }
+        public ObservableCollection<Allocation> AllocationsSource => 
+            AllocationsCollection?.Source as ObservableCollection<Allocation>;
+        public ListCollectionView AllocationsView => 
+            AllocationsCollection?.View as ListCollectionView;
+
+        //The current editing TimeTask's filters
+        public CollectionViewSource FiltersCollection { get; set; }
+        public ObservableCollection<TimeTaskFilter> FiltersSource =>
+            FiltersCollection?.Source as ObservableCollection<TimeTaskFilter>;
+        public ListCollectionView FiltersView =>
+            FiltersCollection?.View as ListCollectionView;
+
+        //The rest of these are lists to choose from when selecting a Filterable for a Filter
+        public CollectionViewSource FilterLabelsCollection { get; set; }
+        public ObservableCollection<Label> FilterLabelsSource =>
+            FilterLabelsCollection?.Source as ObservableCollection<Label>;
+        public ListCollectionView FilterLabelsView =>
+            FilterLabelsCollection?.View as ListCollectionView;
+
+        public CollectionViewSource FilterNotesCollection { get; set; }
+        public ObservableCollection<Note> FilterNotesSource =>
+            FilterNotesCollection?.Source as ObservableCollection<Note>;
+        public ListCollectionView FilterNotesView =>
+            FilterNotesCollection?.View as ListCollectionView;
+
+        public CollectionViewSource FilterPatternsCollection { get; set; }
+        public ObservableCollection<TimePattern> FilterPatternsSource =>
+            FilterPatternsCollection?.Source as ObservableCollection<TimePattern>;
+        public ListCollectionView FilterPatternsView =>
+            FilterPatternsCollection?.View as ListCollectionView;
+
+        public CollectionViewSource FilterResourcesCollection { get; set; }
+        public ObservableCollection<Resource> FilterResourcesSource =>
+            FilterResourcesCollection?.Source as ObservableCollection<Resource>;
+        public ListCollectionView FilterResourcesView =>
+            FilterResourcesCollection?.View as ListCollectionView;
+
+        public CollectionViewSource FilterTasksCollection { get; set; }
+        public ObservableCollection<TimeTask> FilterTasksSource =>
+            FilterTasksCollection?.Source as ObservableCollection<TimeTask>;
+        public ListCollectionView FilterTasksView =>
+            FilterTasksCollection?.View as ListCollectionView;
+
+        public CollectionViewSource FilterTaskTypesCollection { get; set; }
+        public ObservableCollection<TaskType> FilterTaskTypesSource =>
+            FilterTaskTypesCollection?.Source as ObservableCollection<TaskType>;
+        public ListCollectionView FilterTaskTypesView =>
+            FilterTaskTypesCollection?.View as ListCollectionView;
+
         public Resource SelectedResource
         {
             get { return _SelectedResource; }
@@ -81,53 +135,6 @@ namespace TimekeeperWPF
             }
         }
         #endregion
-        #region Filters
-        public CollectionViewSource PatternsCollection { get; set; }
-        public ObservableCollection<TimePattern> PatternsSource => PatternsCollection?.Source as ObservableCollection<TimePattern>;
-        public ListCollectionView PatternsView => PatternsCollection?.View as ListCollectionView;
-        public CollectionViewSource CurrentEntityFiltersCollection { get; set; }
-        public ObservableCollection<Filter> CurrentEntityFiltersSource => CurrentEntityFiltersCollection?.Source as ObservableCollection<Filter>;
-        public ListCollectionView CurrentEntityFiltersView => CurrentEntityFiltersCollection?.View as ListCollectionView;
-        //public TimePattern SelectedInclude
-        //{
-        //    get { return _SelectedInclude; }
-        //    set
-        //    {
-        //        //Pattern must not be itself and must be in PatternsSource
-        //        if ((value == _SelectedInclude) || (value != null && (!PatternsSource?.Contains(value) ?? false))) return;
-        //        _SelectedInclude = value;
-        //        if (SelectedInclude == null)
-        //        {
-        //            HasSelectedInclude = false;
-        //        }
-        //        else
-        //        {
-        //            HasSelectedInclude = true;
-        //        }
-        //        OnPropertyChanged();
-        //    }
-        //}
-        //public TimePattern SelectedExclude
-        //{
-        //    get { return _SelectedExclude; }
-        //    set
-        //    {
-        //        //Pattern must not be itself and must be in PatternsSource
-        //        if ((value == _SelectedExclude) || (value != null && (!PatternsSource?.Contains(value) ?? false))) return;
-        //        _SelectedExclude = value;
-        //        if (SelectedExclude == null)
-        //        {
-        //            HasSelectedExclude = false;
-        //        }
-        //        else
-        //        {
-        //            HasSelectedExclude = true;
-        //        }
-        //        OnPropertyChanged();
-        //    }
-        //}
-        #endregion
-        #endregion
         #region Conditions
         public bool HasSelectedResource
         {
@@ -151,28 +158,6 @@ namespace TimekeeperWPF
         }
         public bool HasNotSelectedResource => !HasSelectedResource;
         public bool IsNotAddingNewAllocation => !IsAddingNewAllocation;
-        //public bool HasSelectedInclude
-        //{
-        //    get { return _HasSelectedInclude; }
-        //    protected set
-        //    {
-        //        _HasSelectedInclude = value;
-        //        OnPropertyChanged();
-        //        OnPropertyChanged(nameof(HasNotSelectedInclude));
-        //    }
-        //}
-        //public bool HasSelectedExclude
-        //{
-        //    get { return _HasSelectedExclude; }
-        //    protected set
-        //    {
-        //        _HasSelectedExclude = value;
-        //        OnPropertyChanged();
-        //        OnPropertyChanged(nameof(HasNotSelectedExclude));
-        //    }
-        //}
-        //public bool HasNotSelectedInclude => !HasSelectedInclude;
-        //public bool HasNotSelectedExclude => !HasSelectedExclude;
         #endregion
         #region Commands
         public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
@@ -183,6 +168,10 @@ namespace TimekeeperWPF
             ?? (_CancelAllocationCommand = new RelayCommand(ap => CancelAllocation(), pp => CanCancelAllocation));
         public ICommand CommitAllocationCommand => _CommitAllocationCommand
             ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
+        public ICommand DeleteFilterCommand => _DeleteFilterCommand
+            ?? (_DeleteFilterCommand = new RelayCommand(ap => DeleteFilter(ap as TimeTaskFilter), pp => pp is TimeTaskFilter));
+        public ICommand AddNewFilterCommand => _AddNewFilterCommand
+            ?? (_AddNewFilterCommand = new RelayCommand(ap => AddNewFilter(), pp => true));
         #endregion
         #region Predicates
         protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation;
@@ -209,11 +198,37 @@ namespace TimekeeperWPF
             ResourcesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(ResourcesView));
 
-            PatternsCollection = new CollectionViewSource();
+            FilterLabelsCollection = new CollectionViewSource();
+            FilterLabelsCollection.Source = Context.Labels.Local;
+            FilterLabelsView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(FilterLabelsView));
+
+            FilterNotesCollection = new CollectionViewSource();
+            await Context.Notes.LoadAsync();
+            FilterNotesCollection.Source = Context.Notes.Local;
+            FilterNotesView.CustomSort = new NoteDateTimeSorterDesc();
+            OnPropertyChanged(nameof(FilterNotesView));
+
+            FilterPatternsCollection = new CollectionViewSource();
             await Context.TimePatterns.LoadAsync();
-            PatternsCollection.Source = Context.TimePatterns.Local;
-            PatternsView.CustomSort = NameSorter;
-            OnPropertyChanged(nameof(PatternsView));
+            FilterPatternsCollection.Source = Context.TimePatterns.Local;
+            FilterPatternsView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(FilterPatternsView));
+
+            FilterResourcesCollection = new CollectionViewSource();
+            FilterResourcesCollection.Source = Context.Resources.Local;
+            FilterResourcesView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(FilterResourcesView));
+
+            FilterTasksCollection = new CollectionViewSource();
+            FilterTasksCollection.Source = Context.TimeTasks.Local;
+            FilterTasksView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(FilterTasksView));
+
+            FilterTaskTypesCollection = new CollectionViewSource();
+            FilterTaskTypesCollection.Source = Context.TaskTypes.Local;
+            FilterTaskTypesView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(FilterTaskTypesView));
 
             await base.GetDataAsync();
         }
@@ -259,16 +274,17 @@ namespace TimekeeperWPF
         {
             if (!IsEditingItemOrAddingNew) return;
 
-            CurrentEntityAllocationsCollection = new CollectionViewSource();
-            CurrentEntityAllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
+            AllocationsCollection = new CollectionViewSource();
+            AllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
             UpdateAllocationsView();
+
 
         }
         protected override void EndEdit()
         {
             ResourcesView.Filter = null;
             EndEditAllocation();
-            CurrentEntityAllocationsCollection = null;
+            AllocationsCollection = null;
 
             base.EndEdit();
         }
@@ -279,7 +295,7 @@ namespace TimekeeperWPF
         }
         protected override void Commit()
         {
-            CurrentEditItem.Allocations = new HashSet<Allocation>(CurrentEntityAllocationsSource);
+            CurrentEditItem.Allocations = new HashSet<Allocation>(AllocationsSource);
             base.Commit();
         }
 
@@ -317,15 +333,15 @@ namespace TimekeeperWPF
         {
             if (IsAddingNewAllocation)
             {
-                CurrentEntityAllocationsView.AddNewItem(CurrentEditAllocation);
-                CurrentEntityAllocationsView.CommitNew();
+                AllocationsView.AddNewItem(CurrentEditAllocation);
+                AllocationsView.CommitNew();
                 EndEditAllocation();
                 UpdateAllocationsView();
             }
         }
         private void DeleteAllocation(Allocation ap)
         {
-            CurrentEntityAllocationsView.Remove(ap);
+            AllocationsView.Remove(ap);
             UpdateAllocationsView();
         }
         private void UpdateAllocationsView()
@@ -333,13 +349,13 @@ namespace TimekeeperWPF
             //filter out allocated resources
             ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
             OnPropertyChanged(nameof(ResourcesView));
-            OnPropertyChanged(nameof(CurrentEntityAllocationsView));
+            OnPropertyChanged(nameof(AllocationsView));
         }
         private bool IsResourceAllocated(Resource R)
         {
             //count number of allocations of resource R
             //if count is > 0 then yes resource is allocated return true
-            return (CurrentEntityAllocationsSource?.Count(A => A.Resource == R) > 0);
+            return (AllocationsSource?.Count(A => A.Resource == R) > 0);
         }
         #endregion
     }

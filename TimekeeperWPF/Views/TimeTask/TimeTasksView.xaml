@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
         <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
         <DataGrid 
-            x:Name="DG" Grid.Row="1" Margin="1"
+            x:Name="DG" Grid.Row="1"
             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
             IsEnabled="{Binding Path=IsEnabled}"
             ItemsSource="{Binding Path=View}"
@@ -26,6 +26,10 @@
                 <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                <DataGridTextColumn Binding="{Binding Path=FiltersToString}" Header="Filters"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=Priority}" Header="Priority"/>
                 <DataGridTextColumn Binding="{Binding Path=Dimension}" Header="Dimension"/>
@@ -48,8 +52,9 @@
             Visibility="{Binding Path=IsEditingItemOrAddingNew, 
             Converter={StaticResource BooleanToVisibilityConverter}}"
             Template="{StaticResource EditPopUpTemplate}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditTimeTaskView x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
+            <ScrollViewer VerticalScrollBarVisibility="Visible">
+                <local:EditTimeTaskView 
+                    x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
             </ScrollViewer>
         </ContentControl>
         <local:LoadingView 

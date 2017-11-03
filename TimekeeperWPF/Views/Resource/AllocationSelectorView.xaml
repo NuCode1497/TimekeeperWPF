@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:local="clr-namespace:TimekeeperWPF">
-    <GroupBox Header="Resource Allocations" Margin="2">
-        <StackPanel Name="AllocationEditorPanel">
-            <StackPanel Orientation="Horizontal">
+    <GroupBox Header="Resource Allocations">
+        <StackPanel Name="AllocationEditorPanel"
+                    Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <ComboBox Name="ResourcesCbo" DisplayMemberPath="Name"
                   IsSynchronizedWithCurrentItem="True" Width="100"
                   SelectedItem="{Binding Path=SelectedResource, Mode=TwoWay}"
@@ -13,36 +14,29 @@
                 <Button Style="{StaticResource TinyButtonAddStyle}"
                     Command="{Binding Path=AddNewAllocationCommand}" />
             </StackPanel>
-            <GroupBox
-                x:Name="NewAllocGroupBox"
-                IsVisibleChanged="NewAllocGroupBox_IsVisibleChanged"
-                Visibility="{Binding Path=IsAddingNewAllocation, 
-                Converter={StaticResource BooleanToVisibilityConverter}}">
-                <GroupBox.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="New Allocation" Margin="2"/>
-                        <Button Name="CommitButton" IsTabStop="False" Margin="2"
-                                Style="{StaticResource TinyButtonCommitStyle}" 
-                                Command="{Binding Path=CommitAllocationCommand}"/>
-                        <Button Name="CancelButton" IsTabStop="False" Margin="2"
-                                Style="{StaticResource TinyButtonDeleteStyle}" 
-                                Command="{Binding Path=CancelAllocationCommand}"/>
-                    </StackPanel>
-                </GroupBox.Header>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock 
-                        Text="{Binding Path=SelectedResource, 
-                        FallbackValue='Resource'}" 
-                        Margin="4,0" VerticalAlignment="Center"/>
-                    <wpftools:DecimalUpDown
-                        x:Name="NewAllocTextBox"
-                        MinWidth="100" Value="{Binding Path=CurrentEditAllocation.Amount, 
-                        Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
-                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
-                </StackPanel>
-            </GroupBox>
+            <StackPanel Orientation="Horizontal" x:Name="NewAllocGroupBox"
+                    IsVisibleChanged="NewAllocGroupBox_IsVisibleChanged"
+                    Visibility="{Binding Path=IsAddingNewAllocation, 
+                    Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock 
+                    Text="{Binding Path=SelectedResource, 
+                    FallbackValue='Resource'}" 
+                    Margin="4,0" VerticalAlignment="Center"/>
+                <wpftools:DecimalUpDown
+                    x:Name="NewAllocTextBox" MinWidth="100" 
+                    Value="{Binding Path=CurrentEditAllocation.Amount, 
+                    Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
+                    VerticalAlignment="Center"/>
+                <Button Name="CommitButton" IsTabStop="False" Margin="2"
+                        Style="{StaticResource TinyButtonCommitStyle}" 
+                        Command="{Binding Path=CommitAllocationCommand}"/>
+                <Button Name="CancelButton" IsTabStop="False" Margin="2"
+                        Style="{StaticResource TinyButtonDeleteStyle}" 
+                        Command="{Binding Path=CancelAllocationCommand}"/>
+            </StackPanel>
             <ItemsControl Name="AllocationListIC" IsTabStop="False" 
-                          ItemsSource="{Binding Path=CurrentEntityAllocationsView}">
+                          ItemsSource="{Binding Path=AllocationsView}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" Name="AllocationListPnl"/>

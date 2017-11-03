@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:TimekeeperWPF"
     mc:Ignorable="d" 
-    d:DesignHeight="200" d:DesignWidth="300">
+    d:DesignHeight="400" d:DesignWidth="400">
     <Grid x:Name="SV">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,7 +14,7 @@
         </Grid.RowDefinitions>
         <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
         <DataGrid 
-            x:Name="DG" Grid.Row="1" Margin="1"
+            x:Name="DG" Grid.Row="1"
             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
             IsEnabled="{Binding Path=IsEnabled}"
             ItemsSource="{Binding Path=View}"
@@ -32,8 +32,7 @@
             Template="{StaticResource EditPopUpTemplate}"
             IsVisibleChanged="EditTPPopUp_IsVisibleChanged"
             Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-            Converter={StaticResource BooleanToVisibilityConverter}, 
-            FallbackValue=Collapsed}">
+            Converter={StaticResource BooleanToVisibilityConverter}}">
             <local:EditTimePatternView x:Name="TPEditor" DataContext="{Binding Path=CurrentEditItem}"/>
         </ContentControl>
         <local:LoadingView Grid.Row="0" Grid.RowSpan="2"/>

@@ -16,13 +16,22 @@ using System.Windows.Shapes;
 namespace TimekeeperWPF
 {
     /// <summary>
-    /// Interaction logic for FilterSelectorView.xaml
+    /// Interaction logic for FilterView.xaml
     /// </summary>
-    public partial class FilterSelectorView : UserControl
+    public partial class FilterView : UserControl
     {
-        public FilterSelectorView()
+        public FilterView()
         {
             InitializeComponent();
         }
+
+        public ICommand RemoveCommand
+        {
+            get { return (ICommand)GetValue(RemoveCommandProperty); }
+            set { SetValue(RemoveCommandProperty, value); }
+        }
+        public static DependencyProperty RemoveCommandProperty =
+            DependencyProperty.Register(
+                nameof(RemoveCommand), typeof(ICommand), typeof(TimePatternClauseView));
     }
 }

@@ -4,7 +4,7 @@ using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Filter : EntityBase
+    public partial class TimeTaskFilter : EntityBase
     {
         public override string ToString()
         {
@@ -12,6 +12,9 @@ namespace TimekeeperDAL.EF
             if (!Include) s = "Exclude";
             return String.Format("{0} {1}", s, Filterable.Name);
         }
+
+        [NotMapped]
+        public string FilterTypeName => Filterable.GetType().Name;
 
         [NotMapped]
         public override string this[string columnName]
