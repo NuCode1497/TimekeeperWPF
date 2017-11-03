@@ -9,5 +9,7 @@ namespace TimekeeperDAL.EF
 {
     public abstract partial class TypedLabeledEntity : LabeledEntity
     {
+        [Required]
+        public virtual TaskType TaskType { get; set; }
     }
 }

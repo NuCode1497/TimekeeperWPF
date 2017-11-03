@@ -1,8 +1,6 @@
-﻿using TimekeeperDAL.Tools;
-
-namespace TimekeeperDAL.EF
+﻿namespace TimekeeperDAL.EF
 {
-    public partial class TaskType : BasicEntity
+    public partial class TaskType : Filterable
     {
     }
 }

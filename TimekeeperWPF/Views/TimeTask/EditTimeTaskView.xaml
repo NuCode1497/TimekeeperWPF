@@ -59,7 +59,7 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-                    <Label Content="Power Level" Width="80"/>
+                    <Label Content="Resistance" Width="80"/>
                     <wpftools:IntegerUpDown Width="100" Value="{Binding Path=PowerLevel, Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>

@@ -4,11 +4,27 @@ using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TimeTask : TypedLabeledEntity, INamedObject
+    public partial class TimeTask : TypedLabeledEntity
     {
         public override string ToString()
         {
             return Name + " - " + Description;
+        }
+
+        [NotMapped]
+        public string LabelsToString
+        {
+            get
+            {
+                string s = "";
+                foreach (Label l in Labels)
+                {
+                    s += l.ToString() + ", ";
+                }
+                if (s.Length >= 2)
+                    s = s.Substring(0, s.Length - 2);
+                return s;
+            }
         }
 
         [NotMapped]

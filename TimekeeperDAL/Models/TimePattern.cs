@@ -3,13 +3,8 @@ using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TimePattern : LabeledEntity, INamedObject
+    public partial class TimePattern : LabeledEntity
     {
-        public override string ToString()
-        {
-            return Name;
-        }
-
         [NotMapped]
         public string QueryToString
         {
@@ -27,25 +22,18 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
-        public override string this[string columnName]
+        public string LabelsToString
         {
             get
             {
-                string[] errors = null;
-                bool hasError = false;
-                switch (columnName)
+                string s = "";
+                foreach (Label l in Labels)
                 {
-                    case nameof(Name):
-                        errors = GetErrorsFromAnnotations(nameof(Name), Name);
-                        break;
+                    s += l.ToString() + ", ";
                 }
-                if (errors != null && errors.Length != 0)
-                {
-                    AddErrors(columnName, errors);
-                    hasError = true;
-                }
-                if (!hasError) ClearErrors(columnName);
-                return string.Empty;
+                if (s.Length >= 2)
+                    s = s.Substring(0, s.Length - 2);
+                return s;
             }
         }
     }

@@ -1,12 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TimekeeperDAL.Tools;
 
-namespace TimekeeperDAL.Tools
+namespace TimekeeperDAL.EF
 {
-    public abstract class BasicEntity : EntityBase, INamedObject
+    public abstract partial class Filterable : EntityBase, INamedObject
     {
         [Required]
-        [StringLength(20)]
+        [StringLength(50)]
         public string Name { get; set; }
 
         public override string ToString()
@@ -23,8 +24,6 @@ namespace TimekeeperDAL.Tools
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(Id):
-                        break;
                     case nameof(Name):
                         errors = GetErrorsFromAnnotations(nameof(Name), Name);
                         break;

@@ -1,13 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Allocation : EntityBase
+    public partial class Filter : EntityBase
     {
         public override string ToString()
         {
-            return Amount + " of " + Resource.ToString();
+            string s = "Include";
+            if (!Include) s = "Exclude";
+            return String.Format("{0} {1}", s, Filterable.Name);
         }
 
         [NotMapped]
@@ -19,8 +22,8 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(Amount):
-                        errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
+                    case nameof(Include):
+                        errors = GetErrorsFromAnnotations(nameof(Include), Include);
                         break;
                 }
                 if (errors != null && errors.Length != 0)

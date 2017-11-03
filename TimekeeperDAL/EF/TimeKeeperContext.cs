@@ -19,28 +19,13 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<TaskType> TaskTypes { get; set; }
         public virtual IDbSet<TimePattern> TimePatterns { get; set; }
         public virtual IDbSet<TimePatternClause> TimePatternClauses { get; set; }
+        public virtual IDbSet<Filter> Filters { get; set; }
+        public virtual IDbSet<Filterable> Filterables { get; set; }
+        public virtual IDbSet<LabeledEntity> LabeledEntities { get; set; }
+        public virtual IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TimeTask>()
-                .HasMany(task => task.IncludedPatterns)
-                .WithMany(pattern => pattern.IncludedBy)
-                .Map(c =>
-                {
-                    c.ToTable("Includes");
-                    c.MapLeftKey("TimeTaskId");
-                    c.MapRightKey("TimePatternId");
-                });
-
-            modelBuilder.Entity<TimeTask>()
-                .HasMany(task => task.ExcludedPatterns)
-                .WithMany(pattern => pattern.ExcludedBy)
-                .Map(c =>
-                {
-                    c.ToTable("Excludes");
-                    c.MapLeftKey("TimeTaskId");
-                    c.MapRightKey("TimePatternId");
-                });
         }
     }
 }

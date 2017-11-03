@@ -1,8 +1,8 @@
-﻿using TimekeeperDAL.Tools;
+﻿using System.Collections.Generic;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Label : BasicEntity
+    public partial class Label : Filterable
     {
     }
 }

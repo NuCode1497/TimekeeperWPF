@@ -5,19 +5,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TimeTask
+    public partial class TimeTask : TypedLabeledEntity
     {
-        public TimeTask()
+        public TimeTask() : base()
         {
             Allocations = new HashSet<Allocation>();
-            Labels = new HashSet<Label>();
-            IncludedPatterns = new HashSet<TimePattern>();
-            ExcludedPatterns = new HashSet<TimePattern>();
+            Filters = new HashSet<Filter>();
         }
-        [Required]
-        [StringLength(50)]
-        public string Name { get; set; }
-
         [Column(TypeName = "datetime2")]
         public DateTime Start { get; set; }
 
@@ -53,16 +47,8 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
-        #region Navigation
-
         public virtual ICollection<Allocation> Allocations { get; set; }
 
-        [InverseProperty(nameof(TimePattern.IncludedBy))]
-        public virtual ICollection<TimePattern> IncludedPatterns { get; set; }
-
-        [InverseProperty(nameof(TimePattern.ExcludedBy))]
-        public virtual ICollection<TimePattern> ExcludedPatterns { get; set; }
-
-        #endregion
+        public virtual ICollection<Filter> Filters { get; set; }
     }
 }

@@ -2,16 +2,12 @@
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Label
+    public partial class Label : Filterable
     {
         public Label()
         {
-            Notes = new HashSet<Note>();
-            Tasks = new HashSet<TimeTask>();
-            Patterns = new HashSet<TimePattern>();
+            LabeledEntities = new HashSet<LabeledEntity>();
         }
-        public virtual ICollection<Note> Notes { get; set; }
-        public virtual ICollection<TimeTask> Tasks { get; set; }
-        public virtual ICollection<TimePattern> Patterns { get; set; }
+        public virtual ICollection<LabeledEntity> LabeledEntities { get; set; }
     }
 }

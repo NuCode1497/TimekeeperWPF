@@ -27,16 +27,7 @@ namespace TimekeeperWPF
         private ICommand _AddNewAllocationCommand;
         private ICommand _CancelAllocationCommand;
         private ICommand _CommitAllocationCommand;
-        private bool _HasSelectedInclude = false;
-        private bool _HasSelectedExclude = false;
-        private TimePattern _SelectedInclude;
-        private TimePattern _SelectedExclude;
-        private ICommand _RemoveIncludeCommand;
-        private ICommand _RemoveExcludeCommand;
-        private ICommand _AddIncludeCommand;
-        private ICommand _AddExcludeCommand;
         #endregion
-        public TimeTasksViewModel() : base() { }
         #region Properties
         public override string Name => nameof(Context.TimeTasks) + " Editor";
         #region Allocations
@@ -90,54 +81,51 @@ namespace TimekeeperWPF
             }
         }
         #endregion
-        #region Patterns
+        #region Filters
         public CollectionViewSource PatternsCollection { get; set; }
-        public CollectionViewSource CurrentEntityIncludesCollection { get; set; }
-        public CollectionViewSource CurrentEntityExcludesCollection { get; set; }
         public ObservableCollection<TimePattern> PatternsSource => PatternsCollection?.Source as ObservableCollection<TimePattern>;
-        public ObservableCollection<TimePattern> CurrentEntityIncludesSource => CurrentEntityIncludesCollection?.Source as ObservableCollection<TimePattern>;
-        public ObservableCollection<TimePattern> CurrentEntityExcludesSource => CurrentEntityExcludesCollection?.Source as ObservableCollection<TimePattern>;
         public ListCollectionView PatternsView => PatternsCollection?.View as ListCollectionView;
-        public ListCollectionView CurrentEntityIncludesView => CurrentEntityIncludesCollection?.View as ListCollectionView;
-        public ListCollectionView CurrentEntityExcludesView => CurrentEntityExcludesCollection?.View as ListCollectionView;
-        public TimePattern SelectedInclude
-        {
-            get { return _SelectedInclude; }
-            set
-            {
-                //Pattern must not be itself and must be in PatternsSource
-                if ((value == _SelectedInclude) || (value != null && (!PatternsSource?.Contains(value) ?? false))) return;
-                _SelectedInclude = value;
-                if (SelectedInclude == null)
-                {
-                    HasSelectedInclude = false;
-                }
-                else
-                {
-                    HasSelectedInclude = true;
-                }
-                OnPropertyChanged();
-            }
-        }
-        public TimePattern SelectedExclude
-        {
-            get { return _SelectedExclude; }
-            set
-            {
-                //Pattern must not be itself and must be in PatternsSource
-                if ((value == _SelectedExclude) || (value != null && (!PatternsSource?.Contains(value) ?? false))) return;
-                _SelectedExclude = value;
-                if (SelectedExclude == null)
-                {
-                    HasSelectedExclude = false;
-                }
-                else
-                {
-                    HasSelectedExclude = true;
-                }
-                OnPropertyChanged();
-            }
-        }
+        public CollectionViewSource CurrentEntityFiltersCollection { get; set; }
+        public ObservableCollection<Filter> CurrentEntityFiltersSource => CurrentEntityFiltersCollection?.Source as ObservableCollection<Filter>;
+        public ListCollectionView CurrentEntityFiltersView => CurrentEntityFiltersCollection?.View as ListCollectionView;
+        //public TimePattern SelectedInclude
+        //{
+        //    get { return _SelectedInclude; }
+        //    set
+        //    {
+        //        //Pattern must not be itself and must be in PatternsSource
+        //        if ((value == _SelectedInclude) || (value != null && (!PatternsSource?.Contains(value) ?? false))) return;
+        //        _SelectedInclude = value;
+        //        if (SelectedInclude == null)
+        //        {
+        //            HasSelectedInclude = false;
+        //        }
+        //        else
+        //        {
+        //            HasSelectedInclude = true;
+        //        }
+        //        OnPropertyChanged();
+        //    }
+        //}
+        //public TimePattern SelectedExclude
+        //{
+        //    get { return _SelectedExclude; }
+        //    set
+        //    {
+        //        //Pattern must not be itself and must be in PatternsSource
+        //        if ((value == _SelectedExclude) || (value != null && (!PatternsSource?.Contains(value) ?? false))) return;
+        //        _SelectedExclude = value;
+        //        if (SelectedExclude == null)
+        //        {
+        //            HasSelectedExclude = false;
+        //        }
+        //        else
+        //        {
+        //            HasSelectedExclude = true;
+        //        }
+        //        OnPropertyChanged();
+        //    }
+        //}
         #endregion
         #endregion
         #region Conditions
@@ -163,28 +151,28 @@ namespace TimekeeperWPF
         }
         public bool HasNotSelectedResource => !HasSelectedResource;
         public bool IsNotAddingNewAllocation => !IsAddingNewAllocation;
-        public bool HasSelectedInclude
-        {
-            get { return _HasSelectedInclude; }
-            protected set
-            {
-                _HasSelectedInclude = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasNotSelectedInclude));
-            }
-        }
-        public bool HasSelectedExclude
-        {
-            get { return _HasSelectedExclude; }
-            protected set
-            {
-                _HasSelectedExclude = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasNotSelectedExclude));
-            }
-        }
-        public bool HasNotSelectedInclude => !HasSelectedInclude;
-        public bool HasNotSelectedExclude => !HasSelectedExclude;
+        //public bool HasSelectedInclude
+        //{
+        //    get { return _HasSelectedInclude; }
+        //    protected set
+        //    {
+        //        _HasSelectedInclude = value;
+        //        OnPropertyChanged();
+        //        OnPropertyChanged(nameof(HasNotSelectedInclude));
+        //    }
+        //}
+        //public bool HasSelectedExclude
+        //{
+        //    get { return _HasSelectedExclude; }
+        //    protected set
+        //    {
+        //        _HasSelectedExclude = value;
+        //        OnPropertyChanged();
+        //        OnPropertyChanged(nameof(HasNotSelectedExclude));
+        //    }
+        //}
+        //public bool HasNotSelectedInclude => !HasSelectedInclude;
+        //public bool HasNotSelectedExclude => !HasSelectedExclude;
         #endregion
         #region Commands
         public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
@@ -195,14 +183,6 @@ namespace TimekeeperWPF
             ?? (_CancelAllocationCommand = new RelayCommand(ap => CancelAllocation(), pp => CanCancelAllocation));
         public ICommand CommitAllocationCommand => _CommitAllocationCommand
             ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
-        public ICommand RemoveIncludeCommand => _RemoveIncludeCommand
-            ?? (_RemoveIncludeCommand = new RelayCommand(ap => RemoveInclude(ap as TimePattern), pp => pp is TimePattern));
-        public ICommand RemoveExcludeCommand => _RemoveExcludeCommand
-            ?? (_RemoveExcludeCommand = new RelayCommand(ap => RemoveExclude(ap as TimePattern), pp => pp is TimePattern));
-        public ICommand AddIncludeCommand => _AddIncludeCommand
-            ?? (_AddIncludeCommand = new RelayCommand(ap => AddInclude(), pp => CanAddInclude));
-        public ICommand AddExcludeCommand => _AddExcludeCommand
-            ?? (_AddExcludeCommand = new RelayCommand(ap => AddExclude(), pp => CanAddExclude));
         #endregion
         #region Predicates
         protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation;
@@ -215,8 +195,6 @@ namespace TimekeeperWPF
             return pp is Allocation
                 && IsNotAddingNewAllocation;
         }
-        private bool CanAddInclude => HasSelectedInclude && !(CurrentEntityIncludesSource?.Contains(SelectedInclude)??false);
-        private bool CanAddExclude => HasSelectedExclude && !(CurrentEntityExcludesSource?.Contains(SelectedExclude)??false);
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -285,11 +263,6 @@ namespace TimekeeperWPF
             CurrentEntityAllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
             UpdateAllocationsView();
 
-            CurrentEntityIncludesCollection = new CollectionViewSource();
-            CurrentEntityIncludesCollection.Source = new ObservableCollection<TimePattern>(CurrentEditItem.IncludedPatterns);
-            CurrentEntityExcludesCollection = new CollectionViewSource();
-            CurrentEntityExcludesCollection.Source = new ObservableCollection<TimePattern>(CurrentEditItem.ExcludedPatterns);
-            UpdateViews();
         }
         protected override void EndEdit()
         {
@@ -297,8 +270,6 @@ namespace TimekeeperWPF
             EndEditAllocation();
             CurrentEntityAllocationsCollection = null;
 
-            CurrentEntityIncludesCollection = null;
-            CurrentEntityExcludesCollection = null;
             base.EndEdit();
         }
         protected override void Cancel()
@@ -309,44 +280,19 @@ namespace TimekeeperWPF
         protected override void Commit()
         {
             CurrentEditItem.Allocations = new HashSet<Allocation>(CurrentEntityAllocationsSource);
-            CurrentEditItem.IncludedPatterns = new HashSet<TimePattern>(CurrentEntityIncludesSource);
-            CurrentEditItem.ExcludedPatterns = new HashSet<TimePattern>(CurrentEntityExcludesSource);
             base.Commit();
         }
-        private void AddInclude()
-        {
-            CurrentEntityIncludesView.AddNewItem(SelectedInclude);
-            CurrentEntityIncludesView.CommitNew();
-            SelectedInclude = null;
-            UpdateViews();
-        }
-        private void AddExclude()
-        {
-            CurrentEntityExcludesView.AddNewItem(SelectedExclude);
-            CurrentEntityExcludesView.CommitNew();
-            SelectedExclude = null;
-            UpdateViews();
-        }
-        private void RemoveExclude(TimePattern ap)
-        {
-            CurrentEntityExcludesView.Remove(ap);
-            UpdateViews();
-        }
-        private void RemoveInclude(TimePattern ap)
-        {
-            CurrentEntityIncludesView.Remove(ap);
-            UpdateViews();
-        }
+
         private void UpdateViews()
         {
-            PatternsView.Filter = P =>
-            {
-                return CurrentEntityIncludesView.Contains(P) == false 
-                    && CurrentEntityExcludesView.Contains(P) == false;
-            };
-            OnPropertyChanged(nameof(PatternsView));
-            OnPropertyChanged(nameof(CurrentEntityIncludesView));
-            OnPropertyChanged(nameof(CurrentEntityExcludesView));
+            //PatternsView.Filter = P =>
+            //{
+            //    return CurrentEntityIncludesView.Contains(P) == false 
+            //        && CurrentEntityExcludesView.Contains(P) == false;
+            //};
+            //OnPropertyChanged(nameof(PatternsView));
+            //OnPropertyChanged(nameof(CurrentEntityIncludesView));
+            //OnPropertyChanged(nameof(CurrentEntityExcludesView));
         }
         private void AddNewAllocation()
         {

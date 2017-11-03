@@ -8,7 +8,7 @@ namespace TimekeeperDAL.EF
         public long Amount { get; set; }
         [Required]
         public virtual Resource Resource { get; set; }
-        [Required]
+        
         public TimeTask TimeTask { get; set; }
     }
 }

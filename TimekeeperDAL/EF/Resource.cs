@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Resource
+    public partial class Resource : Filterable
     {
         public Resource()
         {
             Allocations = new HashSet<Allocation>();
         }
+
         public virtual ICollection<Allocation> Allocations { get; set; }
     }
 }

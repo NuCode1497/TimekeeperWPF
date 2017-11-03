@@ -1,6 +1,6 @@
 namespace TimekeeperDAL.EF
 {
-    public partial class TaskType
+    public partial class TaskType : Filterable
     {
     }
 }

@@ -25,9 +25,6 @@ namespace TimekeeperWPF
         private ICommand _RemoveLabelCommand;
         private ICommand _AddLabelCommand;
         #endregion
-        public LabeledEntitiesViewModel() : base()
-        {
-        }
         #region Properties
         public CollectionViewSource LabelsCollection { get; set; }
         public CollectionViewSource CurrentEntityLabelsCollection { get; set; }
