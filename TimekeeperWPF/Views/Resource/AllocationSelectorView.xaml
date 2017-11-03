@@ -30,8 +30,10 @@
                     </StackPanel>
                 </GroupBox.Header>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding Path=SelectedResource, FallbackValue='Resource'}" 
-                               Margin="4,0" VerticalAlignment="Center"/>
+                    <TextBlock 
+                        Text="{Binding Path=SelectedResource, 
+                        FallbackValue='Resource'}" 
+                        Margin="4,0" VerticalAlignment="Center"/>
                     <wpftools:DecimalUpDown
                         x:Name="NewAllocTextBox"
                         MinWidth="100" Value="{Binding Path=CurrentEditAllocation.Amount, 
@@ -49,7 +51,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <local:EntityTagView
-                            Text="{Binding Path=AllocationString}"
+                            Text="{Binding}"
                             RemoveButtonVisibility="Visible"
                             RemoveCommand="{Binding ElementName=AllocationListIC,
                             Path=DataContext.DeleteAllocationCommand}"/>

@@ -11,6 +11,6 @@ namespace TimekeeperDAL.EF
         [Required]
         public string TimePropertyValue { get; set; }
         [Required]
-        public TimePattern TimePattern { get; set; }
+        public virtual TimePattern TimePattern { get; set; }
     }
 }

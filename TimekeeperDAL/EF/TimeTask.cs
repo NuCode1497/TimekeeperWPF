@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("TimeTasks")]
     public partial class TimeTask : TypedLabeledEntity
     {
         public TimeTask() : base()
@@ -12,6 +13,7 @@ namespace TimekeeperDAL.EF
             Allocations = new HashSet<Allocation>();
             Filters = new HashSet<Filter>();
         }
+
         [Column(TypeName = "datetime2")]
         public DateTime Start { get; set; }
 

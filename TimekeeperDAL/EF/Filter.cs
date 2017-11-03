@@ -9,8 +9,8 @@ namespace TimekeeperDAL.EF
         public bool Include { get; set; }
 
         [Required]
-        public Filterable Filterable { get; set; }
+        public virtual Filterable Filterable { get; set; }
 
-        public TimeTask TimeTask { get; set; }
+        public virtual TimeTask TimeTask { get; set; }
     }
 }

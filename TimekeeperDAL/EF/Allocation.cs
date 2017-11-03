@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
@@ -8,7 +9,7 @@ namespace TimekeeperDAL.EF
         public long Amount { get; set; }
         [Required]
         public virtual Resource Resource { get; set; }
-        
-        public TimeTask TimeTask { get; set; }
+        [Required]
+        public virtual TimeTask TimeTask { get; set; }
     }
 }

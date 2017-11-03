@@ -65,24 +65,20 @@
     <Compile Include="EF\LabeledEntity.cs" />
     <Compile Include="EF\TimePatternClause.cs" />
     <Compile Include="EF\TypedLabeledEntity.cs" />
-    <Compile Include="Migrations\201711030227042_InitialCreate.cs" />
-    <Compile Include="Migrations\201711030227042_InitialCreate.Designer.cs">
-      <DependentUpon>201711030227042_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\201711030537579_InitialCreate.cs" />
+    <Compile Include="Migrations\201711030537579_InitialCreate.Designer.cs">
+      <DependentUpon>201711030537579_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Filter.cs" />
     <Compile Include="Models\Filterable.cs" />
-    <Compile Include="Models\Label.cs" />
-    <Compile Include="Models\LabeledEntity.cs" />
     <Compile Include="Models\TimePatternClause.cs" />
-    <Compile Include="Models\TypedLabeledEntity.cs" />
     <Compile Include="Tools\EditableObject.cs" />
     <Compile Include="Tools\INamedObject.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
     <Compile Include="Models\Allocation.cs" />
     <Compile Include="Tools\ObservableObject.cs" />
-    <Compile Include="Models\Resource.cs" />
     <Compile Include="EF\TimePattern.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />
     <Compile Include="Fake\FakeDbContext.cs" />
@@ -97,7 +93,6 @@
     <Compile Include="Tools\EntityBase.cs" />
     <Compile Include="Models\Note.cs" />
     <Compile Include="Models\TimeTask.cs" />
-    <Compile Include="Models\TaskType.cs" />
     <Compile Include="Models\TimePattern.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -112,8 +107,8 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201711030227042_InitialCreate.resx">
-      <DependentUpon>201711030227042_InitialCreate.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201711030537579_InitialCreate.resx">
+      <DependentUpon>201711030537579_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,6 +1,6 @@
 ﻿
---drop database TimekeeperDB
---create database TimekeeperDB
+drop database TimekeeperDB
+create database TimekeeperDB
 
 
 --use TimeKeeperDB
