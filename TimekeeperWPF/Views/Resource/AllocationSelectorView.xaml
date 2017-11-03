@@ -1,12 +1,8 @@
 ﻿<UserControl x:Class="TimekeeperWPF.AllocationSelectorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:t="clr-namespace:TimekeeperWPF.Tools"
-             xmlns:local="clr-namespace:TimekeeperWPF"
-             mc:Ignorable="d" >
+             xmlns:local="clr-namespace:TimekeeperWPF">
     <GroupBox Header="Resource Allocations" Margin="2">
         <StackPanel Name="AllocationEditorPanel">
             <StackPanel Orientation="Horizontal">
@@ -14,10 +10,14 @@
                   IsSynchronizedWithCurrentItem="True" Width="100"
                   SelectedItem="{Binding Path=SelectedResource, Mode=TwoWay}"
                   ItemsSource="{Binding Path=ResourcesView}" />
-                <Button Name="AllocateResourceBtn" Content="Allocate" 
+                <Button Style="{StaticResource TinyButtonAddStyle}"
                     Command="{Binding Path=AddNewAllocationCommand}" />
             </StackPanel>
-            <GroupBox Margin="2" Visibility="{Binding Path=IsAddingNewAllocation, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <GroupBox
+                x:Name="NewAllocGroupBox"
+                IsVisibleChanged="NewAllocGroupBox_IsVisibleChanged"
+                Visibility="{Binding Path=IsAddingNewAllocation, 
+                Converter={StaticResource BooleanToVisibilityConverter}}">
                 <GroupBox.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="New Allocation" Margin="2"/>
@@ -30,36 +30,32 @@
                     </StackPanel>
                 </GroupBox.Header>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding Path=SelectedResource, FallbackValue='Resource'}" Margin="2"/>
-                    <TextBlock Text="Min:" Margin="2"/>
-                    <wpftools:DecimalUpDown MinWidth="50" Value="{Binding Path=CurrentEditAllocation.minAmount, Mode=TwoWay,
-                        UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"
-                                            FormatString="{Binding Path=SelectedResource, Converter={t:ResourceDecimalFormatConverter}}"/>
-                    <TextBlock Text=" Max:" Margin="2"/>
-                    <wpftools:DecimalUpDown MinWidth="50" Value="{Binding Path=CurrentEditAllocation.maxAmount, Mode=TwoWay,
-                        UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"
-                                            FormatString="{Binding Path=SelectedResource, Converter={t:ResourceDecimalFormatConverter}}"/>
+                    <TextBlock Text="{Binding Path=SelectedResource, FallbackValue='Resource'}" 
+                               Margin="4,0" VerticalAlignment="Center"/>
+                    <wpftools:DecimalUpDown
+                        x:Name="NewAllocTextBox"
+                        MinWidth="100" Value="{Binding Path=CurrentEditAllocation.Amount, 
+                        Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
+                        ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
             </GroupBox>
-            <Border Name="AllocationListBdr" BorderBrush="Purple" BorderThickness="1" Margin="2">
-                <ItemsControl Name="AllocationListIC" IsTabStop="False" 
+            <ItemsControl Name="AllocationListIC" IsTabStop="False" 
                           ItemsSource="{Binding Path=CurrentEntityAllocationsView}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" Name="AllocationListPnl"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <local:EntityTagView
-                                Text="{Binding Path=AllocationString}"
-                                RemoveButtonVisibility="Visible"
-                                RemoveCommand="{Binding ElementName=AllocationListIC,
-                                Path=DataContext.DeleteAllocationCommand}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" Name="AllocationListPnl"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:EntityTagView
+                            Text="{Binding Path=AllocationString}"
+                            RemoveButtonVisibility="Visible"
+                            RemoveCommand="{Binding ElementName=AllocationListIC,
+                            Path=DataContext.DeleteAllocationCommand}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
     </GroupBox>
 </UserControl>

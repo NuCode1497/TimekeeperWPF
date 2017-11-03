@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace TimekeeperWPF
 {
@@ -23,6 +24,17 @@ namespace TimekeeperWPF
         public AllocationSelectorView()
         {
             InitializeComponent();
+        }
+
+        private void NewAllocGroupBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (NewAllocGroupBox.Visibility == Visibility.Visible)
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    NewAllocTextBox.Focus();
+                }, DispatcherPriority.Render);
+            }
         }
     }
 }

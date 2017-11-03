@@ -102,8 +102,10 @@
                 </StackPanel>
             </StackPanel>
         </StackPanel>
-        <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-        <local:IncludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-        <local:ExcludeSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+        <StackPanel DataContext="{Binding Path=DataContext, 
+            RelativeSource={RelativeSource AncestorType=Grid}}">
+            <local:LabelSelectorView/>
+            <local:AllocationSelectorView/>
+        </StackPanel>
     </StackPanel>
 </UserControl>

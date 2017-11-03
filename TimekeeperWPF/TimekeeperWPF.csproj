@@ -153,18 +153,11 @@
     <Compile Include="Examples\RadialSample.xaml.cs">
       <DependentUpon>RadialSample.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\ResourceDecimalFormatConverter.cs" />
     <Compile Include="Views\Resource\AllocationSelectorView.xaml.cs">
       <DependentUpon>AllocationSelectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Examples\DemoView.xaml.cs">
       <DependentUpon>DemoView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\TimePattern\ExcludeSelectorView.xaml.cs">
-      <DependentUpon>ExcludeSelectorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\TimePattern\IncludeSelectorView.xaml.cs">
-      <DependentUpon>IncludeSelectorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\TaskType\TaskTypeSelectorView.xaml.cs">
       <DependentUpon>TaskTypeSelectorView.xaml</DependentUpon>
@@ -290,14 +283,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Examples\DemoView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\TimePattern\ExcludeSelectorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\TimePattern\IncludeSelectorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
