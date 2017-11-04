@@ -35,9 +35,10 @@
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
             </ControlTemplate>
             <ControlTemplate x:Key="BinaryEquivsTemplate">
-                <ComboBox SelectedIndex="0"
-                          ItemsSource="{x:Static dal:TimePatternClause.BinaryEquivalencyChoices}"
-                          SelectedItem="{Binding Path=Equivalency,
+                <ComboBox 
+                    SelectedIndex="0"
+                    ItemsSource="{x:Static dal:TimePatternClause.BinaryEquivalencyChoices}"
+                    SelectedItem="{Binding Path=Equivalency,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
             </ControlTemplate>
         </Grid.Resources>
@@ -49,7 +50,6 @@
         </Grid.ColumnDefinitions>
         <ComboBox 
             Grid.Column="0" Name="TPComboBox" Width="100"
-            HorizontalAlignment="Right"
             ItemsSource="{x:Static dal:TimePatternClause.TimePropertyChoices}"
             SelectedIndex="0"
             SelectedItem="{Binding Path=TimeProperty, 

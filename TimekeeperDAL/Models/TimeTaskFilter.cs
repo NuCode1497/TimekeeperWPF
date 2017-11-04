@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using TimekeeperDAL.Tools;
 
@@ -14,7 +15,7 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
-        public string FilterTypeName => Filterable.GetType().Name;
+        public string FilterTypeName => Filterable?.GetType().Name;
 
         [NotMapped]
         public override string this[string columnName]
@@ -25,6 +26,9 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
+                    case nameof(Filterable):
+                        errors = GetErrorsFromAnnotations(nameof(Filterable), Filterable);
+                        break;
                     case nameof(Include):
                         errors = GetErrorsFromAnnotations(nameof(Include), Include);
                         break;
@@ -38,5 +42,28 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
+
+        private string _TypeChoice = "";
+        [NotMapped]
+        public string TypeChoice
+        {
+            get { return _TypeChoice; }
+            set
+            {
+                _TypeChoice = value;
+                OnPropertyChanged();
+            }
+        }
+
+        [NotMapped]
+        public static readonly List<string> FilterableTypesChoices = new List<string>()
+        {
+            "Label",
+            "Note",
+            "Pattern",
+            "Resource",
+            "Task",
+            "Task Type"
+        };
     }
 }

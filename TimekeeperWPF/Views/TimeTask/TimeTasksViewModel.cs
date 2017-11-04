@@ -184,6 +184,20 @@ namespace TimekeeperWPF
             return pp is Allocation
                 && IsNotAddingNewAllocation;
         }
+        private bool ValidateFilters()
+        {
+            if (FiltersView == null) return false;
+            bool noErrors = true;
+            foreach (TimeTaskFilter f in FiltersView)
+            {
+                if (f.TypeChoice == ""
+                    || f.Filterable == null)
+                {
+                    noErrors = false;
+                }
+            }
+            return noErrors;
+        }
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -191,6 +205,8 @@ namespace TimekeeperWPF
             Context = new TimeKeeperContext();
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
+
+            await base.GetDataAsync();
 
             ResourcesCollection = new CollectionViewSource();
             await Context.Resources.LoadAsync();
@@ -229,8 +245,6 @@ namespace TimekeeperWPF
             FilterTaskTypesCollection.Source = Context.TaskTypes.Local;
             FilterTaskTypesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(FilterTaskTypesView));
-
-            await base.GetDataAsync();
         }
         protected override void SaveAs()
         {
@@ -278,14 +292,16 @@ namespace TimekeeperWPF
             AllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
             UpdateAllocationsView();
 
-
+            FiltersCollection = new CollectionViewSource();
+            FiltersCollection.Source = new ObservableCollection<TimeTaskFilter>(CurrentEditItem.Filters);
+            OnPropertyChanged(nameof(FiltersView));
         }
         protected override void EndEdit()
         {
             ResourcesView.Filter = null;
             EndEditAllocation();
             AllocationsCollection = null;
-
+            FiltersCollection = null;
             base.EndEdit();
         }
         protected override void Cancel()
@@ -296,19 +312,19 @@ namespace TimekeeperWPF
         protected override void Commit()
         {
             CurrentEditItem.Allocations = new HashSet<Allocation>(AllocationsSource);
+            CurrentEditItem.Filters = new HashSet<TimeTaskFilter>(FiltersSource);
             base.Commit();
         }
-
-        private void UpdateViews()
+        private void AddNewFilter()
         {
-            //PatternsView.Filter = P =>
-            //{
-            //    return CurrentEntityIncludesView.Contains(P) == false 
-            //        && CurrentEntityExcludesView.Contains(P) == false;
-            //};
-            //OnPropertyChanged(nameof(PatternsView));
-            //OnPropertyChanged(nameof(CurrentEntityIncludesView));
-            //OnPropertyChanged(nameof(CurrentEntityExcludesView));
+            FiltersView.AddNew();
+            ((TimeTaskFilter)FiltersView.CurrentAddItem).Include = true;
+            FiltersView.CommitNew();
+            OnPropertyChanged(nameof(FiltersView));
+        }
+        private void DeleteFilter(TimeTaskFilter filter)
+        {
+            FiltersView.Remove(filter);
         }
         private void AddNewAllocation()
         {

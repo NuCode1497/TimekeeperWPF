@@ -69,6 +69,7 @@ namespace TimekeeperWPF
 
             ClausesCollection = new CollectionViewSource();
             ClausesCollection.Source = new ObservableCollection<TimePatternClause>(CurrentEditItem.Query);
+            OnPropertyChanged(nameof(ClausesView));
         }
         protected override void EndEdit()
         {
@@ -86,9 +87,9 @@ namespace TimekeeperWPF
             ClausesView.CommitNew();
             OnPropertyChanged(nameof(ClausesView));
         }
-        private void RemoveClause(TimePatternClause ap)
+        private void RemoveClause(TimePatternClause clause)
         {
-            ClausesView.Remove(ap);
+            ClausesView.Remove(clause);
             OnPropertyChanged(nameof(ClausesView));
         }
         #endregion

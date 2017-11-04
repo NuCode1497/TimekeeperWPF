@@ -8,6 +8,10 @@
     mc:Ignorable="d" 
     MinHeight="200" MinWidth="200"
     d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.InputBindings>
+        <KeyBinding Command="{Binding Path=CommitCommand}" Gesture="Enter"/>
+        <KeyBinding Command="{Binding Path=CancelCommand}" Gesture="Esc"/>
+    </UserControl.InputBindings>
     <Grid x:Name="SV">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

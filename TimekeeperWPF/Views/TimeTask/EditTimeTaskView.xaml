@@ -105,13 +105,13 @@
         <StackPanel DataContext="{Binding Path=DataContext, 
             RelativeSource={RelativeSource AncestorType=Grid}}">
             <!--DataContext is TimeTasksViewModel-->
-            <GroupBox Margin="2,-4">
+            <GroupBox>
                 <GroupBox.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Filters "/>
-                        <Button x:Name="AddFilterButton" Margin="2"
-                        Style="{StaticResource TinyButtonAddStyle}"
-                        Command="{Binding Path=AddNewFilterCommand}"/>
+                        <Button ToolTip="Add New Filter"
+                                Style="{StaticResource TinyButtonAddStyle}"
+                                Command="{Binding Path=AddNewFilterCommand}"/>
                     </StackPanel>
                 </GroupBox.Header>
                 <StackPanel>

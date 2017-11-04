@@ -32,6 +32,6 @@ namespace TimekeeperWPF
         }
         public static DependencyProperty RemoveCommandProperty =
             DependencyProperty.Register(
-                nameof(RemoveCommand), typeof(ICommand), typeof(TimePatternClauseView));
+                nameof(RemoveCommand), typeof(ICommand), typeof(FilterView));
     }
 }

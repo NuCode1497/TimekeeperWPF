@@ -87,7 +87,6 @@
         <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="Padding" Value="2"/>
         <Setter Property="Margin" Value="2,1"/>
-        <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderBrush" Value="{StaticResource ToggleButton.BorderBrush}"/>
     </Style>
     <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
@@ -118,11 +117,6 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 BorderBrush="Transparent"
                                 Background="{TemplateBinding Background}"/>
-                        <!-- ContentPresenter for the header -->
-                        <Border x:Name="Header" Padding="6,0,6,0"
-                                Grid.Row="0" Grid.RowSpan="2" Grid.Column="1">
-                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
-                        </Border>
                         <!-- Primary content for GroupBox -->
                         <ContentPresenter Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
                                           Margin="{TemplateBinding Padding}"/>
@@ -136,6 +130,11 @@
                                     <Binding RelativeSource="{RelativeSource Self}" Path="ActualHeight"/>
                                 </MultiBinding>
                             </Border.OpacityMask>
+                        </Border>
+                        <!-- ContentPresenter for the header -->
+                        <Border x:Name="Header" Padding="6,0,6,0"
+                                Grid.Row="0" Grid.RowSpan="2" Grid.Column="1">
+                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
                         </Border>
                     </Grid>
                 </ControlTemplate>
