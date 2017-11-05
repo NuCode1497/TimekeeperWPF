@@ -11,9 +11,6 @@ namespace TimekeeperDAL.Tools
 {
     public abstract class EntityBase : EditableObject, IDataErrorInfo, INotifyDataErrorInfo
     {
-        [Key]
-        public int Id { get; set; }
-
         [Timestamp]
         [MaxLength(8)]
         [Column(TypeName = "timestamp")]

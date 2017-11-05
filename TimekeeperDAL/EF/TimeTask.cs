@@ -10,7 +10,7 @@ namespace TimekeeperDAL.EF
     {
         public TimeTask() : base()
         {
-            Allocations = new HashSet<Allocation>();
+            Allocations = new HashSet<TimeTaskAllocation>();
             Filters = new HashSet<TimeTaskFilter>();
         }
 
@@ -49,7 +49,7 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
-        public virtual ICollection<Allocation> Allocations { get; set; }
+        public virtual ICollection<TimeTaskAllocation> Allocations { get; set; }
 
         public virtual ICollection<TimeTaskFilter> Filters { get; set; }
     }

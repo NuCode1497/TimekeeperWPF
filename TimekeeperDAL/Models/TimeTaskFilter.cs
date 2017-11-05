@@ -1,7 +1,15 @@
-﻿using System;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+//Notes: A filter is an associative entity that creates a junction table for a
+//many-to-many mapping. That means the Filter class must have composite foreign keys
+//using [Column] [Key] [ForeignKey] attributes on a Filterable and a <parent entity>.
+//Filterable is an object that inherits from abstract class Filterable.
+//If a Filterable class has a set of Filters (like TimeTask does), that class must be
+//separated from the Filterables table into its own table using the [Table] attribute.
+
+using TimekeeperDAL.Tools;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
 {

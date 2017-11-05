@@ -58,30 +58,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EF\Allocation.cs" />
     <Compile Include="EF\Filterable.cs" />
+    <Compile Include="EF\TimeTaskAllocation.cs" />
     <Compile Include="EF\Label.cs" />
     <Compile Include="EF\TimeTaskFilter.cs" />
     <Compile Include="EF\LabeledEntity.cs" />
     <Compile Include="EF\TimePatternClause.cs" />
     <Compile Include="EF\TypedLabeledEntity.cs" />
-    <Compile Include="Migrations\201711030537579_InitialCreate.cs" />
-    <Compile Include="Migrations\201711030537579_InitialCreate.Designer.cs">
-      <DependentUpon>201711030537579_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201711032020285_TimeTaskFilter.cs" />
-    <Compile Include="Migrations\201711032020285_TimeTaskFilter.Designer.cs">
-      <DependentUpon>201711032020285_TimeTaskFilter.cs</DependentUpon>
+    <Compile Include="Migrations\201711052048386_InitialCreate.cs" />
+    <Compile Include="Migrations\201711052048386_InitialCreate.Designer.cs">
+      <DependentUpon>201711052048386_InitialCreate.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\TimeTaskFilter.cs" />
     <Compile Include="Models\Filterable.cs" />
     <Compile Include="Models\TimePatternClause.cs" />
     <Compile Include="Tools\EditableObject.cs" />
+    <Compile Include="Tools\Extensions.cs" />
     <Compile Include="Tools\INamedObject.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
-    <Compile Include="Models\Allocation.cs" />
+    <Compile Include="Models\TimeTaskAllocation.cs" />
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="EF\TimePattern.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />
@@ -111,11 +108,8 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201711030537579_InitialCreate.resx">
-      <DependentUpon>201711030537579_InitialCreate.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201711032020285_TimeTaskFilter.resx">
-      <DependentUpon>201711032020285_TimeTaskFilter.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201711052048386_InitialCreate.resx">
+      <DependentUpon>201711052048386_InitialCreate.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

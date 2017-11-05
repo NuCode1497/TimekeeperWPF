@@ -22,7 +22,7 @@ namespace TimekeeperWPF
         private bool _HasSelectedResource = false;
         private bool _IsAddingNewAllocation = false;
         private Resource _SelectedResource;
-        private Allocation _CurrentEditAllocation;
+        private TimeTaskAllocation _CurrentEditAllocation;
         private ICommand _DeleteAllocationCommand;
         private ICommand _AddNewAllocationCommand;
         private ICommand _CancelAllocationCommand;
@@ -42,8 +42,8 @@ namespace TimekeeperWPF
 
         //The current editing TimeTask's allocations
         public CollectionViewSource AllocationsCollection { get; set; }
-        public ObservableCollection<Allocation> AllocationsSource => 
-            AllocationsCollection?.Source as ObservableCollection<Allocation>;
+        public ObservableCollection<TimeTaskAllocation> AllocationsSource => 
+            AllocationsCollection?.Source as ObservableCollection<TimeTaskAllocation>;
         public ListCollectionView AllocationsView => 
             AllocationsCollection?.View as ListCollectionView;
 
@@ -117,7 +117,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        public Allocation CurrentEditAllocation
+        public TimeTaskAllocation CurrentEditAllocation
         {
             get { return _CurrentEditAllocation; }
             protected set
@@ -161,7 +161,7 @@ namespace TimekeeperWPF
         #endregion
         #region Commands
         public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
-            ?? (_DeleteAllocationCommand = new RelayCommand(ap => DeleteAllocation(ap as Allocation), pp => CanDeleteAllocation(pp)));
+            ?? (_DeleteAllocationCommand = new RelayCommand(ap => DeleteAllocation(ap as TimeTaskAllocation), pp => CanDeleteAllocation(pp)));
         public ICommand AddNewAllocationCommand => _AddNewAllocationCommand
             ?? (_AddNewAllocationCommand = new RelayCommand(ap => AddNewAllocation(), pp => CanAddNewAllocation));
         public ICommand CancelAllocationCommand => _CancelAllocationCommand
@@ -181,7 +181,7 @@ namespace TimekeeperWPF
         private bool CanCommitAllocation => IsAddingNewAllocation && !CurrentEditAllocation.HasErrors;
         private bool CanDeleteAllocation(object pp)
         {
-            return pp is Allocation
+            return pp is TimeTaskAllocation
                 && IsNotAddingNewAllocation;
         }
         private bool ValidateFilters()
@@ -289,7 +289,7 @@ namespace TimekeeperWPF
             if (!IsEditingItemOrAddingNew) return;
 
             AllocationsCollection = new CollectionViewSource();
-            AllocationsCollection.Source = new ObservableCollection<Allocation>(CurrentEditItem.Allocations);
+            AllocationsCollection.Source = new ObservableCollection<TimeTaskAllocation>(CurrentEditItem.Allocations);
             UpdateAllocationsView();
 
             FiltersCollection = new CollectionViewSource();
@@ -311,7 +311,7 @@ namespace TimekeeperWPF
         }
         protected override void Commit()
         {
-            CurrentEditItem.Allocations = new HashSet<Allocation>(AllocationsSource);
+            CurrentEditItem.Allocations = new HashSet<TimeTaskAllocation>(AllocationsSource);
             CurrentEditItem.Filters = new HashSet<TimeTaskFilter>(FiltersSource);
             base.Commit();
         }
@@ -328,7 +328,7 @@ namespace TimekeeperWPF
         }
         private void AddNewAllocation()
         {
-            CurrentEditAllocation = new Allocation()
+            CurrentEditAllocation = new TimeTaskAllocation()
             {
                 Amount = 0,
                 Resource = SelectedResource,
@@ -355,7 +355,7 @@ namespace TimekeeperWPF
                 UpdateAllocationsView();
             }
         }
-        private void DeleteAllocation(Allocation ap)
+        private void DeleteAllocation(TimeTaskAllocation ap)
         {
             AllocationsView.Remove(ap);
             UpdateAllocationsView();

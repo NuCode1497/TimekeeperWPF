@@ -1,17 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity.Design.PluralizationServices;
-using System.Globalization;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
 using TimekeeperDAL.Tools;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Allocation : EntityBase
+    public partial class TimeTaskAllocation : EntityBase
     {
-        private static PluralizationService pserve = PluralizationService.CreateService(CultureInfo.CurrentCulture);
         public override string ToString()
         {
             if (Amount == 1) return Amount + " " + Resource;
-            return Amount + " " + pserve.Pluralize(Resource.ToString());
+            return Amount + " " + Resource.ToString().Pluralize();
         }
 
         [NotMapped]

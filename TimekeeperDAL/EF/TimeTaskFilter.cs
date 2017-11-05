@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
@@ -8,10 +8,18 @@ namespace TimekeeperDAL.EF
         [Required]
         public bool Include { get; set; }
 
-        [Required]
+        [Key]
+        [Column(Order = 1)]
+        public int FilterableId { get; set; }
+
+        [ForeignKey("FilterableId")]
         public virtual Filterable Filterable { get; set; }
 
-        [Required]
+        [Key]
+        [Column(Order = 2)]
+        public int TimeTaskId { get; set; }
+
+        [ForeignKey("TimeTaskId")]
         public virtual TimeTask TimeTask { get; set; }
     }
 }

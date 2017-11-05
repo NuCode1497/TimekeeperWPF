@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF

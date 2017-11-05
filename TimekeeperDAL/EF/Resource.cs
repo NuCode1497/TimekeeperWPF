@@ -7,9 +7,9 @@ namespace TimekeeperDAL.EF
     {
         public Resource()
         {
-            Allocations = new HashSet<Allocation>();
+            AllocatedBy = new HashSet<TimeTaskAllocation>();
         }
 
-        public virtual ICollection<Allocation> Allocations { get; set; }
+        public virtual ICollection<TimeTaskAllocation> AllocatedBy { get; set; }
     }
 }

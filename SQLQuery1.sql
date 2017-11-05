@@ -5,6 +5,14 @@ create database TimekeeperDB
 
 --use TimeKeeperDB
 
+--delete from Allocations
+--delete from Filterables
+--delete from LabeledEntityLabels
+--delete from Notes
+--delete from TimePatternClauses
+--delete from TimeTasks
+--delete from TimeTaskFilters
+
 --insert into Notes (DateTime, Text)
 --values (GETDATE(), 'Test note please ignore.');
 

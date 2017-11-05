@@ -8,20 +8,19 @@ namespace TimekeeperDAL.Migrations
         public override void Up()
         {
             CreateTable(
-                "dbo.Allocations",
+                "dbo.TimeTaskAllocations",
                 c => new
                     {
-                        Id = c.Int(nullable: false, identity: true),
+                        ResourceId = c.Int(nullable: false),
+                        TimeTaskId = c.Int(nullable: false),
                         Amount = c.Long(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
-                        Resource_Id = c.Int(nullable: false),
-                        TimeTask_Id = c.Int(nullable: false),
                     })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Filterables", t => t.Resource_Id, cascadeDelete: true)
-                .ForeignKey("dbo.TimeTasks", t => t.TimeTask_Id)
-                .Index(t => t.Resource_Id)
-                .Index(t => t.TimeTask_Id);
+                .PrimaryKey(t => new { t.ResourceId, t.TimeTaskId })
+                .ForeignKey("dbo.Filterables", t => t.ResourceId, cascadeDelete: true)
+                .ForeignKey("dbo.TimeTasks", t => t.TimeTaskId)
+                .Index(t => t.ResourceId)
+                .Index(t => t.TimeTaskId);
             
             CreateTable(
                 "dbo.Filterables",
@@ -30,6 +29,8 @@ namespace TimekeeperDAL.Migrations
                         Id = c.Int(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 50),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
+                        DateTime = c.DateTime(precision: 7, storeType: "datetime2"),
+                        Text = c.String(maxLength: 150),
                         Discriminator = c.String(maxLength: 128),
                         TaskType_Id = c.Int(),
                     })
@@ -38,20 +39,19 @@ namespace TimekeeperDAL.Migrations
                 .Index(t => t.TaskType_Id);
             
             CreateTable(
-                "dbo.Filters",
+                "dbo.TimeTaskFilters",
                 c => new
                     {
-                        Id = c.Int(nullable: false, identity: true),
+                        FilterableId = c.Int(nullable: false),
+                        TimeTaskId = c.Int(nullable: false),
                         Include = c.Boolean(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
-                        Filterable_Id = c.Int(nullable: false),
-                        TimeTask_Id = c.Int(),
                     })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Filterables", t => t.Filterable_Id, cascadeDelete: true)
-                .ForeignKey("dbo.TimeTasks", t => t.TimeTask_Id)
-                .Index(t => t.Filterable_Id)
-                .Index(t => t.TimeTask_Id);
+                .PrimaryKey(t => new { t.FilterableId, t.TimeTaskId })
+                .ForeignKey("dbo.Filterables", t => t.FilterableId, cascadeDelete: true)
+                .ForeignKey("dbo.TimeTasks", t => t.TimeTaskId)
+                .Index(t => t.FilterableId)
+                .Index(t => t.TimeTaskId);
             
             CreateTable(
                 "dbo.TimePatternClauses",
@@ -80,18 +80,6 @@ namespace TimekeeperDAL.Migrations
                 .ForeignKey("dbo.Filterables", t => t.Label_Id)
                 .Index(t => t.LabeledEntity_Id)
                 .Index(t => t.Label_Id);
-            
-            CreateTable(
-                "dbo.Notes",
-                c => new
-                    {
-                        Id = c.Int(nullable: false),
-                        DateTime = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
-                        Text = c.String(nullable: false, maxLength: 150),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Filterables", t => t.Id)
-                .Index(t => t.Id);
             
             CreateTable(
                 "dbo.TimeTasks",
@@ -124,32 +112,29 @@ namespace TimekeeperDAL.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.TimeTasks", "Id", "dbo.Filterables");
-            DropForeignKey("dbo.Notes", "Id", "dbo.Filterables");
-            DropForeignKey("dbo.Allocations", "TimeTask_Id", "dbo.TimeTasks");
-            DropForeignKey("dbo.Filters", "TimeTask_Id", "dbo.TimeTasks");
-            DropForeignKey("dbo.Filters", "Filterable_Id", "dbo.Filterables");
+            DropForeignKey("dbo.TimeTaskFilters", "TimeTaskId", "dbo.TimeTasks");
+            DropForeignKey("dbo.TimeTaskFilters", "FilterableId", "dbo.Filterables");
             DropForeignKey("dbo.Filterables", "TaskType_Id", "dbo.Filterables");
             DropForeignKey("dbo.TimePatternClauses", "TimePattern_Id", "dbo.Filterables");
             DropForeignKey("dbo.LabeledEntityLabels", "Label_Id", "dbo.Filterables");
             DropForeignKey("dbo.LabeledEntityLabels", "LabeledEntity_Id", "dbo.Filterables");
-            DropForeignKey("dbo.Allocations", "Resource_Id", "dbo.Filterables");
+            DropForeignKey("dbo.TimeTaskAllocations", "TimeTaskId", "dbo.TimeTasks");
+            DropForeignKey("dbo.TimeTaskAllocations", "ResourceId", "dbo.Filterables");
             DropIndex("dbo.TimeTasks", new[] { "Id" });
-            DropIndex("dbo.Notes", new[] { "Id" });
             DropIndex("dbo.LabeledEntityLabels", new[] { "Label_Id" });
             DropIndex("dbo.LabeledEntityLabels", new[] { "LabeledEntity_Id" });
             DropIndex("dbo.TimePatternClauses", new[] { "TimePattern_Id" });
-            DropIndex("dbo.Filters", new[] { "TimeTask_Id" });
-            DropIndex("dbo.Filters", new[] { "Filterable_Id" });
+            DropIndex("dbo.TimeTaskFilters", new[] { "TimeTaskId" });
+            DropIndex("dbo.TimeTaskFilters", new[] { "FilterableId" });
             DropIndex("dbo.Filterables", new[] { "TaskType_Id" });
-            DropIndex("dbo.Allocations", new[] { "TimeTask_Id" });
-            DropIndex("dbo.Allocations", new[] { "Resource_Id" });
+            DropIndex("dbo.TimeTaskAllocations", new[] { "TimeTaskId" });
+            DropIndex("dbo.TimeTaskAllocations", new[] { "ResourceId" });
             DropTable("dbo.TimeTasks");
-            DropTable("dbo.Notes");
             DropTable("dbo.LabeledEntityLabels");
             DropTable("dbo.TimePatternClauses");
-            DropTable("dbo.Filters");
+            DropTable("dbo.TimeTaskFilters");
             DropTable("dbo.Filterables");
-            DropTable("dbo.Allocations");
+            DropTable("dbo.TimeTaskAllocations");
         }
     }
 }

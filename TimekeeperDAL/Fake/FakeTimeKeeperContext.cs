@@ -24,7 +24,7 @@ namespace TimekeeperDAL.EF
                 new TaskType { Name = "Sleep" },
             };
         }
-        public virtual IDbSet<Allocation> Allocations { get; set; }
+        public virtual IDbSet<TimeTaskAllocation> Allocations { get; set; }
         public virtual IDbSet<Label> Labels { get; set; }
         public virtual IDbSet<Note> Notes { get; set; }
         public virtual IDbSet<Resource> Resources { get; set; }
