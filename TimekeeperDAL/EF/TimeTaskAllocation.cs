@@ -12,6 +12,7 @@ namespace TimekeeperDAL.EF
         [Column(Order = 1)]
         public int ResourceId { get; set; }
 
+        [Required]
         [ForeignKey("ResourceId")]
         public virtual Resource Resource { get; set; }
 
@@ -19,6 +20,7 @@ namespace TimekeeperDAL.EF
         [Column(Order = 2)]
         public int TimeTaskId { get; set; }
 
+        [Required]
         [ForeignKey("TimeTaskId")]
         public virtual TimeTask TimeTask { get; set; }
     }

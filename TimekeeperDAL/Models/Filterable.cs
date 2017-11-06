@@ -1,6 +1,7 @@
 ﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
 
 namespace TimekeeperDAL.EF
 {
@@ -33,5 +34,16 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
+
+        [NotMapped]
+        public static readonly List<string> FilterableTypesChoices = new List<string>()
+        {
+            "Label",
+            "Note",
+            "Pattern",
+            "Resource",
+            "Task",
+            "Task Type"
+        };
     }
 }

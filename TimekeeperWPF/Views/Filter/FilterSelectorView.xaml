@@ -1,0 +1,27 @@
+﻿<UserControl x:Class="TimekeeperWPF.FilterSelectorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TimekeeperWPF">
+    <GroupBox>
+        <GroupBox.Header>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Filters "/>
+                <Button ToolTip="Add New Filter"
+                        Style="{StaticResource TinyButtonAddStyle}"
+                        Command="{Binding Path=AddNewFilterCommand}"/>
+            </StackPanel>
+        </GroupBox.Header>
+        <StackPanel>
+            <ItemsControl Name="FilterListIC" IsTabStop="False"
+                          ItemsSource="{Binding Path=FiltersView}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <local:FilterView
+                            RemoveCommand="{Binding ElementName=FilterListIC,
+                            Path=DataContext.DeleteFilterCommand}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </GroupBox>
+</UserControl>

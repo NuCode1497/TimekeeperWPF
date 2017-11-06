@@ -12,6 +12,7 @@ namespace TimekeeperDAL.EF
         [Column(Order = 1)]
         public int FilterableId { get; set; }
 
+        [Required]
         [ForeignKey("FilterableId")]
         public virtual Filterable Filterable { get; set; }
 
@@ -19,6 +20,7 @@ namespace TimekeeperDAL.EF
         [Column(Order = 2)]
         public int TimeTaskId { get; set; }
 
+        [Required]
         [ForeignKey("TimeTaskId")]
         public virtual TimeTask TimeTask { get; set; }
     }

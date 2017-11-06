@@ -110,7 +110,10 @@
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\Week.cs" />
-    <Compile Include="FilterView.xaml.cs">
+    <Compile Include="Views\Filter\FilterSelectorView.xaml.cs">
+      <DependentUpon>FilterSelectorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Filter\FilterView.xaml.cs">
       <DependentUpon>FilterView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\EditBasicEntityView.xaml.cs">
@@ -229,7 +232,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FilterView.xaml">
+    <Page Include="Views\Filter\FilterSelectorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Filter\FilterView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -395,8 +402,6 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\Filter\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

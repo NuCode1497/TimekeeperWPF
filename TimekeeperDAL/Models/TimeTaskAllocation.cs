@@ -1,4 +1,9 @@
 ﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
+//Notes: An Allocation is an associative entity that creates a junction table for a
+//many-to-many mapping. That means the Allocation class must have composite foreign keys
+//using [Column] [Key] [ForeignKey] attributes on a Resource and a <parent entity>.
+//Set [Required] attribute on Resource for validation.
+
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,6 +26,9 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
+                    case nameof(Resource):
+                        errors = GetErrorsFromAnnotations(nameof(Resource), Resource);
+                        break;
                     case nameof(Amount):
                         errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
                         break;

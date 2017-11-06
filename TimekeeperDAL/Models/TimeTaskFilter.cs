@@ -1,14 +1,14 @@
 ﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
-//Notes: A filter is an associative entity that creates a junction table for a
+//Notes: A Filter is an associative entity that creates a junction table for a
 //many-to-many mapping. That means the Filter class must have composite foreign keys
 //using [Column] [Key] [ForeignKey] attributes on a Filterable and a <parent entity>.
 //Filterable is an object that inherits from abstract class Filterable.
 //If a Filterable class has a set of Filters (like TimeTask does), that class must be
 //separated from the Filterables table into its own table using the [Table] attribute.
+//Set [Required] attribute on Filterable for validation.
 
 using TimekeeperDAL.Tools;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
@@ -19,11 +19,13 @@ namespace TimekeeperDAL.EF
         {
             string s = "Include";
             if (!Include) s = "Exclude";
-            return String.Format("{0} {1}", s, Filterable.Name);
+            return String.Format("{0} {1}", s, Filterable.ToString());
         }
+        
+        public string FilterTypeName => Filterable?.GetTypeName();
 
         [NotMapped]
-        public string FilterTypeName => Filterable?.GetType().Name;
+        public string TypeChoice { get; set; }
 
         [NotMapped]
         public override string this[string columnName]
@@ -50,28 +52,5 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
-
-        private string _TypeChoice = "";
-        [NotMapped]
-        public string TypeChoice
-        {
-            get { return _TypeChoice; }
-            set
-            {
-                _TypeChoice = value;
-                OnPropertyChanged();
-            }
-        }
-
-        [NotMapped]
-        public static readonly List<string> FilterableTypesChoices = new List<string>()
-        {
-            "Label",
-            "Note",
-            "Pattern",
-            "Resource",
-            "Task",
-            "Task Type"
-        };
     }
 }

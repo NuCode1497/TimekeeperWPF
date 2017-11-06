@@ -51,6 +51,7 @@ namespace TimekeeperDAL.Tools
             //Get mapped public properties
             var properties = from p in source.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
                              where p.GetCustomAttributes(typeof(NotMappedAttribute), false).Length == 0
+                             && p.CanWrite
                              select p;
             foreach (var p in properties)
             {

@@ -33,8 +33,7 @@
         </ToggleButton>
         <ComboBox Margin="5,1"
             Grid.Column="1" Name="FilterableTypesComboBox" Width="90"
-            ItemsSource="{x:Static dal:TimeTaskFilter.FilterableTypesChoices}"
-            SelectedIndex="0"
+            ItemsSource="{x:Static dal:Filterable.FilterableTypesChoices}"
             SelectedItem="{Binding Path=TypeChoice, Mode=TwoWay}"/>
         <ComboBox 
             Grid.Column="2" MinWidth="100"
@@ -50,7 +49,7 @@
                             Binding="{Binding ElementName=ThisControl, Path=DataContext.TypeChoice}"
                             Value="Label">
                             <Setter Property="ItemsSource" 
-                                Value="{Binding Path=FilterLabelsView, 
+                                Value="{Binding Path=DataContext.FilterLabelsView, 
                                 RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
                         </DataTrigger>
                         <DataTrigger 

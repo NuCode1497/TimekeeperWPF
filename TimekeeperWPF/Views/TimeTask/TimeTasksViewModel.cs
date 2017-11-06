@@ -1,17 +1,13 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using TimekeeperDAL.EF;
+using TimekeeperDAL.Tools;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
@@ -295,6 +291,33 @@ namespace TimekeeperWPF
             FiltersCollection = new CollectionViewSource();
             FiltersCollection.Source = new ObservableCollection<TimeTaskFilter>(CurrentEditItem.Filters);
             OnPropertyChanged(nameof(FiltersView));
+            foreach (var f in FiltersSource)
+            {
+                var t = f.FilterTypeName;
+                switch (t)
+                {
+                    case nameof(Label):
+                        f.TypeChoice = "Label";
+                        break;
+                    case nameof(Note):
+                        f.TypeChoice = "Note";
+                        break;
+                    case nameof(TimePattern):
+                        f.TypeChoice = "Pattern";
+                        break;
+                    case nameof(Resource):
+                        f.TypeChoice = "Resource";
+                        break;
+                    case nameof(TimeTask):
+                        f.TypeChoice = "Task";
+                        break;
+                    case nameof(TaskType):
+                        f.TypeChoice = "Task Type";
+                        break;
+                }
+                f.OnPropertyChanged(nameof(f.TypeChoice));
+                f.OnPropertyChanged(nameof(f.Filterable));
+            }
         }
         protected override void EndEdit()
         {
