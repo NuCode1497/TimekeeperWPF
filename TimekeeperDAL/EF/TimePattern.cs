@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("TimePatterns")]
     public partial class TimePattern : LabeledEntity
     {
         public TimePattern() : base()

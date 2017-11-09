@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("TimeTaskFilters")]
     public partial class TimeTaskFilter
     {
         [Required]
@@ -10,18 +11,18 @@ namespace TimekeeperDAL.EF
 
         [Key]
         [Column(Order = 1)]
-        public int FilterableId { get; set; }
-
-        [Required]
-        [ForeignKey("FilterableId")]
-        public virtual Filterable Filterable { get; set; }
+        public int TimeTask_Id { get; set; }
 
         [Key]
         [Column(Order = 2)]
-        public int TimeTaskId { get; set; }
+        public int Filterable_Id { get; set; }
 
         [Required]
-        [ForeignKey("TimeTaskId")]
+        [ForeignKey("TimeTask_Id")]
         public virtual TimeTask TimeTask { get; set; }
+
+        [Required]
+        [ForeignKey("Filterable_Id")]
+        public virtual Filterable Filterable { get; set; }
     }
 }

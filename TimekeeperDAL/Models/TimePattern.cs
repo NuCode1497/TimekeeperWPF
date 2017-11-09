@@ -22,20 +22,5 @@ namespace TimekeeperDAL.EF
             }
         }
 
-        [NotMapped]
-        public string LabelsToString
-        {
-            get
-            {
-                string s = "";
-                foreach (Label l in Labels)
-                {
-                    s += l.ToString() + ", ";
-                }
-                if (s.Length >= 2)
-                    s = s.Substring(0, s.Length - 2);
-                return s;
-            }
-        }
     }
 }

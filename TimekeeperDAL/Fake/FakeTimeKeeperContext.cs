@@ -35,5 +35,6 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<Filterable> Filterables { get; set; }
         public virtual IDbSet<LabeledEntity> LabeledEntities { get; set; }
         public virtual IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }
+        public virtual IDbSet<Labelling> Labellings { get; set; }
     }
 }

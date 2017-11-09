@@ -1,5 +1,6 @@
 using System;
 using System.Data.Entity;
+using System.Data.Entity.ModelConfiguration.Conventions;
 
 namespace TimekeeperDAL.EF
 {
@@ -23,9 +24,33 @@ namespace TimekeeperDAL.EF
         public virtual IDbSet<Filterable> Filterables { get; set; }
         public virtual IDbSet<LabeledEntity> LabeledEntities { get; set; }
         public virtual IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }
+        public virtual IDbSet<Labelling> Labellings { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            //This model builder is bullshit. The following Fluent API things do literally nothing.
+            //It is not adding "cascadeDelete: true" to the foreign keys for allocations and labellings
+            //no matter what I do. I have no idea why. I'm just going to add them in manually to the 
+            //InitialCreate migration.
+            //I have no idea why it keeps adding LabeledEntity_Id1, I'm just removing it.
+
+            //modelBuilder.Entity<Labelling>()
+            //    .HasRequired(l => l.LabeledEntity)
+            //    .WithMany()
+            //    .HasForeignKey(l => l.LabeledEntity_Id)
+            //    .WillCascadeOnDelete(true);
+
+            //modelBuilder.Entity<TimeTaskAllocation>()
+            //    .HasRequired(a => a.Resource)
+            //    .WithMany()
+            //    .HasForeignKey(a => a.Resource_Id)
+            //    .WillCascadeOnDelete(true);
+
+            //modelBuilder.Entity<TimeTaskFilter>()
+            //    .HasRequired(f => f.Filterable)
+            //    .WithMany()
+            //    .HasForeignKey(f => f.Filterable_Id)
+            //    .WillCascadeOnDelete(true);
         }
     }
 }

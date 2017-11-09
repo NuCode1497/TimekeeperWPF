@@ -3,13 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("Resources")]
     public partial class Resource : Filterable
     {
-        public Resource()
-        {
-            AllocatedBy = new HashSet<TimeTaskAllocation>();
-        }
-
-        public virtual ICollection<TimeTaskAllocation> AllocatedBy { get; set; }
     }
 }

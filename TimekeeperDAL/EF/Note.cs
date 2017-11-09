@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("Notes")]
     public partial class Note : TypedLabeledEntity
     {
         [Required]

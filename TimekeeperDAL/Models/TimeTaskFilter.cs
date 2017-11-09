@@ -19,7 +19,7 @@ namespace TimekeeperDAL.EF
         {
             string s = "Include";
             if (!Include) s = "Exclude";
-            return String.Format("{0} {1}", s, Filterable.ToString());
+            return String.Format("[{0} {1}: {2}", s, FilterTypeName, Filterable);
         }
         
         public string FilterTypeName => Filterable?.GetTypeName();

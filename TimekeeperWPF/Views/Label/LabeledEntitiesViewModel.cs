@@ -103,7 +103,12 @@ namespace TimekeeperWPF
         {
             if (!IsEditingItemOrAddingNew) return;
             CurrentEntityLabelsCollection = new CollectionViewSource();
-            CurrentEntityLabelsCollection.Source = new ObservableCollection<Label>(CurrentEditItem.Labels);
+            HashSet<Label> labels = new HashSet<Label>();
+            foreach (Labelling l in CurrentEditItem.Labellings)
+            {
+                labels.Add(l.Label);
+            }
+            CurrentEntityLabelsCollection.Source = new ObservableCollection<Label>(labels);
             UpdateViews();
         }
         protected override void EndEdit()
@@ -114,7 +119,16 @@ namespace TimekeeperWPF
         }
         protected override void Commit()
         {
-            CurrentEditItem.Labels = new HashSet<Label>(CurrentEntityLabelsSource);
+            HashSet<Labelling> labellings = new HashSet<Labelling>();
+            foreach (Label l in CurrentEntityLabelsSource)
+            {
+                labellings.Add(new Labelling()
+                {
+                    Label = l,
+                    LabeledEntity = CurrentEditItem
+                });
+            }
+            CurrentEditItem.Labellings = labellings;
             base.Commit();
         }
         private void AddLabel()

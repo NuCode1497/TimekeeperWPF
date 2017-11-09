@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("LabelledEntities")]
     public abstract partial class LabeledEntity : Filterable
     {
-        public LabeledEntity()
+        public LabeledEntity() : base()
         {
-            Labels = new HashSet<Label>();
+            Labellings = new HashSet<Labelling>();
         }
 
-        public virtual ICollection<Label> Labels { get; set; }
+        public virtual ICollection<Labelling> Labellings { get; set; }
     }
 }

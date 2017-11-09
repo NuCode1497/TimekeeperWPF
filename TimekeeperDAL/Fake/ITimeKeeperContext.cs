@@ -23,6 +23,7 @@ namespace TimekeeperDAL.EF
         IDbSet<Filterable> Filterables { get; set; }
         IDbSet<LabeledEntity> LabeledEntities { get; set; }
         IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }
+        IDbSet<Labelling> Labellings { get; set; }
         int SaveChanges();
         Task<int> SaveChangesAsync();
     }

@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("TypedLabeledEntities")]
     public abstract partial class TypedLabeledEntity : LabeledEntity
     {
+        public int TaskTypeId { get; set; }
+
         [Required]
+        [ForeignKey("TaskTypeId")]
         public virtual TaskType TaskType { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("TimeTaskAllocations")]
     public partial class TimeTaskAllocation
     {
         [Required]
@@ -10,18 +11,23 @@ namespace TimekeeperDAL.EF
 
         [Key]
         [Column(Order = 1)]
-        public int ResourceId { get; set; }
-
-        [Required]
-        [ForeignKey("ResourceId")]
-        public virtual Resource Resource { get; set; }
+        public int TimeTask_Id { get; set; }
 
         [Key]
         [Column(Order = 2)]
-        public int TimeTaskId { get; set; }
+        public int Resource_Id { get; set; }
+
+        public int? PerId { get; set; }
 
         [Required]
-        [ForeignKey("TimeTaskId")]
+        [ForeignKey("TimeTask_Id")]
         public virtual TimeTask TimeTask { get; set; }
+
+        [Required]
+        [ForeignKey("Resource_Id")]
+        public virtual Resource Resource { get; set; }
+
+        [ForeignKey("PerId")]
+        public virtual Resource Per { get; set; }
     }
 }

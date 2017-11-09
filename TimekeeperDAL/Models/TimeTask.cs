@@ -8,22 +8,6 @@ namespace TimekeeperDAL.EF
     public partial class TimeTask : TypedLabeledEntity
     {
         [NotMapped]
-        public string LabelsToString
-        {
-            get
-            {
-                string s = "";
-                foreach (Label l in Labels)
-                {
-                    s += l.ToString() + ", ";
-                }
-                if (s.Length >= 2)
-                    s = s.Substring(0, s.Length - 2);
-                return s;
-            }
-        }
-
-        [NotMapped]
         public string AllocationsToString
         {
             get
@@ -31,7 +15,7 @@ namespace TimekeeperDAL.EF
                 string s = "";
                 foreach (TimeTaskAllocation a in Allocations)
                 {
-                    s += a.ToString() + ", ";
+                    s += a + ", ";
                 }
                 if (s.Length >= 2)
                     s = s.Substring(0, s.Length - 2);
@@ -47,7 +31,7 @@ namespace TimekeeperDAL.EF
                 string s = "";
                 foreach (TimeTaskFilter f in Filters)
                 {
-                    s += f.ToString() + ", ";
+                    s += f + ", ";
                 }
                 if (s.Length >= 2)
                     s = s.Substring(0, s.Length - 2);

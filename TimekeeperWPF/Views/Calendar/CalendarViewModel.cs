@@ -16,7 +16,7 @@ using System.Windows;
 
 namespace TimekeeperWPF
 {
-    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<Note>
+    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<TimeTask>
     {
         #region Fields
         private UIElement _SelectedCalendarObect;
@@ -35,9 +35,6 @@ namespace TimekeeperWPF
         private ICommand _SelectYearCommand;
         private ICommand _SelectMonthCommand;
         #endregion
-        public CalendarViewModel() :base()
-        {
-        }
         #region Events
         public event RequestViewChangeEventHandler RequestViewChange;
         protected virtual void OnRequestViewChange(RequestViewChangeEventArgs e)
@@ -177,10 +174,8 @@ namespace TimekeeperWPF
             //read task data and create CalendarObjects
             //calculate collisions and reorganize CalendarObjects by changing their datetimes
             Context = new TimeKeeperContext();
-            //await Context.TimeTasks.LoadAsync(); //TODO: Implnt TimeTask
-            //Items.Source = Context.TimeTasks.Local; //TODO: Implnt TimeTask
-            await Context.Notes.LoadAsync();
-            Items.Source = Context.Notes.Local;
+            await Context.TimeTasks.LoadAsync();
+            Items.Source = Context.TimeTasks.Local;
 
             SetUpCalendarObjects();
 
@@ -190,9 +185,9 @@ namespace TimekeeperWPF
         {
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            CreateNoteObjects();
-            CreateEventObjectsFromNotes();
-            //CreateEventObjectsFromTimeTasks();
+            //CreateNoteObjects();
+            //CreateEventObjectsFromNotes();
+            CreateEventObjectsFromTimeTasks();
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
         private void CreateNoteObjects()
@@ -241,9 +236,9 @@ namespace TimekeeperWPF
                 {
                     prevCalObj.End = N.DateTime;
                     prevCalObj.ToolTip += String.Format("\n{0}\n{1} to\n{2}",
-                        prevCalObj.DurationString(), 
-                        prevCalObj.Start.ToString(),
-                        prevCalObj.End.ToString());
+                    prevCalObj.DurationString(), 
+                    prevCalObj.Start.ToString(),
+                    prevCalObj.End.ToString());
                     prevCalObj = CalObj;
                 }
                 CalObjs.Add(CalObj);
@@ -258,22 +253,24 @@ namespace TimekeeperWPF
         }
         private void CreateEventObjectsFromTimeTasks()
         {
-            //Filter
-            //Sort
+            View.Filter = T => IsTaskRelevant((TimeTask)T);
             List<CalendarObject> CalObjs = new List<CalendarObject>();
             foreach (TimeTask T in View)
             {
-                //create calendar objects based on T properties
-                //T has included and excluded patterns
-                //Create objs during included but not during excluded
-                //How many objects will there be?
-                //where will they be placed?
+                //Allocations
+                //In cases of conflicting Filters, the later Filter supersedes.
+                //Filters
 
             }
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
         protected abstract bool IsTaskRelevant(TimeTask task);
         protected abstract bool IsNoteRelevant(Note note);
+        //protected abstract bool IsDateRelevant(DateTime date);
+        //protected bool IsRangeRelevant(DateTime d1, DateTime d2)
+        //{
+        //    return (d1 < d2) && (IsDateRelevant(d1) || IsDateRelevant(d2));
+        //}
         protected virtual void Previous()
         {
             SetUpCalendarObjects();

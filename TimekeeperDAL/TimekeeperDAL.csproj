@@ -59,17 +59,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EF\Filterable.cs" />
+    <Compile Include="EF\Labelling.cs" />
     <Compile Include="EF\TimeTaskAllocation.cs" />
     <Compile Include="EF\Label.cs" />
     <Compile Include="EF\TimeTaskFilter.cs" />
     <Compile Include="EF\LabeledEntity.cs" />
     <Compile Include="EF\TimePatternClause.cs" />
     <Compile Include="EF\TypedLabeledEntity.cs" />
-    <Compile Include="Migrations\201711052048386_InitialCreate.cs" />
-    <Compile Include="Migrations\201711052048386_InitialCreate.Designer.cs">
-      <DependentUpon>201711052048386_InitialCreate.cs</DependentUpon>
+    <Compile Include="Migrations\201711090650337_InitialCreate.cs" />
+    <Compile Include="Migrations\201711090650337_InitialCreate.Designer.cs">
+      <DependentUpon>201711090650337_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201711090706426_WhatPendingChanges.cs" />
+    <Compile Include="Migrations\201711090706426_WhatPendingChanges.Designer.cs">
+      <DependentUpon>201711090706426_WhatPendingChanges.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Models\LabeledEntity.cs" />
+    <Compile Include="Models\Labelling.cs" />
     <Compile Include="Models\TimeTaskFilter.cs" />
     <Compile Include="Models\Filterable.cs" />
     <Compile Include="Models\TimePatternClause.cs" />
@@ -108,8 +115,14 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201711052048386_InitialCreate.resx">
-      <DependentUpon>201711052048386_InitialCreate.cs</DependentUpon>
+    <Content Include="Properties\SQLQuery1.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201711090650337_InitialCreate.resx">
+      <DependentUpon>201711090650337_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711090706426_WhatPendingChanges.resx">
+      <DependentUpon>201711090706426_WhatPendingChanges.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
