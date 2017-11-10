@@ -26,5 +26,16 @@ namespace TimekeeperDAL.Tools
         {
             return PluralizationService.CreateService(CultureInfo.CurrentCulture).Pluralize(s);
         }
+        
+        public static int WeekOfMonth(this DateTime time)
+        {
+            DateTime first = new DateTime(time.Year, time.Month, 1);
+            return time.WeekOfYear() - first.WeekOfYear() + 1;
+        }
+
+        public static int WeekOfYear(this DateTime time)
+        {
+            return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstDay, DayOfWeek.Sunday);
+        }
     }
 }

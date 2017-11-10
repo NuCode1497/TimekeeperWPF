@@ -35,6 +35,7 @@ namespace TimekeeperWPF
                 SelectedMonthOverride = value.Month;
             }
         }
+        public override DateTime EndDate => SelectedDate.AddDays(7);
         public int SelectedMonthOverride
         {
             get { return _SelectedMonthOverride; }
@@ -90,15 +91,6 @@ namespace TimekeeperWPF
         {
             SelectedDate = SelectedDate.AddDays(7);
             base.Next();
-        }
-        protected override bool IsNoteRelevant(Note note)
-        {
-            return note.DateTime.WeekStart() == SelectedDate.WeekStart();
-        }
-        protected override bool IsTaskRelevant(TimeTask task)
-        {
-            return task.Start.WeekStart() == SelectedDate.WeekStart()
-                || task.End.WeekStart() == SelectedDate.WeekStart();
         }
         #endregion
     }

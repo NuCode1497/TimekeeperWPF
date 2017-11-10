@@ -24,20 +24,13 @@ namespace TimekeeperWPF
         #region Predicates
         protected override bool CanSave => false;
         protected override bool CanSelectDay => false;
+
+        public override DateTime EndDate => SelectedDate.AddDays(1);
         #endregion
         #region Actions
         protected override void SaveAs()
         {
             throw new NotImplementedException();
-        }
-        protected override bool IsTaskRelevant(TimeTask task)
-        {
-            return task.Start.Date == SelectedDate.Date
-                || task.End.Date == SelectedDate.Date;
-        }
-        protected override bool IsNoteRelevant(Note note)
-        {
-            return note.DateTime.Date == SelectedDate.Date;
         }
         protected override void Previous()
         {

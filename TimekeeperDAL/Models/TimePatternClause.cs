@@ -201,5 +201,77 @@ namespace TimekeeperDAL.EF
             "November",
             "December"
         };
+
+        public bool CheckEquivalency(int value)
+        {
+            var p = int.Parse(TimePropertyValue);
+            switch (Equivalency)
+            {
+                case "==":
+                    if (value == p) return true;
+                    break;
+                case "!=":
+                    if (value != p) return true;
+                    break;
+                case "<":
+                    if (value < p) return true;
+                    break;
+                case ">":
+                    if (value > p) return true;
+                    break;
+                case "<=":
+                    if (value <= p) return true;
+                    break;
+                case ">=":
+                    if (value >= p) return true;
+                    break;
+                default:
+                    throw new ArgumentException("Equivalency value is not recognized. Must be ==, !=, <, >, <=, or >=", nameof(Equivalency));
+            }
+            return false;
+        }
+        public bool CheckEquivalency(TimeSpan value)
+        {
+            var p = TimeSpan.Parse(TimePropertyValue);
+            switch (Equivalency)
+            {
+                case "==":
+                    if (value == p) return true;
+                    break;
+                case "!=":
+                    if (value != p) return true;
+                    break;
+                case "<":
+                    if (value < p) return true;
+                    break;
+                case ">":
+                    if (value > p) return true;
+                    break;
+                case "<=":
+                    if (value <= p) return true;
+                    break;
+                case ">=":
+                    if (value >= p) return true;
+                    break;
+                default:
+                    throw new ArgumentException("Equivalency value is not recognized. Must be ==, !=, <, >, <=, or >=", nameof(Equivalency));
+            }
+            return false;
+        }
+        public bool CheckEquivalency(string value)
+        {
+            switch (Equivalency)
+            {
+                case "==":
+                    if (value == TimePropertyValue) return true;
+                    break;
+                case "!=":
+                    if (value != TimePropertyValue) return true;
+                    break;
+                default:
+                    throw new ArgumentException("Equivalency value is not recognized. Must be == or !=", nameof(Equivalency));
+            }
+            return false;
+        }
     }
 }

@@ -13,6 +13,7 @@ using System.Data.Entity;
 using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF
 {
@@ -70,6 +71,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(YearString));
                 OnPropertyChanged(nameof(DayLongString));
                 OnPropertyChanged(nameof(WeekString));
+                OnPropertyChanged(nameof(EndDate));
             }
         }
         public int SelectedYear => SelectedDate.Year;
@@ -79,6 +81,7 @@ namespace TimekeeperWPF
         public string YearString => SelectedDate.ToString("yyy");
         public string MonthString => SelectedDate.ToString("MMMM");
         public string WeekString => SelectedDate.ToString("MMMM dd, yyy");
+        public abstract DateTime EndDate { get; }
         public virtual Orientation Orientation
         {
             get{ return _Orientation; }
@@ -254,23 +257,32 @@ namespace TimekeeperWPF
         private void CreateEventObjectsFromTimeTasks()
         {
             View.Filter = T => IsTaskRelevant((TimeTask)T);
-            List<CalendarObject> CalObjs = new List<CalendarObject>();
+            List<CalendarObject> calObjs = new List<CalendarObject>();
             foreach (TimeTask T in View)
             {
-                //Allocations
-                //In cases of conflicting Filters, the later Filter supersedes.
-                //Filters
-
+                T.BuildInclusionPoints(SelectedDate, EndDate);
+                //TODO
+                //based on the inclusion points, build calendar objects
             }
         }
+
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
-        protected abstract bool IsTaskRelevant(TimeTask task);
-        protected abstract bool IsNoteRelevant(Note note);
-        //protected abstract bool IsDateRelevant(DateTime date);
-        //protected bool IsRangeRelevant(DateTime d1, DateTime d2)
-        //{
-        //    return (d1 < d2) && (IsDateRelevant(d1) || IsDateRelevant(d2));
-        //}
+        protected bool IsTaskRelevant(TimeTask task)
+        {
+            return IsDateRangeRelevant(task.Start, task.End);
+        }
+        protected bool IsNoteRelevant(Note note)
+        {
+            return IsDateRelevant(note.DateTime);
+        }
+        protected bool IsDateRelevant(DateTime date)
+        {
+            return (date >= SelectedDate && date <= EndDate);
+        }
+        protected bool IsDateRangeRelevant(DateTime d1, DateTime d2)
+        {
+            return (d1 < d2) && (IsDateRelevant(d1) || IsDateRelevant(d2));
+        }
         protected virtual void Previous()
         {
             SetUpCalendarObjects();

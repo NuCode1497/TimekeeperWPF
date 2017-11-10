@@ -39,6 +39,7 @@ namespace TimekeeperWPF
                 base.SelectedDate = newValue;
             }
         }
+        public override DateTime EndDate => SelectedDate.AddMonths(1);
         public MonthWeekViewModel SelectedWeek
         {
             get { return _SelectedWeek; }
@@ -171,14 +172,6 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(MonthWeeksView));
         }
         protected override void SaveAs()
-        {
-            throw new NotImplementedException();
-        }
-        protected override bool IsTaskRelevant(TimeTask task)
-        {
-            throw new NotImplementedException();
-        }
-        protected override bool IsNoteRelevant(Note note)
         {
             throw new NotImplementedException();
         }

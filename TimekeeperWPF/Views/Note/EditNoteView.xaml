@@ -6,16 +6,19 @@
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Date &amp; Time" Width="80"/>
-            <wpftools:DateTimePicker x:Name="DateTimeTextBox" Width="300" 
-                                     Value="{Binding Path=DateTime, Mode=TwoWay}" />
+            <wpftools:DateTimePicker 
+                x:Name="DateTimeTextBox" Width="300" 
+                Value="{Binding Path=DateTime, Mode=TwoWay}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Note" Width="80"/>
-            <TextBox x:Name="NoteTextBox" Width="300" HorizontalAlignment="Left" 
-                     TextWrapping="Wrap" MaxLength="160" 
-                     Text="{Binding Path=Text, ValidatesOnDataErrors=True, ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox 
+                x:Name="NoteTextBox" Width="300" HorizontalAlignment="Left" 
+                TextWrapping="Wrap" MaxLength="160" 
+                Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
+                ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <local:TaskTypeSelectorView/>
-        <local:LabelSelectorView DataContext="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType=Grid}}"/>
+        <local:LabelSelectorView/>
     </StackPanel>
 </UserControl>

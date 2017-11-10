@@ -4,42 +4,40 @@
              xmlns:local="clr-namespace:TimekeeperWPF"
              x:Name="DataEditor">
     <!--DataContext is TimePattern-->
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel>
-            <DockPanel LastChildFill="True">
-                <TextBlock x:Name="NameTextBox" Text="Name: " VerticalAlignment="Center"/>
-                <TextBox MinWidth="200" MaxLength="50" 
+    <StackPanel>
+        <DockPanel LastChildFill="True">
+            <TextBlock x:Name="NameTextBox" Text="Name: " VerticalAlignment="Center"/>
+            <TextBox MinWidth="200" MaxLength="50" 
                      Text="{Binding Path=Name, Mode=TwoWay,
                 ValidatesOnDataErrors=True, ValidatesOnExceptions=True, 
                 UpdateSourceTrigger=PropertyChanged}" />
-            </DockPanel>
-            <StackPanel DataContext="{Binding Path=DataContext, 
+        </DockPanel>
+        <StackPanel DataContext="{Binding Path=DataContext, 
                 RelativeSource={RelativeSource AncestorType=Grid}}">
-                <!--DataContext is TimePatternsViewModel-->
-                <GroupBox>
-                    <GroupBox.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Where "/>
-                            <Button x:Name="AddClauseButton" Margin="2"
+            <!--DataContext is TimePatternsViewModel-->
+            <GroupBox>
+                <GroupBox.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Where "/>
+                        <Button x:Name="AddClauseButton" Margin="2"
                                 Style="{StaticResource TinyButtonAddStyle}"
                                 Command="{Binding Path=AddClauseCommand}"/>
-                        </StackPanel>
-                    </GroupBox.Header>
-                    <StackPanel>
-                        <ItemsControl Name="TPClauseListIC" IsTabStop="False"
+                    </StackPanel>
+                </GroupBox.Header>
+                <StackPanel>
+                    <ItemsControl Name="TPClauseListIC" IsTabStop="False"
                                       ItemsSource="{Binding Path=ClausesView}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <local:TimePatternClauseView
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <local:TimePatternClauseView
                                         RemoveCommand="{Binding ElementName=TPClauseListIC,
                                         Path=DataContext.RemoveClauseCommand}"/>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </GroupBox>
-                <local:LabelSelectorView/>
-            </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </GroupBox>
+            <local:LabelSelectorView/>
         </StackPanel>
-    </ScrollViewer>
+    </StackPanel>
 </UserControl>

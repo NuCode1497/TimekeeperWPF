@@ -2,6 +2,7 @@
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
+using System;
 
 namespace TimekeeperDAL.EF
 {
@@ -45,5 +46,7 @@ namespace TimekeeperDAL.EF
             "Task",
             "Task Type"
         };
+
+        public abstract bool HasDateTime(DateTime dt);
     }
 }

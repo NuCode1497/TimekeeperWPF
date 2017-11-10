@@ -28,12 +28,8 @@ namespace TimekeeperDAL.EF
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            //This model builder is bullshit. The following Fluent API things do literally nothing.
-            //It is not adding "cascadeDelete: true" to the foreign keys for allocations and labellings
-            //no matter what I do. I have no idea why. I'm just going to add them in manually to the 
-            //InitialCreate migration.
-            //I have no idea why it keeps adding LabeledEntity_Id1, I'm just removing it.
-
+            //I've manually added "cascadeDelete: true" to the foreign keys for allocations and labellings
+            //in the InitialCreate migration
             //modelBuilder.Entity<Labelling>()
             //    .HasRequired(l => l.LabeledEntity)
             //    .WithMany()
