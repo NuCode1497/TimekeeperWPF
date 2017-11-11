@@ -259,19 +259,68 @@ namespace TimekeeperWPF
             View.Filter = T => IsTaskRelevant((TimeTask)T);
             foreach (TimeTask T in View)
             {
-                T.BuildInclusionZones(SelectedDate, EndDate);
+                T.BuildInclusionZones();
             }
             foreach (TimeTask T in View)
             {
                 // Goal: create CalendarObjects inside the inclusions of the task so that
-                // each inclusion is used and resource consumption is evenly distributed
+                // each inclusion is used and resource consumption is distributed appropriately.
+
+                // If no allocation is set, we create one CalendarObject per inclusion zone
+                // with each Start, End set to the bounds of the inclusion zone.
+                if (T.Allocations.Count == 0)
+                {
+                    foreach (var Z in T.InclusionZones)
+                    {
+                        //TODO
+                        //create cal object that matches zone
+                    }
+                    continue;
+                }
+
+                // If an allocation is set, but not a rate (per), then we distribute the
+                // resource filling earlier zones first. (Eager)
+                // Find allocations with resources that are time related and per is null
+                var allocs = from A in T.Allocations
+                             where A.Per == null
+                             where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                             select A;
+                if (allocs.Count() != 0)
+                {
+                    //Only one time allocation is allowed
+                    TimeTaskAllocation A = allocs.First();
+                    A.Remaining = A.AsTimeSpan().Ticks;
+                    foreach (var Z in T.InclusionZones)
+                    {
+                        if (A.Remaining <= 0) break;
+                        //create cal object that matches zone or remaining amount
+                        if (A.RemainingAsTimeSpan < Z.Value)
+                        {
+                            //TODO
+                            //create cal obj the size of the remaining time
+                            A.Remaining = 0;
+                        }
+                        else
+                        {
+                            //TODO
+                            //create cal obj the size of the zone
+                            A.Remaining = Math.Max(0, A.Remaining - Z.Value.Ticks);
+                        }
+                    }
+                }
+
+                // If 'per' is set, then we evenly distribute consumption within each 'per'.
+                // So for example "40 hours per week": We filter onto a select week,
+                // then we find all inclusion zones bounded within that week, then we
+                // distribute 40 hours within the inclusion zones as per Solution 2 below.
+                // Can force Eager/Even/Apathetic
 
                 // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
                 // repeat, stop when allocations met or no more space
 
                 // Solution 2: inCount = count inclusion zones. 
-                // smallFactor = find smallest zone. 
-                // smallFactor distributed = sFD = smallFactor * inCount.
+                // find smallest zone. 
+                // sFD = smallFactor * inCount.
                 // if sFD < remaining allocation, distribute smallFactor.
                 // else evenly distribute remaining allocation, then distribute remainder allocation using solution 1
                 // find all zones that aren't full and repeat until allocation is met

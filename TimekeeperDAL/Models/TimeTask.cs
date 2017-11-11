@@ -124,17 +124,13 @@ namespace TimekeeperDAL.EF
             return false;
         }
 
-        public void BuildInclusionZones(DateTime StartDate, DateTime EndDate)
+        public void BuildInclusionZones()
         {
-            if (StartDate > EndDate) throw new ArgumentException("StartDate needs to be less than EndDate.", nameof(StartDate));
-            
             InclusionZones = new Dictionary<DateTime, TimeSpan>();
-            DateTime start = Start > StartDate ? Start : StartDate;
-            DateTime end = End < EndDate ? End : EndDate;
-            DateTime dt = start;
+            DateTime dt = Start;
             bool include = false;
             DateTime zoneStart = dt;
-            while (dt < end)
+            while (dt < End)
             {
                 //we want to determine if there exists at least one relevant filter that includes this time
                 bool prevInclude = include;
@@ -188,7 +184,7 @@ namespace TimekeeperDAL.EF
             //end any trailing inclusion zones
             if (include)
             {
-                InclusionZones.Add(zoneStart, end - zoneStart);
+                InclusionZones.Add(zoneStart, End - zoneStart);
             }
         }
     }

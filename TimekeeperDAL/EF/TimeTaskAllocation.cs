@@ -7,7 +7,7 @@ namespace TimekeeperDAL.EF
     public partial class TimeTaskAllocation
     {
         [Required]
-        public long Amount { get; set; }
+        public double Amount { get; set; }
 
         [Key]
         [Column(Order = 1)]

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
@@ -15,5 +17,17 @@ namespace TimekeeperDAL.EF
             }
             return false;
         }
+
+        [NotMapped]
+        public static readonly List<string> TimeResourceChoices = new List<string>()
+        {
+            "Second",
+            "Minute",
+            "Hour",
+            "Day",
+            "Week",
+            "Month",
+            "Year"
+        };
     }
 }

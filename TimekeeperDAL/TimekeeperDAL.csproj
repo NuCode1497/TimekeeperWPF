@@ -82,6 +82,10 @@
     <Compile Include="Migrations\201711100113504_NavigationLists.Designer.cs">
       <DependentUpon>201711100113504_NavigationLists.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201711110618319_AllocationAmountDouble.cs" />
+    <Compile Include="Migrations\201711110618319_AllocationAmountDouble.Designer.cs">
+      <DependentUpon>201711110618319_AllocationAmountDouble.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\LabeledEntity.cs" />
@@ -140,6 +144,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201711100113504_NavigationLists.resx">
       <DependentUpon>201711100113504_NavigationLists.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711110618319_AllocationAmountDouble.resx">
+      <DependentUpon>201711110618319_AllocationAmountDouble.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

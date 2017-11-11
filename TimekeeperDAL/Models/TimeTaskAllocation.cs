@@ -6,6 +6,7 @@
 
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
+using System;
 
 namespace TimekeeperDAL.EF
 {
@@ -43,7 +44,43 @@ namespace TimekeeperDAL.EF
             }
         }
 
+        /// <summary>
+        /// Needs to be set manually
+        /// </summary>
         [NotMapped]
-        public long Consumed { get; set; }
+        public double Remaining { get; set; }
+
+        [NotMapped]
+        public TimeSpan RemainingAsTimeSpan => new TimeSpan((long)Remaining);
+
+        public TimeSpan AsTimeSpan()
+        {
+            TimeSpan allocatedTime = new TimeSpan();
+            switch (Resource.Name)
+            {
+                case "Second":
+                    allocatedTime = new TimeSpan(0, 0, (int)Amount);
+                    break;
+                case "Minute":
+                    allocatedTime = new TimeSpan(0, (int)Amount, 0);
+                    break;
+                case "Hour":
+                    allocatedTime = new TimeSpan((int)Amount, 0, 0);
+                    break;
+                case "Day":
+                    allocatedTime = new TimeSpan((int)Amount, 0, 0, 0);
+                    break;
+                case "Week":
+                    allocatedTime = new TimeSpan((int)Amount * 7, 0, 0, 0);
+                    break;
+                case "Month":
+                    allocatedTime = new TimeSpan((int)(Amount * 30.437), 0, 0, 0);
+                    break;
+                case "Year":
+                    allocatedTime = new TimeSpan((int)(Amount * 365.2425), 0, 0, 0);
+                    break;
+            }
+            return allocatedTime;
+        }
     }
 }
