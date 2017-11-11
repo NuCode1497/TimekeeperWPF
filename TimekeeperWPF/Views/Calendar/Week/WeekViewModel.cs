@@ -13,6 +13,7 @@ using System.Data.Entity;
 using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF
 {
@@ -60,9 +61,9 @@ namespace TimekeeperWPF
         }
         protected override void AdditionalCalObjSetup(CalendarObject CalObj)
         {
-            KageBunshinNoJutsu(CalObj);
+            ShadowClone(CalObj);
         }
-        private void KageBunshinNoJutsu(CalendarObject CalObj)
+        private void ShadowClone(CalendarObject CalObj)
         {
             if (CalObj.Start.Date != CalObj.End.Date)
             {

@@ -19,6 +19,7 @@ using TimekeeperWPF;
 using System.Reflection;
 using System.Windows.Threading;
 using System.Collections;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF.Calendar
 {
@@ -122,7 +123,7 @@ namespace TimekeeperWPF.Calendar
                 else if (actualChild is CalendarObject)
                 {
                     CalendarObject CalObj = actualChild as CalendarObject;
-                    if (CalObj.TaskType.Name == "Note")
+                    if (CalObj.ParentEntity.TaskType.Name == "Note")
                     {
                         biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width);
                     }
@@ -214,7 +215,7 @@ namespace TimekeeperWPF.Calendar
                     if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
-                        if (CalObj.TaskType.Name == "Note")
+                        if (CalObj.ParentEntity.TaskType.Name == "Note")
                         {
                             childSize.Width = 20;
                             childSize.Height = 20;

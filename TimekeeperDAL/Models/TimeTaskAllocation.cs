@@ -43,10 +43,7 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
-
-        /// <summary>
-        /// Needs to be set manually
-        /// </summary>
+        
         [NotMapped]
         public double Remaining { get; set; }
 

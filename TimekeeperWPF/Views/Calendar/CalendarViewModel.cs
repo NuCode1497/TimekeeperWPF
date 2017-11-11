@@ -206,8 +206,8 @@ namespace TimekeeperWPF
                 CalendarObject CalObj = new CalendarObject();
                 CalObj.Start = N.DateTime;
                 CalObj.End = N.DateTime.AddMinutes(1);
-                CalObj.ToolTip = N.ToString();
-                CalObj.TaskType = N.TaskType;
+                CalObj.ToolTip = N;
+                CalObj.ParentEntity = N;
                 CalendarObjectsView.AddNewItem(CalObj);
                 CalendarObjectsView.CommitNew();
             }
@@ -229,8 +229,8 @@ namespace TimekeeperWPF
                 CalendarObject CalObj = new CalendarObject();
                 CalObj.Start = N.DateTime;
                 CalObj.End = N.DateTime.AddHours(1);
-                CalObj.ToolTip = N.ToString();
-                CalObj.TaskType = N.TaskType;
+                CalObj.ToolTip = N;
+                CalObj.ParentEntity = N;
                 if (prevCalObj == null)
                 {
                     prevCalObj = CalObj;
@@ -240,8 +240,8 @@ namespace TimekeeperWPF
                     prevCalObj.End = N.DateTime;
                     prevCalObj.ToolTip += String.Format("\n{0}\n{1} to\n{2}",
                     prevCalObj.DurationString(), 
-                    prevCalObj.Start.ToString(),
-                    prevCalObj.End.ToString());
+                    prevCalObj.Start,
+                    prevCalObj.End);
                     prevCalObj = CalObj;
                 }
                 CalObjs.Add(CalObj);
@@ -272,8 +272,14 @@ namespace TimekeeperWPF
                 {
                     foreach (var Z in T.InclusionZones)
                     {
-                        //TODO
                         //create cal object that matches zone
+                        CalendarObject CalObj = new CalendarObject();
+                        CalObj.Start = Z.Key;
+                        CalObj.End = Z.Key + Z.Value;
+                        CalObj.ParentEntity = T;
+                        CalendarObjectsView.AddNewItem(CalObj);
+                        CalendarObjectsView.CommitNew();
+                        AdditionalCalObjSetup(CalObj);
                     }
                     continue;
                 }
@@ -281,31 +287,38 @@ namespace TimekeeperWPF
                 // If an allocation is set, but not a rate (per), then we distribute the
                 // resource filling earlier zones first. (Eager)
                 // Find allocations with resources that are time related and per is null
-                var allocs = from A in T.Allocations
-                             where A.Per == null
-                             where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                             select A;
-                if (allocs.Count() != 0)
+                var timeAllocs = from A in T.Allocations
+                                 where A.Per == null
+                                 where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                                 select A;
+                if (timeAllocs.Count() != 0)
                 {
                     //Only one time allocation is allowed
-                    TimeTaskAllocation A = allocs.First();
+                    TimeTaskAllocation A = timeAllocs.First();
                     A.Remaining = A.AsTimeSpan().Ticks;
                     foreach (var Z in T.InclusionZones)
                     {
                         if (A.Remaining <= 0) break;
-                        //create cal object that matches zone or remaining amount
+                        CalendarObject CalObj = new CalendarObject();
                         if (A.RemainingAsTimeSpan < Z.Value)
                         {
-                            //TODO
                             //create cal obj the size of the remaining time
+                            CalObj.Start = Z.Key;
+                            CalObj.End = Z.Key + A.RemainingAsTimeSpan;
+                            CalObj.ParentEntity = T;
                             A.Remaining = 0;
                         }
                         else
                         {
-                            //TODO
                             //create cal obj the size of the zone
-                            A.Remaining = Math.Max(0, A.Remaining - Z.Value.Ticks);
+                            CalObj.Start = Z.Key;
+                            CalObj.End = Z.Key + Z.Value;
+                            CalObj.ParentEntity = T;
+                            A.Remaining -= Z.Value.Ticks;
                         }
+                        CalendarObjectsView.AddNewItem(CalObj);
+                        CalendarObjectsView.CommitNew();
+                        AdditionalCalObjSetup(CalObj);
                     }
                 }
 
@@ -314,6 +327,10 @@ namespace TimekeeperWPF
                 // then we find all inclusion zones bounded within that week, then we
                 // distribute 40 hours within the inclusion zones as per Solution 2 below.
                 // Can force Eager/Even/Apathetic
+                var timePerTimeAllocs = from A in T.Allocations
+                                 where Resource.TimeResourceChoices.Contains(A.Per.Name)
+                                 where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                                 select A;
 
                 // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
                 // repeat, stop when allocations met or no more space

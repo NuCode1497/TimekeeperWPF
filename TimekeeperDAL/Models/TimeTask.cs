@@ -126,10 +126,12 @@ namespace TimekeeperDAL.EF
 
         public void BuildInclusionZones()
         {
+            if (End <= Start) return;
             InclusionZones = new Dictionary<DateTime, TimeSpan>();
-            DateTime dt = Start;
+            DateTime zoneStart = Start;
+            DateTime dt = zoneStart;
+            TimeSpan minimumDuration = new TimeSpan(0, 5, 0);
             bool include = false;
-            DateTime zoneStart = dt;
             while (dt < End)
             {
                 //we want to determine if there exists at least one relevant filter that includes this time
@@ -170,16 +172,17 @@ namespace TimekeeperDAL.EF
                 {
                     if (include)
                     {
-                        //we are starting an include zone
+                        //we are starting a new inclusion zone
                         zoneStart = dt;
                     }
                     else
                     {
-                        //we are ending an include zone
+                        //we are ending an inclusion zone
+                        var duration = new TimeSpan(Math.Max(minimumDuration.Ticks, (dt - zoneStart).Ticks));
                         InclusionZones.Add(zoneStart, dt - zoneStart);
                     }
                 }
-                dt.AddMinutes(5);
+                dt += minimumDuration;
             }
             //end any trailing inclusion zones
             if (include)

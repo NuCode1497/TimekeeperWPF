@@ -24,6 +24,7 @@ using TimekeeperWPF;
 using System.Reflection;
 using System.Windows.Threading;
 using System.Collections;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF.Calendar
 {

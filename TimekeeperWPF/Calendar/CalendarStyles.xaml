@@ -7,7 +7,9 @@
 
 
     <Style TargetType="cal:CalendarObject">
-        <!--<Setter Property="Template">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type cal:CalendarObject}">
                     <Border Background="{TemplateBinding Background}"
@@ -16,13 +18,13 @@
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
-        </Setter>-->
+        </Setter>
         <Style.Triggers>
             <Trigger Property="TaskTypeName" Value="Note">
-                <!--TODO doesnt work-->
                 <Setter Property="Content">
                     <Setter.Value>
                         <Grid>
+                            <!--TODO doesnt work-->
                             <TextBlock Text="&#x1f4dc;"/>
                         </Grid>
                     </Setter.Value>

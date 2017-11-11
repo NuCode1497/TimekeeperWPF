@@ -13,6 +13,7 @@ using TimekeeperWPF.Tools;
 using TimekeeperWPF.Calendar;
 using System.Windows.Data;
 using System.Windows;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF
 {

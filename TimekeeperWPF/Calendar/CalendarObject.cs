@@ -1,20 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 using TimekeeperDAL.EF;
-using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF.Calendar
 {
@@ -45,8 +35,6 @@ namespace TimekeeperWPF.Calendar
         {
             InvalidateArrange();
         }
-        #region Properties
-        public TypedLabeledEntity ParentEntity { get; set; }
         public TimeSpan Duration => End - Start;
         public string DurationString()
         {
@@ -56,7 +44,6 @@ namespace TimekeeperWPF.Calendar
             if (Duration.Minutes > 0) s += Duration.Minutes + " minutes ";
             return s;
         }
-        #region End
         public DateTime End
         {
             get { return (DateTime)GetValue(EndProperty); }
@@ -66,8 +53,6 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(End), typeof(DateTime), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
-        #endregion
-        #region Scale
         public double Scale
         {
             get { return (double)GetValue(ScaleProperty); }
@@ -78,8 +63,6 @@ namespace TimekeeperWPF.Calendar
                 nameof(Scale), typeof(double), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(60d),
                 new ValidateValueCallback(Day.IsValidScale));
-        #endregion
-        #region Start
         public DateTime Start
         {
             get { return (DateTime)GetValue(StartProperty); }
@@ -89,8 +72,41 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(Start), typeof(DateTime), typeof(CalendarObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
-        #endregion
-        #region TaskType
+        public TypedLabeledEntity ParentEntity
+        {
+            get { return (TypedLabeledEntity)GetValue(ParentEntityProperty); }
+            set { SetValue(ParentEntityProperty, value); }
+        }
+        public static readonly DependencyProperty ParentEntityProperty =
+            DependencyProperty.Register(
+                nameof(ParentEntity), typeof(TypedLabeledEntity), typeof(CalendarObject),
+                new FrameworkPropertyMetadata(null,
+                    new PropertyChangedCallback(OnParentEntityChanged),
+                    new CoerceValueCallback(OnCoerceParentEntity)));
+        public static void OnParentEntityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            CalendarObject CalObj = d as CalendarObject;
+            TypedLabeledEntity value = (TypedLabeledEntity)e.NewValue;
+            CalObj.SetValue(TaskTypeProperty, value.TaskType.Name);
+        }
+        public static object OnCoerceParentEntity(DependencyObject d, object value)
+        {
+            //here we will synchronize this tasktype with parententity tasktype by subscribing to propertychanged
+            CalendarObject CalObj = d as CalendarObject;
+            TypedLabeledEntity OldValue = CalObj.ParentEntity;
+            TypedLabeledEntity NewValue = (TypedLabeledEntity)value;
+            if (OldValue != null) OldValue.PropertyChanged -= CalObj.OnParentEntityPropertyChanged;
+            NewValue.PropertyChanged += CalObj.OnParentEntityPropertyChanged;
+            return NewValue;
+        }
+        private void OnParentEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(TypedLabeledEntity.TaskType))
+            {
+                TypedLabeledEntity entity = (TypedLabeledEntity)sender;
+                TaskType = entity.TaskType;
+            }
+        }
         public TaskType TaskType
         {
             get { return (TaskType)GetValue(TaskTypeProperty); }
@@ -99,7 +115,7 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty TaskTypeProperty =
             DependencyProperty.Register(
                 nameof(TaskType), typeof(TaskType), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(null, 
+                new FrameworkPropertyMetadata(null,
                     new PropertyChangedCallback(OnTaskTypeChanged)));
         public static void OnTaskTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -118,9 +134,7 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty TaskTypeNameProperty =
             TaskTypeNamePropertyKey.DependencyProperty;
-        #endregion
-        #endregion
-        #region Kage Bunshin No Jutsu
+        #region Shadow Clone
         /// <summary>
         ///This is configured such that CalendarObjects that normally span across more than 
         ///one day shall have additional copies for each day it occupies in this week, up to 7.
@@ -147,7 +161,7 @@ namespace TimekeeperWPF.Calendar
             End = CalObj.End;
             Start = CalObj.Start;
             ToolTip = CalObj.ToolTip;
-            TaskType = CalObj.TaskType;
+            ParentEntity = CalObj.ParentEntity;
             PropagateMimicry();
         }
         public void PropagateMimicry()
