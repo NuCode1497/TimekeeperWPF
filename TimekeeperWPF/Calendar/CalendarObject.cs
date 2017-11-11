@@ -20,9 +20,6 @@ namespace TimekeeperWPF.Calendar
 {
     public class CalendarObject : ContentControl, IDisposable
     {
-        #region Fields
-        #endregion
-        #region Constructors
         static CalendarObject()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), 
@@ -39,8 +36,6 @@ namespace TimekeeperWPF.Calendar
         {
             Day._Timer.Tick += _Timer_Tick;
         }
-        #endregion
-        #region Events
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
@@ -50,16 +45,8 @@ namespace TimekeeperWPF.Calendar
         {
             InvalidateArrange();
         }
-        #endregion Events
         #region Properties
-        public bool IsPropagatingMimicry { get; private set; }
-        public CalendarObject OriginalCalObj { get; set; } = null;
-        /// <summary>
-        ///This is configured such that CalendarObjects that normally span across more than 
-        ///one day shall have additional copies for each day it occupies in this week, up to 7.
-        ///DayOffset indicates the copy number and offsets by that number of days.
-        /// </summary>
-        public int DayOffset { get; set; } = 0;
+        public TypedLabeledEntity ParentEntity { get; set; }
         public TimeSpan Duration => End - Start;
         public string DurationString()
         {
@@ -134,6 +121,14 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #endregion
         #region Kage Bunshin No Jutsu
+        /// <summary>
+        ///This is configured such that CalendarObjects that normally span across more than 
+        ///one day shall have additional copies for each day it occupies in this week, up to 7.
+        ///DayOffset indicates the copy number and offsets by that number of days.
+        /// </summary>
+        public int DayOffset { get; set; } = 0;
+        public bool IsPropagatingMimicry { get; private set; }
+        public CalendarObject OriginalCalObj { get; set; } = null;
         private List<CalendarObject> _Clones = null;
         public CalendarObject ShadowClone()
         {

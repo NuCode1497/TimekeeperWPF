@@ -42,5 +42,8 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
+
+        [NotMapped]
+        public long Consumed { get; set; }
     }
 }

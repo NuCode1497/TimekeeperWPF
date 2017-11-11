@@ -257,12 +257,37 @@ namespace TimekeeperWPF
         private void CreateEventObjectsFromTimeTasks()
         {
             View.Filter = T => IsTaskRelevant((TimeTask)T);
-            List<CalendarObject> calObjs = new List<CalendarObject>();
             foreach (TimeTask T in View)
             {
-                T.BuildInclusionPoints(SelectedDate, EndDate);
-                //TODO
-                //based on the inclusion points, build calendar objects
+                T.BuildInclusionZones(SelectedDate, EndDate);
+            }
+            foreach (TimeTask T in View)
+            {
+                // Goal: create CalendarObjects inside the inclusions of the task so that
+                // each inclusion is used and resource consumption is evenly distributed
+
+                // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
+                // repeat, stop when allocations met or no more space
+
+                // Solution 2: inCount = count inclusion zones. 
+                // smallFactor = find smallest zone. 
+                // smallFactor distributed = sFD = smallFactor * inCount.
+                // if sFD < remaining allocation, distribute smallFactor.
+                // else evenly distribute remaining allocation, then distribute remainder allocation using solution 1
+                // find all zones that aren't full and repeat until allocation is met
+
+                int inCount = T.InclusionZones.Count;
+                var smallest = T.InclusionZones.Min(z => z.Value);
+
+                // Determine the available resources.
+                // By default, if there are no time allocations, we pretend that the allocated time
+                // is the total of all inclusion zones.
+                // If there is a time allocation, 
+
+                foreach (TimeTaskAllocation A in T.Allocations)
+                {
+
+                }
             }
         }
 

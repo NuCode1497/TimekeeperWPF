@@ -111,32 +111,32 @@ namespace TimekeeperDAL.EF
         public TimeSpan Duration => End - Start;
 
         [NotMapped]
-        public Dictionary<DateTime, bool> InclusionPoints { get; set; }
+        public Dictionary<DateTime, TimeSpan> InclusionZones { get; set; }
 
         public override bool HasDateTime(DateTime dt)
         {
-            if ((InclusionPoints == null) || (InclusionPoints.Count == 0)) return false;
-            bool result = false;
-            foreach (var p in InclusionPoints)
+            if ((InclusionZones == null) || (InclusionZones.Count == 0)) return false;
+            foreach (var z in InclusionZones)
             {
-                if (dt < p.Key) return result;
-                result = p.Value;
+                if (dt < z.Key) return false;
+                if (dt < z.Key + z.Value) return true;
             }
-            return result;
+            return false;
         }
 
-        public void BuildInclusionPoints(DateTime StartDate, DateTime EndDate)
+        public void BuildInclusionZones(DateTime StartDate, DateTime EndDate)
         {
             if (StartDate > EndDate) throw new ArgumentException("StartDate needs to be less than EndDate.", nameof(StartDate));
-
-            //An "inclusion span" is a span of time from a true to a false
-            InclusionPoints = new Dictionary<DateTime, bool>();
+            
+            InclusionZones = new Dictionary<DateTime, TimeSpan>();
             DateTime start = Start > StartDate ? Start : StartDate;
             DateTime end = End < EndDate ? End : EndDate;
             DateTime dt = start;
             bool include = false;
+            DateTime zoneStart = dt;
             while (dt < end)
             {
+                //we want to determine if there exists at least one relevant filter that includes this time
                 bool prevInclude = include;
                 bool hasRelevantFilter = false;
                 foreach (TimeTaskFilter F in Filters)
@@ -169,10 +169,26 @@ namespace TimekeeperDAL.EF
                 }
                 //if no filters exist at this time, exclude
                 if (!hasRelevantFilter) include = false;
-                //detect a filter edge and add an inclusion point
-                //this only happens when starting or ending an include
-                if (prevInclude != include) InclusionPoints.Add(dt, include);
+                //detect a filter edge and add an inclusion zone
+                if (prevInclude != include)
+                {
+                    if (include)
+                    {
+                        //we are starting an include zone
+                        zoneStart = dt;
+                    }
+                    else
+                    {
+                        //we are ending an include zone
+                        InclusionZones.Add(zoneStart, dt - zoneStart);
+                    }
+                }
                 dt.AddMinutes(5);
+            }
+            //end any trailing inclusion zones
+            if (include)
+            {
+                InclusionZones.Add(zoneStart, end - zoneStart);
             }
         }
     }

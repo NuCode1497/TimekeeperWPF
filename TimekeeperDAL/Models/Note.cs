@@ -1,6 +1,7 @@
 ﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
+using System;
 
 namespace TimekeeperDAL.EF
 {
@@ -35,6 +36,11 @@ namespace TimekeeperDAL.EF
                 if (!hasError) ClearErrors(columnName);
                 return string.Empty;
             }
+        }
+
+        public override bool HasDateTime(DateTime dt)
+        {
+            return false;
         }
     }
 }
