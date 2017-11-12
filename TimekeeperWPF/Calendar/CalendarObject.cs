@@ -91,7 +91,7 @@ namespace TimekeeperWPF.Calendar
         }
         public static object OnCoerceParentEntity(DependencyObject d, object value)
         {
-            //here we will synchronize this tasktype with parententity tasktype by subscribing to propertychanged
+            //here we will syncronize TaskType with ParentEntity.TaskType by subscribing to PropertyChanged
             CalendarObject CalObj = d as CalendarObject;
             TypedLabeledEntity OldValue = CalObj.ParentEntity;
             TypedLabeledEntity NewValue = (TypedLabeledEntity)value;

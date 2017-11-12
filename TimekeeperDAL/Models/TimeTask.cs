@@ -108,6 +108,9 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
+        public static TimeSpan MinimumDuration { get; set; } = new TimeSpan(0, 5, 0);
+
+        [NotMapped]
         public TimeSpan Duration => End - Start;
 
         [NotMapped]
@@ -130,7 +133,6 @@ namespace TimekeeperDAL.EF
             InclusionZones = new Dictionary<DateTime, TimeSpan>();
             DateTime zoneStart = Start;
             DateTime dt = zoneStart;
-            TimeSpan minimumDuration = new TimeSpan(0, 5, 0);
             bool include = false;
             while (dt < End)
             {
@@ -178,11 +180,11 @@ namespace TimekeeperDAL.EF
                     else
                     {
                         //we are ending an inclusion zone
-                        var duration = new TimeSpan(Math.Max(minimumDuration.Ticks, (dt - zoneStart).Ticks));
+                        var duration = new TimeSpan(Math.Max(MinimumDuration.Ticks, (dt - zoneStart).Ticks));
                         InclusionZones.Add(zoneStart, dt - zoneStart);
                     }
                 }
-                dt += minimumDuration;
+                dt += MinimumDuration;
             }
             //end any trailing inclusion zones
             if (include)

@@ -21,7 +21,6 @@ namespace TimekeeperDAL.EF
         [NotMapped]
         public static readonly List<string> TimeResourceChoices = new List<string>()
         {
-            "Second",
             "Minute",
             "Hour",
             "Day",

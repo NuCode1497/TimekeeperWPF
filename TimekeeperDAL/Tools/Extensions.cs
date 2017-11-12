@@ -71,6 +71,7 @@ namespace TimekeeperDAL.Tools
         public static double Within(this double d, double min, double max) { return Math.Max(min, Math.Min(d, max)); }
         public static DateTime WeekStart(this DateTime d) { return d.Date.AddDays(-(int)d.DayOfWeek).Date; }
         public static DateTime MonthStart(this DateTime d) { return new DateTime(d.Year, d.Month, 1); }
+        public static DateTime YearStart(this DateTime d) { return new DateTime(d.Year, 1, 1); }
         public static int DaySeconds(this DateTime d)
         {
             DateTime date = d.Date;

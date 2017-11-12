@@ -263,9 +263,6 @@ namespace TimekeeperWPF
             }
             foreach (TimeTask T in View)
             {
-                // Goal: create CalendarObjects inside the inclusions of the task so that
-                // each inclusion is used and resource consumption is distributed appropriately.
-
                 // If no allocation is set, we create one CalendarObject per inclusion zone
                 // with each Start, End set to the bounds of the inclusion zone.
                 if (T.Allocations.Count == 0)
@@ -293,70 +290,154 @@ namespace TimekeeperWPF
                                  select A;
                 if (timeAllocs.Count() != 0)
                 {
-                    //Only one time allocation is allowed
                     TimeTaskAllocation A = timeAllocs.First();
-                    A.Remaining = A.AsTimeSpan().Ticks;
-                    foreach (var Z in T.InclusionZones)
-                    {
-                        if (A.Remaining <= 0) break;
-                        CalendarObject CalObj = new CalendarObject();
-                        if (A.RemainingAsTimeSpan < Z.Value)
-                        {
-                            //create cal obj the size of the remaining time
-                            CalObj.Start = Z.Key;
-                            CalObj.End = Z.Key + A.RemainingAsTimeSpan;
-                            CalObj.ParentEntity = T;
-                            A.Remaining = 0;
-                        }
-                        else
-                        {
-                            //create cal obj the size of the zone
-                            CalObj.Start = Z.Key;
-                            CalObj.End = Z.Key + Z.Value;
-                            CalObj.ParentEntity = T;
-                            A.Remaining -= Z.Value.Ticks;
-                        }
-                        CalendarObjectsView.AddNewItem(CalObj);
-                        CalendarObjectsView.CommitNew();
-                        AdditionalCalObjSetup(CalObj);
-                    }
+                    A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                    EagerAllocate(T, A);
+                    continue;
                 }
 
                 // If 'per' is set, then we evenly distribute consumption within each 'per'.
                 // So for example "40 hours per week": We filter onto a select week,
                 // then we find all inclusion zones bounded within that week, then we
-                // distribute 40 hours within the inclusion zones as per Solution 2 below.
-                // Can force Eager/Even/Apathetic
+                // distribute 40 hours within the inclusion zones as Eager/Even/Apathetic
                 var timePerTimeAllocs = from A in T.Allocations
-                                 where Resource.TimeResourceChoices.Contains(A.Per.Name)
-                                 where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                                 select A;
-
-                // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
-                // repeat, stop when allocations met or no more space
-
-                // Solution 2: inCount = count inclusion zones. 
-                // find smallest zone. 
-                // sFD = smallFactor * inCount.
-                // if sFD < remaining allocation, distribute smallFactor.
-                // else evenly distribute remaining allocation, then distribute remainder allocation using solution 1
-                // find all zones that aren't full and repeat until allocation is met
-
-                int inCount = T.InclusionZones.Count;
-                var smallest = T.InclusionZones.Min(z => z.Value);
-
-                // Determine the available resources.
-                // By default, if there are no time allocations, we pretend that the allocated time
-                // is the total of all inclusion zones.
-                // If there is a time allocation, 
-
-                foreach (TimeTaskAllocation A in T.Allocations)
+                                        where Resource.TimeResourceChoices.Contains(A.Per.Name)
+                                        where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                                        select A;
+                if (timePerTimeAllocs.Count() != 0)
                 {
+                    TimeTaskAllocation A = timeAllocs.First();
+                    //Allocation amount shouldn't be more than per, if it is, then throw an error
 
+                    // ceiling count number of per zones
+                    // find DateTime of first Per within time range
+                    DateTime firstPer = T.InclusionZones.First().Key;
+                    DateTime dt;
+                    switch (A.Per.Name)
+                    {
+                        case "Hour":
+                            firstPer = new DateTime(firstPer.Year, firstPer.Month, firstPer.Day, firstPer.Hour, 0, 0, firstPer.Kind);
+                            dt = firstPer;
+                            while (dt < T.End)
+                            {
+                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                                EvenAllocate(T, A);
+                                dt.AddHours(1);
+                            }
+                            break;
+                        case "Day":
+                            firstPer = firstPer.Date;
+                            dt = firstPer;
+                            while (dt < T.End)
+                            {
+                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                                EvenAllocate(T, A);
+                                dt.AddDays(1);
+                            }
+                            break;
+                        case "Week":
+                            firstPer.WeekStart();
+                            dt = firstPer;
+                            while (dt < T.End)
+                            {
+                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                                EvenAllocate(T, A);
+                                dt.AddDays(7);
+                            }
+                            break;
+                        case "Month":
+                            firstPer.MonthStart();
+                            dt = firstPer;
+                            while (dt < T.End)
+                            {
+                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                                EvenAllocate(T, A);
+                                dt.AddMonths(1);
+                            }
+                            break;
+                        case "Year":
+                            firstPer.YearStart();
+                            dt = firstPer;
+                            while (dt < T.End)
+                            {
+                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                                EvenAllocate(T, A);
+                                dt.AddYears(1);
+                            }
+                            break;
+                    }
                 }
+
+                //other allocations
             }
         }
+        private void EagerAllocate(TimeTask T, TimeTaskAllocation A)
+        {
+            foreach (var Z in T.InclusionZones)
+            {
+                if (A.Remaining <= 0) break;
+                CalendarObject CalObj = new CalendarObject();
+                if (A.RemainingAsTimeSpan < Z.Value)
+                {
+                    //create cal obj the size of the remaining time
+                    CalObj.Start = Z.Key;
+                    CalObj.End = Z.Key + A.RemainingAsTimeSpan;
+                    CalObj.ParentEntity = T;
+                    A.Remaining = 0;
+                }
+                else
+                {
+                    //create cal obj the size of the zone
+                    CalObj.Start = Z.Key;
+                    CalObj.End = Z.Key + Z.Value;
+                    CalObj.ParentEntity = T;
+                    A.Remaining -= Z.Value.Ticks;
+                }
+                CalendarObjectsView.AddNewItem(CalObj);
+                CalendarObjectsView.CommitNew();
+                AdditionalCalObjSetup(CalObj);
+            }
+        }
+        private void EvenAllocate(TimeTask T, TimeTaskAllocation A)
+        {
+            // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
+            // repeat, stop when allocations met or no more space
 
+            var zoneCount = T.InclusionZones.Count;
+            // We will iterate through each zone adding time to the associated CalendarObject.
+            var AllocatedCalendarObjects = new Dictionary<KeyValuePair<DateTime, TimeSpan>, CalendarObject>();
+            foreach (var zone in T.InclusionZones)
+            {
+                AllocatedCalendarObjects.Add(zone, new CalendarObject()
+                {
+                    Start = zone.Key,
+                    End = zone.Key
+                });
+            }
+            // get the remaining area of the zone with the smallest remaining area greater than zero
+            var smallest = AllocatedCalendarObjects.Min(Z => new TimeSpan(Math.Max(0, Z.Key.Value.Ticks - (Z.Value.Duration).Ticks)));
+            // get the total area if that area was distributed to every zone
+            var smallestDistributed = new TimeSpan(smallest.Ticks * zoneCount);
+            // check if the remaining time can be at least partially distributed with the above amount
+            if (smallestDistributed < A.RemainingAsTimeSpan)
+            {
+                //distribute the smallest
+                foreach (var Z in AllocatedCalendarObjects)
+                {
+                    Z.Value.End += smallest;
+                }
+            }
+            // else evenly distribute remaining allocation, then distribute remainder allocation using solution 1
+            else
+            {
+                //TODO: Maybe I should just use solution 1 always because it would be awkward to spread a task too thin and should at least be in chunks of 5 minutes
+            }
+            // find all zones that aren't full and repeat until allocation is met
+        }
+        private void ApatheticAllocate(TimeTask T, TimeTaskAllocation A)
+        {
+            //TODO
+        }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
         protected bool IsTaskRelevant(TimeTask task)
         {
