@@ -108,7 +108,7 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
-        public static TimeSpan MinimumDuration { get; set; } = new TimeSpan(0, 5, 0);
+        public static TimeSpan MinimumDuration => new TimeSpan(0, 5, 0);
 
         [NotMapped]
         public TimeSpan Duration => End - Start;
@@ -130,8 +130,8 @@ namespace TimekeeperDAL.EF
         public void BuildInclusionZones()
         {
             //We need to align this task to the calendar by rounding up to the nearest MinimumDuration step
-            Start.RoundUp(MinimumDuration);
-            End.RoundUp(MinimumDuration);
+            Start = Start.RoundUp(MinimumDuration);
+            End = End.RoundUp(MinimumDuration);
             if (End <= Start) throw new Exception(String.Format(
                 "Start must be less than End by at least {0}", MinimumDuration.ToString(@"dd\.hh\:mm\:ss")));
             InclusionZones = new Dictionary<DateTime, DateTime>();

@@ -35,12 +35,12 @@ namespace TimekeeperWPF
         private ICommand _SelectDayCommand;
         private ICommand _SelectYearCommand;
         private ICommand _SelectMonthCommand;
-        #endregion
+        #endregion Fields
         #region Events
         public event RequestViewChangeEventHandler RequestViewChange;
         protected virtual void OnRequestViewChange(RequestViewChangeEventArgs e)
         { RequestViewChange?.Invoke(this, e); }
-        #endregion
+        #endregion Events
         #region Properties
         public List<CalendarTimeTaskMap> TaskMaps;
         public CollectionViewSource CalendarObjectsCollection { get; set; }
@@ -124,7 +124,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        #endregion
+        #endregion Properties
         #region Commands
         public ICommand PreviousCommand => _PreviousCommand
             ?? (_PreviousCommand = new RelayCommand(ap => Previous(), pp => CanPrevious));
@@ -144,7 +144,7 @@ namespace TimekeeperWPF
             ?? (_SelectYearCommand = new RelayCommand(ap => SelectYear(), pp => CanSelectYear));
         public ICommand SelectMonthCommand => _SelectMonthCommand
             ?? (_SelectMonthCommand = new RelayCommand(ap => SelectMonth(), pp => CanSelectMonth));
-        #endregion
+        #endregion Commands
         #region Predicates
         protected virtual bool CanPrevious => true;
         protected virtual bool CanNext => true;
@@ -162,7 +162,7 @@ namespace TimekeeperWPF
         protected override bool CanEditSelected => false;
         protected override bool CanSave => false;
         protected override bool CanDeleteSelected => false;
-        #endregion
+        #endregion Predicates
         #region Actions
         protected virtual void SelectWeek()
         { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Week, SelectedDate)); }
@@ -190,10 +190,10 @@ namespace TimekeeperWPF
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
             //CreateNoteObjects();
-            //CreateEventObjectsFromNotes();
             CreateEventObjectsFromTimeTasks();
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
+        //TODO update by adding CRUD stuff for notes
         private void CreateNoteObjects()
         {
             View.Filter = N =>
@@ -214,6 +214,7 @@ namespace TimekeeperWPF
             }
             View.Filter = null;
         }
+        [Obsolete("This is just here for reference, for now, and doesn't work anymore.")]
         private void CreateEventObjectsFromNotes()
         {
             CalendarObject prevCalObj = null;
@@ -259,13 +260,15 @@ namespace TimekeeperWPF
         {
             View.Filter = T => IsTaskRelevant((TimeTask)T);
             BuildTaskMaps();
+            //Deal with time allocations
             foreach (var M in TaskMaps)
             {
                 if (M.InclusionZones.Count == 0) continue;
-                if (AllocateTime(M)) continue;
+                if (AllocateAllTime(M)) continue;
                 if (AllocateTimeResource(M)) continue;
                 if (AllocateTimePerTime(M)) continue;
             }
+            //TODO Deal with other types of allocations like dollars per hour, gas per dollar, etc.
         }
         private void BuildTaskMaps()
         {
@@ -285,7 +288,7 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private bool AllocateTime(CalendarTimeTaskMap M)
+        private bool AllocateAllTime(CalendarTimeTaskMap M)
         {
             // If no allocation is set, we create one CalendarObject per inclusion zone
             // with each Start/End set to the bounds of the inclusion zone.
@@ -295,8 +298,8 @@ namespace TimekeeperWPF
                 {
                     //create cal object that matches zone
                     CalendarObject CalObj = new CalendarObject();
-                    CalObj.Start = Z.Start;
-                    CalObj.End = Z.End;
+                    CalObj.Start = Z.Start.RoundUp(TimeTask.MinimumDuration);
+                    CalObj.End = Z.End.RoundUp(TimeTask.MinimumDuration);
                     CalObj.ParentEntity = M.TimeTask;
                     Z.CalendarObjects.Add(CalObj);
                     CalendarObjectsView.AddNewItem(CalObj);
@@ -410,6 +413,8 @@ namespace TimekeeperWPF
                     CalObj.End = Z.End;
                     A.Remaining -= Z.Duration.Ticks;
                 }
+                CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
+                CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
                 CalObj.ParentEntity = Map.TimeTask;
                 Z.CalendarObjects.Add(CalObj);
                 CalendarObjectsView.AddNewItem(CalObj);
@@ -419,45 +424,55 @@ namespace TimekeeperWPF
         }
         private void EvenAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
         {
-            // Fill the zones evenly
-
-            // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
-            // repeat, stop when allocations met or no more space
-
-            // We will iterate through each zone adding time to the associated CalendarObject.
-            //TODO
-            //this should be just the zones within the current per
-            foreach (var zone in Zones)
+            if (TimeTask.MinimumDuration.Ticks < TimeSpan.TicksPerMinute) throw new Exception(
+                "Invalid value for TimeTask.MinimumDuration. Should be greater than a minute for stability reasons.");
+            //First loop that creates CalendarObjects
+            foreach (var Z in Map.InclusionZones)
             {
-                AllocatedCalendarObjects.Add(zone, new CalendarObject()
-                {
-                    Start = zone.Key,
-                    End = zone.Key
-                });
+                if (A.Remaining <= 0) break;
+                if (Z.Duration.Ticks <= 0) break;
+                CalendarObject CalObj = new CalendarObject();
+                CalObj.Start = Z.Start;
+                CalObj.End = Z.Start + TimeTask.MinimumDuration;
+                A.Remaining -= TimeTask.MinimumDuration.Ticks;
+                CalObj.ParentEntity = Map.TimeTask;
+                Z.CalendarObjects.Add(CalObj);
             }
-            // get the remaining area of the zone with the smallest remaining area greater than zero
-            var smallest = AllocatedCalendarObjects.Min(Z => new TimeSpan(Math.Max(0, Z.Key.Value.Ticks - (Z.Value.Duration).Ticks)));
-            // get the total area if that area was distributed to every zone
-            var smallestDistributed = new TimeSpan(smallest.Ticks * zoneCount);
-            // check if the remaining time can be at least partially distributed with the above amount
-            if (smallestDistributed < A.RemainingAsTimeSpan)
+            //Second loop that adds more time to CalendarObjects
+            while (A.Remaining >= TimeTask.MinimumDuration.Ticks)
             {
-                //distribute the smallest
-                foreach (var Z in AllocatedCalendarObjects)
+                foreach (var Z in Map.InclusionZones)
                 {
-                    Z.Value.End += smallest;
+                    if (Z.Duration.Ticks <= 0) break;
+                    foreach (var CalObj in Z.CalendarObjects)
+                    {
+                        if (A.Remaining <= 0) break;
+                        //If zone is full
+                        if (Z.Duration.Ticks - CalObj.Duration.Ticks <= 0) break;
+                        CalObj.End += TimeTask.MinimumDuration;
+                        A.Remaining -= TimeTask.MinimumDuration.Ticks;
+                    }
+                    if (A.Remaining <= 0) break;
                 }
             }
-            // else evenly distribute remaining allocation, then distribute remainder allocation using solution 1
-            else
+            //Third loop that finalizes CalendarObjects
+            foreach (var Z in Map.InclusionZones)
             {
-                //TODO: Maybe I should just use solution 1 always because it would be awkward to spread a task too thin and should at least be in chunks of 5 minutes
+                foreach (var CalObj in Z.CalendarObjects)
+                {
+                    CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
+                    CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
+                    CalendarObjectsView.AddNewItem(CalObj);
+                    CalendarObjectsView.CommitNew();
+                    AdditionalCalObjSetup(CalObj);
+                }
             }
-            // find all zones that aren't full and repeat until allocation is met
         }
-        private void ApatheticAllocate(TimeTask T, TimeTaskAllocation A, Dictionary<DateTime, TimeSpan> Zones)
+        private void ApatheticAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
         {
             //TODO
+            //The opposite of EagerAllocate. 
+            //CalendarObjects are allocated in later zones first
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
         protected bool IsTaskRelevant(TimeTask task)
@@ -493,6 +508,6 @@ namespace TimekeeperWPF
         }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
-        #endregion
+        #endregion Actions
     }
 }
