@@ -114,7 +114,7 @@ namespace TimekeeperDAL.EF
         public TimeSpan Duration => End - Start;
 
         [NotMapped]
-        public Dictionary<DateTime, TimeSpan> InclusionZones { get; set; }
+        public Dictionary<DateTime, DateTime> InclusionZones { get; set; }
 
         public override bool HasDateTime(DateTime dt)
         {
@@ -122,15 +122,19 @@ namespace TimekeeperDAL.EF
             foreach (var z in InclusionZones)
             {
                 if (dt < z.Key) return false;
-                if (dt < z.Key + z.Value) return true;
+                if (dt < z.Value) return true;
             }
             return false;
         }
 
         public void BuildInclusionZones()
         {
-            if (End <= Start) return;
-            InclusionZones = new Dictionary<DateTime, TimeSpan>();
+            //We need to align this task to the calendar by rounding up to the nearest MinimumDuration step
+            Start.RoundUp(MinimumDuration);
+            End.RoundUp(MinimumDuration);
+            if (End <= Start) throw new Exception(String.Format(
+                "Start must be less than End by at least {0}", MinimumDuration.ToString(@"dd\.hh\:mm\:ss")));
+            InclusionZones = new Dictionary<DateTime, DateTime>();
             DateTime zoneStart = Start;
             DateTime dt = zoneStart;
             bool include = false;
@@ -181,7 +185,7 @@ namespace TimekeeperDAL.EF
                     {
                         //we are ending an inclusion zone
                         var duration = new TimeSpan(Math.Max(MinimumDuration.Ticks, (dt - zoneStart).Ticks));
-                        InclusionZones.Add(zoneStart, dt - zoneStart);
+                        InclusionZones.Add(zoneStart, zoneStart + duration);
                     }
                 }
                 dt += MinimumDuration;
@@ -189,7 +193,7 @@ namespace TimekeeperDAL.EF
             //end any trailing inclusion zones
             if (include)
             {
-                InclusionZones.Add(zoneStart, End - zoneStart);
+                InclusionZones.Add(zoneStart, End);
             }
         }
     }

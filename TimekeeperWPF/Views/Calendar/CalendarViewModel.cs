@@ -42,6 +42,7 @@ namespace TimekeeperWPF
         { RequestViewChange?.Invoke(this, e); }
         #endregion
         #region Properties
+        public List<CalendarTimeTaskMap> TaskMaps;
         public CollectionViewSource CalendarObjectsCollection { get; set; }
         public ObservableCollection<UIElement> CalendarObjectsSource => CalendarObjectsCollection?.Source as ObservableCollection<UIElement>;
         public ListCollectionView CalendarObjectsView => CalendarObjectsCollection?.View as ListCollectionView;
@@ -257,156 +258,176 @@ namespace TimekeeperWPF
         private void CreateEventObjectsFromTimeTasks()
         {
             View.Filter = T => IsTaskRelevant((TimeTask)T);
+            BuildTaskMaps();
+            foreach (var M in TaskMaps)
+            {
+                if (M.InclusionZones.Count == 0) continue;
+                if (AllocateTime(M)) continue;
+                if (AllocateTimeResource(M)) continue;
+                if (AllocateTimePerTime(M)) continue;
+            }
+        }
+        private void BuildTaskMaps()
+        {
+            TaskMaps = new List<CalendarTimeTaskMap>();
             foreach (TimeTask T in View)
             {
                 T.BuildInclusionZones();
-            }
-            foreach (TimeTask T in View)
-            {
-                // If no allocation is set, we create one CalendarObject per inclusion zone
-                // with each Start, End set to the bounds of the inclusion zone.
-                if (T.Allocations.Count == 0)
+                var map = new CalendarTimeTaskMap();
+                map.TimeTask = T;
+                map.InclusionZones = new List<InclusionZone>();
+                foreach (var Z in T.InclusionZones)
                 {
-                    foreach (var Z in T.InclusionZones)
-                    {
-                        //create cal object that matches zone
-                        CalendarObject CalObj = new CalendarObject();
-                        CalObj.Start = Z.Key;
-                        CalObj.End = Z.Key + Z.Value;
-                        CalObj.ParentEntity = T;
-                        CalendarObjectsView.AddNewItem(CalObj);
-                        CalendarObjectsView.CommitNew();
-                        AdditionalCalObjSetup(CalObj);
-                    }
-                    continue;
+                    var zone = new InclusionZone();
+                    zone.Start = Z.Key;
+                    zone.End = Z.Value;
+                    zone.CalendarObjects = new List<CalendarObject>();
                 }
-
-                // If an allocation is set, but not a rate (per), then we distribute the
-                // resource filling earlier zones first. (Eager)
-                // Find allocations with resources that are time related and per is null
-                var timeAllocs = from A in T.Allocations
-                                 where A.Per == null
-                                 where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                                 select A;
-                if (timeAllocs.Count() != 0)
-                {
-                    TimeTaskAllocation A = timeAllocs.First();
-                    A.Remaining = A.ResourceAsTimeSpan().Ticks;
-                    EagerAllocate(T, A);
-                    continue;
-                }
-
-                // If 'per' is set, then we evenly distribute consumption within each 'per'.
-                // So for example "40 hours per week": We filter onto a select week,
-                // then we find all inclusion zones bounded within that week, then we
-                // distribute 40 hours within the inclusion zones as Eager/Even/Apathetic
-                var timePerTimeAllocs = from A in T.Allocations
-                                        where Resource.TimeResourceChoices.Contains(A.Per.Name)
-                                        where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                                        select A;
-                if (timePerTimeAllocs.Count() != 0)
-                {
-                    TimeTaskAllocation A = timeAllocs.First();
-                    //Allocation amount shouldn't be more than per, if it is, then throw an error
-
-                    // ceiling count number of per zones
-                    // find DateTime of first Per within time range
-                    DateTime firstPer = T.InclusionZones.First().Key;
-                    DateTime dt;
-                    switch (A.Per.Name)
-                    {
-                        case "Hour":
-                            firstPer = new DateTime(firstPer.Year, firstPer.Month, firstPer.Day, firstPer.Hour, 0, 0, firstPer.Kind);
-                            dt = firstPer;
-                            while (dt < T.End)
-                            {
-                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
-                                EvenAllocate(T, A);
-                                dt.AddHours(1);
-                            }
-                            break;
-                        case "Day":
-                            firstPer = firstPer.Date;
-                            dt = firstPer;
-                            while (dt < T.End)
-                            {
-                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
-                                EvenAllocate(T, A);
-                                dt.AddDays(1);
-                            }
-                            break;
-                        case "Week":
-                            firstPer.WeekStart();
-                            dt = firstPer;
-                            while (dt < T.End)
-                            {
-                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
-                                EvenAllocate(T, A);
-                                dt.AddDays(7);
-                            }
-                            break;
-                        case "Month":
-                            firstPer.MonthStart();
-                            dt = firstPer;
-                            while (dt < T.End)
-                            {
-                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
-                                EvenAllocate(T, A);
-                                dt.AddMonths(1);
-                            }
-                            break;
-                        case "Year":
-                            firstPer.YearStart();
-                            dt = firstPer;
-                            while (dt < T.End)
-                            {
-                                A.Remaining = A.ResourceAsTimeSpan().Ticks;
-                                EvenAllocate(T, A);
-                                dt.AddYears(1);
-                            }
-                            break;
-                    }
-                }
-
-                //other allocations
             }
         }
-        private void EagerAllocate(TimeTask T, TimeTaskAllocation A)
+        private bool AllocateTime(CalendarTimeTaskMap M)
         {
-            foreach (var Z in T.InclusionZones)
+            // If no allocation is set, we create one CalendarObject per inclusion zone
+            // with each Start/End set to the bounds of the inclusion zone.
+            if (M.TimeTask.Allocations.Count == 0)
+            {
+                foreach (var Z in M.InclusionZones)
+                {
+                    //create cal object that matches zone
+                    CalendarObject CalObj = new CalendarObject();
+                    CalObj.Start = Z.Start;
+                    CalObj.End = Z.End;
+                    CalObj.ParentEntity = M.TimeTask;
+                    Z.CalendarObjects.Add(CalObj);
+                    CalendarObjectsView.AddNewItem(CalObj);
+                    CalendarObjectsView.CommitNew();
+                    AdditionalCalObjSetup(CalObj);
+                }
+                return true;
+            }
+            return false;
+        }
+        private bool AllocateTimeResource(CalendarTimeTaskMap M)
+        {
+            // Find allocations where Resource is time related and Per is null
+            var timeAllocs =
+                from A in M.TimeTask.Allocations
+                where A.Per == null
+                where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                select A;
+            if (timeAllocs.Count() != 0)
+            {
+                TimeTaskAllocation A = timeAllocs.First();
+                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                EagerAllocate(M, A);
+                return true;
+            }
+            return false;
+        }
+        private bool AllocateTimePerTime(CalendarTimeTaskMap M)
+        {
+            // Allocation.Amount is the time that will be spent for each Allocation.Per
+            // segment aligned with the calendar. 
+
+            // Find allocations with both Resource and Per that are time related
+            var timePerTimeAllocs =
+                from A in M.TimeTask.Allocations
+                where Resource.TimeResourceChoices.Contains(A.Per.Name)
+                where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                select A;
+            if (timePerTimeAllocs.Count() != 0)
+            {
+                TimeTaskAllocation A = timePerTimeAllocs.First();
+                switch (A.Per.Name)
+                {
+                    case "Hour":
+                        ATPTPart2(M, A, dt => dt.HourStart(), dt => dt.AddHours(1));
+                        break;
+                    case "Day":
+                        ATPTPart2(M, A, dt => dt.Date, dt => dt.AddDays(1));
+                        break;
+                    case "Week":
+                        ATPTPart2(M, A, dt => dt.WeekStart(), dt => dt.AddDays(7));
+                        break;
+                    case "Month":
+                        ATPTPart2(M, A, dt => dt.MonthStart(), dt => dt.AddMonths(1));
+                        break;
+                    case "Year":
+                        ATPTPart2(M, A, dt => dt.YearStart(), dt => dt.AddYears(1));
+                        break;
+                }
+                return true;
+            }
+            return false;
+        }
+        private void ATPTPart2(CalendarTimeTaskMap M, TimeTaskAllocation A, 
+            Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
+        {
+            var allocatedTime = A.ResourceAsTimeSpan().Ticks;
+            var perTime = A.PerAsTimeSpan().Ticks;
+            if (allocatedTime > perTime) throw new ArgumentException(
+                "TimeTaskAllocation.Resource must be smaller than TimeTaskAllocation.Per. ", nameof(A));
+
+            CalendarTimeTaskMap perMap;
+            DateTime dt = M.InclusionZones.First().Start;
+            dt = starter(dt);
+            while (dt < M.TimeTask.End)
+            {
+                DateTime next = adder(dt);
+                A.Remaining = allocatedTime;
+                //get subset of zones intersecting current per
+                perMap = new CalendarTimeTaskMap()
+                {
+                    TimeTask = M.TimeTask,
+                    InclusionZones = new List<InclusionZone>(
+                        from Z in M.InclusionZones
+                        where Z.Intersects(dt, next)
+                        select Z)
+                };
+                EvenAllocate(perMap, A);
+                dt = next;
+            }
+        }
+        private void EagerAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
+        {
+            // Fill the earliest zones first
+            foreach (var Z in Map.InclusionZones)
             {
                 if (A.Remaining <= 0) break;
+                if (Z.Duration.Ticks <= 0) break;
                 CalendarObject CalObj = new CalendarObject();
-                if (A.RemainingAsTimeSpan < Z.Value)
+                if (A.RemainingAsTimeSpan < Z.Duration)
                 {
                     //create cal obj the size of the remaining time
-                    CalObj.Start = Z.Key;
-                    CalObj.End = Z.Key + A.RemainingAsTimeSpan;
-                    CalObj.ParentEntity = T;
+                    CalObj.Start = Z.Start;
+                    CalObj.End = Z.Start + A.RemainingAsTimeSpan;
                     A.Remaining = 0;
                 }
                 else
                 {
                     //create cal obj the size of the zone
-                    CalObj.Start = Z.Key;
-                    CalObj.End = Z.Key + Z.Value;
-                    CalObj.ParentEntity = T;
-                    A.Remaining -= Z.Value.Ticks;
+                    CalObj.Start = Z.Start;
+                    CalObj.End = Z.End;
+                    A.Remaining -= Z.Duration.Ticks;
                 }
+                CalObj.ParentEntity = Map.TimeTask;
+                Z.CalendarObjects.Add(CalObj);
                 CalendarObjectsView.AddNewItem(CalObj);
                 CalendarObjectsView.CommitNew();
                 AdditionalCalObjSetup(CalObj);
             }
         }
-        private void EvenAllocate(TimeTask T, TimeTaskAllocation A)
+        private void EvenAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
         {
+            // Fill the zones evenly
+
             // Solution 1: add time to 1, check allocations, add time to 2, check allocations etc...
             // repeat, stop when allocations met or no more space
 
-            var zoneCount = T.InclusionZones.Count;
             // We will iterate through each zone adding time to the associated CalendarObject.
-            var AllocatedCalendarObjects = new Dictionary<KeyValuePair<DateTime, TimeSpan>, CalendarObject>();
-            foreach (var zone in T.InclusionZones)
+            //TODO
+            //this should be just the zones within the current per
+            foreach (var zone in Zones)
             {
                 AllocatedCalendarObjects.Add(zone, new CalendarObject()
                 {
@@ -434,7 +455,7 @@ namespace TimekeeperWPF
             }
             // find all zones that aren't full and repeat until allocation is met
         }
-        private void ApatheticAllocate(TimeTask T, TimeTaskAllocation A)
+        private void ApatheticAllocate(TimeTask T, TimeTaskAllocation A, Dictionary<DateTime, TimeSpan> Zones)
         {
             //TODO
         }

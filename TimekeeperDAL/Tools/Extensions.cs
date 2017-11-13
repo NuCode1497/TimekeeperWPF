@@ -27,15 +27,15 @@ namespace TimekeeperDAL.Tools
             return PluralizationService.CreateService(CultureInfo.CurrentCulture).Pluralize(s);
         }
         
-        public static int WeekOfMonth(this DateTime time)
+        public static int WeekOfMonth(this DateTime dt)
         {
-            DateTime first = new DateTime(time.Year, time.Month, 1);
-            return time.WeekOfYear() - first.WeekOfYear() + 1;
+            DateTime first = new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind);
+            return dt.WeekOfYear() - first.WeekOfYear() + 1;
         }
 
-        public static int WeekOfYear(this DateTime time)
+        public static int WeekOfYear(this DateTime dt)
         {
-            return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstDay, DayOfWeek.Sunday);
+            return CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(dt, CalendarWeekRule.FirstDay, DayOfWeek.Sunday);
         }
 
         //https://stackoverflow.com/questions/7029353/how-can-i-round-up-the-time-to-the-nearest-x-minutes
@@ -69,27 +69,28 @@ namespace TimekeeperDAL.Tools
         }
 
         public static double Within(this double d, double min, double max) { return Math.Max(min, Math.Min(d, max)); }
-        public static DateTime WeekStart(this DateTime d) { return d.Date.AddDays(-(int)d.DayOfWeek).Date; }
-        public static DateTime MonthStart(this DateTime d) { return new DateTime(d.Year, d.Month, 1); }
-        public static DateTime YearStart(this DateTime d) { return new DateTime(d.Year, 1, 1); }
-        public static int DaySeconds(this DateTime d)
+        public static DateTime WeekStart(this DateTime dt) { return dt.Date.AddDays(-(int)dt.DayOfWeek).Date; }
+        public static DateTime MonthStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind); }
+        public static DateTime YearStart(this DateTime dt) { return new DateTime(dt.Year, 1, 1, 0, 0, 0, dt.Kind); }
+        public static DateTime HourStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, dt.Kind); }
+        public static int DaySeconds(this DateTime dt)
         {
-            DateTime date = d.Date;
+            DateTime date = dt.Date;
             return (int)(date.AddDays(1) - date).TotalSeconds;
         }
-        public static int WeekSeconds(this DateTime d)
+        public static int WeekSeconds(this DateTime dt)
         {
-            DateTime weekStart = d.WeekStart();
+            DateTime weekStart = dt.WeekStart();
             return (int)(weekStart.AddDays(7) - weekStart).TotalSeconds;
         }
-        public static int MonthDays(this DateTime d)
+        public static int MonthDays(this DateTime dt)
         {
-            DateTime monthStart = d.MonthStart();
+            DateTime monthStart = dt.MonthStart();
             return (int)(monthStart.AddMonths(1) - monthStart).TotalDays;
         }
-        public static int MonthWeeks(this DateTime d)
+        public static int MonthWeeks(this DateTime dt)
         {
-            return (int)Math.Ceiling((d.MonthDays() + (int)d.MonthStart().DayOfWeek) / 7d);
+            return (int)Math.Ceiling((dt.MonthDays() + (int)dt.MonthStart().DayOfWeek) / 7d);
         }
     }
 }
