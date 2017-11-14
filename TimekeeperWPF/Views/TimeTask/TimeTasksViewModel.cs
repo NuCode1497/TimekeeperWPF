@@ -414,7 +414,10 @@ namespace TimekeeperWPF
         private void UpdateAllocationsView()
         {
             //filter out allocated resources
-            ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
+            bool timeAllocationExists = AllocationsSource.Where(A => A.Resource.IsTimeResource).Count() > 0;
+            ResourcesView.Filter = R => 
+                (timeAllocationExists ? !((Resource)R).IsTimeResource : true) &&
+                !IsResourceAllocated((Resource)R);
             OnPropertyChanged(nameof(ResourcesView));
             OnPropertyChanged(nameof(AllocationsView));
         }
