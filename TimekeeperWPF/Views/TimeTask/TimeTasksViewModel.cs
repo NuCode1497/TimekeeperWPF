@@ -16,6 +16,7 @@ namespace TimekeeperWPF
     {
         #region Fields
         private bool _HasSelectedResource = false;
+        private bool _TogglePer = false;
         private bool _IsAddingNewAllocation = false;
         private Resource _SelectedResource;
         private TimeTaskAllocation _CurrentEditAllocation;
@@ -31,10 +32,16 @@ namespace TimekeeperWPF
 
         //List of resources to choose from when creating an allocation
         public CollectionViewSource ResourcesCollection { get; set; }
-        public ObservableCollection<Resource> ResourcesSource => 
+        public ObservableCollection<Resource> ResourcesSource =>
             ResourcesCollection?.Source as ObservableCollection<Resource>;
-        public ListCollectionView ResourcesView => 
+        public ListCollectionView ResourcesView =>
             ResourcesCollection?.View as ListCollectionView;
+
+        public CollectionViewSource PersCollection { get; set; }
+        public ObservableCollection<Resource> PersSource =>
+            PersCollection?.Source as ObservableCollection<Resource>;
+        public ListCollectionView PersView =>
+            PersCollection?.View as ListCollectionView;
 
         //The current editing TimeTask's allocations
         public CollectionViewSource AllocationsCollection { get; set; }
@@ -102,7 +109,7 @@ namespace TimekeeperWPF
                 //Resource must not be itself and must be in ResourcesSource
                 if ((value == _SelectedResource) || (value != null && (!ResourcesSource?.Contains(value) ?? false))) return;
                 _SelectedResource = value;
-                if (SelectedResource == null)
+                if (_SelectedResource == null)
                 {
                     HasSelectedResource = false;
                 }
@@ -111,6 +118,17 @@ namespace TimekeeperWPF
                     HasSelectedResource = true;
                 }
                 OnPropertyChanged();
+            }
+        }
+        public bool TogglePer
+        {
+            get { return _TogglePer; }
+            set
+            {
+                _TogglePer = value;
+                OnPropertyChanged();
+                CurrentEditAllocation.OnPropertyChanged(nameof(TimeTaskAllocation.Per));
+                CurrentEditAllocation.OnPropertyChanged(nameof(TimeTaskAllocation.Amount));
             }
         }
         public TimeTaskAllocation CurrentEditAllocation
@@ -170,16 +188,18 @@ namespace TimekeeperWPF
             ?? (_AddNewFilterCommand = new RelayCommand(ap => AddNewFilter(), pp => true));
         #endregion
         #region Predicates
-        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation;
+        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation && ValidateFilters();
         protected override bool CanSave => false;
-        private bool CanAddNewAllocation => HasSelectedResource && !IsResourceAllocated(SelectedResource);
+        private bool CanAddNewAllocation => 
+            HasSelectedResource && 
+            !IsResourceAllocated(SelectedResource) &&
+            IsNotAddingNewAllocation;
         private bool CanCancelAllocation => IsAddingNewAllocation;
-        private bool CanCommitAllocation => IsAddingNewAllocation && !CurrentEditAllocation.HasErrors;
-        private bool CanDeleteAllocation(object pp)
-        {
-            return pp is TimeTaskAllocation
-                && IsNotAddingNewAllocation;
-        }
+        private bool CanCommitAllocation => 
+            IsAddingNewAllocation && 
+            !CurrentEditAllocation.HasErrors && 
+            (TogglePer ? CurrentEditAllocation.Per != null : true);
+        private bool CanDeleteAllocation(object pp) => pp is TimeTaskAllocation && IsNotAddingNewAllocation;
         private bool ValidateFilters()
         {
             if (FiltersView == null) return false;
@@ -209,6 +229,11 @@ namespace TimekeeperWPF
             ResourcesCollection.Source = Context.Resources.Local;
             ResourcesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(ResourcesView));
+
+            PersCollection = new CollectionViewSource();
+            PersCollection.Source = Context.Resources.Local;
+            PersView.CustomSort = NameSorter;
+            OnPropertyChanged(nameof(PersView));
 
             FilterLabelsCollection = new CollectionViewSource();
             FilterLabelsCollection.Source = Context.Labels.Local;
@@ -357,7 +382,9 @@ namespace TimekeeperWPF
                 Resource = SelectedResource,
                 TimeTask = CurrentEditItem
             };
+            TogglePer = false;
             IsAddingNewAllocation = true;
+            UpdatePersView();
         }
         private void EndEditAllocation()
         {
@@ -372,6 +399,7 @@ namespace TimekeeperWPF
         {
             if (IsAddingNewAllocation)
             {
+                if (!TogglePer) CurrentEditAllocation.Per = null;
                 AllocationsView.AddNewItem(CurrentEditAllocation);
                 AllocationsView.CommitNew();
                 EndEditAllocation();
@@ -389,6 +417,21 @@ namespace TimekeeperWPF
             ResourcesView.Filter = R => !IsResourceAllocated((Resource)R);
             OnPropertyChanged(nameof(ResourcesView));
             OnPropertyChanged(nameof(AllocationsView));
+        }
+        private void UpdatePersView()
+        {
+            //filter out resource pers that won't work based on SelectedResource
+            if (SelectedResource.IsTimeResource)
+            {
+                PersView.Filter = R =>
+                    ((Resource)R).IsTimeResource &&
+                    ((Resource)R).AsTimeSpan() > SelectedResource.AsTimeSpan();
+            }
+            else
+            {
+                PersView.Filter = null;
+            }
+            OnPropertyChanged(nameof(PersView));
         }
         private bool IsResourceAllocated(Resource R)
         {

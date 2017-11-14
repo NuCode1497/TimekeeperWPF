@@ -28,5 +28,38 @@ namespace TimekeeperDAL.EF
             "Month",
             "Year"
         };
+
+        [NotMapped]
+        public bool IsTimeResource => TimeResourceChoices.Contains(Name);
+
+        /// <summary>
+        /// A minimum estimate of the duration of the time resource. e.g. Month = 28
+        /// </summary>
+        public TimeSpan AsTimeSpan()
+        {
+            TimeSpan allocatedTime = new TimeSpan();
+            switch (Name)
+            {
+                case "Minute":
+                    allocatedTime = new TimeSpan(0, 1, 0);
+                    break;
+                case "Hour":
+                    allocatedTime = new TimeSpan(1, 0, 0);
+                    break;
+                case "Day":
+                    allocatedTime = new TimeSpan(1, 0, 0, 0);
+                    break;
+                case "Week":
+                    allocatedTime = new TimeSpan(7, 0, 0, 0);
+                    break;
+                case "Month":
+                    allocatedTime = new TimeSpan(28, 0, 0, 0);
+                    break;
+                case "Year":
+                    allocatedTime = new TimeSpan(365, 0, 0, 0);
+                    break;
+            }
+            return allocatedTime;
+        }
     }
 }

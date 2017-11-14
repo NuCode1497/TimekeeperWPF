@@ -25,9 +25,9 @@
                 <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
                 <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=FiltersToString}" Header="Filters"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>

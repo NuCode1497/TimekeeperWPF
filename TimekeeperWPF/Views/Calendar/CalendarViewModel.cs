@@ -214,7 +214,6 @@ namespace TimekeeperWPF
             }
             View.Filter = null;
         }
-        [Obsolete("This is just here for reference, for now, and doesn't work anymore.")]
         private void CreateEventObjectsFromNotes()
         {
             CalendarObject prevCalObj = null;
@@ -285,7 +284,9 @@ namespace TimekeeperWPF
                     zone.Start = Z.Key;
                     zone.End = Z.Value;
                     zone.CalendarObjects = new List<CalendarObject>();
+                    map.InclusionZones.Add(zone);
                 }
+                TaskMaps.Add(map);
             }
         }
         private bool AllocateAllTime(CalendarTimeTaskMap M)
@@ -321,7 +322,7 @@ namespace TimekeeperWPF
             if (timeAllocs.Count() != 0)
             {
                 TimeTaskAllocation A = timeAllocs.First();
-                A.Remaining = A.ResourceAsTimeSpan().Ticks;
+                A.Remaining = A.AmountAsTimeSpan().Ticks;
                 EagerAllocate(M, A);
                 return true;
             }
@@ -366,8 +367,8 @@ namespace TimekeeperWPF
         private void ATPTPart2(CalendarTimeTaskMap M, TimeTaskAllocation A, 
             Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
         {
-            var allocatedTime = A.ResourceAsTimeSpan().Ticks;
-            var perTime = A.PerAsTimeSpan().Ticks;
+            var allocatedTime = A.AmountAsTimeSpan().Ticks;
+            var perTime = A.Per.AsTimeSpan().Ticks;
             if (allocatedTime > perTime) throw new ArgumentException(
                 "TimeTaskAllocation.Resource must be smaller than TimeTaskAllocation.Per. ", nameof(A));
 

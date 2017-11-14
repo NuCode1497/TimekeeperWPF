@@ -112,6 +112,8 @@
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\Week.cs" />
+    <Compile Include="Tools\InvalidatingConverter.cs" />
+    <Compile Include="Tools\PluralizingConverter.cs" />
     <Compile Include="Views\Filter\FilterSelectorView.xaml.cs">
       <DependentUpon>FilterSelectorView.xaml</DependentUpon>
     </Compile>

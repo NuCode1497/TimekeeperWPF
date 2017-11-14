@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+VisualStudioVersion = 15.0.27004.2008
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimekeeperWPF", "TimekeeperWPF\TimekeeperWPF.csproj", "{601FFF8C-89E1-4F95-8451-7F4CC04A5118}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -13,7 +13,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7F1FF7A1-1D09-4EF4-8839-49D9891F00F5}"
 	ProjectSection(SolutionItems) = preProject
 		Plans.xlsx = Plans.xlsx
-		SQLQuery1.sql = SQLQuery1.sql
 	EndProjectSection
 EndProject
 Global
