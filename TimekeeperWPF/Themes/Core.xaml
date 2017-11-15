@@ -10,7 +10,7 @@
         <Setter Property="Background" Value="{StaticResource Window.Background}"/>
     </Style>
     <Style x:Key="BasicErrorTemplate" TargetType="Control">
-        <Setter Property="Margin" Value="1"/>
+        <Setter Property="Margin" Value="5,1,1,1"/>
         <Setter Property="Validation.ErrorTemplate">
             <Setter.Value>
                 <ControlTemplate>
@@ -63,6 +63,8 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+    <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
+    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style x:Key="TextBoxStyle" TargetType="{x:Type TextBox}" BasedOn="{StaticResource BasicErrorTemplate}">
         <Setter Property="MinHeight" Value="22"/>
     </Style>
@@ -89,7 +91,6 @@
         <Setter Property="Margin" Value="2,1"/>
         <Setter Property="BorderBrush" Value="{StaticResource ToggleButton.BorderBrush}"/>
     </Style>
-    <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <BorderGapMaskConverter x:Key="BorderGapMaskConverter"/>
     <Style x:Key="{x:Type GroupBox}" TargetType="{x:Type GroupBox}">
         <Setter Property="BorderBrush" Value="{StaticResource GroupBox.BorderBrush}"/>
@@ -141,7 +142,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource BasicErrorTemplate}"/>
     <Style TargetType="{x:Type DataGrid}">
         <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
         <Setter Property="AlternatingRowBackground" Value="{StaticResource DataGrid.AlternatingRowBackground}"/>

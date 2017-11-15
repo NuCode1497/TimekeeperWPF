@@ -7,51 +7,54 @@
     <Grid>
         <Grid.Resources>
             <ControlTemplate x:Key="IntegerTemplate">
-                <wpftk:IntegerUpDown Text="{Binding Path=TimePropertyValue,
+                <wpftk:IntegerUpDown 
+                    Text="{Binding Path=TimePropertyValue, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True,
-                    UpdateSourceTrigger=PropertyChanged}"/>
+                    UpdateSourceTrigger=PropertyChanged,
+                    FallbackValue='1'}"/>
             </ControlTemplate>
             <ControlTemplate x:Key="WeekDayTemplate">
-                <ComboBox SelectedIndex="0"
-                          ItemsSource="{x:Static dal:TimePatternClause.WeekDayChoices}"
-                          SelectedItem="{Binding Path=TimePropertyValue,
+                <ComboBox 
+                    ItemsSource="{x:Static dal:TimePatternClause.WeekDayChoices}"
+                    SelectedItem="{Binding Path=TimePropertyValue, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
             </ControlTemplate>
             <ControlTemplate x:Key="MonthTemplate">
-                <ComboBox SelectedIndex="0"
-                          ItemsSource="{x:Static dal:TimePatternClause.MonthChoices}"
-                          SelectedItem="{Binding Path=TimePropertyValue,
+                <ComboBox 
+                    ItemsSource="{x:Static dal:TimePatternClause.MonthChoices}"
+                    SelectedItem="{Binding Path=TimePropertyValue, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
             </ControlTemplate>
             <ControlTemplate x:Key="TimeTemplate">
-                <wpftk:TimePicker Text="{Binding Path=TimePropertyValue,
+                <wpftk:TimePicker 
+                    Text="{Binding Path=TimePropertyValue, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True,
-                    UpdateSourceTrigger=PropertyChanged}"/>
+                    UpdateSourceTrigger=PropertyChanged,
+                    FallbackValue='12:00 PM'}"/>
             </ControlTemplate>
             <ControlTemplate x:Key="AllEquivsTemplate" >
-                <ComboBox SelectedIndex="0"
-                          ItemsSource="{x:Static dal:TimePatternClause.AllEquivalencyChoices}"
-                          SelectedItem="{Binding Path=Equivalency,
+                <ComboBox 
+                    ItemsSource="{x:Static dal:TimePatternClause.AllEquivalencyChoices}"
+                    SelectedItem="{Binding Path=Equivalency, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
             </ControlTemplate>
             <ControlTemplate x:Key="BinaryEquivsTemplate">
                 <ComboBox 
-                    SelectedIndex="0"
                     ItemsSource="{x:Static dal:TimePatternClause.BinaryEquivalencyChoices}"
-                    SelectedItem="{Binding Path=Equivalency,
+                    SelectedItem="{Binding Path=Equivalency, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
             </ControlTemplate>
         </Grid.Resources>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <ComboBox 
-            Grid.Column="0" Name="TPComboBox" Width="100"
+            Grid.Column="0" Name="TPComboBox" MinWidth="100"
             ItemsSource="{x:Static dal:TimePatternClause.TimePropertyChoices}"
-            SelectedIndex="0"
             SelectedItem="{Binding Path=TimeProperty, 
             ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
         <Control Name="Input2" Grid.Column="1" Width="50" HorizontalAlignment="Right">
@@ -69,10 +72,9 @@
                 </Style>
             </Control.Style>
         </Control>
-        <Control Name="Input3" Grid.Column="2" Width="100" HorizontalAlignment="Left">
+        <Control Name="Input3" Grid.Column="2" MinWidth="100" HorizontalAlignment="Left">
             <Control.Style>
                 <Style TargetType="Control">
-                    <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Path=TimeProperty}" Value="WeekDay">
                             <Setter Property="Template" Value="{StaticResource WeekDayTemplate}"/>
@@ -82,6 +84,21 @@
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=TimeProperty}" Value="Time">
                             <Setter Property="Template" Value="{StaticResource TimeTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=TimeProperty}" Value="MonthDay">
+                            <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=TimeProperty}" Value="MonthWeek">
+                            <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=TimeProperty}" Value="YearDay">
+                            <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=TimeProperty}" Value="YearWeek">
+                            <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=TimeProperty}" Value="Year">
+                            <Setter Property="Template" Value="{StaticResource IntegerTemplate}"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

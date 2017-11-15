@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -24,6 +25,8 @@ namespace TimekeeperWPF
             RemoveClause(ap as TimePatternClause), pp => pp is TimePatternClause));
         public ICommand AddClauseCommand => _AddClauseCommand
             ?? (_AddClauseCommand = new RelayCommand(ap => AddClause(), pp => true));
+        protected override bool CanCommit => base.CanCommit && !ClausesHaveErrors;
+        private bool ClausesHaveErrors => ClausesSource?.Where(C => C.HasErrors).Count() > 0;
         #region Actions
         protected override async Task GetDataAsync()
         {
@@ -59,9 +62,9 @@ namespace TimekeeperWPF
         private void BeginEdit()
         {
             if (!IsEditingItemOrAddingNew) return;
-
             ClausesCollection = new CollectionViewSource();
-            ClausesCollection.Source = new ObservableCollection<TimePatternClause>(CurrentEditItem.Query);
+            ClausesCollection.Source = 
+                new ObservableCollection<TimePatternClause>(CurrentEditItem.Query);
             OnPropertyChanged(nameof(ClausesView));
         }
         protected override void EndEdit()

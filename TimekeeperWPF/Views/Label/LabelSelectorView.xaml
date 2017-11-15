@@ -6,7 +6,7 @@
     <GroupBox Header="Labels">
         <StackPanel Name="LabelEditorPanel">
             <StackPanel Orientation="Horizontal">
-                <ComboBox Name="LabelsCbo" Width="100"
+                <ComboBox Name="LabelsCbo" MinWidth="100"
                           DisplayMemberPath="Name"
                           SelectedItem="{Binding Path=SelectedLabel}"
                           ItemsSource="{Binding Path=LabelsView}"/>

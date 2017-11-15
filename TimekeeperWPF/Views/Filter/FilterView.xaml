@@ -7,8 +7,9 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <ToggleButton Width="50"
             Grid.Column="0" Name="IncludeToggle"
@@ -31,8 +32,8 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <ComboBox Margin="5,1"
-            Grid.Column="1" Name="FilterableTypesComboBox" Width="90"
+        <ComboBox
+            Grid.Column="1" Name="FilterableTypesComboBox" MinWidth="100"
             ItemsSource="{x:Static dal:Filterable.FilterableTypesChoices}"
             SelectedItem="{Binding Path=TypeChoice, Mode=TwoWay}"/>
         <ComboBox 

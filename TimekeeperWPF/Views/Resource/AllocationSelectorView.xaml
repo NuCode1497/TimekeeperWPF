@@ -16,7 +16,7 @@
                     <ComboBox
                         Name="ResourcesCbo" DisplayMemberPath="Name"
                         IsEnabled="{Binding Path=IsNotAddingNewAllocation}"
-                        IsSynchronizedWithCurrentItem="False" Width="100"
+                        IsSynchronizedWithCurrentItem="False" MinWidth="100"
                         SelectedItem="{Binding Path=SelectedResource, Mode=TwoWay}"
                         ItemsSource="{Binding Path=ResourcesView}" />
                     <Button Style="{StaticResource TinyButtonAddStyle}"
@@ -44,8 +44,8 @@
                     Content=" Per " 
                     IsChecked="{Binding Path=TogglePer, Mode=TwoWay}"/>
                 <ComboBox 
-                    Name="PersCbo" DisplayMemberPath="Name" Margin="5,1,1,1"
-                    IsSynchronizedWithCurrentItem="False" Width="100"
+                    Name="PersCbo" DisplayMemberPath="Name"
+                    IsSynchronizedWithCurrentItem="False" MinWidth="100"
                     SelectedItem="{Binding Path=CurrentEditAllocation.Per, Mode=TwoWay,
                     ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"
                     ItemsSource="{Binding Path=PersView}">

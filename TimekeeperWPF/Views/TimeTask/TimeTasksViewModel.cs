@@ -188,7 +188,7 @@ namespace TimekeeperWPF
             ?? (_AddNewFilterCommand = new RelayCommand(ap => AddNewFilter(), pp => true));
         #endregion
         #region Predicates
-        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation && ValidateFilters();
+        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation && !FiltersHaveErrors;
         protected override bool CanSave => false;
         private bool CanAddNewAllocation => 
             HasSelectedResource && 
@@ -200,20 +200,7 @@ namespace TimekeeperWPF
             !CurrentEditAllocation.HasErrors && 
             (TogglePer ? CurrentEditAllocation.Per != null : true);
         private bool CanDeleteAllocation(object pp) => pp is TimeTaskAllocation && IsNotAddingNewAllocation;
-        private bool ValidateFilters()
-        {
-            if (FiltersView == null) return false;
-            bool noErrors = true;
-            foreach (TimeTaskFilter f in FiltersView)
-            {
-                if (f.TypeChoice == ""
-                    || f.Filterable == null)
-                {
-                    noErrors = false;
-                }
-            }
-            return noErrors;
-        }
+        private bool FiltersHaveErrors => FiltersSource?.Where(F => F.HasErrors).Count() > 0;
         #endregion
         #region Actions
         protected override async Task GetDataAsync()

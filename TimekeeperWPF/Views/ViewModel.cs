@@ -213,6 +213,7 @@ namespace TimekeeperWPF
             IsEnabled = false;
             IsLoading = true;
             Cancel();
+            SelectedItem = null;
             Status = "Loading Data...";
             Items = new CollectionViewSource();
             OnPropertyChanged(nameof(View));
@@ -333,6 +334,8 @@ namespace TimekeeperWPF
                 string s = "";
                 foreach (var e in ex.EntityValidationErrors)
                 {
+                    var entity = e.Entry.Entity;
+                    s += entity + ": ";
                     foreach (var ve in e.ValidationErrors)
                     {
                         s += ve.PropertyName + ": " + ve.ErrorMessage + "\n";
