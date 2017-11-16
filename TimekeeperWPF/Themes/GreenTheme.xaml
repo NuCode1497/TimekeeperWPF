@@ -11,6 +11,7 @@
     <SolidColorBrush x:Key="DataGrid.RowBackground" Color="MintCream"/>
     <SolidColorBrush x:Key="DataGrid.Background" Color="AliceBlue"/>
     <SolidColorBrush x:Key="EntityTag.Background" Color="Wheat"/>
+    <SolidColorBrush x:Key="EntityTag.Background.Locked" Color="LightCoral"/>
     <SolidColorBrush x:Key="EntityTag.BorderBrush" Color="DarkSlateGray"/>
     <SolidColorBrush x:Key="EntityTag.Foreground" Color="Black"/>
     <SolidColorBrush x:Key="PopUp.Behind.Background" Color="#7F008B8B"/>

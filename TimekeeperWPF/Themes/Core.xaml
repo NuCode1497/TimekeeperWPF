@@ -168,7 +168,7 @@
         <Setter Property="Background" Value="{StaticResource ListBox.Static.Background}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ListBox.Static.Border}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
         <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
@@ -413,8 +413,19 @@
     <ControlTemplate x:Key="EntityTagTemplate" TargetType="ContentControl">
         <Border Name="LabelBdr" Margin="2" CornerRadius="4" BorderThickness="1" 
                 SnapsToDevicePixels="True" 
-                Background="{StaticResource EntityTag.Background}" 
                 BorderBrush="{StaticResource EntityTag.BorderBrush}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=IsEditable}" Value="False">
+                            <Setter Property="Background" Value="{StaticResource EntityTag.Background.Locked}"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=IsEditable}" Value="True">
+                            <Setter Property="Background" Value="{StaticResource EntityTag.Background}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
             <Grid Name="LabelLayoutGrid" Height="20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2"/>

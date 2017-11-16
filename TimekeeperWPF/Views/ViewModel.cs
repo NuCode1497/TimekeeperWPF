@@ -222,6 +222,7 @@ namespace TimekeeperWPF
             {
                 await GetDataAsync();
                 View.CustomSort = Sorter;
+                View.GroupDescriptions.Add(new PropertyGroupDescription(nameof(EntityBase.IsEditable)));
                 OnPropertyChanged(nameof(View));
                 IsEnabled = true;
                 Status = "Ready";
@@ -264,7 +265,7 @@ namespace TimekeeperWPF
         {
             IsEditingItem = false;
             IsAddingNew = false;
-            CurrentEditItem.IsEditing = false;
+            if (CurrentEditItem != null) CurrentEditItem.IsEditing = false;
             CurrentEditItem = null;
             SelectedItem = null;
             //Refresh all of the buttons
@@ -275,15 +276,14 @@ namespace TimekeeperWPF
             if (IsEditingItem)
             {
                 View?.CancelEdit();
-                EndEdit();
                 Status = "Canceled";
             }
             else if (IsAddingNew)
             {
                 View?.CancelNew();
-                EndEdit();
                 Status = "Canceled";
             }
+            EndEdit();
         }
         protected virtual async void Commit()
         {

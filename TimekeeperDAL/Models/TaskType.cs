@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using TimekeeperDAL.Tools;
 
 namespace TimekeeperDAL.EF
@@ -23,5 +25,22 @@ namespace TimekeeperDAL.EF
             }
             return false;
         }
+
+        [NotMapped]
+        public static readonly List<string> DefaultChoices = new List<string>()
+        {
+            "Work",
+            "Play",
+            "Eat",
+            "Sleep",
+            "Chore",
+            "Note"
+        };
+
+        [NotMapped]
+        public bool IsDefaultType => DefaultChoices.Contains(Name);
+
+        [NotMapped]
+        public override bool IsEditable => !IsDefaultType;
     }
 }

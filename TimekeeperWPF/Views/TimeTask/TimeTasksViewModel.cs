@@ -188,19 +188,26 @@ namespace TimekeeperWPF
             ?? (_AddNewFilterCommand = new RelayCommand(ap => AddNewFilter(), pp => true));
         #endregion
         #region Predicates
-        protected override bool CanCommit => base.CanCommit && IsNotAddingNewAllocation && !FiltersHaveErrors;
+        protected override bool CanCommit => 
+            base.CanCommit && IsNotAddingNewAllocation &&
+            //Source.Count(T => T.Name == CurrentEditItem.Name) == 1 &&
+            !FiltersHaveErrors;
         protected override bool CanSave => false;
         private bool CanAddNewAllocation => 
             HasSelectedResource && 
+            (HasAllocatedTime? !SelectedResource.IsTimeResource : true) &&
             !IsResourceAllocated(SelectedResource) &&
             IsNotAddingNewAllocation;
+        private bool HasAllocatedTime => CurrentEditItem.Allocations.Count(A => A.Resource.IsTimeResource) > 0;
         private bool CanCancelAllocation => IsAddingNewAllocation;
         private bool CanCommitAllocation => 
-            IsAddingNewAllocation && 
+            IsAddingNewAllocation &&
+            (HasAllocatedTime ? !SelectedResource.IsTimeResource : true) &&
+            (CurrentEditAllocation.Per != SelectedResource) &&
             !CurrentEditAllocation.HasErrors && 
             (TogglePer ? CurrentEditAllocation.Per != null : true);
         private bool CanDeleteAllocation(object pp) => pp is TimeTaskAllocation && IsNotAddingNewAllocation;
-        private bool FiltersHaveErrors => FiltersSource?.Where(F => F.HasErrors).Count() > 0;
+        private bool FiltersHaveErrors => FiltersSource?.Count(F => F.HasErrors) > 0;
         #endregion
         #region Actions
         protected override async Task GetDataAsync()
@@ -333,7 +340,7 @@ namespace TimekeeperWPF
         }
         protected override void EndEdit()
         {
-            ResourcesView.Filter = null;
+            if (ResourcesView != null) ResourcesView.Filter = null;
             EndEditAllocation();
             AllocationsCollection = null;
             FiltersCollection = null;
@@ -401,7 +408,7 @@ namespace TimekeeperWPF
         private void UpdateAllocationsView()
         {
             //filter out allocated resources
-            bool timeAllocationExists = AllocationsSource.Where(A => A.Resource.IsTimeResource).Count() > 0;
+            bool timeAllocationExists = AllocationsSource.Count(A => A.Resource.IsTimeResource) > 0;
             ResourcesView.Filter = R => 
                 (timeAllocationExists ? !((Resource)R).IsTimeResource : true) &&
                 !IsResourceAllocated((Resource)R);
@@ -419,7 +426,7 @@ namespace TimekeeperWPF
             }
             else
             {
-                PersView.Filter = null;
+                PersView.Filter = R => R != SelectedResource;
             }
             OnPropertyChanged(nameof(PersView));
         }

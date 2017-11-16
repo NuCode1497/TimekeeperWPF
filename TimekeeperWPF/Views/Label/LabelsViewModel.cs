@@ -16,13 +16,10 @@ namespace TimekeeperWPF
         {
             Sorter = NameSorter;
         }
-        #region Properties
         public override string Name => nameof(Context.Labels) + " Editor";
-        #endregion
-        #region Predicates
+        protected override bool CanCommit => base.CanCommit && IsNotDuplicate;
+        private bool IsNotDuplicate => Source.Count(L => L.Name == CurrentEditItem.Name) == 1;
         protected override bool CanSave => false;
-        #endregion
-        #region Actions
         protected override async Task GetDataAsync()
         {
             //await Task.Delay(2000);
@@ -34,6 +31,5 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        #endregion
     }
 }

@@ -4,11 +4,12 @@
              Name="ThisControl">
     <ContentControl Template="{StaticResource EntityTagTemplate}" IsTabStop="False">
         <StackPanel Orientation="Horizontal">
-            <Label Height="32" VerticalAlignment="Center"
-                   Content="{Binding Path=Text, ElementName=ThisControl, FallbackValue='É♫yilkjQ^Test'}" 
-                   FontSize="14" 
-                   Foreground="{StaticResource EntityTag.Foreground}" 
-                   FontWeight="Bold"/>
+            <Label 
+                Height="32" VerticalAlignment="Center"
+                Content="{Binding Path=Text, ElementName=ThisControl, 
+                FallbackValue='É♫yilkjQ^Test'}" 
+                FontSize="14" FontWeight="Bold"
+                Foreground="{StaticResource EntityTag.Foreground}"/>
             <Button Style="{StaticResource TinyButtonDeleteStyle}"/>
         </StackPanel>
     </ContentControl>

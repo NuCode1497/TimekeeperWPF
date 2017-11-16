@@ -75,6 +75,8 @@
         <Control Name="Input3" Grid.Column="2" MinWidth="100" HorizontalAlignment="Left">
             <Control.Style>
                 <Style TargetType="Control">
+                    <!--If you put a default control template here, make sure it can hold the Entity.Property's datatype.-->
+                    <!--<Setter Property="Template" Value="{StaticResource SomeDefaultTemplate}"/>-->
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Path=TimeProperty}" Value="WeekDay">
                             <Setter Property="Template" Value="{StaticResource WeekDayTemplate}"/>

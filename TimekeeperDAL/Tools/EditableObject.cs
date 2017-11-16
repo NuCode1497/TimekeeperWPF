@@ -17,6 +17,8 @@ namespace TimekeeperDAL.Tools
         //Setting this flag from the VM because only the VM should handle change tracking. Not DataGrids.
         [NotMapped]
         public bool IsEditing { get; set; } = false;
+        [NotMapped]
+        public virtual bool IsEditable { get; set; } = true;
         public void BeginEdit()
         {
             if (!IsEditing)

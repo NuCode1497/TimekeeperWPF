@@ -29,7 +29,7 @@ namespace TimekeeperDAL.EF
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             //I've manually added "cascadeDelete: true" to the foreign keys for allocations and labellings
-            //in the InitialCreate migration
+            //in the InitialCreate migration, because it doesn't work if I do it like this
             //modelBuilder.Entity<Labelling>()
             //    .HasRequired(l => l.LabeledEntity)
             //    .WithMany()

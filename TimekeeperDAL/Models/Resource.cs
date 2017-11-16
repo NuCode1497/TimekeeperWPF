@@ -32,6 +32,9 @@ namespace TimekeeperDAL.EF
         [NotMapped]
         public bool IsTimeResource => TimeResourceChoices.Contains(Name);
 
+        [NotMapped]
+        public override bool IsEditable => !IsTimeResource;
+
         /// <summary>
         /// A minimum estimate of the duration of the time resource. e.g. Month = 28
         /// </summary>
