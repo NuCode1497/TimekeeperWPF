@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace TimekeeperDAL.EF
 {
@@ -127,6 +128,14 @@ namespace TimekeeperDAL.EF
             return false;
         }
 
+        public async Task BuildInclusionZonesAsync()
+        {
+            await Task.Run((Action)BuildInclusionZones);
+        }
+
+        /// <summary>
+        /// This function can take a while, consider using Async
+        /// </summary>
         public void BuildInclusionZones()
         {
             //We need to align this task to the calendar by rounding up to the nearest MinimumDuration step
@@ -157,7 +166,7 @@ namespace TimekeeperDAL.EF
                         case nameof(Resource):
                             isRelevant = ((Resource)F.Filterable).HasDateTime(dt);
                             break;
-                        case nameof(TaskType):
+                        case nameof(EF.TaskType):
                             isRelevant = ((TaskType)F.Filterable).HasDateTime(dt);
                             break;
                         case nameof(TimePattern):
@@ -195,6 +204,16 @@ namespace TimekeeperDAL.EF
             {
                 InclusionZones.Add(zoneStart, End);
             }
+        }
+
+        public bool Intersects(DateTime start, DateTime end)
+        {
+            return start < End && Start < end;
+        }
+
+        public bool Intersects(TimeTask T)
+        {
+            return Intersects(T.Start, T.End);
         }
     }
 }

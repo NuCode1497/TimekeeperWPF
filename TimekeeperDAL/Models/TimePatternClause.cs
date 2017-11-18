@@ -232,7 +232,7 @@ namespace TimekeeperDAL.EF
         }
         public bool CheckEquivalency(TimeSpan value)
         {
-            var p = TimeSpan.Parse(TimePropertyValue);
+            var p = DateTime.Parse(TimePropertyValue).TimeOfDay;
             switch (Equivalency)
             {
                 case "==":

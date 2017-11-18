@@ -174,15 +174,20 @@ namespace TimekeeperWPF
         { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Day, SelectedDate)); }
         protected override async Task GetDataAsync()
         {
-            //get tasks 
-            //read task data and create CalendarObjects
-            //calculate collisions and reorganize CalendarObjects by changing their datetimes
             Context = new TimeKeeperContext();
+            Status = "Getting data from database...";
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
-
+            for (int i = 0; i < Source.Count; i++)
+            {
+                TimeTask T = Source[i];
+                Status = String.Format("Building inclusion zones {0}/{1}...", i, Source.Count);
+                await T.BuildInclusionZonesAsync();
+            }
+            Status = "Creating CalendarObjects...";
             SetUpCalendarObjects();
-
+            //calculate collisions and reorganize CalendarObjects by changing their datetimes
+            //await Task.Run((Action)CalculateCollisions);
             await base.GetDataAsync();
         }
         protected virtual void SetUpCalendarObjects()
@@ -208,7 +213,6 @@ namespace TimekeeperWPF
                 CalObj.Start = N.DateTime;
                 CalObj.End = N.DateTime.AddMinutes(1);
                 CalObj.ToolTip = N;
-                CalObj.ParentEntity = N;
                 CalendarObjectsView.AddNewItem(CalObj);
                 CalendarObjectsView.CommitNew();
             }
@@ -231,7 +235,6 @@ namespace TimekeeperWPF
                 CalObj.Start = N.DateTime;
                 CalObj.End = N.DateTime.AddHours(1);
                 CalObj.ToolTip = N;
-                CalObj.ParentEntity = N;
                 if (prevCalObj == null)
                 {
                     prevCalObj = CalObj;
@@ -257,7 +260,7 @@ namespace TimekeeperWPF
         }
         private void CreateEventObjectsFromTimeTasks()
         {
-            View.Filter = T => IsTaskRelevant((TimeTask)T);
+            View.Filter = T => ((TimeTask)T).Intersects(SelectedDate, EndDate);
             BuildTaskMaps();
             //Deal with time allocations
             foreach (var M in TaskMaps)
@@ -274,39 +277,42 @@ namespace TimekeeperWPF
             TaskMaps = new List<CalendarTimeTaskMap>();
             foreach (TimeTask T in View)
             {
-                T.BuildInclusionZones();
-                var map = new CalendarTimeTaskMap();
-                map.TimeTask = T;
-                map.InclusionZones = new List<InclusionZone>();
+                var M = new CalendarTimeTaskMap
+                {
+                    TimeTask = T,
+                    InclusionZones = new List<InclusionZone>()
+                };
                 foreach (var Z in T.InclusionZones)
                 {
-                    var zone = new InclusionZone();
-                    zone.Start = Z.Key;
-                    zone.End = Z.Value;
-                    zone.CalendarObjects = new List<CalendarObject>();
-                    map.InclusionZones.Add(zone);
+                    var zone = new InclusionZone
+                    {
+                        Start = Z.Key,
+                        End = Z.Value,
+                        CalendarObjects = new List<CalendarObject>()
+                    };
+                    M.InclusionZones.Add(zone);
                 }
-                TaskMaps.Add(map);
+                TaskMaps.Add(M);
             }
         }
         private bool AllocateAllTime(CalendarTimeTaskMap M)
         {
-            // If no allocation is set, we create one CalendarObject per inclusion zone
-            // with each Start/End set to the bounds of the inclusion zone.
             if (M.TimeTask.Allocations.Count == 0)
             {
+                // If no allocation is set, we create one CalendarObject per inclusion zone
+                // with each Start/End set to the bounds of the inclusion zone.
                 foreach (var Z in M.InclusionZones)
                 {
                     //create cal object that matches zone
-                    CalendarObject CalObj = new CalendarObject();
-                    CalObj.Start = Z.Start.RoundUp(TimeTask.MinimumDuration);
-                    CalObj.End = Z.End.RoundUp(TimeTask.MinimumDuration);
-                    CalObj.ParentEntity = M.TimeTask;
+                    CalendarObject CalObj = new CalendarObject
+                    {
+                        Start = Z.Start,
+                        End = Z.End,
+                        ParentMap = M
+                    };
                     Z.CalendarObjects.Add(CalObj);
-                    CalendarObjectsView.AddNewItem(CalObj);
-                    CalendarObjectsView.CommitNew();
-                    AdditionalCalObjSetup(CalObj);
                 }
+                FinalizeCalObjs(M);
                 return true;
             }
             return false;
@@ -319,7 +325,7 @@ namespace TimekeeperWPF
                 where A.Per == null
                 where Resource.TimeResourceChoices.Contains(A.Resource.Name)
                 select A;
-            if (timeAllocs.Count() != 0)
+            if (timeAllocs.Count() > 0)
             {
                 TimeTaskAllocation A = timeAllocs.First();
                 A.Remaining = A.AmountAsTimeSpan().Ticks;
@@ -339,7 +345,7 @@ namespace TimekeeperWPF
                 where Resource.TimeResourceChoices.Contains(A.Per.Name)
                 where Resource.TimeResourceChoices.Contains(A.Resource.Name)
                 select A;
-            if (timePerTimeAllocs.Count() != 0)
+            if (timePerTimeAllocs.Count() > 0)
             {
                 TimeTaskAllocation A = timePerTimeAllocs.First();
                 switch (A.Per.Name)
@@ -371,12 +377,13 @@ namespace TimekeeperWPF
             var perTime = A.Per.AsTimeSpan().Ticks;
             if (allocatedTime > perTime) throw new ArgumentException(
                 "TimeTaskAllocation.Resource must be smaller than TimeTaskAllocation.Per. ", nameof(A));
-
             CalendarTimeTaskMap perMap;
             DateTime dt = M.InclusionZones.First().Start;
             dt = starter(dt);
+            //for each per zone
             while (dt < M.TimeTask.End)
             {
+                //start of next per zone
                 DateTime next = adder(dt);
                 A.Remaining = allocatedTime;
                 //get subset of zones intersecting current per
@@ -392,57 +399,74 @@ namespace TimekeeperWPF
                 dt = next;
             }
         }
-        private void EagerAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
+        private void EagerAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {
             // Fill the earliest zones first
-            foreach (var Z in Map.InclusionZones)
+            foreach (var Z in M.InclusionZones)
             {
                 if (A.Remaining <= 0) break;
                 if (Z.Duration.Ticks <= 0) break;
-                CalendarObject CalObj = new CalendarObject();
                 if (A.RemainingAsTimeSpan < Z.Duration)
                 {
                     //create cal obj the size of the remaining time
-                    CalObj.Start = Z.Start;
-                    CalObj.End = Z.Start + A.RemainingAsTimeSpan;
+                    CalendarObject CalObj = new CalendarObject
+                    {
+                        Start = Z.Start,
+                        End = Z.Start + A.RemainingAsTimeSpan,
+                        ParentMap = M
+                    };
+                    Z.CalendarObjects.Add(CalObj);
                     A.Remaining = 0;
                 }
                 else
                 {
                     //create cal obj the size of the zone
-                    CalObj.Start = Z.Start;
-                    CalObj.End = Z.End;
+                    CalendarObject CalObj = new CalendarObject
+                    {
+                        Start = Z.Start,
+                        End = Z.End,
+                        ParentMap = M
+                    };
+                    Z.CalendarObjects.Add(CalObj);
                     A.Remaining -= Z.Duration.Ticks;
                 }
-                CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
-                CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
-                CalObj.ParentEntity = Map.TimeTask;
-                Z.CalendarObjects.Add(CalObj);
-                CalendarObjectsView.AddNewItem(CalObj);
-                CalendarObjectsView.CommitNew();
-                AdditionalCalObjSetup(CalObj);
             }
+            FinalizeCalObjs(M);
         }
-        private void EvenAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
+        private void MapCalObj(CalendarObject CalObj)
         {
+            CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
+            CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
+            CalendarObjectsView.AddNewItem(CalObj);
+            CalendarObjectsView.CommitNew();
+            AdditionalCalObjSetup(CalObj);
+        }
+        private void EvenAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        {
+            if (M.InclusionZones.Count == 0) return;
             if (TimeTask.MinimumDuration.Ticks < TimeSpan.TicksPerMinute) throw new Exception(
-                "Invalid value for TimeTask.MinimumDuration. Should be greater than a minute for stability reasons.");
+                "Invalid value for TimeTask.MinimumDuration. Must be greater than a minute for stability reasons.");
             //First loop that creates CalendarObjects
-            foreach (var Z in Map.InclusionZones)
+            foreach (var Z in M.InclusionZones)
             {
                 if (A.Remaining <= 0) break;
                 if (Z.Duration.Ticks <= 0) break;
-                CalendarObject CalObj = new CalendarObject();
-                CalObj.Start = Z.Start;
-                CalObj.End = Z.Start + TimeTask.MinimumDuration;
+                CalendarObject CalObj = new CalendarObject
+                {
+                    Start = Z.Start,
+                    End = Z.Start + TimeTask.MinimumDuration,
+                    ParentMap = M
+                };
                 A.Remaining -= TimeTask.MinimumDuration.Ticks;
-                CalObj.ParentEntity = Map.TimeTask;
                 Z.CalendarObjects.Add(CalObj);
             }
             //Second loop that adds more time to CalendarObjects
-            while (A.Remaining >= TimeTask.MinimumDuration.Ticks)
+            bool full = false;
+            while (!full && (A.Remaining >= TimeTask.MinimumDuration.Ticks))
             {
-                foreach (var Z in Map.InclusionZones)
+                full = true;
+                //add a small amount of time to each CalObj until they are full or out of allocated time
+                foreach (var Z in M.InclusionZones)
                 {
                     if (Z.Duration.Ticks <= 0) break;
                     foreach (var CalObj in Z.CalendarObjects)
@@ -452,12 +476,17 @@ namespace TimekeeperWPF
                         if (Z.Duration.Ticks - CalObj.Duration.Ticks <= 0) break;
                         CalObj.End += TimeTask.MinimumDuration;
                         A.Remaining -= TimeTask.MinimumDuration.Ticks;
+                        full = false;
                     }
                     if (A.Remaining <= 0) break;
                 }
             }
+            FinalizeCalObjs(M);
+        }
+        private void FinalizeCalObjs(CalendarTimeTaskMap M)
+        {
             //Third loop that finalizes CalendarObjects
-            foreach (var Z in Map.InclusionZones)
+            foreach (var Z in M.InclusionZones)
             {
                 foreach (var CalObj in Z.CalendarObjects)
                 {
@@ -476,21 +505,9 @@ namespace TimekeeperWPF
             //CalendarObjects are allocated in later zones first
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
-        protected bool IsTaskRelevant(TimeTask task)
-        {
-            return IsDateRangeRelevant(task.Start, task.End);
-        }
         protected bool IsNoteRelevant(Note note)
         {
-            return IsDateRelevant(note.DateTime);
-        }
-        protected bool IsDateRelevant(DateTime date)
-        {
-            return (date >= SelectedDate && date <= EndDate);
-        }
-        protected bool IsDateRangeRelevant(DateTime d1, DateTime d2)
-        {
-            return (d1 < d2) && (IsDateRelevant(d1) || IsDateRelevant(d2));
+            return note.DateTime >= SelectedDate && note.DateTime <= EndDate;
         }
         protected virtual void Previous()
         {
