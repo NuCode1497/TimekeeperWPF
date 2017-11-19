@@ -206,48 +206,39 @@ namespace TimekeeperDAL.EF
                 InclusionZones.Add(zoneStart, end);
             }
         }
-        public async Task BuildPerZonesAsync()
+        public async Task BuildPerZonesAsync(DateTime start, DateTime end)
         {
-            await Task.Run((Action)BuildPerZones);
+            await Task.Run(() => BuildPerZones(start, end));
         }
-        public void BuildPerZones()
+        public void BuildPerZones(DateTime start, DateTime end)
         {
             PerZones = new Dictionary<DateTime, DateTime>();
-            if (Allocations.Count == 0) return;
-            TimeAllocation = (from A in Allocations
-                              where A.Per == null
-                              where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                              select A).FirstOrDefault();
-            TimeAllocation = (from A in Allocations
-                              where Resource.TimeResourceChoices.Contains(A.Per.Name)
-                              where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                              select A).FirstOrDefault();
-            switch (TimeAllocation?.Per.Name)
+            TimeAllocation = Allocations.Where(A => Resource.TimeResourceChoices.Contains(A.Resource.Name)).FirstOrDefault();
+            switch (TimeAllocation?.Per?.Name)
             {
                 case "Hour":
-                    BPZPart2(dt => dt.HourStart(), dt => dt.AddHours(1));
+                    BPZPart2(start, end, dt => dt.HourStart(), dt => dt.AddHours(1));
                     break;
                 case "Day":
-                    BPZPart2(dt => dt.Date, dt => dt.AddDays(1));
+                    BPZPart2(start, end, dt => dt.Date, dt => dt.AddDays(1));
                     break;
                 case "Week":
-                    BPZPart2(dt => dt.WeekStart(), dt => dt.AddDays(7));
+                    BPZPart2(start, end, dt => dt.WeekStart(), dt => dt.AddDays(7));
                     break;
                 case "Month":
-                    BPZPart2(dt => dt.MonthStart(), dt => dt.AddMonths(1));
+                    BPZPart2(start, end, dt => dt.MonthStart(), dt => dt.AddMonths(1));
                     break;
                 case "Year":
-                    BPZPart2(dt => dt.YearStart(), dt => dt.AddYears(1));
+                    BPZPart2(start, end, dt => dt.YearStart(), dt => dt.AddYears(1));
                     break;
             }
         }
-        private void BPZPart2(Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
+        private void BPZPart2(DateTime start, DateTime end, Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
         {
-            //define first per zone that intersects the first zone that intersects the current calendar view
-            DateTime perStart = starter(Start);
+            DateTime perStart = starter(start);
             DateTime perEnd = adder(perStart);
             //for each relevant per zone
-            while (Intersects(perStart, perEnd))
+            while (Intersects(perStart, perEnd) && Intersects(start, end))
             {
                 PerZones.Add(perStart, perEnd);
                 perStart = perEnd;

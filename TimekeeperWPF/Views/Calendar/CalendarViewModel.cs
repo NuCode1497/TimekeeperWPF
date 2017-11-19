@@ -211,52 +211,12 @@ namespace TimekeeperWPF
             }
             View.Filter = null;
         }
-        private void CreateEventObjectsFromNotes()
-        {
-            CalendarObject prevCalObj = null;
-            View.Filter = N =>
-            {
-                Note note = (Note)N;
-                return IsNoteRelevant(note)
-                    && note.TaskType.Name != "Note";
-            };
-            View.CustomSort = new NoteDateTimeSorterAsc();
-            List<CalendarObject> CalObjs = new List<CalendarObject>();
-            foreach (Note N in View)
-            {
-                CalendarObject CalObj = new CalendarObject();
-                CalObj.Start = N.DateTime;
-                CalObj.End = N.DateTime.AddHours(1);
-                CalObj.ToolTip = N;
-                if (prevCalObj == null)
-                {
-                    prevCalObj = CalObj;
-                }
-                else
-                {
-                    prevCalObj.End = N.DateTime;
-                    prevCalObj.ToolTip += String.Format("\n{0}\n{1} to\n{2}",
-                    prevCalObj.DurationString(), 
-                    prevCalObj.Start,
-                    prevCalObj.End);
-                    prevCalObj = CalObj;
-                }
-                CalObjs.Add(CalObj);
-            }
-            foreach (var CalObj in CalObjs)
-            {
-                CalendarObjectsView.AddNewItem(CalObj);
-                CalendarObjectsView.CommitNew();
-                AdditionalCalObjSetup(CalObj);
-            }
-            View.Filter = null;
-        }
         private async Task CreateEventObjectsFromTimeTasks()
         {
             View.Filter = T => ((TimeTask)T).Intersects(SelectedDate, EndDate);
             foreach (TimeTask T in View)
             {
-                await T.BuildPerZonesAsync();
+                await T.BuildPerZonesAsync(SelectedDate, EndDate);
                 await T.BuildInclusionZonesAsync();
             }
             BuildTaskMaps();
@@ -264,14 +224,15 @@ namespace TimekeeperWPF
             foreach (var M in TaskMaps)
             {
                 if (M.InclusionZones.Count == 0) continue;
-                if (AllocateAllTime(M)) continue;
-                if (AllocateTimeResource(M)) continue;
-                if (await AllocateTimePerTime(M)) continue;
+                if (M.TimeTask.TimeAllocation == null) AllocateAllTime(M);
+                else if (M.TimeTask.TimeAllocation.Per == null) AllocateTimeResource(M);
+                else AllocateTimePerTime(M);
             }
             //TODO Deal with other types of allocations like dollars per hour, gas per dollar, etc.
         }
         private void BuildTaskMaps()
         {
+            //create mappings for each CalendarObject in each Inclusion Zone of each TimeTask
             TaskMaps = new List<CalendarTimeTaskMap>();
             foreach (TimeTask T in View)
             {
@@ -293,47 +254,35 @@ namespace TimekeeperWPF
                 TaskMaps.Add(M);
             }
         }
-        private bool AllocateAllTime(CalendarTimeTaskMap M)
+        private void AllocateAllTime(CalendarTimeTaskMap M)
         {
-            if (M.TimeTask.Allocations.Count == 0)
+            // If no time allocation is set, we create one CalendarObject per inclusion zone
+            // with each Start/End set to the bounds of the inclusion zone.
+            foreach (var Z in M.InclusionZones)
             {
-                // If no allocation is set, we create one CalendarObject per inclusion zone
-                // with each Start/End set to the bounds of the inclusion zone.
-                foreach (var Z in M.InclusionZones)
+                //create cal object that matches zone
+                CalendarObject CalObj = new CalendarObject
                 {
-                    //create cal object that matches zone
-                    CalendarObject CalObj = new CalendarObject
-                    {
-                        Start = Z.Start,
-                        End = Z.End,
-                        ParentMap = M
-                    };
-                    Z.CalendarObjects.Add(CalObj);
-                }
-                FinalizeCalObjs(M);
-                return true;
+                    Start = Z.Start,
+                    End = Z.End,
+                    ParentMap = M
+                };
+                Z.CalendarObjects.Add(CalObj);
             }
-            return false;
+            FinalizeCalObjs(M);
         }
-        private bool AllocateTimeResource(CalendarTimeTaskMap M)
+        private void AllocateTimeResource(CalendarTimeTaskMap M)
         {
-            // Find allocations where Resource is time related and Per is null
-            var timeAlloc = (from A in M.TimeTask.Allocations
-                             where A.Per == null
-                             where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                             select A).FirstOrDefault();
-            if (timeAlloc == null) return false;
-            timeAlloc.Remaining = timeAlloc.AmountAsTimeSpan().Ticks;
-            EagerAllocate(M, timeAlloc);
-            return true;
+            //If no Per is set, allocate time across entire task
+            M.TimeTask.TimeAllocation.Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks;
+            EagerAllocate(M, M.TimeTask.TimeAllocation);
         }
-        private async Task<bool> AllocateTimePerTime(CalendarTimeTaskMap M)
+        private void AllocateTimePerTime(CalendarTimeTaskMap M)
         {
-            // Allocation.Amount is the time that will be spent for each Allocation.Per
+            // Allocation.Amount is the amount of time that will be allocated for each Allocation.Per
             // segment aligned with the calendar. 
 
             TimeTaskAllocation A = M.TimeTask.TimeAllocation;
-            if (A == null) return false;
             var allocatedTime = A.AmountAsTimeSpan().Ticks;
             //get list of relevant per zones
             var perZones = M.TimeTask.PerZones.Where(P => Intersects(P.Key, P.Value));
@@ -348,11 +297,6 @@ namespace TimekeeperWPF
                 };
                 EvenAllocate(perMap, A);
             }
-            return true;
-        }
-        private void ATPTPart2(CalendarTimeTaskMap M, TimeTaskAllocation A, 
-            Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
-        {
         }
         private void EagerAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {

@@ -66,6 +66,13 @@ namespace TimekeeperDAL.EF
                 AddError(nameof(Amount), "Per must be larger than Resource");
                 hasError = true;
             }
+            else if (Per != null
+                && Resource.IsTimeResource
+                && !Per.IsTimeResource)
+            {
+                AddError(nameof(Per), "If Resource is a time, then Per must be a time");
+                hasError = true;
+            }
             if (!hasError) ClearErrors(nameof(Per));
             if (!hasError) ClearErrors(nameof(Amount));
             return hasError;
