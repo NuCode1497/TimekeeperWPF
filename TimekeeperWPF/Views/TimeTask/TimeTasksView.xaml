@@ -44,6 +44,7 @@
                 <DataGridTextColumn Binding="{Binding Path=CanInflate}" Header="CanInflate"/>
                 <DataGridTextColumn Binding="{Binding Path=CanDeflate}" Header="CanDeflate"/>
                 <DataGridTextColumn Binding="{Binding Path=CanFill}" Header="CanFill"/>
+                <DataGridTextColumn Binding="{Binding Path=AllocationMethod}" Header="AllocationMethod"/>
             </DataGrid.Columns>
         </DataGrid>
         <ContentControl 

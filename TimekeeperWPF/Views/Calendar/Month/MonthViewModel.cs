@@ -117,7 +117,7 @@ namespace TimekeeperWPF
                 mwVM.TextMargin = TextMargin;
             }
         }
-        protected override async void LoadData()
+        protected override async Task LoadData()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -138,22 +138,23 @@ namespace TimekeeperWPF
         protected override async Task GetDataAsync()
         {
             await Task.Delay(0);
-            SetUpCalendarObjects();
+            await SetUpCalendarObjects();
         }
-        protected override void Previous()
+        protected override async Task PreviousAsync()
         {
             DateTime previousMonth = SelectedDate.AddMonths(-1);
             SelectedDate = previousMonth;
-            LoadData();
+            await LoadData();
         }
-        protected override void Next()
+        protected override async Task NextAsync()
         {
             DateTime nextMonth = SelectedDate.AddMonths(1);
             SelectedDate = nextMonth;
-            LoadData();
+            await LoadData();
         }
-        protected override void SetUpCalendarObjects()
+        protected override async Task SetUpCalendarObjects()
         {
+            await Task.Delay(0);
             MonthWeeksCollection = new CollectionViewSource();
             MonthWeeksCollection.Source = new ObservableCollection<MonthWeekViewModel>();
             int numWeeks = SelectedDate.MonthWeeks();

@@ -107,6 +107,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Calendar\CalendarTimeTaskMap.cs" />
+    <Compile Include="Calendar\InclusionSorter.cs" />
     <Compile Include="Calendar\InclusionZone.cs" />
     <Compile Include="Calendar\NowMarkerVertical.xaml.cs">
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>

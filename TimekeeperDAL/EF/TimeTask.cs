@@ -49,6 +49,9 @@ namespace TimekeeperDAL.EF
 
         public int PowerLevel { get; set; }
 
+        [Required]
+        public string AllocationMethod { get; set; }
+
         public virtual ICollection<TimeTaskAllocation> Allocations { get; set; }
 
         public virtual ICollection<TimeTaskFilter> Filters { get; set; }

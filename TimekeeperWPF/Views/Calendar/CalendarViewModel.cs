@@ -127,9 +127,9 @@ namespace TimekeeperWPF
         #endregion Properties
         #region Commands
         public ICommand PreviousCommand => _PreviousCommand
-            ?? (_PreviousCommand = new RelayCommand(ap => Previous(), pp => CanPrevious));
+            ?? (_PreviousCommand = new RelayCommand(async ap => await PreviousAsync(), pp => CanPrevious));
         public ICommand NextCommand => _NextCommand
-            ?? (_NextCommand = new RelayCommand(ap => Next(), pp => CanNext));
+            ?? (_NextCommand = new RelayCommand(async ap => await NextAsync(), pp => CanNext));
         public ICommand OrientationCommand => _OrientationCommand
             ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
         public ICommand ScaleUpCommand => _ScaleUpCommand
@@ -146,22 +146,43 @@ namespace TimekeeperWPF
             ?? (_SelectMonthCommand = new RelayCommand(ap => SelectMonth(), pp => CanSelectMonth));
         #endregion Commands
         #region Predicates
-        protected virtual bool CanPrevious => true;
-        protected virtual bool CanNext => true;
+        protected virtual bool CanPrevious => IsNotLoading;
+        protected virtual bool CanNext => IsNotLoading;
         protected virtual bool CanOrientation => true;
         public virtual bool CanMax => true;
         public virtual bool CanTextMargin => true;
         protected virtual bool CanScaleUp => true;
         protected virtual bool CanScaleDown => true;
-        protected virtual bool CanSelectWeek => true;
-        protected virtual bool CanSelectDay => true;
-        protected virtual bool CanSelectYear => true;
-        protected virtual bool CanSelectMonth => true;
+        protected virtual bool CanSelectWeek => IsNotLoading;
+        protected virtual bool CanSelectDay => IsNotLoading;
+        protected virtual bool CanSelectYear => IsNotLoading;
+        protected virtual bool CanSelectMonth => IsNotLoading;
         //TODO
         protected override bool CanAddNew => false;
         protected override bool CanEditSelected => false;
         protected override bool CanSave => false;
         protected override bool CanDeleteSelected => false;
+
+        protected bool IsNoteRelevant(Note note)
+        {
+            return note.DateTime >= SelectedDate && note.DateTime <= EndDate;
+        }
+        public bool Intersects(DateTime start, DateTime end)
+        {
+            return start < EndDate && SelectedDate < end;
+        }
+        public bool Intersects(InclusionZone Z)
+        {
+            return Intersects(Z.Start, Z.End);
+        }
+        public bool Intersects(TimeTask T)
+        {
+            return Intersects(T.Start, T.End);
+        }
+        public bool Intersects(CalendarObject C)
+        {
+            return Intersects(C.Start, C.End);
+        }
         #endregion Predicates
         #region Actions
         protected virtual void SelectWeek()
@@ -275,7 +296,7 @@ namespace TimekeeperWPF
         {
             //If no Per is set, allocate time across entire task
             M.TimeTask.TimeAllocation.Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks;
-            EagerAllocate(M, M.TimeTask.TimeAllocation);
+            AllocationMethod(M, M.TimeTask.TimeAllocation);
         }
         private void AllocateTimePerTime(CalendarTimeTaskMap M)
         {
@@ -295,12 +316,29 @@ namespace TimekeeperWPF
                     TimeTask = M.TimeTask,
                     InclusionZones = M.InclusionZones.Where(Z => Z.Intersects(P.Key, P.Value)).ToList()
                 };
-                EvenAllocate(perMap, A);
+                AllocationMethod(perMap, A);
+            }
+        }
+        private void AllocationMethod(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        {
+            switch (M.TimeTask.AllocationMethod)
+            {
+                case "Eager":
+                    EagerAllocate(M, A);
+                    break;
+                case "Even":
+                    EvenAllocate(M, A);
+                    break;
+                case "Apathetic":
+                    ApatheticAllocate(M, A);
+                    break;
             }
         }
         private void EagerAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {
             // Fill the earliest zones first
+            if (M.InclusionZones.Count == 0) return;
+            M.InclusionZones.Sort(new InclusionSorterAsc());
             foreach (var Z in M.InclusionZones)
             {
                 if (A.Remaining <= 0) break;
@@ -332,19 +370,11 @@ namespace TimekeeperWPF
             }
             FinalizeCalObjs(M);
         }
-        private void MapCalObj(CalendarObject CalObj)
-        {
-            CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
-            CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
-            CalendarObjectsView.AddNewItem(CalObj);
-            CalendarObjectsView.CommitNew();
-            AdditionalCalObjSetup(CalObj);
-        }
         private void EvenAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {
+            //Fill zones evenly
             if (M.InclusionZones.Count == 0) return;
-            if (TimeTask.MinimumDuration.Ticks < TimeSpan.TicksPerMinute) throw new Exception(
-                "Invalid value for TimeTask.MinimumDuration. Must be greater than a minute for stability reasons.");
+            M.InclusionZones.Sort(new InclusionSorterAsc());
             //First loop that creates CalendarObjects
             foreach (var Z in M.InclusionZones)
             {
@@ -382,6 +412,42 @@ namespace TimekeeperWPF
             }
             FinalizeCalObjs(M);
         }
+        private void ApatheticAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        {
+            // Fill the latest zones first
+            if (M.InclusionZones.Count == 0) return;
+            M.InclusionZones.Sort(new InclusionSorterDesc());
+            foreach (var Z in M.InclusionZones)
+            {
+                if (A.Remaining <= 0) break;
+                if (Z.Duration.Ticks <= 0) break;
+                if (A.RemainingAsTimeSpan < Z.Duration)
+                {
+                    //create cal obj the size of the remaining time
+                    CalendarObject CalObj = new CalendarObject
+                    {
+                        Start = Z.End - A.RemainingAsTimeSpan,
+                        End = Z.End,
+                        ParentMap = M
+                    };
+                    Z.CalendarObjects.Add(CalObj);
+                    A.Remaining = 0;
+                }
+                else
+                {
+                    //create cal obj the size of the zone
+                    CalendarObject CalObj = new CalendarObject
+                    {
+                        Start = Z.Start,
+                        End = Z.End,
+                        ParentMap = M
+                    };
+                    Z.CalendarObjects.Add(CalObj);
+                    A.Remaining -= Z.Duration.Ticks;
+                }
+            }
+            FinalizeCalObjs(M);
+        }
         private void FinalizeCalObjs(CalendarTimeTaskMap M)
         {
             //Third loop that finalizes CalendarObjects
@@ -396,25 +462,22 @@ namespace TimekeeperWPF
                     AdditionalCalObjSetup(CalObj);
                 }
             }
-        }
-        private void ApatheticAllocate(CalendarTimeTaskMap Map, TimeTaskAllocation A)
-        {
-            //TODO
-            //The opposite of EagerAllocate. 
-            //CalendarObjects are allocated in later zones first
+            OnPropertyChanged(nameof(CalendarObjectsView));
         }
         protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
-        protected bool IsNoteRelevant(Note note)
+        protected virtual async Task PreviousAsync()
         {
-            return note.DateTime >= SelectedDate && note.DateTime <= EndDate;
+            IsLoading = true;
+            await SetUpCalendarObjects();
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
         }
-        protected virtual void Previous()
+        protected virtual async Task NextAsync()
         {
-            SetUpCalendarObjects();
-        }
-        protected virtual void Next()
-        {
-            SetUpCalendarObjects();
+            IsLoading = true;
+            await SetUpCalendarObjects();
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
         }
         protected virtual void ToggleOrientation()
         {
@@ -425,22 +488,6 @@ namespace TimekeeperWPF
         }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
-        public bool Intersects(DateTime start, DateTime end)
-        {
-            return start < EndDate && SelectedDate < end;
-        }
-        public bool Intersects(InclusionZone Z)
-        {
-            return Intersects(Z.Start, Z.End);
-        }
-        public bool Intersects(TimeTask T)
-        {
-            return Intersects(T.Start, T.End);
-        }
-        public bool Intersects(CalendarObject C)
-        {
-            return Intersects(C.Start, C.End);
-        }
         #endregion Actions
     }
 }

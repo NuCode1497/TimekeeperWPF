@@ -97,6 +97,9 @@ namespace TimekeeperDAL.EF
                         }
                         errors = GetErrorsFromAnnotations(nameof(PowerLevel), PowerLevel);
                         break;
+                    case nameof(AllocationMethod):
+                        errors = GetErrorsFromAnnotations(nameof(AllocationMethod), AllocationMethod);
+                        break;
                 }
                 if (errors != null && errors.Length != 0)
                 {
@@ -108,6 +111,14 @@ namespace TimekeeperDAL.EF
             }
         }
 
+        [NotMapped]
+        public static readonly List<string> AllocationMethodChoices = new List<string>
+        {
+            "Eager",
+            "Even",
+            "Apathetic"
+        };
+        
         [NotMapped]
         public static TimeSpan MinimumDuration => new TimeSpan(0, 5, 0);
 
@@ -139,12 +150,12 @@ namespace TimekeeperDAL.EF
         }
         public void BuildInclusionZones()
         {
+            InclusionZones = new Dictionary<DateTime, DateTime>();
             if (PerZones.Count == 0) BIZPart2(Start, End);
             else foreach (var P in PerZones) BIZPart2(P.Key, P.Value);
         }
         private void BIZPart2(DateTime start, DateTime end)
         {
-            InclusionZones = new Dictionary<DateTime, DateTime>();
             DateTime zoneStart = start;
             DateTime dt = start;
             bool include = false;

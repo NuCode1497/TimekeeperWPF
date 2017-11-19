@@ -94,6 +94,10 @@
     <Compile Include="Migrations\201711152202153_Revert.Designer.cs">
       <DependentUpon>201711152202153_Revert.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201711191812437_TimeTaskAllocationMethod.cs" />
+    <Compile Include="Migrations\201711191812437_TimeTaskAllocationMethod.Designer.cs">
+      <DependentUpon>201711191812437_TimeTaskAllocationMethod.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\LabeledEntity.cs" />
@@ -161,6 +165,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201711152202153_Revert.resx">
       <DependentUpon>201711152202153_Revert.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711191812437_TimeTaskAllocationMethod.resx">
+      <DependentUpon>201711191812437_TimeTaskAllocationMethod.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

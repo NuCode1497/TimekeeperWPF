@@ -181,7 +181,7 @@ namespace TimekeeperWPF
         #endregion
         #region Commands
         public ICommand GetDataCommand => _GetDataCommand
-            ?? (_GetDataCommand = new RelayCommand(ap => LoadData(), pp => CanGetData));
+            ?? (_GetDataCommand = new RelayCommand(async ap => await LoadData(), pp => CanGetData));
         public ICommand NewItemCommand => _NewItemCommand
             ?? (_NewItemCommand = new RelayCommand(ap => AddNew(), pp => CanAddNew));
         public ICommand CancelCommand => _CancelCommand
@@ -208,7 +208,7 @@ namespace TimekeeperWPF
         #region Actions
         protected abstract Task GetDataAsync();
         protected abstract void SaveAs();
-        protected virtual async void LoadData()
+        protected virtual async Task LoadData()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -235,6 +235,7 @@ namespace TimekeeperWPF
                 Status = "Failed to get data!";
             }
             IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
         }
         protected virtual int AddNew()
         {

@@ -32,15 +32,15 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void Previous()
+        protected override async Task PreviousAsync()
         {
             SelectedDate = SelectedDate.AddDays(-1);
-            base.Previous();
+            await base.PreviousAsync();
         }
-        protected override void Next()
+        protected override async Task NextAsync()
         {
             SelectedDate = SelectedDate.AddDays(1);
-            base.Next();
+            await base.NextAsync();
         }
         #endregion
     }
