@@ -178,24 +178,17 @@ namespace TimekeeperWPF
             Status = "Getting data from database...";
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
-            for (int i = 0; i < Source.Count; i++)
-            {
-                TimeTask T = Source[i];
-                Status = String.Format("Building inclusion zones {0}/{1}...", i, Source.Count);
-                await T.BuildInclusionZonesAsync();
-            }
             Status = "Creating CalendarObjects...";
-            SetUpCalendarObjects();
+            await SetUpCalendarObjects();
             //calculate collisions and reorganize CalendarObjects by changing their datetimes
-            //await Task.Run((Action)CalculateCollisions);
             await base.GetDataAsync();
         }
-        protected virtual void SetUpCalendarObjects()
+        protected virtual async Task SetUpCalendarObjects()
         {
             CalendarObjectsCollection = new CollectionViewSource();
             CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
             //CreateNoteObjects();
-            CreateEventObjectsFromTimeTasks();
+            await CreateEventObjectsFromTimeTasks();
             OnPropertyChanged(nameof(CalendarObjectsView));
         }
         //TODO update by adding CRUD stuff for notes
@@ -258,9 +251,14 @@ namespace TimekeeperWPF
             }
             View.Filter = null;
         }
-        private void CreateEventObjectsFromTimeTasks()
+        private async Task CreateEventObjectsFromTimeTasks()
         {
             View.Filter = T => ((TimeTask)T).Intersects(SelectedDate, EndDate);
+            foreach (TimeTask T in View)
+            {
+                await T.BuildPerZonesAsync();
+                await T.BuildInclusionZonesAsync();
+            }
             BuildTaskMaps();
             //Deal with time allocations
             foreach (var M in TaskMaps)
@@ -268,7 +266,7 @@ namespace TimekeeperWPF
                 if (M.InclusionZones.Count == 0) continue;
                 if (AllocateAllTime(M)) continue;
                 if (AllocateTimeResource(M)) continue;
-                if (AllocateTimePerTime(M)) continue;
+                if (await AllocateTimePerTime(M)) continue;
             }
             //TODO Deal with other types of allocations like dollars per hour, gas per dollar, etc.
         }
@@ -320,84 +318,41 @@ namespace TimekeeperWPF
         private bool AllocateTimeResource(CalendarTimeTaskMap M)
         {
             // Find allocations where Resource is time related and Per is null
-            var timeAllocs =
-                from A in M.TimeTask.Allocations
-                where A.Per == null
-                where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                select A;
-            if (timeAllocs.Count() > 0)
-            {
-                TimeTaskAllocation A = timeAllocs.First();
-                A.Remaining = A.AmountAsTimeSpan().Ticks;
-                EagerAllocate(M, A);
-                return true;
-            }
-            return false;
+            var timeAlloc = (from A in M.TimeTask.Allocations
+                             where A.Per == null
+                             where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                             select A).FirstOrDefault();
+            if (timeAlloc == null) return false;
+            timeAlloc.Remaining = timeAlloc.AmountAsTimeSpan().Ticks;
+            EagerAllocate(M, timeAlloc);
+            return true;
         }
-        private bool AllocateTimePerTime(CalendarTimeTaskMap M)
+        private async Task<bool> AllocateTimePerTime(CalendarTimeTaskMap M)
         {
             // Allocation.Amount is the time that will be spent for each Allocation.Per
             // segment aligned with the calendar. 
 
-            // Find allocations with both Resource and Per that are time related
-            var timePerTimeAllocs =
-                from A in M.TimeTask.Allocations
-                where Resource.TimeResourceChoices.Contains(A.Per.Name)
-                where Resource.TimeResourceChoices.Contains(A.Resource.Name)
-                select A;
-            if (timePerTimeAllocs.Count() > 0)
+            TimeTaskAllocation A = M.TimeTask.TimeAllocation;
+            if (A == null) return false;
+            var allocatedTime = A.AmountAsTimeSpan().Ticks;
+            //get list of relevant per zones
+            var perZones = M.TimeTask.PerZones.Where(P => Intersects(P.Key, P.Value));
+            foreach (var P in perZones)
             {
-                TimeTaskAllocation A = timePerTimeAllocs.First();
-                switch (A.Per.Name)
+                A.Remaining = allocatedTime;
+                //get subset of zones intersecting current per
+                CalendarTimeTaskMap perMap = new CalendarTimeTaskMap()
                 {
-                    case "Hour":
-                        ATPTPart2(M, A, dt => dt.HourStart(), dt => dt.AddHours(1));
-                        break;
-                    case "Day":
-                        ATPTPart2(M, A, dt => dt.Date, dt => dt.AddDays(1));
-                        break;
-                    case "Week":
-                        ATPTPart2(M, A, dt => dt.WeekStart(), dt => dt.AddDays(7));
-                        break;
-                    case "Month":
-                        ATPTPart2(M, A, dt => dt.MonthStart(), dt => dt.AddMonths(1));
-                        break;
-                    case "Year":
-                        ATPTPart2(M, A, dt => dt.YearStart(), dt => dt.AddYears(1));
-                        break;
-                }
-                return true;
+                    TimeTask = M.TimeTask,
+                    InclusionZones = M.InclusionZones.Where(Z => Z.Intersects(P.Key, P.Value)).ToList()
+                };
+                EvenAllocate(perMap, A);
             }
-            return false;
+            return true;
         }
         private void ATPTPart2(CalendarTimeTaskMap M, TimeTaskAllocation A, 
             Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
         {
-            var allocatedTime = A.AmountAsTimeSpan().Ticks;
-            var perTime = A.Per.AsTimeSpan().Ticks;
-            if (allocatedTime > perTime) throw new ArgumentException(
-                "TimeTaskAllocation.Resource must be smaller than TimeTaskAllocation.Per. ", nameof(A));
-            CalendarTimeTaskMap perMap;
-            DateTime dt = M.InclusionZones.First().Start;
-            dt = starter(dt);
-            //for each per zone
-            while (dt < M.TimeTask.End)
-            {
-                //start of next per zone
-                DateTime next = adder(dt);
-                A.Remaining = allocatedTime;
-                //get subset of zones intersecting current per
-                perMap = new CalendarTimeTaskMap()
-                {
-                    TimeTask = M.TimeTask,
-                    InclusionZones = new List<InclusionZone>(
-                        from Z in M.InclusionZones
-                        where Z.Intersects(dt, next)
-                        select Z)
-                };
-                EvenAllocate(perMap, A);
-                dt = next;
-            }
         }
         private void EagerAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {
@@ -526,6 +481,22 @@ namespace TimekeeperWPF
         }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
+        public bool Intersects(DateTime start, DateTime end)
+        {
+            return start < EndDate && SelectedDate < end;
+        }
+        public bool Intersects(InclusionZone Z)
+        {
+            return Intersects(Z.Start, Z.End);
+        }
+        public bool Intersects(TimeTask T)
+        {
+            return Intersects(T.Start, T.End);
+        }
+        public bool Intersects(CalendarObject C)
+        {
+            return Intersects(C.Start, C.End);
+        }
         #endregion Actions
     }
 }

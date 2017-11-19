@@ -116,6 +116,12 @@ namespace TimekeeperDAL.EF
 
         [NotMapped]
         public Dictionary<DateTime, DateTime> InclusionZones { get; set; }
+        
+        [NotMapped]
+        public Dictionary<DateTime, DateTime> PerZones { get; set; }
+
+        [NotMapped]
+        public TimeTaskAllocation TimeAllocation { get; set; }
 
         public override bool HasDateTime(DateTime dt)
         {
@@ -127,27 +133,22 @@ namespace TimekeeperDAL.EF
             }
             return false;
         }
-
         public async Task BuildInclusionZonesAsync()
         {
             await Task.Run((Action)BuildInclusionZones);
         }
-
-        /// <summary>
-        /// This function can take a while, consider using Async
-        /// </summary>
         public void BuildInclusionZones()
         {
-            //We need to align this task to the calendar by rounding up to the nearest MinimumDuration step
-            Start = Start.RoundUp(MinimumDuration);
-            End = End.RoundUp(MinimumDuration);
-            if (End <= Start) throw new Exception(String.Format(
-                "Start must be less than End by at least {0}", MinimumDuration.ToString(@"dd\.hh\:mm\:ss")));
+            if (PerZones.Count == 0) BIZPart2(Start, End);
+            else foreach (var P in PerZones) BIZPart2(P.Key, P.Value);
+        }
+        private void BIZPart2(DateTime start, DateTime end)
+        {
             InclusionZones = new Dictionary<DateTime, DateTime>();
-            DateTime zoneStart = Start;
-            DateTime dt = zoneStart;
+            DateTime zoneStart = start;
+            DateTime dt = start;
             bool include = false;
-            while (dt < End)
+            while (dt < end)
             {
                 //we want to determine if there exists at least one relevant filter that includes this time
                 bool prevInclude = include;
@@ -157,19 +158,19 @@ namespace TimekeeperDAL.EF
                     bool isRelevant = false;
                     switch (F.FilterTypeName)
                     {
-                        case nameof(TimeTask):
+                        case nameof(EF.TimeTask):
                             isRelevant = ((TimeTask)F.Filterable).HasDateTime(dt);
                             break;
-                        case nameof(Label):
+                        case nameof(EF.Label):
                             isRelevant = ((Label)F.Filterable).HasDateTime(dt);
                             break;
-                        case nameof(Resource):
+                        case nameof(EF.Resource):
                             isRelevant = ((Resource)F.Filterable).HasDateTime(dt);
                             break;
                         case nameof(EF.TaskType):
                             isRelevant = ((TaskType)F.Filterable).HasDateTime(dt);
                             break;
-                        case nameof(TimePattern):
+                        case nameof(EF.TimePattern):
                             isRelevant = ((TimePattern)F.Filterable).HasDateTime(dt);
                             break;
                     }
@@ -202,15 +203,61 @@ namespace TimekeeperDAL.EF
             //end any trailing inclusion zones
             if (include)
             {
-                InclusionZones.Add(zoneStart, End);
+                InclusionZones.Add(zoneStart, end);
             }
         }
-
+        public async Task BuildPerZonesAsync()
+        {
+            await Task.Run((Action)BuildPerZones);
+        }
+        public void BuildPerZones()
+        {
+            PerZones = new Dictionary<DateTime, DateTime>();
+            if (Allocations.Count == 0) return;
+            TimeAllocation = (from A in Allocations
+                              where A.Per == null
+                              where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                              select A).FirstOrDefault();
+            TimeAllocation = (from A in Allocations
+                              where Resource.TimeResourceChoices.Contains(A.Per.Name)
+                              where Resource.TimeResourceChoices.Contains(A.Resource.Name)
+                              select A).FirstOrDefault();
+            switch (TimeAllocation?.Per.Name)
+            {
+                case "Hour":
+                    BPZPart2(dt => dt.HourStart(), dt => dt.AddHours(1));
+                    break;
+                case "Day":
+                    BPZPart2(dt => dt.Date, dt => dt.AddDays(1));
+                    break;
+                case "Week":
+                    BPZPart2(dt => dt.WeekStart(), dt => dt.AddDays(7));
+                    break;
+                case "Month":
+                    BPZPart2(dt => dt.MonthStart(), dt => dt.AddMonths(1));
+                    break;
+                case "Year":
+                    BPZPart2(dt => dt.YearStart(), dt => dt.AddYears(1));
+                    break;
+            }
+        }
+        private void BPZPart2(Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
+        {
+            //define first per zone that intersects the first zone that intersects the current calendar view
+            DateTime perStart = starter(Start);
+            DateTime perEnd = adder(perStart);
+            //for each relevant per zone
+            while (Intersects(perStart, perEnd))
+            {
+                PerZones.Add(perStart, perEnd);
+                perStart = perEnd;
+                perEnd = adder(perStart);
+            }
+        }
         public bool Intersects(DateTime start, DateTime end)
         {
             return start < End && Start < end;
         }
-
         public bool Intersects(TimeTask T)
         {
             return Intersects(T.Start, T.End);
