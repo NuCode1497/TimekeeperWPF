@@ -43,7 +43,7 @@ namespace TimekeeperWPF.Calendar
         }
         private void _Timer_Tick(object sender, EventArgs e)
         {
-            InvalidateArrange();
+            //InvalidateArrange();
         }
         private CalendarTimeTaskMap _ParentMap;
         public CalendarTimeTaskMap ParentMap
@@ -131,27 +131,91 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty TaskTypeNameProperty =
             TaskTypeNamePropertyKey.DependencyProperty;
         #endregion TaskType
-
         public bool Intersects(DateTime start, DateTime end)
         {
             return start < End && Start < end;
         }
-
         public bool Intersects(InclusionZone Z)
         {
             return Intersects(Z.Start, Z.End);
         }
-
         public bool Intersects(TimeTask T)
         {
             return Intersects(T.Start, T.End);
         }
-
         public bool Intersects(CalendarObject C)
         {
             return Intersects(C.Start, C.End);
         }
-        
+        #region States
+        public enum States
+        {
+            Current,        //Azure
+            Completed,      //LimeGreen
+            Confirmed,      //SpringGreen
+            Incomplete,     //Crimson
+            Conflict,       //Pink
+            Insufficient,   //Orange
+            CheckIn,        //DodgerBlue
+            Unscheduled,    //Chartreuse
+            Unconfirmed,    //SkyBlue
+            AutoCheckIn,    //MediumAquamarine
+            AutoConfirm,    //Aquamarine
+        }
+        public States State
+        {
+            get { return (States)GetValue(StateProperty); }
+            set { SetValue(StateProperty, value); }
+        }
+        public static DependencyProperty StateProperty =
+            DependencyProperty.Register(
+                nameof(State), typeof(States), typeof(CalendarObject),
+                new FrameworkPropertyMetadata(States.Unconfirmed,
+                    new PropertyChangedCallback(OnStateChanged)));
+        public static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            CalendarObject CalObj = d as CalendarObject;
+            States value = (States)e.NewValue;
+            switch (value)
+            {
+                case States.Current:
+                    CalObj.StateColor = Brushes.Azure;
+                    break;
+                case States.Completed:
+                    CalObj.StateColor = Brushes.LimeGreen;
+                    break;
+                case States.Confirmed:
+                    CalObj.StateColor = Brushes.SpringGreen;
+                    break;
+                case States.Incomplete:
+                    CalObj.StateColor = Brushes.Crimson;
+                    break;
+                case States.CheckIn:
+                    CalObj.StateColor = Brushes.DodgerBlue;
+                    break;
+                case States.Unscheduled:
+                    CalObj.StateColor = Brushes.Chartreuse;
+                    break;
+                case States.Unconfirmed:
+                    CalObj.StateColor = Brushes.SkyBlue;
+                    break;
+                case States.AutoCheckIn:
+                    CalObj.StateColor = Brushes.MediumAquamarine;
+                    break;
+                case States.AutoConfirm:
+                    CalObj.StateColor = Brushes.Aquamarine;
+                    break;
+            }
+        }
+        public SolidColorBrush StateColor
+        {
+            get { return (SolidColorBrush)GetValue(StateColorProperty); }
+            set { SetValue(StateColorProperty, value); }
+        }
+        public static DependencyProperty StateColorProperty =
+            DependencyProperty.Register(
+                nameof(StateColor), typeof(SolidColorBrush), typeof(CalendarObject));
+        #endregion
         #region Shadow Clone
         /// <summary>
         ///This is configured such that CalendarObjects that normally span across more than 

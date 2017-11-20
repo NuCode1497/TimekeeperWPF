@@ -168,18 +168,16 @@ namespace TimekeeperWPF
             File.WriteAllText(saveDlg.FileName, text);
             Process.Start(saveDlg.FileName);
         }
-        protected override int AddNew()
+        protected override void AddNew()
         {
-            int errors = base.AddNew();
-            if (errors != 0) return errors;
-            if (CurrentEditItem == null)
+            CurrentEditItem = new Note
             {
-                errors++;
-                return errors;
-            }
-            CurrentEditItem.DateTime = DateTime.Now;
-            CurrentEditItem.Text = "Your text here.";
-            return 0;
+                TaskType = TaskTypesSource.First(N => N.Name == "Note"),
+                DateTime = DateTime.Now,
+                Text = "Your text here."
+            };
+            View.AddNewItem(CurrentEditItem);
+            base.AddNew();
         }
         #endregion
     }

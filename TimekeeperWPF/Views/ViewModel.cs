@@ -237,21 +237,11 @@ namespace TimekeeperWPF
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
-        protected virtual int AddNew()
+        protected virtual void AddNew()
         {
             SelectedItem = null;
-            IsAddingNew = true; //before view.addnew
-            ModelType newItem = View.AddNew() as ModelType;
-            if (newItem == null)
-            {
-                IsAddingNew = false;
-                Status = "Failed to create a new item, try again...";
-                return 1;
-            }
-            _CurrentEditItem = newItem;
-            OnPropertyChanged(nameof(CurrentEditItem));
-            Status = "Adding new " + CurrentEditItem.GetTypeName();
-            return 0;
+            IsAddingNew = true;
+            Status = "Adding new " + nameof(ModelType);
         }
         protected virtual void EditSelected()
         {
@@ -336,10 +326,10 @@ namespace TimekeeperWPF
                 foreach (var e in ex.EntityValidationErrors)
                 {
                     var entity = e.Entry.Entity;
-                    s += entity + ": ";
+                    s += entity + ": \n";
                     foreach (var ve in e.ValidationErrors)
                     {
-                        s += ve.PropertyName + ": " + ve.ErrorMessage + "\n";
+                        s += "\t" + ve.PropertyName + ": " + ve.ErrorMessage + "\n";
                     }
                 }
                 

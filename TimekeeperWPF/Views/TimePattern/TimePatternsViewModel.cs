@@ -40,19 +40,16 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override int AddNew()
+        protected override void AddNew()
         {
-            int errors = base.AddNew();
-            if (errors != 0) return errors;
-            if (CurrentEditItem == null)
+            CurrentEditItem = new TimePattern
             {
-                errors++;
-                return errors;
-            }
-            CurrentEditItem.Name = "New Time Pattern";
+                Name = "New Time Pattern"
+            };
+            View.AddNewItem(CurrentEditItem);
             BeginEdit();
             AddClause();
-            return 0;
+            base.AddNew();
         }
         protected override void EditSelected()
         {
@@ -61,7 +58,6 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
-            if (!IsEditingItemOrAddingNew) return;
             ClausesCollection = new CollectionViewSource();
             ClausesCollection.Source = 
                 new ObservableCollection<TimePatternClause>(CurrentEditItem.Query);

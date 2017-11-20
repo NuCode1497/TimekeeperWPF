@@ -35,35 +35,6 @@ namespace TimekeeperWPF
 
             await base.GetDataAsync();
         }
-        protected override int AddNew()
-        {
-            int errors = base.AddNew();
-            if (errors != 0) return errors;
-            if (CurrentEditItem == null)
-            {
-                errors++;
-                return errors;
-            }
-            //set type to Note by getting it from the list of types
-            var q = from t in TaskTypesSource
-                    where t.Name == "Note"
-                    select t;
-            CurrentEditItem.TaskType = q.DefaultIfEmpty(TaskTypesSource.FirstOrDefault()).First();
-            return 0;
-        }
-        protected override void EditSelected()
-        {
-            base.EditSelected();
-            BeginEdit();
-        }
-        private void BeginEdit()
-        {
-            //Preselect the current type
-            var q = from t in TaskTypesSource
-                    where t.Name == CurrentEditItem?.TaskType.Name
-                    select t;
-            TaskTypesView.MoveCurrentTo(q.DefaultIfEmpty(TaskTypesSource.First()).First());
-        }
         #endregion
     }
 }

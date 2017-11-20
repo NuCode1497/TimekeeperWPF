@@ -28,10 +28,13 @@ namespace TimekeeperWPF
         #region Properties
         public CollectionViewSource LabelsCollection { get; set; }
         public CollectionViewSource CurrentEntityLabelsCollection { get; set; }
-        public ObservableCollection<Label> LabelsSource => LabelsCollection?.Source as ObservableCollection<Label>;
-        public ObservableCollection<Label> CurrentEntityLabelsSource => CurrentEntityLabelsCollection?.Source as ObservableCollection<Label>;
+        public ObservableCollection<Label> LabelsSource => 
+            LabelsCollection?.Source as ObservableCollection<Label>;
+        public ObservableCollection<Label> CurrentEntityLabelsSource => 
+            CurrentEntityLabelsCollection?.Source as ObservableCollection<Label>;
         public ListCollectionView LabelsView => LabelsCollection?.View as ListCollectionView;
-        public ListCollectionView CurrentEntityLabelsView => CurrentEntityLabelsCollection?.View as ListCollectionView;
+        public ListCollectionView CurrentEntityLabelsView => 
+            CurrentEntityLabelsCollection?.View as ListCollectionView;
         public Label SelectedLabel
         {
             get { return _SelectedLabel; }
@@ -87,12 +90,10 @@ namespace TimekeeperWPF
             LabelsView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(LabelsView));
         }
-        protected override int AddNew()
+        protected override void AddNew()
         {
-            int errors = base.AddNew();
-            if (errors != 0) return errors;
             BeginEdit();
-            return 0;
+            base.AddNew();
         }
         protected override void EditSelected()
         {
@@ -101,7 +102,6 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
-            if (!IsEditingItemOrAddingNew) return;
             CurrentEntityLabelsCollection = new CollectionViewSource();
             HashSet<Label> labels = new HashSet<Label>();
             foreach (Labelling l in CurrentEditItem.Labellings)

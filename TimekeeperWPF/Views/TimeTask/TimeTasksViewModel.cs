@@ -265,34 +265,33 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override int AddNew()
+        protected override void AddNew()
         {
-            int errors = base.AddNew();
-            if (errors != 0) return errors;
-            if (CurrentEditItem == null)
+            CurrentEditItem = new TimeTask
             {
-                errors++;
-                return errors;
-            }
-            CurrentEditItem.Name = "New Task";
-            CurrentEditItem.Description = "Your text here.";
-            CurrentEditItem.End = DateTime.Now.RoundToHour().AddHours(1); //init before start
-            CurrentEditItem.Start = DateTime.Now.RoundToHour();
-            CurrentEditItem.Dimension = 1;
-            CurrentEditItem.PowerLevel = 100;
-            CurrentEditItem.Priority = 1;
-            CurrentEditItem.AsksForCheckin = false;
-            CurrentEditItem.AsksForReschedule = false;
-            CurrentEditItem.CanReschedule = false;
-            CurrentEditItem.RaiseOnReschedule = false;
-            CurrentEditItem.CanBeEarly = false;
-            CurrentEditItem.CanBeLate = false;
-            CurrentEditItem.CanBePushed = false;
-            CurrentEditItem.CanInflate = false;
-            CurrentEditItem.CanDeflate = false;
-            CurrentEditItem.CanFill = false;
+                Name = "New Task",
+                Description = "Your text here.",
+                End = DateTime.Now.RoundToHour().AddHours(1), //init before start
+                Start = DateTime.Now.RoundToHour(),
+                TaskType = TaskTypesSource.First(N => N.Name == "Chore"),
+                AllocationMethod = "Even",
+                Dimension = 1,
+                PowerLevel = 100,
+                Priority = 1,
+                AsksForCheckin = false,
+                AsksForReschedule = false,
+                CanReschedule = false,
+                RaiseOnReschedule = false,
+                CanBeEarly = false,
+                CanBeLate = false,
+                CanBePushed = false,
+                CanInflate = false,
+                CanDeflate = false,
+                CanFill = false
+            };
+            View.AddNewItem(CurrentEditItem);
             BeginEdit();
-            return 0;
+            base.AddNew();
         }
         protected override void EditSelected()
         {
@@ -301,8 +300,6 @@ namespace TimekeeperWPF
         }
         private void BeginEdit()
         {
-            if (!IsEditingItemOrAddingNew) return;
-
             AllocationsCollection = new CollectionViewSource();
             AllocationsCollection.Source = new ObservableCollection<TimeTaskAllocation>(CurrentEditItem.Allocations);
             UpdateAllocationsView();
