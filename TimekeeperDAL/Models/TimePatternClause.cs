@@ -19,7 +19,7 @@ namespace TimekeeperDAL.EF
         {
             return "[" + TimeProperty + " " + Equivalency + " " + TimePropertyValue + "]";
         }
-
+        
         [NotMapped]
         public override string this[string columnName]
         {
@@ -83,6 +83,15 @@ namespace TimekeeperDAL.EF
                         hasError = true;
                     }
                     break;
+                //case "TimeRange":
+                //    var values = TimePropertyValue.Split('-');
+                //    DateTime dtzz;
+                //    if (!(DateTime.TryParse(values[0], out dtzz) && DateTime.TryParse(values[1], out dtzz)))
+                //    {
+                //        AddError(nameof(TimePropertyValue), "Bad time format");
+                //        hasError = true;
+                //    }
+                //    break;
                 case "Year":
                     if (!int.TryParse(TimePropertyValue, out int iz))
                     {
@@ -154,6 +163,7 @@ namespace TimekeeperDAL.EF
             "MonthDay",
             "MonthWeek",
             "Time",
+            //"TimeRange",
             "Year",
             "YearDay",
             "YearWeek"

@@ -11,6 +11,9 @@ namespace TimekeeperDAL.EF
         {
             Query = new HashSet<TimePatternClause>();
         }
+
+        [Required]
+        public bool Any { get; set; }
         
         public virtual ICollection<TimePatternClause> Query { get; set; }
     }

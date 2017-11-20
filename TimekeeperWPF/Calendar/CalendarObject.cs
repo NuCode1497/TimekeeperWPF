@@ -43,6 +43,19 @@ namespace TimekeeperWPF.Calendar
         }
         private void _Timer_Tick(object sender, EventArgs e)
         {
+            //determine the state of this object based on the current time
+            if (DateTime.Now < Start)
+            {
+            }
+            else if (DateTime.Now > End)
+            {
+
+            }
+            else
+            {
+                State = States.Current;
+            }
+
             //InvalidateArrange();
         }
         private CalendarTimeTaskMap _ParentMap;
@@ -131,22 +144,12 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty TaskTypeNameProperty =
             TaskTypeNamePropertyKey.DependencyProperty;
         #endregion TaskType
-        public bool Intersects(DateTime start, DateTime end)
-        {
-            return start < End && Start < end;
-        }
-        public bool Intersects(InclusionZone Z)
-        {
-            return Intersects(Z.Start, Z.End);
-        }
-        public bool Intersects(TimeTask T)
-        {
-            return Intersects(T.Start, T.End);
-        }
-        public bool Intersects(CalendarObject C)
-        {
-            return Intersects(C.Start, C.End);
-        }
+        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
+        public bool Intersects(Note N) { return Intersects(N.DateTime); }
+        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
+        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
+        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
+        public bool Intersects(CalendarObject C) { return Intersects(C.Start, C.End); }
         #region States
         public enum States
         {
@@ -189,6 +192,12 @@ namespace TimekeeperWPF.Calendar
                     break;
                 case States.Incomplete:
                     CalObj.StateColor = Brushes.Crimson;
+                    break;
+                case States.Conflict:
+                    CalObj.StateColor = Brushes.Pink;
+                    break;
+                case States.Insufficient:
+                    CalObj.StateColor = Brushes.Orange;
                     break;
                 case States.CheckIn:
                     CalObj.StateColor = Brushes.DodgerBlue;

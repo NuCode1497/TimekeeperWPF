@@ -6,7 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:TimekeeperWPF"
     mc:Ignorable="d" 
-    d:DesignHeight="400" d:DesignWidth="400">
+    d:DesignHeight="400" d:DesignWidth="600">
     <Grid x:Name="SV">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -21,6 +21,7 @@
             CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
                 <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
+                <DataGridTextColumn Binding="{Binding Path=Any}" Header="Any"/>
                 <DataGridTextColumn Binding="{Binding Path=QueryToString}" Header="Query"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"

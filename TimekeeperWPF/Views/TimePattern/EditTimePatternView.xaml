@@ -16,23 +16,44 @@
         <StackPanel DataContext="{Binding Path=DataContext, 
                 RelativeSource={RelativeSource AncestorType=Grid}}">
             <!--DataContext is TimePatternsViewModel-->
-            <GroupBox>
+            <GroupBox x:Name="WhereBox">
                 <GroupBox.Header>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Where "/>
-                        <Button x:Name="AddClauseButton" Margin="2"
-                                Style="{StaticResource TinyButtonAddStyle}"
-                                Command="{Binding Path=AddClauseCommand}"/>
+                        <TextBlock Text="Where " VerticalAlignment="Center"/>
+                        <ToggleButton 
+                            x:Name="AnyToggle" BorderThickness="1" Width="30"
+                            Background="Transparent" Height="22"
+                            IsChecked="{Binding Path=CurrentEditItem.Any, Mode=TwoWay, 
+                            ValidatesOnDataErrors=True, ValidatesOnExceptions=True}">
+                            <ToggleButton.Style>
+                                <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                                    <Setter Property="Content" Value="All"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=CurrentEditItem.Any}" Value="False">
+                                            <Setter Property="Content" Value="All"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=CurrentEditItem.Any}" Value="True">
+                                            <Setter Property="Content" Value="Any"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ToggleButton.Style>
+                        </ToggleButton>
+                        <Button 
+                            x:Name="AddClauseButton" Margin="2"
+                            Style="{StaticResource TinyButtonAddStyle}"
+                            Command="{Binding Path=AddClauseCommand}"/>
                     </StackPanel>
                 </GroupBox.Header>
                 <StackPanel>
-                    <ItemsControl Name="TPClauseListIC" IsTabStop="False"
-                                      ItemsSource="{Binding Path=ClausesView}">
+                    <ItemsControl 
+                        Name="TPClauseListIC" IsTabStop="False"
+                        ItemsSource="{Binding Path=ClausesView}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <local:TimePatternClauseView
-                                        RemoveCommand="{Binding ElementName=TPClauseListIC,
-                                        Path=DataContext.RemoveClauseCommand}"/>
+                                    RemoveCommand="{Binding ElementName=TPClauseListIC,
+                                    Path=DataContext.RemoveClauseCommand}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

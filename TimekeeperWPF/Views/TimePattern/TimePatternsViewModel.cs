@@ -44,7 +44,8 @@ namespace TimekeeperWPF
         {
             CurrentEditItem = new TimePattern
             {
-                Name = "New Time Pattern"
+                Name = "New Time Pattern",
+                Any = false
             };
             View.AddNewItem(CurrentEditItem);
             BeginEdit();
