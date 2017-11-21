@@ -3,10 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel Orientation="Horizontal">
         <Label Content="Task Type"  Width="80"/>
-        <ComboBox Width="100" HorizontalAlignment="Left"
-                  DisplayMemberPath="Name"
-                  IsSynchronizedWithCurrentItem="True"
-                  SelectedItem="{Binding Path=TaskType, Mode=TwoWay}"
-                  ItemsSource="{Binding Path=DataContext.TaskTypesView, RelativeSource={RelativeSource AncestorType=Grid}}" />
+        <ListView Margin="5"
+            ItemsSource="{Binding Path=DataContext.TaskTypesView, 
+            RelativeSource={RelativeSource AncestorType=Grid}}" 
+            SelectedItem="{Binding Path=TaskType, Mode=TwoWay}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel ItemWidth="45" Width="140"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
     </StackPanel>
 </UserControl>

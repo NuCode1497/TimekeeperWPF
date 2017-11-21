@@ -174,6 +174,7 @@ namespace TimekeeperWPF
             {
                 TaskType = TaskTypesSource.First(N => N.Name == "Note"),
                 DateTime = DateTime.Now,
+                Name = "Note",
                 Text = "Your text here."
             };
             View.AddNewItem(CurrentEditItem);

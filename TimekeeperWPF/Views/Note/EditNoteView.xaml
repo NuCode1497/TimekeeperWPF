@@ -2,8 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:TimekeeperWPF"
-             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
+             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
+             Margin="10">
     <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Name" Width="80"/>
+            <TextBox 
+                x:Name="NameTextBox" Width="300" HorizontalAlignment="Left" 
+                TextWrapping="Wrap" MaxLength="160" 
+                Text="{Binding Path=Name, ValidatesOnDataErrors=True, 
+                ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
         <StackPanel Orientation="Horizontal">
             <Label Content="Date &amp; Time" Width="80"/>
             <wpftools:DateTimePicker 
@@ -19,6 +28,10 @@
                 ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel>
         <local:TaskTypeSelectorView/>
-        <local:LabelSelectorView/>
+        <StackPanel DataContext="{Binding Path=DataContext, 
+            RelativeSource={RelativeSource AncestorType=Grid}}">
+            <!--DataContext is NotesViewModel-->
+            <local:LabelSelectorView/>
+        </StackPanel>
     </StackPanel>
 </UserControl>

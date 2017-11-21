@@ -13,51 +13,41 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <ContentControl x:Name="CommandsToolbar" Grid.Row="0" Template="{StaticResource TableViewControlsTemplate}"/>
+        <ContentControl 
+            x:Name="CommandsToolbar" Grid.Row="0" 
+            Template="{StaticResource TableViewControlsTemplate}"/>
         <DataGrid x:Name="DG" Grid.Row="1"
                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   IsEnabled="{Binding Path=IsEnabled}"
                   ItemsSource="{Binding Path=View}"
                   SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}">
             <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" />
                 <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
                 <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
-                <DataGridTextColumn Binding="{Binding Path=Text}" Header="Text" Width="*">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style>
-                            <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
-                            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
-                            <Setter Property="TextBlock.FontSize" Value="12"/>
-                            <Setter Property="TextBlock.LineHeight" Value="14"/>
-                            <Setter Property="TextBlock.MaxHeight" Value="42"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels" Width="150">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style>
-                            <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
-                            <Setter Property="TextBlock.TextTrimming" Value="CharacterEllipsis"/>
-                            <Setter Property="TextBlock.FontSize" Value="12"/>
-                            <Setter Property="TextBlock.LineHeight" Value="14"/>
-                            <Setter Property="TextBlock.MaxHeight" Value="42"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
+                <DataGridTextColumn Binding="{Binding Path=Text}" Header="Text"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
-        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp"
-                        IsVisibleChanged="EditPopUp_IsVisibleChanged"
-                        Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+        <ContentControl 
+            Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp"
+            IsVisibleChanged="EditPopUp_IsVisibleChanged"
+            Visibility="{Binding Path=IsEditingItemOrAddingNew, 
             Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Template="{StaticResource EditPopUpTemplate}">
+            Template="{StaticResource EditPopUpTemplate}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
+                <local:EditNoteView 
+                    x:Name="DataEditor" 
+                    DataContext="{Binding Path=CurrentEditItem}"/>
             </ScrollViewer>
         </ContentControl>
-        <ContentControl Grid.Row="0" Grid.RowSpan="2" x:Name="SaveDateSelectPopUp"
-                        Visibility="{Binding Path=IsSaving, Converter={StaticResource BooleanToVisibilityConverter}}"
-                        Template="{StaticResource PopUpTemplate}">
+        <ContentControl Margin="10"
+            Grid.Row="0" Grid.RowSpan="2" x:Name="SaveDateSelectPopUp"
+            Visibility="{Binding Path=IsSaving, FallbackValue=Collapsed,
+            Converter={StaticResource BooleanToVisibilityConverter}}"
+            Template="{StaticResource PopUpTemplate}">
             <StackPanel>
                 <GroupBox Header="Select date range to save">
                     <Grid Margin="5" Width="300">
@@ -72,16 +62,23 @@
                         </Grid.ColumnDefinitions>
                         <Label Grid.Column="0" Grid.Row="0" Content="Start" />
                         <Label Grid.Column="0" Grid.Row="1" Content="End" />
-                        <DatePicker Grid.Column="1" Grid.Row="0" Width="Auto"
-                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
-                        <DatePicker Grid.Column="1" Grid.Row="1" Width="Auto" 
-                                SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" VerticalContentAlignment="Stretch" />
-                        <Button Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
-                            Command="{Binding Path=ContinueSaveCommand}" VerticalAlignment="Center"/>
+                        <DatePicker 
+                            Grid.Column="1" Grid.Row="0" Width="Auto"
+                            SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" />
+                        <DatePicker 
+                            Grid.Column="1" Grid.Row="1" Width="Auto" 
+                            SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
+                        <Button 
+                            Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
+                            Command="{Binding Path=ContinueSaveCommand}" 
+                            VerticalAlignment="Center"/>
                     </Grid>
                 </GroupBox>
             </StackPanel>
         </ContentControl>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="2" Visibility="{Binding Path=IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <local:LoadingView 
+            Grid.Row="0" Grid.RowSpan="2" 
+            Visibility="{Binding Path=IsLoading, FallbackValue=Collapsed,
+            Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

@@ -25,40 +25,61 @@ namespace TimekeeperDAL.EF
 
         public override bool HasDateTime(DateTime dt)
         {
-            //must pass all clauses to return true
-            foreach (TimePatternClause clause in Query)
+            if (Any)
             {
-                bool pass = false;
-                switch (clause.TimeProperty)
+                //must pass at least one clause to return true
+                foreach (TimePatternClause clause in Query)
                 {
-                    case "WeekDay":
-                        pass = clause.CheckEquivalency(dt.DayOfWeek.ToString());
-                        break;
-                    case "Month":
-                        pass = clause.CheckEquivalency(dt.ToString("MMMM"));
-                        break;
-                    case "MonthDay":
-                        pass = clause.CheckEquivalency(dt.Day);
-                        break;
-                    case "MonthWeek":
-                        pass = clause.CheckEquivalency(dt.WeekOfMonth());
-                        break;
-                    case "Time":
-                        pass = clause.CheckEquivalency(dt.TimeOfDay);
-                        break;
-                    case "Year":
-                        pass = clause.CheckEquivalency(dt.Year);
-                        break;
-                    case "YearDay":
-                        pass = clause.CheckEquivalency(dt.DayOfYear);
-                        break;
-                    case "YearWeek":
-                        pass = clause.CheckEquivalency(dt.WeekOfYear());
-                        break;
+                    bool pass = false;
+                    pass = HasDTPart2(dt, clause, pass);
+                    if (pass) return true;
                 }
-                if (!pass) return false;
+                return false;
             }
-            return true;
+            else
+            {
+                //must pass all clauses to return true
+                foreach (TimePatternClause clause in Query)
+                {
+                    bool pass = false;
+                    pass = HasDTPart2(dt, clause, pass);
+                    if (!pass) return false;
+                }
+                return true;
+            }
+        }
+
+        private static bool HasDTPart2(DateTime dt, TimePatternClause clause, bool pass)
+        {
+            switch (clause.TimeProperty)
+            {
+                case "WeekDay":
+                    pass = clause.CheckEquivalency(dt.DayOfWeek.ToString());
+                    break;
+                case "Month":
+                    pass = clause.CheckEquivalency(dt.ToString("MMMM"));
+                    break;
+                case "MonthDay":
+                    pass = clause.CheckEquivalency(dt.Day);
+                    break;
+                case "MonthWeek":
+                    pass = clause.CheckEquivalency(dt.WeekOfMonth());
+                    break;
+                case "Time":
+                    pass = clause.CheckEquivalency(dt.TimeOfDay);
+                    break;
+                case "Year":
+                    pass = clause.CheckEquivalency(dt.Year);
+                    break;
+                case "YearDay":
+                    pass = clause.CheckEquivalency(dt.DayOfYear);
+                    break;
+                case "YearWeek":
+                    pass = clause.CheckEquivalency(dt.WeekOfYear());
+                    break;
+            }
+
+            return pass;
         }
     }
 }

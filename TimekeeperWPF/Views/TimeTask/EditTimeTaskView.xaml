@@ -6,7 +6,8 @@
              xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
              Width="400" Margin="10">
     <UserControl.Resources>
-        <Style x:Key="ReschedChecksStyle" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}">
+        <Style x:Key="ReschedChecksStyle" TargetType="CheckBox" 
+               BasedOn="{StaticResource {x:Type CheckBox}}">
             <Setter Property="Margin" Value="25,1,1,1"/>
             <Setter Property="IsEnabled" Value="False"/>
             <Style.Triggers>
@@ -44,12 +45,12 @@
                 ValidatesOnDataErrors=True,ValidatesOnExceptions=True}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal">
-            <StackPanel>
+            <StackPanel Width="230">
                 <local:TaskTypeSelectorView x:Name="TaskTypePanel"/>
                 <StackPanel x:Name="PriorityPanel" Orientation="Horizontal">
                     <Label Content="Priority" Width="80" />
-                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Priority, Mode=TwoWay, 
-                        UpdateSourceTrigger=PropertyChanged,
+                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Priority, 
+                        Mode=TwoWay, UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
                 <StackPanel x:Name="DimensionPanel" Orientation="Horizontal">
@@ -77,11 +78,12 @@
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Allocation"  Width="80"/>
                     <ComboBox Width="100" HorizontalAlignment="Left"
-                        SelectedItem="{Binding Path=AllocationMethod, Mode=TwoWay, FallbackValue=Even}"
+                        SelectedItem="{Binding Path=AllocationMethod, 
+                        Mode=TwoWay, FallbackValue=Even}"
                         ItemsSource="{x:Static dal:TimeTask.AllocationMethodChoices}" />
                 </StackPanel>
             </StackPanel>
-            <StackPanel Margin="20,5">
+            <StackPanel Margin="5">
                 <CheckBox Content="Request Check-in" IsChecked="{Binding Path=AsksForCheckin}"/>
                 <CheckBox Content="Can Reschedule" IsChecked="{Binding Path=CanReschedule}"/>
                 <CheckBox Content="Automatically" IsChecked="{Binding Path=AsksForReschedule}"
