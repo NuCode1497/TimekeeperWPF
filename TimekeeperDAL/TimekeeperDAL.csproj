@@ -106,6 +106,10 @@
     <Compile Include="Migrations\201711201945336_PatternAny.Designer.cs">
       <DependentUpon>201711201945336_PatternAny.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201711220539388_NoteToTask.cs" />
+    <Compile Include="Migrations\201711220539388_NoteToTask.Designer.cs">
+      <DependentUpon>201711220539388_NoteToTask.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\LabeledEntity.cs" />
@@ -182,6 +186,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201711201945336_PatternAny.resx">
       <DependentUpon>201711201945336_PatternAny.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711220539388_NoteToTask.resx">
+      <DependentUpon>201711220539388_NoteToTask.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

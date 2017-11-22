@@ -21,6 +21,9 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
+                    case nameof(Dimension):
+                        errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);
+                        break;
                     case nameof(DateTime):
                         errors = GetErrorsFromAnnotations(nameof(DateTime), DateTime);
                         break;

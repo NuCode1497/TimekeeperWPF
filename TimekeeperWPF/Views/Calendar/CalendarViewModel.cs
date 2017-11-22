@@ -186,31 +186,34 @@ namespace TimekeeperWPF
         protected override async Task GetDataAsync()
         {
             Context = new TimeKeeperContext();
-
             Status = "Getting data from database...";
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
-
-            Status = "Creating CalendarObjects...";
-            await SetUpCalendarObjects();
-
-            Status = "Creating Notes...";
             NotesVM = new NotesViewModel();
             await NotesVM.LoadData();
-
+            await SetUpCalendarObjects();
             await base.GetDataAsync();
         }
         protected virtual async Task SetUpCalendarObjects()
         {
-            CalTaskObjsCollection = new CollectionViewSource();
-            CalTaskObjsCollection.Source = new ObservableCollection<UIElement>();
-            await CreateTaskObjects();
+            Status = "Creating CalendarObjects...";
             CreateNoteObjects();
-            OnPropertyChanged(nameof(CalTaskObjsView));
+            await CreateTaskObjects();
         }
         private void CreateNoteObjects()
         {
+            CalNoteObjsCollection = new CollectionViewSource();
+            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
             NotesVM.View.Filter = N => Intersects((Note)N);
+            foreach (Note N in NotesVM.View)
+            {
+                CalendarNoteObject CalObj = new CalendarNoteObject();
+                CalObj.DateTime = N.DateTime;
+                CalObj.ToolTip = N;
+                CalNoteObjsView.AddNewItem(CalObj);
+                CalNoteObjsView.CommitNew();
+            }
+            OnPropertyChanged(nameof(CalNoteObjsView));
         }
         private async Task CreateTaskObjects()
         {
@@ -221,15 +224,9 @@ namespace TimekeeperWPF
                 await T.BuildInclusionZonesAsync();
             }
             BuildTaskMaps();
-            //Deal with time allocations
-            foreach (var M in TaskMaps)
-            {
-                if (M.InclusionZones.Count == 0) continue;
-                if (M.TimeTask.TimeAllocation == null) AllocateAllTime(M);
-                else if (M.TimeTask.TimeAllocation.Per == null) AllocateTimeResource(M);
-                else AllocateTimePerTime(M);
-            }
-            //TODO Deal with other types of allocations like dollars per hour, gas per dollar, etc.
+            BuildAllocations();
+            //DetermineStates
+            //CalculateCollisions
         }
         private void BuildTaskMaps()
         {
@@ -248,11 +245,23 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Key,
                         End = Z.Value,
-                        CalTaskObjs = new List<CalendarTaskObject>()
+                        CalTaskObjs = new List<CalendarTaskObject>(),
+                        CalNoteObjs = new List<CalendarNoteObject>(),
                     };
                     M.InclusionZones.Add(zone);
                 }
                 TaskMaps.Add(M);
+            }
+        }
+        private void BuildAllocations()
+        {
+            //Time Allocations
+            foreach (var M in TaskMaps)
+            {
+                if (M.InclusionZones.Count == 0) continue;
+                if (M.TimeTask.TimeAllocation == null) AllocateAllTime(M);
+                else if (M.TimeTask.TimeAllocation.Per == null) AllocateTimeResource(M);
+                else AllocateTimePerTime(M);
             }
         }
         private void AllocateAllTime(CalendarTimeTaskMap M)
@@ -270,7 +279,7 @@ namespace TimekeeperWPF
                 };
                 Z.CalTaskObjs.Add(CalObj);
             }
-            FinalizeCalObjs(M);
+            FinalizeCalTaskObjs(M);
         }
         private void AllocateTimeResource(CalendarTimeTaskMap M)
         {
@@ -348,7 +357,7 @@ namespace TimekeeperWPF
                     A.Remaining -= Z.Duration.Ticks;
                 }
             }
-            FinalizeCalObjs(M);
+            FinalizeCalTaskObjs(M);
         }
         private void EvenAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {
@@ -390,7 +399,7 @@ namespace TimekeeperWPF
                     if (A.Remaining <= 0) break;
                 }
             }
-            FinalizeCalObjs(M);
+            FinalizeCalTaskObjs(M);
         }
         private void ApatheticAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
         {
@@ -426,11 +435,12 @@ namespace TimekeeperWPF
                     A.Remaining -= Z.Duration.Ticks;
                 }
             }
-            FinalizeCalObjs(M);
+            FinalizeCalTaskObjs(M);
         }
-        private void FinalizeCalObjs(CalendarTimeTaskMap M)
+        private void FinalizeCalTaskObjs(CalendarTimeTaskMap M)
         {
-            //Third loop that finalizes CalendarObjects
+            CalTaskObjsCollection = new CollectionViewSource();
+            CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
             foreach (var Z in M.InclusionZones)
             {
                 foreach (var CalObj in Z.CalTaskObjs)
@@ -445,6 +455,22 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(CalTaskObjsView));
         }
         protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
+        private void DetermineTaskStates()
+        {
+            //foreach InclusionZone, find all Intersecting Notes that are not of type "Note" and have matching dimension
+            //then alter the CalObj under the note
+            foreach (var M in TaskMaps)
+            {
+                foreach (var Z in M.InclusionZones)
+                {
+                    var notes = from N in ((IEnumerable<Note>)NotesVM.View)
+                                where Z.Intersects(N)
+                                where (N.TimeTask == null && N.Dimension == M.TimeTask.Dimension && N.TaskType == M.TimeTask.TaskType)
+                                    || N.TimeTask == M.TimeTask
+                                select N;
+                }
+            }
+        }
         protected virtual async Task PreviousAsync()
         {
             IsLoading = true;

@@ -106,7 +106,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Calendar\CalendarNoteObject.cs" />
+    <Compile Include="Calendar\CalendarNoteObject.xaml.cs">
+      <DependentUpon>CalendarNoteObject.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Calendar\CalendarTimeTaskMap.cs" />
     <Compile Include="Calendar\InclusionSorter.cs" />
     <Compile Include="Calendar\InclusionZone.cs" />
@@ -230,6 +232,10 @@
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Week\WeekViewModel.cs" />
+    <Page Include="Calendar\CalendarNoteObject.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Calendar\NowMarkerVertical.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

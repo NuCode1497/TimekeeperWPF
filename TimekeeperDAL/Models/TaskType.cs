@@ -14,8 +14,6 @@ namespace TimekeeperDAL.EF
             {
                 switch (T.GetTypeName())
                 {
-                    case nameof(Note):
-                        break;
                     case nameof(TimeTask):
                         result = ((TimeTask)T).HasDateTime(dt);
                         break;
@@ -34,7 +32,7 @@ namespace TimekeeperDAL.EF
             "Eat",
             "Sleep",
             "Chore",
-            "Note"
+            "Note",
         };
 
         [NotMapped]

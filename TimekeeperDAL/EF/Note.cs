@@ -15,5 +15,9 @@ namespace TimekeeperDAL.EF
         [Required]
         [StringLength(150)]
         public string Text { get; set; }
+
+        public TimeTask TimeTask { get; set; }
+
+        public int Dimension { get; set; }
     }
 }

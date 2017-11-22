@@ -34,8 +34,7 @@ namespace TimekeeperDAL.Migrations
                 new EF.TaskType { Name = "Eat" },
                 new EF.TaskType { Name = "Sleep" },
                 new EF.TaskType { Name = "Chore" },
-                new EF.TaskType { Name = "Note" },
-                new EF.TaskType { Name = "DBTest" }
+                new EF.TaskType { Name = "Note" }
             );
 
             context.Resources.AddOrUpdate(

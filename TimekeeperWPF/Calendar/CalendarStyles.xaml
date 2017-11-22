@@ -20,18 +20,6 @@
             </Setter.Value>
         </Setter>
         <Style.Triggers>
-            <Trigger Property="TaskTypeName" Value="Note">
-                <Setter Property="Content">
-                    <Setter.Value>
-                        <Grid>
-                            <!--TODO doesnt work-->
-                            <TextBlock Text="&#x1f4dc;"/>
-                        </Grid>
-                    </Setter.Value>
-                </Setter>
-                <Setter Property="Background" Value="{StaticResource CalendarObject.Note.Background}"/>
-                <Setter Property="BorderThickness" Value="1"/>
-            </Trigger>
             <Trigger Property="TaskTypeName" Value="Sleep">
                 <Setter Property="Background" Value="{StaticResource CalendarObject.Sleep.Background}"/>
             </Trigger>
