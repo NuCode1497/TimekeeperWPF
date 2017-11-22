@@ -8,21 +8,21 @@ using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF.Calendar
 {
-    public class CalendarObject : ContentControl, IDisposable
+    public class CalendarTaskObject : ContentControl, IDisposable
     {
-        static CalendarObject()
+        static CalendarTaskObject()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarObject), 
-                new FrameworkPropertyMetadata(typeof(CalendarObject)));
-            BackgroundProperty.OverrideMetadata(typeof(CalendarObject), 
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarTaskObject), 
+                new FrameworkPropertyMetadata(typeof(CalendarTaskObject)));
+            BackgroundProperty.OverrideMetadata(typeof(CalendarTaskObject), 
                 new FrameworkPropertyMetadata(
                     new SolidColorBrush() { Opacity = 0.5d, Color = Colors.Tomato }));
-            BorderBrushProperty.OverrideMetadata(typeof(CalendarObject), 
+            BorderBrushProperty.OverrideMetadata(typeof(CalendarTaskObject), 
                 new FrameworkPropertyMetadata(Brushes.DarkSlateGray));
-            BorderThicknessProperty.OverrideMetadata(typeof(CalendarObject), 
+            BorderThicknessProperty.OverrideMetadata(typeof(CalendarTaskObject), 
                 new FrameworkPropertyMetadata(new Thickness(2)));
         }
-        public CalendarObject()
+        public CalendarTaskObject()
         {
             Day._Timer.Tick += _Timer_Tick;
             if (ParentMap != null)
@@ -89,21 +89,9 @@ namespace TimekeeperWPF.Calendar
         }
         public static readonly DependencyProperty EndProperty =
             DependencyProperty.Register(
-                nameof(End), typeof(DateTime), typeof(CalendarObject),
+                nameof(End), typeof(DateTime), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
         #endregion End
-        #region Scale
-        public double Scale
-        {
-            get { return (double)GetValue(ScaleProperty); }
-            set { SetValue(ScaleProperty, value); }
-        }
-        public static readonly DependencyProperty ScaleProperty =
-            DependencyProperty.Register(
-                nameof(Scale), typeof(double), typeof(CalendarObject),
-                new FrameworkPropertyMetadata(60d),
-                new ValidateValueCallback(Day.IsValidScale));
-        #endregion Scale
         #region Start
         public DateTime Start
         {
@@ -112,7 +100,7 @@ namespace TimekeeperWPF.Calendar
         }
         public static readonly DependencyProperty StartProperty =
             DependencyProperty.Register(
-                nameof(Start), typeof(DateTime), typeof(CalendarObject),
+                nameof(Start), typeof(DateTime), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
         #endregion Start
         #region TaskType
@@ -123,12 +111,12 @@ namespace TimekeeperWPF.Calendar
         }
         public static readonly DependencyProperty TaskTypeProperty =
             DependencyProperty.Register(
-                nameof(TaskType), typeof(TaskType), typeof(CalendarObject),
+                nameof(TaskType), typeof(TaskType), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(null,
                     new PropertyChangedCallback(OnTaskTypeChanged)));
         public static void OnTaskTypeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            CalendarObject CalObj = d as CalendarObject;
+            CalendarTaskObject CalObj = d as CalendarTaskObject;
             TaskType value = (TaskType)e.NewValue;
             CalObj.SetValue(TaskTypeNamePropertyKey, value.Name);
         }
@@ -139,17 +127,18 @@ namespace TimekeeperWPF.Calendar
         }
         private static readonly DependencyPropertyKey TaskTypeNamePropertyKey =
             DependencyProperty.RegisterReadOnly(
-                nameof(TaskTypeName), typeof(string), typeof(CalendarObject),
+                nameof(TaskTypeName), typeof(string), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty TaskTypeNameProperty =
             TaskTypeNamePropertyKey.DependencyProperty;
         #endregion TaskType
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
+        public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
         public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
-        public bool Intersects(CalendarObject C) { return Intersects(C.Start, C.End); }
+        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
         #region States
         public enum States
         {
@@ -172,12 +161,12 @@ namespace TimekeeperWPF.Calendar
         }
         public static DependencyProperty StateProperty =
             DependencyProperty.Register(
-                nameof(State), typeof(States), typeof(CalendarObject),
+                nameof(State), typeof(States), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(States.Unconfirmed,
                     new PropertyChangedCallback(OnStateChanged)));
         public static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            CalendarObject CalObj = d as CalendarObject;
+            CalendarTaskObject CalObj = d as CalendarTaskObject;
             States value = (States)e.NewValue;
             switch (value)
             {
@@ -223,7 +212,7 @@ namespace TimekeeperWPF.Calendar
         }
         public static DependencyProperty StateColorProperty =
             DependencyProperty.Register(
-                nameof(StateColor), typeof(SolidColorBrush), typeof(CalendarObject));
+                nameof(StateColor), typeof(SolidColorBrush), typeof(CalendarTaskObject));
         #endregion
         #region Shadow Clone
         /// <summary>
@@ -233,22 +222,21 @@ namespace TimekeeperWPF.Calendar
         /// </summary>
         public int DayOffset { get; set; } = 0;
         public bool IsPropagatingMimicry { get; private set; }
-        public CalendarObject OriginalCalObj { get; set; } = null;
-        private List<CalendarObject> _Clones = null;
-        public CalendarObject ShadowClone()
+        public CalendarTaskObject OriginalCalObj { get; set; } = null;
+        private List<CalendarTaskObject> _Clones = null;
+        public CalendarTaskObject ShadowClone()
         {
             //A ShadowClone mimics the original. If either the original or the ShadowClone has
             //a property changed, the change needs to be propagated to the original and other clones.
-            CalendarObject KageBunshin = new CalendarObject();
+            CalendarTaskObject KageBunshin = new CalendarTaskObject();
             KageBunshin.Mimic(this);
             KageBunshin.OriginalCalObj = this;
-            if (_Clones == null) _Clones = new List<CalendarObject>();
+            if (_Clones == null) _Clones = new List<CalendarTaskObject>();
             _Clones.Add(KageBunshin);
             return KageBunshin;
         }
-        public void Mimic(CalendarObject CalObj)
+        public void Mimic(CalendarTaskObject CalObj)
         {
-            Scale = CalObj.Scale;
             End = CalObj.End;
             Start = CalObj.Start;
             ToolTip = CalObj.ToolTip;

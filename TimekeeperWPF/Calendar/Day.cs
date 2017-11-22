@@ -109,9 +109,9 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
         protected bool IsDateToday(DateTime d) { return d.Date == DateTime.Now.Date; }
-        protected virtual bool IsDateRelevant(DateTime d) { return d.Date == Date; }
-        protected bool IsCalObjRelevant(CalendarObject CalObj)
-        { return IsDateRelevant(CalObj.Start) || IsDateRelevant(CalObj.End); }
+        protected virtual bool IsDateTimeRelevant(DateTime d) { return d.Date == Date; }
+        protected bool IsCalObjRelevant(CalendarTaskObject CalObj)
+        { return IsDateTimeRelevant(CalObj.Start) || IsDateTimeRelevant(CalObj.End); }
         #endregion
         #region ForceMaxScale
         /// <summary>
@@ -887,10 +887,13 @@ namespace TimekeeperWPF.Calendar
                 {
                     childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
                 }
-                else if (actualChild is CalendarObject)
+                else if (actualChild is CalendarTaskObject)
                 {
                     childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
                     biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width + TextMargin);
+                }
+                else if (actualChild is CalendarNoteObject)
+                {
                 }
                 else
                 {
@@ -918,10 +921,13 @@ namespace TimekeeperWPF.Calendar
                 {
                     childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
                 }
-                else if (actualChild is CalendarObject)
+                else if (actualChild is CalendarTaskObject)
                 {
                     childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
                     biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height + TextMargin);
+                }
+                else if (actualChild is CalendarNoteObject)
+                {
                 }
                 else
                 {
@@ -951,6 +957,7 @@ namespace TimekeeperWPF.Calendar
         }
         protected virtual Size ArrangeVertically(Size arrangeSize, Size extent)
         {
+
             //Height will be unbound. Width will be bound to UI space.
             double biggestChildWidth = TextMargin;
             //
@@ -976,8 +983,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         x = TextMargin;
-                        DateTime dt = DateTime.Now;
-                        y = (dt - dt.Date).TotalSeconds / Scale;
+                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -985,26 +991,35 @@ namespace TimekeeperWPF.Calendar
                         continue;
                     }
                 }
-                else if (actualChild is CalendarObject)
+                else if (actualChild is CalendarTaskObject)
                 {
-                    CalendarObject CalObj = actualChild as CalendarObject;
+                    CalendarTaskObject CalObj = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
-                        CalObj.Scale = Scale;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
                         biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin);
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
+
+
+
                         x = TextMargin;
                         y = (CalObj.Start - Date).TotalSeconds / Scale;
+                    }
+                    else
+                    {
+                        child.Visibility = Visibility.Collapsed;
+                        continue;
+                    }
+                }
+                else if (actualChild is CalendarNoteObject)
+                {
+                    CalendarNoteObject CalObj = actualChild as CalendarNoteObject;
+                    if (IsDateTimeRelevant(CalObj.DateTime))
+                    {
+                        child.Visibility = Visibility.Visible;
+                        x = TextMargin;
+                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -1025,7 +1040,8 @@ namespace TimekeeperWPF.Calendar
             return extent;
         }
         protected virtual Size ArrangeHorizontally(Size arrangeSize, Size extent)
-        {   //Width will be unbound. Height will be bound to UI space.
+        {   
+            //Width will be unbound. Height will be bound to UI space.
             double biggestChildHeight = TextMargin;
             //
             foreach (UIElement child in InternalChildren)
@@ -1050,8 +1066,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         //y = 0
-                        DateTime dt = DateTime.Now;
-                        x = (dt - dt.Date).TotalSeconds / Scale;
+                        x = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale;
                     }
                     else
                     {
@@ -1059,26 +1074,35 @@ namespace TimekeeperWPF.Calendar
                         continue;
                     }
                 }
-                else if (actualChild is CalendarObject)
+                else if (actualChild is CalendarTaskObject)
                 {
-                    CalendarObject CalObj = actualChild as CalendarObject;
+                    CalendarTaskObject CalObj = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
-                        CalObj.Scale = Scale;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
                         biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height + TextMargin);
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
+
+
+
                         y = arrangeSize.Height - childSize.Height - TextMargin;
                         x = (CalObj.Start - Date).TotalSeconds / Scale;
+                    }
+                    else
+                    {
+                        child.Visibility = Visibility.Collapsed;
+                        continue;
+                    }
+                }
+                else if (actualChild is CalendarNoteObject)
+                {
+                    CalendarNoteObject CalObj = actualChild as CalendarNoteObject;
+                    if (IsDateTimeRelevant(CalObj.DateTime))
+                    {
+                        child.Visibility = Visibility.Visible;
+                        y = TextMargin;
+                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
                     }
                     else
                     {

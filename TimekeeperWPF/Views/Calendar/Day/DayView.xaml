@@ -18,15 +18,20 @@
                  Style="{StaticResource CalObjsListBoxStyle}">
             <ListBox.Resources>
                 <CollectionContainer 
-                    x:Key="CalObjs"
-                    Collection="{Binding DataContext.CalendarObjectsView, 
+                    x:Key="CalTaskObjs"
+                    Collection="{Binding DataContext.CalTaskObjsView, 
+                    Source={x:Reference CalendarObjectsIC}}"/>
+                <CollectionContainer 
+                    x:Key="CalNoteObjs"
+                    Collection="{Binding DataContext.CalNoteObjsView, 
                     Source={x:Reference CalendarObjectsIC}}"/>
             </ListBox.Resources>
             <ItemsControl.ItemsSource>
                 <CompositeCollection>
                     <cal:NowMarkerHorizontal/>
                     <cal:NowMarkerVertical/>
-                    <StaticResource ResourceKey="CalObjs"/>
+                    <StaticResource ResourceKey="CalTaskObjs"/>
+                    <StaticResource ResourceKey="CalNoteObjs"/>
                 </CompositeCollection>
             </ItemsControl.ItemsSource>
             <ItemsControl.ItemsPanel>

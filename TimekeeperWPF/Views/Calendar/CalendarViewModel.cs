@@ -42,10 +42,14 @@ namespace TimekeeperWPF
         { RequestViewChange?.Invoke(this, e); }
         #endregion Events
         #region Properties
+        public NotesViewModel NotesVM;
         public List<CalendarTimeTaskMap> TaskMaps;
-        public CollectionViewSource CalendarObjectsCollection { get; set; }
-        public ObservableCollection<UIElement> CalendarObjectsSource => CalendarObjectsCollection?.Source as ObservableCollection<UIElement>;
-        public ListCollectionView CalendarObjectsView => CalendarObjectsCollection?.View as ListCollectionView;
+        public CollectionViewSource CalTaskObjsCollection { get; set; }
+        public ObservableCollection<CalendarTaskObject> CalTaskObjsSource => CalTaskObjsCollection?.Source as ObservableCollection<CalendarTaskObject>;
+        public ListCollectionView CalTaskObjsView => CalTaskObjsCollection?.View as ListCollectionView;
+        public CollectionViewSource CalNoteObjsCollection { get; set; }
+        public ObservableCollection<CalendarNoteObject> CalNoteObjsSource => CalNoteObjsCollection?.Source as ObservableCollection<CalendarNoteObject>;
+        public ListCollectionView CalNoteObjsView => CalNoteObjsCollection?.View as ListCollectionView;
         public UIElement SelectedCalendarObject
         {
             get { return _SelectedCalendarObect; }
@@ -163,26 +167,12 @@ namespace TimekeeperWPF
         protected override bool CanSave => false;
         protected override bool CanDeleteSelected => false;
 
-        protected bool IsNoteRelevant(Note note)
-        {
-            return note.DateTime >= SelectedDate && note.DateTime <= EndDate;
-        }
-        public bool Intersects(DateTime start, DateTime end)
-        {
-            return start < EndDate && SelectedDate < end;
-        }
-        public bool Intersects(InclusionZone Z)
-        {
-            return Intersects(Z.Start, Z.End);
-        }
-        public bool Intersects(TimeTask T)
-        {
-            return Intersects(T.Start, T.End);
-        }
-        public bool Intersects(CalendarObject C)
-        {
-            return Intersects(C.Start, C.End);
-        }
+        public bool Intersects(DateTime dt) { return SelectedDate <= dt && dt <= EndDate; }
+        public bool Intersects(Note N) { return Intersects(N.DateTime); }
+        public bool Intersects(DateTime start, DateTime end) { return start < EndDate && SelectedDate < end; }
+        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
+        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
+        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
         #endregion Predicates
         #region Actions
         protected virtual void SelectWeek()
@@ -196,43 +186,33 @@ namespace TimekeeperWPF
         protected override async Task GetDataAsync()
         {
             Context = new TimeKeeperContext();
+
             Status = "Getting data from database...";
             await Context.TimeTasks.LoadAsync();
             Items.Source = Context.TimeTasks.Local;
+
             Status = "Creating CalendarObjects...";
             await SetUpCalendarObjects();
-            //calculate collisions and reorganize CalendarObjects by changing their datetimes
+
+            Status = "Creating Notes...";
+            NotesVM = new NotesViewModel();
+            await NotesVM.LoadData();
+
             await base.GetDataAsync();
         }
         protected virtual async Task SetUpCalendarObjects()
         {
-            CalendarObjectsCollection = new CollectionViewSource();
-            CalendarObjectsCollection.Source = new ObservableCollection<UIElement>();
-            //CreateNoteObjects();
-            await CreateEventObjectsFromTimeTasks();
-            OnPropertyChanged(nameof(CalendarObjectsView));
+            CalTaskObjsCollection = new CollectionViewSource();
+            CalTaskObjsCollection.Source = new ObservableCollection<UIElement>();
+            await CreateTaskObjects();
+            CreateNoteObjects();
+            OnPropertyChanged(nameof(CalTaskObjsView));
         }
-        //TODO update by adding CRUD stuff for notes
         private void CreateNoteObjects()
         {
-            View.Filter = N =>
-            {
-                Note note = (Note)N;
-                return IsNoteRelevant(note)
-                    && note.TaskType.Name == "Note";
-            };
-            foreach (Note N in View)
-            {
-                CalendarObject CalObj = new CalendarObject();
-                CalObj.Start = N.DateTime;
-                CalObj.End = N.DateTime.AddMinutes(1);
-                CalObj.ToolTip = N;
-                CalendarObjectsView.AddNewItem(CalObj);
-                CalendarObjectsView.CommitNew();
-            }
-            View.Filter = null;
+            NotesVM.View.Filter = N => Intersects((Note)N);
         }
-        private async Task CreateEventObjectsFromTimeTasks()
+        private async Task CreateTaskObjects()
         {
             View.Filter = T => ((TimeTask)T).Intersects(SelectedDate, EndDate);
             foreach (TimeTask T in View)
@@ -268,7 +248,7 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Key,
                         End = Z.Value,
-                        CalendarObjects = new List<CalendarObject>()
+                        CalTaskObjs = new List<CalendarTaskObject>()
                     };
                     M.InclusionZones.Add(zone);
                 }
@@ -282,13 +262,13 @@ namespace TimekeeperWPF
             foreach (var Z in M.InclusionZones)
             {
                 //create cal object that matches zone
-                CalendarObject CalObj = new CalendarObject
+                CalendarTaskObject CalObj = new CalendarTaskObject
                 {
                     Start = Z.Start,
                     End = Z.End,
                     ParentMap = M
                 };
-                Z.CalendarObjects.Add(CalObj);
+                Z.CalTaskObjs.Add(CalObj);
             }
             FinalizeCalObjs(M);
         }
@@ -346,25 +326,25 @@ namespace TimekeeperWPF
                 if (A.RemainingAsTimeSpan < Z.Duration)
                 {
                     //create cal obj the size of the remaining time
-                    CalendarObject CalObj = new CalendarObject
+                    CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
                         End = Z.Start + A.RemainingAsTimeSpan,
                         ParentMap = M
                     };
-                    Z.CalendarObjects.Add(CalObj);
+                    Z.CalTaskObjs.Add(CalObj);
                     A.Remaining = 0;
                 }
                 else
                 {
                     //create cal obj the size of the zone
-                    CalendarObject CalObj = new CalendarObject
+                    CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
                         End = Z.End,
                         ParentMap = M
                     };
-                    Z.CalendarObjects.Add(CalObj);
+                    Z.CalTaskObjs.Add(CalObj);
                     A.Remaining -= Z.Duration.Ticks;
                 }
             }
@@ -380,14 +360,14 @@ namespace TimekeeperWPF
             {
                 if (A.Remaining <= 0) break;
                 if (Z.Duration.Ticks <= 0) break;
-                CalendarObject CalObj = new CalendarObject
+                CalendarTaskObject CalObj = new CalendarTaskObject
                 {
                     Start = Z.Start,
                     End = Z.Start + TimeTask.MinimumDuration,
                     ParentMap = M
                 };
                 A.Remaining -= TimeTask.MinimumDuration.Ticks;
-                Z.CalendarObjects.Add(CalObj);
+                Z.CalTaskObjs.Add(CalObj);
             }
             //Second loop that adds more time to CalendarObjects
             bool full = false;
@@ -398,7 +378,7 @@ namespace TimekeeperWPF
                 foreach (var Z in M.InclusionZones)
                 {
                     if (Z.Duration.Ticks <= 0) break;
-                    foreach (var CalObj in Z.CalendarObjects)
+                    foreach (var CalObj in Z.CalTaskObjs)
                     {
                         if (A.Remaining <= 0) break;
                         //If zone is full
@@ -424,25 +404,25 @@ namespace TimekeeperWPF
                 if (A.RemainingAsTimeSpan < Z.Duration)
                 {
                     //create cal obj the size of the remaining time
-                    CalendarObject CalObj = new CalendarObject
+                    CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.End - A.RemainingAsTimeSpan,
                         End = Z.End,
                         ParentMap = M
                     };
-                    Z.CalendarObjects.Add(CalObj);
+                    Z.CalTaskObjs.Add(CalObj);
                     A.Remaining = 0;
                 }
                 else
                 {
                     //create cal obj the size of the zone
-                    CalendarObject CalObj = new CalendarObject
+                    CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
                         End = Z.End,
                         ParentMap = M
                     };
-                    Z.CalendarObjects.Add(CalObj);
+                    Z.CalTaskObjs.Add(CalObj);
                     A.Remaining -= Z.Duration.Ticks;
                 }
             }
@@ -453,18 +433,18 @@ namespace TimekeeperWPF
             //Third loop that finalizes CalendarObjects
             foreach (var Z in M.InclusionZones)
             {
-                foreach (var CalObj in Z.CalendarObjects)
+                foreach (var CalObj in Z.CalTaskObjs)
                 {
                     CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
                     CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
-                    CalendarObjectsView.AddNewItem(CalObj);
-                    CalendarObjectsView.CommitNew();
+                    CalTaskObjsView.AddNewItem(CalObj);
+                    CalTaskObjsView.CommitNew();
                     AdditionalCalObjSetup(CalObj);
                 }
             }
-            OnPropertyChanged(nameof(CalendarObjectsView));
+            OnPropertyChanged(nameof(CalTaskObjsView));
         }
-        protected virtual void AdditionalCalObjSetup(CalendarObject CalObj) { }
+        protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
         protected virtual async Task PreviousAsync()
         {
             IsLoading = true;

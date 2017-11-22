@@ -59,11 +59,11 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void AdditionalCalObjSetup(CalendarObject CalObj)
+        protected override void AdditionalCalObjSetup(CalendarTaskObject CalObj)
         {
             ShadowClone(CalObj);
         }
-        private void ShadowClone(CalendarObject CalObj)
+        private void ShadowClone(CalendarTaskObject CalObj)
         {
             if (CalObj.Start.Date != CalObj.End.Date)
             {
@@ -76,10 +76,10 @@ namespace TimekeeperWPF
                 CalObj.DayOffset = 0;
                 for (int i = 1; i <= numExtraDays; i++)
                 {
-                    CalendarObject shadowClone = CalObj.ShadowClone();
+                    CalendarTaskObject shadowClone = CalObj.ShadowClone();
                     shadowClone.DayOffset = i;
-                    CalendarObjectsView.AddNewItem(shadowClone);
-                    CalendarObjectsView.CommitNew();
+                    CalTaskObjsView.AddNewItem(shadowClone);
+                    CalTaskObjsView.CommitNew();
                 }
             }
         }

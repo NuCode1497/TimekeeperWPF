@@ -256,13 +256,9 @@ namespace TimekeeperDAL.EF
                 perEnd = adder(perStart);
             }
         }
-        public bool Intersects(DateTime start, DateTime end)
-        {
-            return start < End && Start < end;
-        }
-        public bool Intersects(TimeTask T)
-        {
-            return Intersects(T.Start, T.End);
-        }
+        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
+        public bool Intersects(Note N) { return Intersects(N.DateTime); }
+        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
+        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
     }
 }

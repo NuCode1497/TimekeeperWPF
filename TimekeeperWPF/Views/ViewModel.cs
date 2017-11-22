@@ -208,7 +208,7 @@ namespace TimekeeperWPF
         #region Actions
         protected abstract Task GetDataAsync();
         protected abstract void SaveAs();
-        protected virtual async Task LoadData()
+        public virtual async Task LoadData()
         {
             IsEnabled = false;
             IsLoading = true;

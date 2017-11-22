@@ -19,12 +19,12 @@ namespace TimekeeperWPF
             Context = new FakeTimeKeeperContext();
             Items.Source = Context.Notes.Local;
 
-            CalendarObjectsCollection = new CollectionViewSource();
-            CalendarObjectsCollection.Source = new ObservableCollection<CalendarObject>()
+            CalTaskObjsCollection = new CollectionViewSource();
+            CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>()
             {
-                new CalendarObject(),
+                new CalendarTaskObject(),
             };
-            OnPropertyChanged(nameof(CalendarObjectsView));
+            OnPropertyChanged(nameof(CalTaskObjsView));
         }
     }
 }

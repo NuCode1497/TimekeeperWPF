@@ -6,12 +6,12 @@
     xmlns:clr="clr-namespace:System;assembly=mscorlib">
 
 
-    <Style TargetType="cal:CalendarObject">
+    <Style TargetType="cal:CalendarTaskObject">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type cal:CalendarObject}">
+                <ControlTemplate TargetType="{x:Type cal:CalendarTaskObject}">
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">

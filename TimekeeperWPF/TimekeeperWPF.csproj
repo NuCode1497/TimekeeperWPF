@@ -106,6 +106,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Calendar\CalendarNoteObject.cs" />
     <Compile Include="Calendar\CalendarTimeTaskMap.cs" />
     <Compile Include="Calendar\InclusionSorter.cs" />
     <Compile Include="Calendar\InclusionZone.cs" />
@@ -146,7 +147,7 @@
       <DependentUpon>MonthWeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />
-    <Compile Include="Calendar\CalendarObject.cs" />
+    <Compile Include="Calendar\CalendarTaskObject.cs" />
     <Compile Include="Calendar\Day.cs" />
     <Compile Include="Calendar\NowMarkerHorizontal.xaml.cs">
       <DependentUpon>NowMarkerHorizontal.xaml</DependentUpon>

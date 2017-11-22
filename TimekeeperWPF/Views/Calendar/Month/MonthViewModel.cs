@@ -117,7 +117,7 @@ namespace TimekeeperWPF
                 mwVM.TextMargin = TextMargin;
             }
         }
-        protected override async Task LoadData()
+        public override async Task LoadData()
         {
             IsEnabled = false;
             IsLoading = true;
