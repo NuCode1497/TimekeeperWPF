@@ -48,8 +48,8 @@
             </DataGrid.Columns>
         </DataGrid>
         <ContentControl 
-            Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp" IsTabStop="False"
-            IsVisibleChanged="EditPopUp_IsVisibleChanged"
+            Grid.Row="0" Grid.RowSpan="2" x:Name="EditTaskPopUp" IsTabStop="False"
+            IsVisibleChanged="EditTaskPopUp_IsVisibleChanged"
             Visibility="{Binding Path=IsEditingItemOrAddingNew, 
             Converter={StaticResource BooleanToVisibilityConverter}}"
             Template="{StaticResource EditPopUpTemplate}">

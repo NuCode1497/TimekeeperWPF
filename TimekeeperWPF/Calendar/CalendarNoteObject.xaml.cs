@@ -25,6 +25,17 @@ namespace TimekeeperWPF.Calendar
         {
             InitializeComponent();
         }
+        private Note _Note;
+        public Note Note
+        {
+            get { return _Note; }
+            set
+            {
+                if (value == _Note) return;
+                _Note = value;
+                TaskType = _Note.TaskType;
+            }
+        }
         public DateTime DateTime
         {
             get { return (DateTime)GetValue(DateTimeProperty); }

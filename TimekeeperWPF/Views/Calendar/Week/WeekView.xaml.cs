@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace TimekeeperWPF
 {
@@ -23,6 +24,16 @@ namespace TimekeeperWPF
         public WeekView()
         {
             InitializeComponent();
+        }
+        private void EditNotePopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (EditNotePopUp.Visibility == Visibility.Visible)
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    DataEditor.NoteTextBox.Focus();
+                }, DispatcherPriority.Render);
+            }
         }
     }
 }

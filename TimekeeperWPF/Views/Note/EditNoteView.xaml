@@ -5,32 +5,44 @@
              xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
              Margin="10">
     <StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <Label Content="Name" Width="80"/>
-            <TextBox 
-                x:Name="NameTextBox" Width="300" HorizontalAlignment="Left" 
-                TextWrapping="Wrap" MaxLength="160" 
-                Text="{Binding Path=Name, ValidatesOnDataErrors=True, 
-                ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
-        </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <Label Content="Date &amp; Time" Width="80"/>
-            <wpftools:DateTimePicker 
-                x:Name="DateTimeTextBox" Width="300" 
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time" />
+            <wpftools:DateTimePicker Grid.Column="1" Grid.Row="0"
+                x:Name="DateTimeTextBox" 
                 Value="{Binding Path=DateTime, Mode=TwoWay}" />
-        </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <Label Content="Note" Width="80"/>
-            <TextBox 
-                x:Name="NoteTextBox" Width="300" HorizontalAlignment="Left" 
+            <Label Grid.Row="1" Grid.Column="0" Content="Note"/>
+            <TextBox Grid.Row="1" Grid.Column="1"
+                x:Name="NoteTextBox" MinWidth="200"
                 TextWrapping="Wrap" MaxLength="160" 
                 Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
                 ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
+        </Grid>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal">
+            </StackPanel>
         </StackPanel>
-        <local:TaskTypeSelectorView/>
+        <StackPanel Orientation="Horizontal">
+        </StackPanel>
+        <Control>
+            <Control.Style>
+                <Style TargetType="Control">
+                    <Style.Triggers>
+                    </Style.Triggers>
+                </Style>
+            </Control.Style>
+        </Control>
         <StackPanel DataContext="{Binding Path=DataContext, 
             RelativeSource={RelativeSource AncestorType=Grid}}">
             <!--DataContext is NotesViewModel-->
+            <local:TaskTypeSelectorView/>
             <local:LabelSelectorView/>
         </StackPanel>
     </StackPanel>

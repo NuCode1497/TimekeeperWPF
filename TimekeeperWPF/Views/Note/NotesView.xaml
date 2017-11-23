@@ -31,10 +31,11 @@
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
             </DataGrid.Columns>
         </DataGrid>
-        <ContentControl 
-            Grid.Row="0" Grid.RowSpan="2" x:Name="EditPopUp"
-            IsVisibleChanged="EditPopUp_IsVisibleChanged"
+        <ContentControl x:Name="EditNotePopUp"
+            Grid.Row="0" Grid.RowSpan="2"
+            IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
             Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+            FallbackValue=Collapsed,
             Converter={StaticResource BooleanToVisibilityConverter}}"
             Template="{StaticResource EditPopUpTemplate}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -43,8 +44,8 @@
                     DataContext="{Binding Path=CurrentEditItem}"/>
             </ScrollViewer>
         </ContentControl>
-        <ContentControl Margin="10"
-            Grid.Row="0" Grid.RowSpan="2" x:Name="SaveDateSelectPopUp"
+        <ContentControl x:Name="SaveDateSelectPopUp"
+            Grid.Row="0" Grid.RowSpan="2" Margin="10"
             Visibility="{Binding Path=IsSaving, FallbackValue=Collapsed,
             Converter={StaticResource BooleanToVisibilityConverter}}"
             Template="{StaticResource PopUpTemplate}">

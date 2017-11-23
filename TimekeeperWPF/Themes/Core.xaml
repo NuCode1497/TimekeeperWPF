@@ -437,13 +437,49 @@
             </Grid>
         </Border>
     </ControlTemplate>
+    <Style x:Key="DeleteButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Foreground" Value="Crimson"/>
+        <Setter Property="Content">
+            <Setter.Value>
+                <Grid>
+                    <TextBlock Text="r" FontFamily="Webdings" FontSize="16" Margin="0,0,0,0"/>
+                </Grid>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Command" Value="{Binding Path=DeleteSelectedCommand}"/>
+        <Setter Property="ToolTip" Value="Delete (Ctrl+D)"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="Gray"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="RefreshButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Foreground" Value="Blue"/>
+        <Setter Property="Content">
+            <Setter.Value>
+                <Grid>
+                    <TextBlock Text="q" FontFamily="Webdings" FontSize="20" Margin="-2,0,-2,-4"/>
+                </Grid>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Command" Value="{Binding Path=GetDataCommand}"/>
+        <Setter Property="ToolTip" Value="Refresh (Ctrl+R)"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="Gray"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
     <ControlTemplate x:Key="TableViewControlsTemplate" TargetType="ContentControl">
         <ToolBarTray>
             <ToolBar Band="1" BandIndex="1">
-                <Button Content="New" x:Name="NewItemBtn" ToolTip="Ctrl+N" Command="{Binding Path=NewItemCommand}"/>
-                <Button Content="Edit" x:Name="EditSelectedBtn" ToolTip="Ctrl+E" Command="{Binding Path=EditSelectedCommand}"/>
-                <Button Content="Delete" x:Name="DeleteSelectedBtn" ToolTip="Ctrl+D" Command="{Binding Path=DeleteSelectedCommand}"/>
-                <Button Margin="2" Content="Refresh" x:Name="GetDataBtn" ToolTip="Ctrl+R" Command="{Binding Path=GetDataCommand}"/>
+                <Button Content="New" x:Name="NewItemBtn" ToolTip="Ctrl+N" 
+                        Command="{Binding Path=NewItemCommand}"/>
+                <Button Content="Edit" x:Name="EditSelectedBtn" ToolTip="Ctrl+E" 
+                        Command="{Binding Path=EditSelectedCommand}"/>
+                <Button x:Name="DeleteSelectedBtn" Style="{StaticResource DeleteButtonStyle}"/>
+                <Button x:Name="GetDataBtn" Style="{StaticResource RefreshButtonStyle}"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>

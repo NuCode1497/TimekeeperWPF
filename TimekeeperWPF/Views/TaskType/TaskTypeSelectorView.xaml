@@ -4,9 +4,8 @@
     <StackPanel Orientation="Horizontal">
         <Label Content="Task Type"  Width="80"/>
         <ListView Margin="5"
-            ItemsSource="{Binding Path=DataContext.TaskTypesView, 
-            RelativeSource={RelativeSource AncestorType=Grid}}" 
-            SelectedItem="{Binding Path=TaskType, Mode=TwoWay}">
+            ItemsSource="{Binding Path=TaskTypesView}" 
+            SelectedItem="{Binding Path=CurrentEditItem.TaskType, Mode=TwoWay}">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel ItemWidth="45" Width="140"/>

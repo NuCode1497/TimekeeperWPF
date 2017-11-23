@@ -20,6 +20,7 @@ namespace TimekeeperWPF
     public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<TimeTask>
     {
         #region Fields
+        private NotesViewModel _NotesVM;
         private UIElement _SelectedCalendarObect;
         private DateTime _SelectedDate = DateTime.Now.Date;
         private Orientation _Orientation = Orientation.Vertical;
@@ -35,6 +36,7 @@ namespace TimekeeperWPF
         private ICommand _SelectDayCommand;
         private ICommand _SelectYearCommand;
         private ICommand _SelectMonthCommand;
+        private ICommand _NewNoteCommand;
         #endregion Fields
         #region Events
         public event RequestViewChangeEventHandler RequestViewChange;
@@ -42,7 +44,15 @@ namespace TimekeeperWPF
         { RequestViewChange?.Invoke(this, e); }
         #endregion Events
         #region Properties
-        public NotesViewModel NotesVM;
+        public NotesViewModel NotesVM
+        {
+            get { return _NotesVM; }
+            set
+            {
+                _NotesVM = value;
+                OnPropertyChanged();
+            }
+        }
         public List<CalendarTimeTaskMap> TaskMaps;
         public CollectionViewSource CalTaskObjsCollection { get; set; }
         public ObservableCollection<CalendarTaskObject> CalTaskObjsSource => CalTaskObjsCollection?.Source as ObservableCollection<CalendarTaskObject>;
@@ -56,6 +66,12 @@ namespace TimekeeperWPF
             set
             {
                 if (_SelectedCalendarObect == value) return;
+                if (value is NowMarkerHorizontal) return;
+                if (value is NowMarkerVertical) return;
+                if (value is CalendarNoteObject)
+                    NotesVM.SelectedItem = ((CalendarNoteObject)value).Note;
+                if (value is CalendarTaskObject)
+                    SelectedItem = ((CalendarTaskObject)value).ParentMap.TimeTask;
                 _SelectedCalendarObect = value;
                 OnPropertyChanged();
             }
@@ -148,6 +164,8 @@ namespace TimekeeperWPF
             ?? (_SelectYearCommand = new RelayCommand(ap => SelectYear(), pp => CanSelectYear));
         public ICommand SelectMonthCommand => _SelectMonthCommand
             ?? (_SelectMonthCommand = new RelayCommand(ap => SelectMonth(), pp => CanSelectMonth));
+        public ICommand NewNoteCommand => _NewNoteCommand
+            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(), pp => CanAddNewNote));
         #endregion Commands
         #region Predicates
         protected virtual bool CanPrevious => IsNotLoading;
@@ -161,8 +179,8 @@ namespace TimekeeperWPF
         protected virtual bool CanSelectDay => IsNotLoading;
         protected virtual bool CanSelectYear => IsNotLoading;
         protected virtual bool CanSelectMonth => IsNotLoading;
-        //TODO
         protected override bool CanAddNew => false;
+        private bool CanAddNewNote => NotesVM?.NewItemCommand?.CanExecute(null) ?? false;
         protected override bool CanEditSelected => false;
         protected override bool CanSave => false;
         protected override bool CanDeleteSelected => false;
@@ -225,7 +243,7 @@ namespace TimekeeperWPF
             }
             BuildTaskMaps();
             BuildAllocations();
-            //DetermineStates
+            //DetermineTaskStates();
             //CalculateCollisions
         }
         private void BuildTaskMaps()
@@ -463,7 +481,7 @@ namespace TimekeeperWPF
             {
                 foreach (var Z in M.InclusionZones)
                 {
-                    var notes = from N in ((IEnumerable<Note>)NotesVM.View)
+                    var notes = from N in (NotesVM.Source)
                                 where Z.Intersects(N)
                                 where (N.TimeTask == null && N.Dimension == M.TimeTask.Dimension && N.TaskType == M.TimeTask.TaskType)
                                     || N.TimeTask == M.TimeTask
@@ -494,6 +512,10 @@ namespace TimekeeperWPF
         }
         protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
         protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
+        private void NewNote()
+        {
+            NotesVM.NewItemCommand.Execute(null);
+        }
         #endregion Actions
     }
 }

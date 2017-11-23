@@ -15,6 +15,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
+                 SelectedItem="{Binding Path=SelectedCalendarObject}"
                  Style="{StaticResource CalObjsListBoxStyle}">
             <ListBox.Resources>
                 <CollectionContainer 
@@ -50,15 +51,30 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <TextBlock Text="Week of" 
-                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                        Style="{StaticResource CalendarTitleBarTextStyle}"/>
                     <TextBlock Text="{Binding Path=WeekString, FallbackValue='QQQQQQQQQ 88, 7777'}" 
-                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                        Style="{StaticResource CalendarTitleBarTextStyle}"/>
                 </StackPanel>
             </Grid>
         </ContentControl>
         <ContentControl
             x:Name="CommandsToolbar" Grid.Row="0" 
             Template="{StaticResource CalendarViewControlsTemplate}"/>
+        <Grid DataContext="{Binding Path=NotesVM}">
+            <ContentControl x:Name="EditNotePopUp"
+                Grid.Row="0" Grid.RowSpan="2"
+                IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <local:EditNoteView 
+                        x:Name="DataEditor" 
+                        DataContext="{Binding Path=CurrentEditItem}"/>
+                </ScrollViewer>
+            </ContentControl>
+        </Grid>
         <local:LoadingView 
             Grid.Row="0" Grid.RowSpan="3" 
             Visibility="{Binding Path=IsLoading, FallbackValue=Collapsed,

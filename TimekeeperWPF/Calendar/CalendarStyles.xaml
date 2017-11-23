@@ -62,7 +62,9 @@
         <Setter Property="MonthBoundsWatermarkBrush" Value="{StaticResource Week.MonthBoundsWatermarkBrush}"/>
     </Style>
     <Storyboard x:Key="MarkyRGBCycle" RepeatBehavior="Forever" SpeedRatio="3">
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="MarkyMcMarkFace">
+        <ColorAnimationUsingKeyFrames 
+            Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[0].(GradientStop.Color)" 
+            Storyboard.TargetName="MarkyMcMarkFace">
             <EasingColorKeyFrame KeyTime="0" Value="Red"/>
             <EasingColorKeyFrame KeyTime="0:0:1" Value="Yellow"/>
             <EasingColorKeyFrame KeyTime="0:0:2" Value="Lime"/>
@@ -71,7 +73,9 @@
             <EasingColorKeyFrame KeyTime="0:0:5" Value="Magenta"/>
             <EasingColorKeyFrame KeyTime="0:0:6" Value="Red"/>
         </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[2].(GradientStop.Color)" Storyboard.TargetName="MarkyMcMarkFace">
+        <ColorAnimationUsingKeyFrames 
+            Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[2].(GradientStop.Color)" 
+            Storyboard.TargetName="MarkyMcMarkFace">
             <EasingColorKeyFrame KeyTime="0" Value="Yellow"/>
             <EasingColorKeyFrame KeyTime="0:0:1" Value="Lime"/>
             <EasingColorKeyFrame KeyTime="0:0:2" Value="Cyan"/>
@@ -80,7 +84,9 @@
             <EasingColorKeyFrame KeyTime="0:0:5" Value="Red"/>
             <EasingColorKeyFrame KeyTime="0:0:6" Value="Yellow"/>
         </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[3].(GradientStop.Color)" Storyboard.TargetName="MarkyMcMarkFace">
+        <ColorAnimationUsingKeyFrames 
+            Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[3].(GradientStop.Color)" 
+            Storyboard.TargetName="MarkyMcMarkFace">
             <EasingColorKeyFrame KeyTime="0" Value="Lime"/>
             <EasingColorKeyFrame KeyTime="0:0:1" Value="Cyan"/>
             <EasingColorKeyFrame KeyTime="0:0:2" Value="Blue"/>
@@ -89,7 +95,9 @@
             <EasingColorKeyFrame KeyTime="0:0:5" Value="Yellow"/>
             <EasingColorKeyFrame KeyTime="0:0:6" Value="Lime"/>
         </ColorAnimationUsingKeyFrames>
-        <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="MarkyMcMarkFace">
+        <ColorAnimationUsingKeyFrames 
+            Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[1].(GradientStop.Color)" 
+            Storyboard.TargetName="MarkyMcMarkFace">
             <EasingColorKeyFrame KeyTime="0" Value="Cyan"/>
             <EasingColorKeyFrame KeyTime="0:0:1" Value="Blue"/>
             <EasingColorKeyFrame KeyTime="0:0:2" Value="Magenta"/>
@@ -102,7 +110,7 @@
     <ControlTemplate x:Key="CalObjContainerTemplate.Selected" TargetType="ListBoxItem">
         <Grid>
             <ContentPresenter/>
-            <Border x:Name="HighlightBorder" BorderThickness="3" Margin="-1" CornerRadius="2"
+            <Border x:Name="HighlightBorder" BorderThickness="2" Margin="0" CornerRadius="2"
                     BorderBrush="{StaticResource Highlight.Selected.BorderColor}">
                 <Rectangle x:Name="HighlightBackground" 
                            Opacity="{StaticResource Highlight.Selected.Opacity}"
@@ -113,7 +121,7 @@
     <ControlTemplate x:Key="CalObjContainerTemplate.Hover" TargetType="ListBoxItem">
         <Grid>
             <ContentPresenter/>
-            <Border x:Name="HighlightBorder" BorderThickness="3" Margin="-1" CornerRadius="2"
+            <Border x:Name="HighlightBorder" BorderThickness="2" Margin="0" CornerRadius="2"
                     BorderBrush="{StaticResource Highlight.Hover.BorderColor}">
                 <Rectangle x:Name="HighlightBackground" 
                            Opacity="{StaticResource Highlight.Hover.Opacity}"
@@ -211,8 +219,18 @@
     <ControlTemplate x:Key="CalendarViewControlsTemplate" TargetType="ContentControl">
         <ToolBarTray>
             <ToolBar Band="1" BandIndex="1">
-                <!--<Button x:Name="PreviousButton" Style="{StaticResource PreviousButtonStyle}" Command="{Binding Path=PreviousCommand}"/>
-                <Button x:Name="NextButton" Style="{StaticResource NextButtonStyle}" Command="{Binding Path=NextCommand}"/>-->
+                <!--<Button x:Name="PreviousButton" Style="{StaticResource PreviousButtonStyle}" 
+                        Command="{Binding Path=PreviousCommand}"/>
+                <Button x:Name="NextButton" Style="{StaticResource NextButtonStyle}" 
+                        Command="{Binding Path=NextCommand}"/>-->
+                <Button Content="Note" x:Name="NewNoteBtn"
+                        Command="{Binding Path=NewNoteCommand}"/>
+                <Button Content="Task" x:Name="NewTaskBtn"
+                        Command="{Binding Path=NewItemCommand}"/>
+                <Button Content="Edit" x:Name="EditSelectedBtn" ToolTip="Ctrl+E" 
+                        Command="{Binding Path=EditSelectedCommand}"/>
+                <Button x:Name="DeleteSelectedBtn" Style="{StaticResource DeleteButtonStyle}"/>
+                <Button x:Name="GetDataBtn" Style="{StaticResource RefreshButtonStyle}"/>
                 <Button x:Name="OrientationButton" ToolTip="Orientation" 
                         Command="{Binding Path=OrientationCommand}">
                     <Button.Content>

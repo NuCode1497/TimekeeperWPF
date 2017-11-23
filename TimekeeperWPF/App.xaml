@@ -9,9 +9,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <!--Remember: Order matters in XAML-->
                 <ResourceDictionary x:Name="Theme" Source="Themes\GreenTheme.xaml"/>
-                <ResourceDictionary Source="Calendar\CalendarStyles.xaml"/>
                 <ResourceDictionary Source="Themes\DataContexts.xaml"/>
                 <ResourceDictionary Source="Themes\Core.xaml"/>
+                <ResourceDictionary Source="Calendar\CalendarStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

@@ -26,9 +26,9 @@ namespace TimekeeperWPF
             InitializeComponent();
         }
 
-        private void EditPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void EditTaskPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (EditPopUp.Visibility == Visibility.Visible)
+            if (EditTaskPopUp.Visibility == Visibility.Visible)
             {
                 Dispatcher.BeginInvoke((Action)delegate
                 {
