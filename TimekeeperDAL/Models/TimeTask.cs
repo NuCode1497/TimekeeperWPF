@@ -144,15 +144,10 @@ namespace TimekeeperDAL.EF
             }
             return false;
         }
-        public async Task BuildInclusionZonesAsync()
-        {
-            await Task.Run((Action)BuildInclusionZones);
-        }
-        public void BuildInclusionZones()
+        private void BuildInclusionZones()
         {
             InclusionZones = new Dictionary<DateTime, DateTime>();
-            if (PerZones.Count == 0) BIZPart2(Start, End);
-            else foreach (var P in PerZones) BIZPart2(P.Key, P.Value);
+            foreach (var P in PerZones) BIZPart2(P.Key, P.Value);
         }
         private void BIZPart2(DateTime start, DateTime end)
         {
@@ -217,15 +212,33 @@ namespace TimekeeperDAL.EF
                 InclusionZones.Add(zoneStart, end);
             }
         }
-        public async Task BuildPerZonesAsync(DateTime start, DateTime end)
+        /// <summary>
+        /// Create and Filter the set of PerZones that intersect a Calendar view.
+        /// </summary>
+        /// <param name="start">The beginning of the Calendar view.</param>
+        /// <param name="end">The end of the Calendar view.</param>
+        public async Task BuildZonesAsync(DateTime start, DateTime end)
         {
-            await Task.Run(() => BuildPerZones(start, end));
+            await Task.Run(() => BuildZones(start, end));
         }
-        public void BuildPerZones(DateTime start, DateTime end)
+        /// <summary>
+        /// Create and Filter the set of PerZones that intersect a Calendar view.
+        /// </summary>
+        /// <param name="start">The beginning of the Calendar view.</param>
+        /// <param name="end">The end of the Calendar view.</param>
+        public void BuildZones(DateTime start, DateTime end)
         {
+            if (start.Ticks >= end.Ticks) throw new ArgumentException("start must be less than end.", nameof(start));
+            //We will filter the set of per zones to the ones that intersect start and end.
             PerZones = new Dictionary<DateTime, DateTime>();
+            //Find the time allocation if it exists
             TimeAllocation = Allocations.Where(A => Resource.TimeResourceChoices.Contains(A.Resource.Name)).FirstOrDefault();
-            switch (TimeAllocation?.Per?.Name)
+            if (TimeAllocation == null || TimeAllocation.Per == null)
+            {
+                //if per is not defined, we will create a per zone the size of the task
+                PerZones.Add(Start, End);
+            }
+            else switch (TimeAllocation?.Per?.Name)
             {
                 case "Hour":
                     BPZPart2(start, end, dt => dt.HourStart(), dt => dt.AddHours(1));
@@ -243,6 +256,7 @@ namespace TimekeeperDAL.EF
                     BPZPart2(start, end, dt => dt.YearStart(), dt => dt.AddYears(1));
                     break;
             }
+            BuildInclusionZones();
         }
         private void BPZPart2(DateTime start, DateTime end, Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
         {

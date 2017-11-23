@@ -238,8 +238,7 @@ namespace TimekeeperWPF
             View.Filter = T => ((TimeTask)T).Intersects(SelectedDate, EndDate);
             foreach (TimeTask T in View)
             {
-                await T.BuildPerZonesAsync(SelectedDate, EndDate);
-                await T.BuildInclusionZonesAsync();
+                await T.BuildZonesAsync(SelectedDate, EndDate);
             }
             BuildTaskMaps();
             BuildAllocations();
@@ -248,45 +247,77 @@ namespace TimekeeperWPF
         }
         private void BuildTaskMaps()
         {
-            //create mappings for each CalendarObject in each Inclusion Zone of each TimeTask
             TaskMaps = new List<CalendarTimeTaskMap>();
             foreach (TimeTask T in View)
             {
-                var M = new CalendarTimeTaskMap
+                var map = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
-                    InclusionZones = new List<InclusionZone>()
+                    PerZones = new List<PerZone>()
                 };
-                foreach (var Z in T.InclusionZones)
+                foreach (var P in T.PerZones)
                 {
-                    var zone = new InclusionZone
+                    var per = new PerZone
                     {
-                        Start = Z.Key,
-                        End = Z.Value,
-                        CalTaskObjs = new List<CalendarTaskObject>(),
-                        CalNoteObjs = new List<CalendarNoteObject>(),
+                        Start = P.Key,
+                        End = P.Value,
+                        //Consumptions = new List<Consumption>(),
+                        InclusionZones = new List<InclusionZone>()
                     };
-                    M.InclusionZones.Add(zone);
+                    if (T.TimeAllocation != null)
+                    {
+                        per.TimeConsumption = new Consumption
+                        {
+                            Allocation = T.TimeAllocation,
+                            Remaining = T.TimeAllocation.AmountAsTimeSpan().Ticks
+                        };
+                    }
+                    //foreach (var A in T.Allocations)
+                    //{
+                    //    if (A == T.TimeAllocation) continue;
+                    //    var consume = new Consumption
+                    //    {
+                    //        Allocation = A,
+                    //        Remaining = A.Amount
+                    //    };
+                    //    per.Consumptions.Add(consume);
+                    //}
+                    var inZones = T.InclusionZones.Where(Z => per.Intersects(Z.Key, Z.Value));
+                    foreach (var Z in inZones)
+                    {
+                        var zone = new InclusionZone
+                        {
+                            Start = Z.Key,
+                            End = Z.Value,
+                            CalTaskObjs = new List<CalendarTaskObject>(),
+                            CalNoteObjs = new List<CalendarNoteObject>()
+                        };
+                        per.InclusionZones.Add(zone);
+                    }
+                    map.PerZones.Add(per);
                 }
-                TaskMaps.Add(M);
+                TaskMaps.Add(map);
             }
         }
         private void BuildAllocations()
         {
+            CalTaskObjsCollection = new CollectionViewSource();
+            CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
             //Time Allocations
             foreach (var M in TaskMaps)
             {
-                if (M.InclusionZones.Count == 0) continue;
+                if (M.PerZones.Count == 0) continue;
                 if (M.TimeTask.TimeAllocation == null) AllocateAllTime(M);
-                else if (M.TimeTask.TimeAllocation.Per == null) AllocateTimeResource(M);
+                else if (M.TimeTask.TimeAllocation.Per == null) AllocationMethod(M);
                 else AllocateTimePerTime(M);
             }
+            //Other Allocations
         }
         private void AllocateAllTime(CalendarTimeTaskMap M)
         {
             // If no time allocation is set, we create one CalendarObject per inclusion zone
             // with each Start/End set to the bounds of the inclusion zone.
-            foreach (var Z in M.InclusionZones)
+            foreach (var Z in M.PerZones[0].InclusionZones)
             {
                 //create cal object that matches zone
                 CalendarTaskObject CalObj = new CalendarTaskObject
@@ -298,12 +329,6 @@ namespace TimekeeperWPF
                 Z.CalTaskObjs.Add(CalObj);
             }
             FinalizeCalTaskObjs(M);
-        }
-        private void AllocateTimeResource(CalendarTimeTaskMap M)
-        {
-            //If no Per is set, allocate time across entire task
-            M.TimeTask.TimeAllocation.Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks;
-            AllocationMethod(M, M.TimeTask.TimeAllocation);
         }
         private void AllocateTimePerTime(CalendarTimeTaskMap M)
         {
@@ -323,25 +348,25 @@ namespace TimekeeperWPF
                     TimeTask = M.TimeTask,
                     InclusionZones = M.InclusionZones.Where(Z => Z.Intersects(P.Key, P.Value)).ToList()
                 };
-                AllocationMethod(perMap, A);
+                AllocationMethod(perMap);
             }
         }
-        private void AllocationMethod(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        private void AllocationMethod(CalendarTimeTaskMap M)
         {
             switch (M.TimeTask.AllocationMethod)
             {
                 case "Eager":
-                    EagerAllocate(M, A);
+                    EagerTimeAllocate(M);
                     break;
                 case "Even":
-                    EvenAllocate(M, A);
+                    EvenTimeAllocate(M);
                     break;
                 case "Apathetic":
-                    ApatheticAllocate(M, A);
+                    ApatheticTimeAllocate(M);
                     break;
             }
         }
-        private void EagerAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        private void EagerTimeAllocate(CalendarTimeTaskMap M)
         {
             // Fill the earliest zones first
             if (M.InclusionZones.Count == 0) return;
@@ -377,7 +402,7 @@ namespace TimekeeperWPF
             }
             FinalizeCalTaskObjs(M);
         }
-        private void EvenAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        private void EvenTimeAllocate(CalendarTimeTaskMap M)
         {
             //Fill zones evenly
             if (M.InclusionZones.Count == 0) return;
@@ -419,7 +444,7 @@ namespace TimekeeperWPF
             }
             FinalizeCalTaskObjs(M);
         }
-        private void ApatheticAllocate(CalendarTimeTaskMap M, TimeTaskAllocation A)
+        private void ApatheticTimeAllocate(CalendarTimeTaskMap M)
         {
             // Fill the latest zones first
             if (M.InclusionZones.Count == 0) return;
@@ -457,8 +482,6 @@ namespace TimekeeperWPF
         }
         private void FinalizeCalTaskObjs(CalendarTimeTaskMap M)
         {
-            CalTaskObjsCollection = new CollectionViewSource();
-            CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
             foreach (var Z in M.InclusionZones)
             {
                 foreach (var CalObj in Z.CalTaskObjs)
@@ -481,11 +504,12 @@ namespace TimekeeperWPF
             {
                 foreach (var Z in M.InclusionZones)
                 {
-                    var notes = from N in (NotesVM.Source)
-                                where Z.Intersects(N)
-                                where (N.TimeTask == null && N.Dimension == M.TimeTask.Dimension && N.TaskType == M.TimeTask.TaskType)
-                                    || N.TimeTask == M.TimeTask
-                                select N;
+                    var notes = 
+                        from N in (NotesVM.Source)
+                        where Z.Intersects(N)
+                        where (N.TimeTask == null && N.Dimension == M.TimeTask.Dimension && N.TaskType == M.TimeTask.TaskType)
+                            || N.TimeTask == M.TimeTask
+                        select N;
                 }
             }
         }

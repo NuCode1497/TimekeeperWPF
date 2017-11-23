@@ -8,78 +8,77 @@
              mc:Ignorable="d"
              d:DesignHeight="400"
              d:DesignWidth="600">
-    <Grid x:Name="SV">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <ContentControl 
+    <Grid>
+        <Grid x:Name="SV">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ContentControl 
             x:Name="CommandsToolbar" Grid.Row="0" 
             Template="{StaticResource TableViewControlsTemplate}"/>
-        <DataGrid x:Name="DG" Grid.Row="1"
+            <DataGrid x:Name="DG" Grid.Row="1"
                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   IsEnabled="{Binding Path=IsEnabled}"
                   ItemsSource="{Binding Path=View}"
                   SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" />
-                <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
-                <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
-                <DataGridTextColumn Binding="{Binding Path=Text}" Header="Text"
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name" />
+                    <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
+                    <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
+                    <DataGridTextColumn Binding="{Binding Path=Text}" Header="Text"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                    <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <ContentControl x:Name="EditNotePopUp"
+                </DataGrid.Columns>
+            </DataGrid>
+            <ContentControl x:Name="EditNotePopUp"
             Grid.Row="0" Grid.RowSpan="2"
             IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
             Visibility="{Binding Path=IsEditingItemOrAddingNew, 
             FallbackValue=Collapsed,
             Converter={StaticResource BooleanToVisibilityConverter}}"
             Template="{StaticResource EditPopUpTemplate}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <local:EditNoteView 
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <local:EditNoteView 
                     x:Name="DataEditor" 
                     DataContext="{Binding Path=CurrentEditItem}"/>
-            </ScrollViewer>
-        </ContentControl>
-        <ContentControl x:Name="SaveDateSelectPopUp"
+                </ScrollViewer>
+            </ContentControl>
+            <ContentControl x:Name="SaveDateSelectPopUp"
             Grid.Row="0" Grid.RowSpan="2" Margin="10"
             Visibility="{Binding Path=IsSaving, FallbackValue=Collapsed,
             Converter={StaticResource BooleanToVisibilityConverter}}"
             Template="{StaticResource PopUpTemplate}">
-            <StackPanel>
-                <GroupBox Header="Select date range to save">
-                    <Grid Margin="5" Width="300">
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Label Grid.Column="0" Grid.Row="0" Content="Start" />
-                        <Label Grid.Column="0" Grid.Row="1" Content="End" />
-                        <DatePicker 
+                <StackPanel>
+                    <GroupBox Header="Select date range to save">
+                        <Grid Margin="5" Width="300">
+                            <Grid.RowDefinitions>
+                                <RowDefinition/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Grid.Column="0" Grid.Row="0" Content="Start" />
+                            <Label Grid.Column="0" Grid.Row="1" Content="End" />
+                            <DatePicker 
                             Grid.Column="1" Grid.Row="0" Width="Auto"
                             SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" />
-                        <DatePicker 
+                            <DatePicker 
                             Grid.Column="1" Grid.Row="1" Width="Auto" 
                             SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
-                        <Button 
+                            <Button 
                             Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
                             Command="{Binding Path=ContinueSaveCommand}" 
                             VerticalAlignment="Center"/>
-                    </Grid>
-                </GroupBox>
-            </StackPanel>
-        </ContentControl>
-        <local:LoadingView 
-            Grid.Row="0" Grid.RowSpan="2" 
-            Visibility="{Binding Path=IsLoading, FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                        </Grid>
+                    </GroupBox>
+                </StackPanel>
+            </ContentControl>
+        </Grid>
+        <local:LoadingView/>
     </Grid>
 </UserControl>

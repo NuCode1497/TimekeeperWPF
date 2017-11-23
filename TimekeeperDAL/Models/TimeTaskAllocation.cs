@@ -77,13 +77,7 @@ namespace TimekeeperDAL.EF
             if (!hasError) ClearErrors(nameof(Amount));
             return hasError;
         }
-
-        [NotMapped]
-        public double Remaining { get; set; }
-
-        [NotMapped]
-        public TimeSpan RemainingAsTimeSpan => new TimeSpan((long)Remaining);
-
+        
         /// <summary>
         /// A rough estimate of the duration of the time allocation. e.g. Month = Amount * 30.437
         /// </summary>

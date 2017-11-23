@@ -8,61 +8,62 @@
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="800">
-    <Grid x:Name="SV">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
+    <Grid>
+        <Grid x:Name="SV">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
                  SelectedItem="{Binding Path=SelectedCalendarObject}"
                  Style="{StaticResource CalObjsListBoxStyle}">
-            <ListBox.Resources>
-                <CollectionContainer 
+                <ListBox.Resources>
+                    <CollectionContainer 
                     x:Key="CalTaskObjs"
                     Collection="{Binding DataContext.CalTaskObjsView, 
                     Source={x:Reference CalendarObjectsIC}}"/>
-                <CollectionContainer 
+                    <CollectionContainer 
                     x:Key="CalNoteObjs"
                     Collection="{Binding DataContext.CalNoteObjsView, 
                     Source={x:Reference CalendarObjectsIC}}"/>
-            </ListBox.Resources>
-            <ItemsControl.ItemsSource>
-                <CompositeCollection>
-                    <cal:NowMarkerHorizontal/>
-                    <cal:NowMarkerVertical/>
-                    <StaticResource ResourceKey="CalTaskObjs"/>
-                    <StaticResource ResourceKey="CalNoteObjs"/>
-                </CompositeCollection>
-            </ItemsControl.ItemsSource>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <cal:Week/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ListBox>
-        <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
+                </ListBox.Resources>
+                <ItemsControl.ItemsSource>
+                    <CompositeCollection>
+                        <cal:NowMarkerHorizontal/>
+                        <cal:NowMarkerVertical/>
+                        <StaticResource ResourceKey="CalTaskObjs"/>
+                        <StaticResource ResourceKey="CalNoteObjs"/>
+                    </CompositeCollection>
+                </ItemsControl.ItemsSource>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <cal:Week/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ListBox>
+            <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
                         Template="{StaticResource CalendarTitleBarTemplate}">
-            <Grid Width="360">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="Week of" 
+                <Grid Width="360">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="Week of" 
                         Style="{StaticResource CalendarTitleBarTextStyle}"/>
-                    <TextBlock Text="{Binding Path=WeekString, FallbackValue='QQQQQQQQQ 88, 7777'}" 
+                        <TextBlock Text="{Binding Path=WeekString, FallbackValue='QQQQQQQQQ 88, 7777'}" 
                         Style="{StaticResource CalendarTitleBarTextStyle}"/>
-                </StackPanel>
-            </Grid>
-        </ContentControl>
-        <ContentControl
+                    </StackPanel>
+                </Grid>
+            </ContentControl>
+            <ContentControl
             x:Name="CommandsToolbar" Grid.Row="0" 
             Template="{StaticResource CalendarViewControlsTemplate}"/>
+        </Grid>
         <Grid DataContext="{Binding Path=NotesVM}">
             <ContentControl x:Name="EditNotePopUp"
-                Grid.Row="0" Grid.RowSpan="2"
                 IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
                 Visibility="{Binding Path=IsEditingItemOrAddingNew, 
                 FallbackValue=Collapsed,
@@ -75,9 +76,6 @@
                 </ScrollViewer>
             </ContentControl>
         </Grid>
-        <local:LoadingView 
-            Grid.Row="0" Grid.RowSpan="3" 
-            Visibility="{Binding Path=IsLoading, FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <local:LoadingView/>
     </Grid>
 </UserControl>

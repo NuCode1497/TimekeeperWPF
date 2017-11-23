@@ -110,11 +110,13 @@
       <DependentUpon>CalendarNoteObject.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\CalendarTimeTaskMap.cs" />
+    <Compile Include="Calendar\Consumption.cs" />
     <Compile Include="Calendar\InclusionSorter.cs" />
     <Compile Include="Calendar\InclusionZone.cs" />
     <Compile Include="Calendar\NowMarkerVertical.xaml.cs">
       <DependentUpon>NowMarkerVertical.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Calendar\PerZone.cs" />
     <Compile Include="Calendar\Week.cs" />
     <Compile Include="Tools\InvalidatingConverter.cs" />
     <Compile Include="Tools\PluralizingConverter.cs" />

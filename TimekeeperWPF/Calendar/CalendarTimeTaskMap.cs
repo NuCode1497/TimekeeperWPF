@@ -6,6 +6,6 @@ namespace TimekeeperWPF.Calendar
     public class CalendarTimeTaskMap
     {
         public TimeTask TimeTask { get; set; }
-        public List<InclusionZone> InclusionZones { get; set; }
+        public List<PerZone> PerZones { get; set; }
     }
 }
