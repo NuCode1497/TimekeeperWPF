@@ -46,6 +46,7 @@ namespace TimekeeperWPF.Calendar
             //determine the state of this object based on the current time
             if (DateTime.Now < Start)
             {
+
             }
             else if (DateTime.Now > End)
             {
@@ -53,7 +54,6 @@ namespace TimekeeperWPF.Calendar
             }
             else
             {
-                State = States.Current;
             }
 
             //InvalidateArrange();

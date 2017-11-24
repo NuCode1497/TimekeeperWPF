@@ -11,5 +11,6 @@ namespace TimekeeperWPF.Calendar
     {
         public TimeTaskAllocation Allocation { get; set; }
         public double Remaining;
+        public TimeSpan RemainingAsTimeSpan => new TimeSpan((long)Remaining);
     }
 }

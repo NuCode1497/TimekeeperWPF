@@ -244,6 +244,7 @@ namespace TimekeeperWPF
             BuildAllocations();
             //DetermineTaskStates();
             //CalculateCollisions
+            UnZipTaskMaps();
         }
         private void BuildTaskMaps()
         {
@@ -301,15 +302,12 @@ namespace TimekeeperWPF
         }
         private void BuildAllocations()
         {
-            CalTaskObjsCollection = new CollectionViewSource();
-            CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
             //Time Allocations
             foreach (var M in TaskMaps)
             {
                 if (M.PerZones.Count == 0) continue;
                 if (M.TimeTask.TimeAllocation == null) AllocateAllTime(M);
-                else if (M.TimeTask.TimeAllocation.Per == null) AllocationMethod(M);
-                else AllocateTimePerTime(M);
+                else AllocationMethod(M);
             }
             //Other Allocations
         }
@@ -317,38 +315,21 @@ namespace TimekeeperWPF
         {
             // If no time allocation is set, we create one CalendarObject per inclusion zone
             // with each Start/End set to the bounds of the inclusion zone.
-            foreach (var Z in M.PerZones[0].InclusionZones)
+            foreach (var P in M.PerZones)
             {
-                //create cal object that matches zone
-                CalendarTaskObject CalObj = new CalendarTaskObject
+                foreach (var Z in P.InclusionZones)
                 {
-                    Start = Z.Start,
-                    End = Z.End,
-                    ParentMap = M
-                };
-                Z.CalTaskObjs.Add(CalObj);
-            }
-            FinalizeCalTaskObjs(M);
-        }
-        private void AllocateTimePerTime(CalendarTimeTaskMap M)
-        {
-            // Allocation.Amount is the amount of time that will be allocated for each Allocation.Per
-            // segment aligned with the calendar. 
-
-            TimeTaskAllocation A = M.TimeTask.TimeAllocation;
-            var allocatedTime = A.AmountAsTimeSpan().Ticks;
-            //get list of relevant per zones
-            var perZones = M.TimeTask.PerZones.Where(P => Intersects(P.Key, P.Value));
-            foreach (var P in perZones)
-            {
-                A.Remaining = allocatedTime;
-                //get subset of zones intersecting current per
-                CalendarTimeTaskMap perMap = new CalendarTimeTaskMap()
-                {
-                    TimeTask = M.TimeTask,
-                    InclusionZones = M.InclusionZones.Where(Z => Z.Intersects(P.Key, P.Value)).ToList()
-                };
-                AllocationMethod(perMap);
+                    //create cal object that matches zone
+                    CalendarTaskObject CalObj = new CalendarTaskObject
+                    {
+                        Start = Z.Start,
+                        End = Z.End,
+                        ParentMap = M
+                    };
+                    CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
+                    CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
+                    Z.CalTaskObjs.Add(CalObj);
+                }
             }
         }
         private void AllocationMethod(CalendarTimeTaskMap M)
@@ -368,129 +349,141 @@ namespace TimekeeperWPF
         }
         private void EagerTimeAllocate(CalendarTimeTaskMap M)
         {
-            // Fill the earliest zones first
-            if (M.InclusionZones.Count == 0) return;
-            M.InclusionZones.Sort(new InclusionSorterAsc());
-            foreach (var Z in M.InclusionZones)
+            foreach (var P in M.PerZones)
             {
-                if (A.Remaining <= 0) break;
-                if (Z.Duration.Ticks <= 0) break;
-                if (A.RemainingAsTimeSpan < Z.Duration)
+                // Fill the earliest zones first
+                if (P.InclusionZones.Count == 0) continue;
+                P.InclusionZones.Sort(new InclusionSorterAsc());
+                foreach (var Z in P.InclusionZones)
                 {
-                    //create cal obj the size of the remaining time
-                    CalendarTaskObject CalObj = new CalendarTaskObject
+                    if (P.TimeConsumption.Remaining <= 0) break;
+                    if (Z.Duration.Ticks <= 0) break;
+                    if (P.TimeConsumption.RemainingAsTimeSpan < Z.Duration)
                     {
-                        Start = Z.Start,
-                        End = Z.Start + A.RemainingAsTimeSpan,
-                        ParentMap = M
-                    };
-                    Z.CalTaskObjs.Add(CalObj);
-                    A.Remaining = 0;
-                }
-                else
-                {
-                    //create cal obj the size of the zone
-                    CalendarTaskObject CalObj = new CalendarTaskObject
+                        //create cal obj the size of the remaining time
+                        CalendarTaskObject CalObj = new CalendarTaskObject
+                        {
+                            Start = Z.Start,
+                            End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
+                            ParentMap = M
+                        };
+                        Z.CalTaskObjs.Add(CalObj);
+                        P.TimeConsumption.Remaining = 0;
+                    }
+                    else
                     {
-                        Start = Z.Start,
-                        End = Z.End,
-                        ParentMap = M
-                    };
-                    Z.CalTaskObjs.Add(CalObj);
-                    A.Remaining -= Z.Duration.Ticks;
+                        //create cal obj the size of the zone
+                        CalendarTaskObject CalObj = new CalendarTaskObject
+                        {
+                            Start = Z.Start,
+                            End = Z.End,
+                            ParentMap = M
+                        };
+                        Z.CalTaskObjs.Add(CalObj);
+                        P.TimeConsumption.Remaining -= Z.Duration.Ticks;
+                    }
                 }
             }
-            FinalizeCalTaskObjs(M);
         }
         private void EvenTimeAllocate(CalendarTimeTaskMap M)
         {
-            //Fill zones evenly
-            if (M.InclusionZones.Count == 0) return;
-            M.InclusionZones.Sort(new InclusionSorterAsc());
-            //First loop that creates CalendarObjects
-            foreach (var Z in M.InclusionZones)
+            foreach (var P in M.PerZones)
             {
-                if (A.Remaining <= 0) break;
-                if (Z.Duration.Ticks <= 0) break;
-                CalendarTaskObject CalObj = new CalendarTaskObject
+                //Fill zones evenly
+                if (P.InclusionZones.Count == 0) continue;
+                P.InclusionZones.Sort(new InclusionSorterAsc());
+                //First loop that creates CalendarObjects
+                foreach (var Z in P.InclusionZones)
                 {
-                    Start = Z.Start,
-                    End = Z.Start + TimeTask.MinimumDuration,
-                    ParentMap = M
-                };
-                A.Remaining -= TimeTask.MinimumDuration.Ticks;
-                Z.CalTaskObjs.Add(CalObj);
-            }
-            //Second loop that adds more time to CalendarObjects
-            bool full = false;
-            while (!full && (A.Remaining >= TimeTask.MinimumDuration.Ticks))
-            {
-                full = true;
-                //add a small amount of time to each CalObj until they are full or out of allocated time
-                foreach (var Z in M.InclusionZones)
-                {
+                    if (P.TimeConsumption.Remaining <= 0) break;
                     if (Z.Duration.Ticks <= 0) break;
-                    foreach (var CalObj in Z.CalTaskObjs)
-                    {
-                        if (A.Remaining <= 0) break;
-                        //If zone is full
-                        if (Z.Duration.Ticks - CalObj.Duration.Ticks <= 0) break;
-                        CalObj.End += TimeTask.MinimumDuration;
-                        A.Remaining -= TimeTask.MinimumDuration.Ticks;
-                        full = false;
-                    }
-                    if (A.Remaining <= 0) break;
-                }
-            }
-            FinalizeCalTaskObjs(M);
-        }
-        private void ApatheticTimeAllocate(CalendarTimeTaskMap M)
-        {
-            // Fill the latest zones first
-            if (M.InclusionZones.Count == 0) return;
-            M.InclusionZones.Sort(new InclusionSorterDesc());
-            foreach (var Z in M.InclusionZones)
-            {
-                if (A.Remaining <= 0) break;
-                if (Z.Duration.Ticks <= 0) break;
-                if (A.RemainingAsTimeSpan < Z.Duration)
-                {
-                    //create cal obj the size of the remaining time
-                    CalendarTaskObject CalObj = new CalendarTaskObject
-                    {
-                        Start = Z.End - A.RemainingAsTimeSpan,
-                        End = Z.End,
-                        ParentMap = M
-                    };
-                    Z.CalTaskObjs.Add(CalObj);
-                    A.Remaining = 0;
-                }
-                else
-                {
-                    //create cal obj the size of the zone
                     CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
-                        End = Z.End,
+                        End = Z.Start + TimeTask.MinimumDuration,
                         ParentMap = M
                     };
+                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
                     Z.CalTaskObjs.Add(CalObj);
-                    A.Remaining -= Z.Duration.Ticks;
+                }
+                //Second loop that adds more time to CalendarObjects
+                bool full = false;
+                while (!full && (P.TimeConsumption.Remaining >= TimeTask.MinimumDuration.Ticks))
+                {
+                    full = true;
+                    //add a small amount of time to each CalObj until they are full or out of allocated time
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        if (Z.Duration.Ticks <= 0) break;
+                        foreach (var CalObj in Z.CalTaskObjs)
+                        {
+                            if (P.TimeConsumption.Remaining <= 0) break;
+                            //If zone is full
+                            if (Z.Duration.Ticks - CalObj.Duration.Ticks <= 0) break;
+                            CalObj.End += TimeTask.MinimumDuration;
+                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                            full = false;
+                        }
+                        if (P.TimeConsumption.Remaining <= 0) break;
+                    }
                 }
             }
-            FinalizeCalTaskObjs(M);
         }
-        private void FinalizeCalTaskObjs(CalendarTimeTaskMap M)
+        private void ApatheticTimeAllocate(CalendarTimeTaskMap M)
         {
-            foreach (var Z in M.InclusionZones)
+            foreach (var P in M.PerZones)
             {
-                foreach (var CalObj in Z.CalTaskObjs)
+                // Fill the latest zones first
+                if (P.InclusionZones.Count == 0) return;
+                P.InclusionZones.Sort(new InclusionSorterDesc());
+                foreach (var Z in P.InclusionZones)
                 {
-                    CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
-                    CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
-                    CalTaskObjsView.AddNewItem(CalObj);
-                    CalTaskObjsView.CommitNew();
-                    AdditionalCalObjSetup(CalObj);
+                    if (P.TimeConsumption.Remaining <= 0) break;
+                    if (Z.Duration.Ticks <= 0) break;
+                    if (P.TimeConsumption.RemainingAsTimeSpan < Z.Duration)
+                    {
+                        //create cal obj the size of the remaining time
+                        CalendarTaskObject CalObj = new CalendarTaskObject
+                        {
+                            Start = Z.End - P.TimeConsumption.RemainingAsTimeSpan,
+                            End = Z.End,
+                            ParentMap = M
+                        };
+                        Z.CalTaskObjs.Add(CalObj);
+                        P.TimeConsumption.Remaining = 0;
+                    }
+                    else
+                    {
+                        //create cal obj the size of the zone
+                        CalendarTaskObject CalObj = new CalendarTaskObject
+                        {
+                            Start = Z.Start,
+                            End = Z.End,
+                            ParentMap = M
+                        };
+                        Z.CalTaskObjs.Add(CalObj);
+                        P.TimeConsumption.Remaining -= Z.Duration.Ticks;
+                    }
+                }
+            }
+        }
+        private void UnZipTaskMaps()
+        {
+            CalTaskObjsCollection = new CollectionViewSource();
+            CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
+            foreach (var M in TaskMaps)
+            {
+                foreach (var P in M.PerZones)
+                {
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        foreach (var CalObj in Z.CalTaskObjs)
+                        {
+                            CalTaskObjsView.AddNewItem(CalObj);
+                            CalTaskObjsView.CommitNew();
+                            AdditionalCalObjSetup(CalObj);
+                        }
+                    }
                 }
             }
             OnPropertyChanged(nameof(CalTaskObjsView));
@@ -498,18 +491,49 @@ namespace TimekeeperWPF
         protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
         private void DetermineTaskStates()
         {
-            //foreach InclusionZone, find all Intersecting Notes that are not of type "Note" and have matching dimension
-            //then alter the CalObj under the note
             foreach (var M in TaskMaps)
             {
-                foreach (var Z in M.InclusionZones)
+                //Find all the notes that involve this task that
+                //A) has TimeTask defined or
+                //B) has the same Dimension and tasktype as the Task 
+                //   and is within one of its inclusion zones
+                var Tnotes = NotesVM.Source.Where(
+                    N => (N.TimeTask == null 
+                    && M.PerZones.Count(P => P.InclusionZones.Count(Z => Z.Intersects(N)) > 0) > 0 
+                    && N.Dimension == M.TimeTask.Dimension 
+                    && N.TaskType == M.TimeTask.TaskType) 
+                    || N.TimeTask == M.TimeTask);
+                foreach (var N in Tnotes)
                 {
-                    var notes = 
-                        from N in (NotesVM.Source)
-                        where Z.Intersects(N)
-                        where (N.TimeTask == null && N.Dimension == M.TimeTask.Dimension && N.TaskType == M.TimeTask.TaskType)
-                            || N.TimeTask == M.TimeTask
-                        select N;
+                    //does the note specify a certain task?
+                    if (N.TimeTask != null)
+                    {
+                        //is the note in one of its inclusion zones?
+                        if (M.PerZones.Count(P => P.InclusionZones.Count(Z => Z.Intersects(N)) > 0) > 0)
+                        {
+                            //is the note over a CalObj?
+                            var calObjs = from P in M.PerZones
+                                          select from Z in P.InclusionZones
+                                                 select from C in Z.CalTaskObjs
+                                                        where C.Intersects(N)
+                                                        select C;
+                        }
+                    }
+                    else
+                    {
+                    }
+                    //if it is, what does the note say?
+                    //start/end
+                    //completed/confirmed
+                    //incomplete
+                    //cancelled
+                    //delete the calobj and add a filter
+                    //if it isn't, what does the note say
+                    //start/end
+                    //completed/confirmed
+                    //incomplete
+                    //cancelled
+
                 }
             }
         }
