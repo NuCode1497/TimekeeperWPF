@@ -9,8 +9,7 @@ namespace TimekeeperWPF.Calendar
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public TimeSpan Duration => End - Start;
-        public List<CalendarTaskObject> CalTaskObjs { get; set; }
-        public List<CalendarNoteObject> CalNoteObjs { get; set; }
+        public CalendarTaskObject SeedTaskObj { get; set; }
 
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }

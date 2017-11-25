@@ -12,6 +12,8 @@ namespace TimekeeperWPF.Calendar
         public List<InclusionZone> InclusionZones { get; set; }
         //public List<Consumption> Consumptions { get; set; }
         public Consumption TimeConsumption { get; set; }
+        public List<CalendarTaskObject> CalTaskObjs { get; set; }
+        public List<CalendarNoteObject> CalNoteObjs { get; set; }
 
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }

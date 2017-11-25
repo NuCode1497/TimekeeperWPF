@@ -82,6 +82,7 @@ namespace TimekeeperWPF.Calendar
             return s;
         }
         #region End
+        public bool EndLock = false;
         public DateTime End
         {
             get { return (DateTime)GetValue(EndProperty); }
@@ -93,6 +94,7 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
         #endregion End
         #region Start
+        public bool StartLock = false;
         public DateTime Start
         {
             get { return (DateTime)GetValue(StartProperty); }
@@ -154,6 +156,7 @@ namespace TimekeeperWPF.Calendar
             AutoCheckIn,    //MediumAquamarine
             AutoConfirm,    //Aquamarine
         }
+        public bool StateLock = false;
         public States State
         {
             get { return (States)GetValue(StateProperty); }

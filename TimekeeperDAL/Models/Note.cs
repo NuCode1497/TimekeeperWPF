@@ -2,6 +2,7 @@
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
 using System;
+using System.Collections.Generic;
 
 namespace TimekeeperDAL.EF
 {
@@ -41,9 +42,16 @@ namespace TimekeeperDAL.EF
             }
         }
 
-        public override bool HasDateTime(DateTime dt)
+        public override bool HasDateTime(DateTime dt) { return false; }
+
+        public static readonly List<string> CheckInChoices = new List<string>
         {
-            return false;
-        }
+            "Complete",
+            "Confirm",
+            "Incomplete",
+            "Cancel",
+            "Start",
+            "End",
+        };
     }
 }

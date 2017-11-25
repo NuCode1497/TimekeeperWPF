@@ -209,29 +209,10 @@ namespace TimekeeperWPF
             Items.Source = Context.TimeTasks.Local;
             NotesVM = new NotesViewModel();
             await NotesVM.LoadData();
-            await SetUpCalendarObjects();
             await base.GetDataAsync();
-        }
-        protected virtual async Task SetUpCalendarObjects()
-        {
+
             Status = "Creating CalendarObjects...";
-            CreateNoteObjects();
             await CreateTaskObjects();
-        }
-        private void CreateNoteObjects()
-        {
-            CalNoteObjsCollection = new CollectionViewSource();
-            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
-            NotesVM.View.Filter = N => Intersects((Note)N);
-            foreach (Note N in NotesVM.View)
-            {
-                CalendarNoteObject CalObj = new CalendarNoteObject();
-                CalObj.DateTime = N.DateTime;
-                CalObj.ToolTip = N;
-                CalNoteObjsView.AddNewItem(CalObj);
-                CalNoteObjsView.CommitNew();
-            }
-            OnPropertyChanged(nameof(CalNoteObjsView));
         }
         private async Task CreateTaskObjects()
         {
@@ -254,7 +235,7 @@ namespace TimekeeperWPF
                 var map = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
-                    PerZones = new List<PerZone>()
+                    PerZones = new List<PerZone>(),
                 };
                 foreach (var P in T.PerZones)
                 {
@@ -263,14 +244,26 @@ namespace TimekeeperWPF
                         Start = P.Key,
                         End = P.Value,
                         //Consumptions = new List<Consumption>(),
-                        InclusionZones = new List<InclusionZone>()
+                        InclusionZones = new List<InclusionZone>(),
+                        CalTaskObjs = new List<CalendarTaskObject>(),
+                        CalNoteObjs = new List<CalendarNoteObject>(),
                     };
                     if (T.TimeAllocation != null)
                     {
                         per.TimeConsumption = new Consumption
                         {
                             Allocation = T.TimeAllocation,
-                            Remaining = T.TimeAllocation.AmountAsTimeSpan().Ticks
+                            Remaining = T.TimeAllocation.AmountAsTimeSpan().Ticks,
+                        };
+                    }
+                    NotesVM.View.Filter = N => per.Intersects((Note)N);
+                    foreach (Note N in NotesVM.View)
+                    {
+                        CalendarNoteObject CalObj = new CalendarNoteObject
+                        {
+                            DateTime = N.DateTime,
+                            ToolTip = N,
+                            Note = N,
                         };
                     }
                     //foreach (var A in T.Allocations)
@@ -279,7 +272,7 @@ namespace TimekeeperWPF
                     //    var consume = new Consumption
                     //    {
                     //        Allocation = A,
-                    //        Remaining = A.Amount
+                    //        Remaining = A.Amount,
                     //    };
                     //    per.Consumptions.Add(consume);
                     //}
@@ -290,8 +283,6 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Key,
                             End = Z.Value,
-                            CalTaskObjs = new List<CalendarTaskObject>(),
-                            CalNoteObjs = new List<CalendarNoteObject>()
                         };
                         per.InclusionZones.Add(zone);
                     }
@@ -328,7 +319,7 @@ namespace TimekeeperWPF
                     };
                     CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
                     CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
-                    Z.CalTaskObjs.Add(CalObj);
+                    P.CalTaskObjs.Add(CalObj);
                 }
             }
         }
@@ -367,7 +358,8 @@ namespace TimekeeperWPF
                             End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
                             ParentMap = M
                         };
-                        Z.CalTaskObjs.Add(CalObj);
+                        Z.SeedTaskObj = CalObj;
+                        P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining = 0;
                     }
                     else
@@ -379,7 +371,8 @@ namespace TimekeeperWPF
                             End = Z.End,
                             ParentMap = M
                         };
-                        Z.CalTaskObjs.Add(CalObj);
+                        Z.SeedTaskObj = CalObj;
+                        P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
                     }
                 }
@@ -404,7 +397,8 @@ namespace TimekeeperWPF
                         ParentMap = M
                     };
                     P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
-                    Z.CalTaskObjs.Add(CalObj);
+                    Z.SeedTaskObj = CalObj;
+                    P.CalTaskObjs.Add(CalObj);
                 }
                 //Second loop that adds more time to CalendarObjects
                 bool full = false;
@@ -415,16 +409,12 @@ namespace TimekeeperWPF
                     foreach (var Z in P.InclusionZones)
                     {
                         if (Z.Duration.Ticks <= 0) break;
-                        foreach (var CalObj in Z.CalTaskObjs)
-                        {
-                            if (P.TimeConsumption.Remaining <= 0) break;
-                            //If zone is full
-                            if (Z.Duration.Ticks - CalObj.Duration.Ticks <= 0) break;
-                            CalObj.End += TimeTask.MinimumDuration;
-                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
-                            full = false;
-                        }
                         if (P.TimeConsumption.Remaining <= 0) break;
+                        //If zone is full
+                        if (Z.Duration.Ticks - Z.SeedTaskObj.Duration.Ticks <= 0) break;
+                        Z.SeedTaskObj.End += TimeTask.MinimumDuration;
+                        P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                        full = false;
                     }
                 }
             }
@@ -449,7 +439,8 @@ namespace TimekeeperWPF
                             End = Z.End,
                             ParentMap = M
                         };
-                        Z.CalTaskObjs.Add(CalObj);
+                        P.CalTaskObjs.Add(CalObj);
+                        Z.SeedTaskObj = CalObj;
                         P.TimeConsumption.Remaining = 0;
                     }
                     else
@@ -461,7 +452,8 @@ namespace TimekeeperWPF
                             End = Z.End,
                             ParentMap = M
                         };
-                        Z.CalTaskObjs.Add(CalObj);
+                        P.CalTaskObjs.Add(CalObj);
+                        Z.SeedTaskObj = CalObj;
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
                     }
                 }
@@ -469,85 +461,121 @@ namespace TimekeeperWPF
         }
         private void UnZipTaskMaps()
         {
+            CalNoteObjsCollection = new CollectionViewSource();
+            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
             CalTaskObjsCollection = new CollectionViewSource();
             CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
             foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
                 {
-                    foreach (var Z in P.InclusionZones)
+                    foreach (var CalObj in P.CalTaskObjs)
                     {
-                        foreach (var CalObj in Z.CalTaskObjs)
-                        {
-                            CalTaskObjsView.AddNewItem(CalObj);
-                            CalTaskObjsView.CommitNew();
-                            AdditionalCalObjSetup(CalObj);
-                        }
+                        CalTaskObjsView.AddNewItem(CalObj);
+                        CalTaskObjsView.CommitNew();
+                        AdditionalCalObjSetup(CalObj);
+                    }
+                    foreach (var CalObj in P.CalNoteObjs)
+                    {
+                        CalNoteObjsView.AddNewItem(CalObj);
+                        CalNoteObjsView.CommitNew();
                     }
                 }
             }
             OnPropertyChanged(nameof(CalTaskObjsView));
+            OnPropertyChanged(nameof(CalNoteObjsView));
         }
         protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
         private void DetermineTaskStates()
         {
             foreach (var M in TaskMaps)
             {
-                //Find all the notes that involve this task that
-                //A) has TimeTask defined or
-                //B) has the same Dimension and tasktype as the Task 
-                //   and is within one of its inclusion zones
-                var Tnotes = NotesVM.Source.Where(
-                    N => (N.TimeTask == null 
-                    && M.PerZones.Count(P => P.InclusionZones.Count(Z => Z.Intersects(N)) > 0) > 0 
-                    && N.Dimension == M.TimeTask.Dimension 
-                    && N.TaskType == M.TimeTask.TaskType) 
-                    || N.TimeTask == M.TimeTask);
-                foreach (var N in Tnotes)
+                foreach (var P in M.PerZones)
                 {
-                    //does the note specify a certain task?
-                    if (N.TimeTask != null)
+                    foreach (var N in P.CalNoteObjs)
                     {
-                        //is the note in one of its inclusion zones?
-                        if (M.PerZones.Count(P => P.InclusionZones.Count(Z => Z.Intersects(N)) > 0) > 0)
+                        bool hasTask = N.Note.TimeTask != null;
+                        bool isRelevant = N.Note.Dimension == M.TimeTask.Dimension && N.Note.TaskType == M.TimeTask.TaskType;
+                        bool isOverInZone = P.InclusionZones.Count(Z => Z.Intersects(N.Note)) > 0;
+                        var CalObj = P.CalTaskObjs.Where(C => C.Intersects(N.Note)).FirstOrDefault();
+                        bool isOverCalObj = CalObj != null;
+                        bool isNoteInPast = N.Note.DateTime <= DateTime.Now;
+                        if (hasTask)
                         {
-                            //is the note over a CalObj?
-                            var calObjs = from P in M.PerZones
-                                          select from Z in P.InclusionZones
-                                                 select from C in Z.CalTaskObjs
-                                                        where C.Intersects(N)
-                                                        select C;
+                            if (isOverInZone)
+                            {
+                                if (isOverCalObj)
+                                {
+                                    if (isNoteInPast)
+                                    {
+                                        switch (N.Note.Text)
+                                        {
+                                            case "Complete":
+                                                CalObj.State = CalendarTaskObject.States.Completed;
+                                                break;
+                                            case "Confirm":
+                                                CalObj.State = CalendarTaskObject.States.Completed;
+                                                break;
+                                            case "Incomplete":
+                                                CalObj.State = CalendarTaskObject.States.Incomplete;
+                                                break;
+                                            case "Cancel":
+                                                CalObj.State = CalendarTaskObject.States.Incomplete;
+                                                break;
+                                            case "Start":
+                                                CalObj.Start = N.Note.DateTime;
+                                                break;
+                                            case "End":
+                                                CalObj.End = N.Note.DateTime;
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        switch (N.Note.Text)
+                                        {
+                                            case "Complete":
+                                                CalObj.State = CalendarTaskObject.States.Completed;
+                                                break;
+                                            case "Confirm":
+                                                CalObj.State = CalendarTaskObject.States.Completed;
+                                                break;
+                                            case "Incomplete":
+                                                CalObj.State = CalendarTaskObject.States.Incomplete;
+                                                break;
+                                            case "Cancel":
+                                                CalObj.State = CalendarTaskObject.States.Incomplete;
+                                                break;
+                                            case "Start":
+                                                CalObj.Start = N.Note.DateTime;
+                                                break;
+                                            case "End":
+                                                CalObj.End = N.Note.DateTime;
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (isRelevant)
+                        {
+                            
                         }
                     }
-                    else
-                    {
-                    }
-                    //if it is, what does the note say?
-                    //start/end
-                    //completed/confirmed
-                    //incomplete
-                    //cancelled
-                    //delete the calobj and add a filter
-                    //if it isn't, what does the note say
-                    //start/end
-                    //completed/confirmed
-                    //incomplete
-                    //cancelled
-
                 }
             }
         }
         protected virtual async Task PreviousAsync()
         {
             IsLoading = true;
-            await SetUpCalendarObjects();
+            await CreateTaskObjects();
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
         protected virtual async Task NextAsync()
         {
             IsLoading = true;
-            await SetUpCalendarObjects();
+            await CreateTaskObjects();
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
