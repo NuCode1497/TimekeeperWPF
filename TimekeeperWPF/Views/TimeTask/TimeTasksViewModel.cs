@@ -31,64 +31,58 @@ namespace TimekeeperWPF
         public override string Name => nameof(Context.TimeTasks) + " Editor";
 
         //List of resources to choose from when creating an allocation
-        public CollectionViewSource ResourcesCollection { get; set; }
+        public CollectionViewSource ResourcesCollection { get; protected set; }
         public ObservableCollection<Resource> ResourcesSource =>
             ResourcesCollection?.Source as ObservableCollection<Resource>;
         public ListCollectionView ResourcesView =>
             ResourcesCollection?.View as ListCollectionView;
 
-        public CollectionViewSource PersCollection { get; set; }
+        public CollectionViewSource PersCollection { get; protected set; }
         public ObservableCollection<Resource> PersSource =>
             PersCollection?.Source as ObservableCollection<Resource>;
         public ListCollectionView PersView =>
             PersCollection?.View as ListCollectionView;
 
         //The current editing TimeTask's allocations
-        public CollectionViewSource AllocationsCollection { get; set; }
+        public CollectionViewSource AllocationsCollection { get; protected set; }
         public ObservableCollection<TimeTaskAllocation> AllocationsSource => 
             AllocationsCollection?.Source as ObservableCollection<TimeTaskAllocation>;
         public ListCollectionView AllocationsView => 
             AllocationsCollection?.View as ListCollectionView;
 
         //The current editing TimeTask's filters
-        public CollectionViewSource FiltersCollection { get; set; }
+        public CollectionViewSource FiltersCollection { get; protected set; }
         public ObservableCollection<TimeTaskFilter> FiltersSource =>
             FiltersCollection?.Source as ObservableCollection<TimeTaskFilter>;
         public ListCollectionView FiltersView =>
             FiltersCollection?.View as ListCollectionView;
 
         //The rest of these are lists to choose from when selecting a Filterable for a Filter
-        public CollectionViewSource FilterLabelsCollection { get; set; }
+        public CollectionViewSource FilterLabelsCollection { get; protected set; }
         public ObservableCollection<Label> FilterLabelsSource =>
             FilterLabelsCollection?.Source as ObservableCollection<Label>;
         public ListCollectionView FilterLabelsView =>
             FilterLabelsCollection?.View as ListCollectionView;
-
-        public CollectionViewSource FilterNotesCollection { get; set; }
-        public ObservableCollection<Note> FilterNotesSource =>
-            FilterNotesCollection?.Source as ObservableCollection<Note>;
-        public ListCollectionView FilterNotesView =>
-            FilterNotesCollection?.View as ListCollectionView;
-
-        public CollectionViewSource FilterPatternsCollection { get; set; }
+        
+        public CollectionViewSource FilterPatternsCollection { get; protected set; }
         public ObservableCollection<TimePattern> FilterPatternsSource =>
             FilterPatternsCollection?.Source as ObservableCollection<TimePattern>;
         public ListCollectionView FilterPatternsView =>
             FilterPatternsCollection?.View as ListCollectionView;
 
-        public CollectionViewSource FilterResourcesCollection { get; set; }
+        public CollectionViewSource FilterResourcesCollection { get; protected set; }
         public ObservableCollection<Resource> FilterResourcesSource =>
             FilterResourcesCollection?.Source as ObservableCollection<Resource>;
         public ListCollectionView FilterResourcesView =>
             FilterResourcesCollection?.View as ListCollectionView;
 
-        public CollectionViewSource FilterTasksCollection { get; set; }
+        public CollectionViewSource FilterTasksCollection { get; protected set; }
         public ObservableCollection<TimeTask> FilterTasksSource =>
             FilterTasksCollection?.Source as ObservableCollection<TimeTask>;
         public ListCollectionView FilterTasksView =>
             FilterTasksCollection?.View as ListCollectionView;
 
-        public CollectionViewSource FilterTaskTypesCollection { get; set; }
+        public CollectionViewSource FilterTaskTypesCollection { get; protected set; }
         public ObservableCollection<TaskType> FilterTaskTypesSource =>
             FilterTaskTypesCollection?.Source as ObservableCollection<TaskType>;
         public ListCollectionView FilterTaskTypesView =>
@@ -175,15 +169,20 @@ namespace TimekeeperWPF
         #endregion
         #region Commands
         public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
-            ?? (_DeleteAllocationCommand = new RelayCommand(ap => DeleteAllocation(ap as TimeTaskAllocation), pp => CanDeleteAllocation(pp)));
+            ?? (_DeleteAllocationCommand = new RelayCommand(ap => 
+            DeleteAllocation(ap as TimeTaskAllocation), pp => CanDeleteAllocation(pp)));
         public ICommand AddNewAllocationCommand => _AddNewAllocationCommand
-            ?? (_AddNewAllocationCommand = new RelayCommand(ap => AddNewAllocation(), pp => CanAddNewAllocation));
+            ?? (_AddNewAllocationCommand = new RelayCommand(ap => 
+            AddNewAllocation(), pp => CanAddNewAllocation));
         public ICommand CancelAllocationCommand => _CancelAllocationCommand
-            ?? (_CancelAllocationCommand = new RelayCommand(ap => CancelAllocation(), pp => CanCancelAllocation));
+            ?? (_CancelAllocationCommand = new RelayCommand(ap => 
+            CancelAllocation(), pp => CanCancelAllocation));
         public ICommand CommitAllocationCommand => _CommitAllocationCommand
-            ?? (_CommitAllocationCommand = new RelayCommand(ap => CommitAllocation(), pp => CanCommitAllocation));
+            ?? (_CommitAllocationCommand = new RelayCommand(ap => 
+            CommitAllocation(), pp => CanCommitAllocation));
         public ICommand DeleteFilterCommand => _DeleteFilterCommand
-            ?? (_DeleteFilterCommand = new RelayCommand(ap => DeleteFilter(ap as TimeTaskFilter), pp => pp is TimeTaskFilter));
+            ?? (_DeleteFilterCommand = new RelayCommand(ap => 
+            DeleteFilter(ap as TimeTaskFilter), pp => pp is TimeTaskFilter));
         public ICommand AddNewFilterCommand => _AddNewFilterCommand
             ?? (_AddNewFilterCommand = new RelayCommand(ap => AddNewFilter(), pp => true));
         #endregion
@@ -198,7 +197,8 @@ namespace TimekeeperWPF
             (HasAllocatedTime? !SelectedResource.IsTimeResource : true) &&
             !IsResourceAllocated(SelectedResource) &&
             IsNotAddingNewAllocation;
-        private bool HasAllocatedTime => CurrentEditItem.Allocations.Count(A => A.Resource.IsTimeResource) > 0;
+        private bool HasAllocatedTime => 
+            CurrentEditItem.Allocations.Count(A => A.Resource.IsTimeResource) > 0;
         private bool CanCancelAllocation => IsAddingNewAllocation;
         private bool CanCommitAllocation => 
             IsAddingNewAllocation &&
@@ -206,7 +206,8 @@ namespace TimekeeperWPF
             (CurrentEditAllocation.Per != SelectedResource) &&
             !CurrentEditAllocation.HasErrors && 
             (TogglePer ? CurrentEditAllocation.Per != null : true);
-        private bool CanDeleteAllocation(object pp) => pp is TimeTaskAllocation && IsNotAddingNewAllocation;
+        private bool CanDeleteAllocation(object pp) => 
+            pp is TimeTaskAllocation && IsNotAddingNewAllocation;
         private bool FiltersHaveErrors => FiltersSource?.Count(F => F.HasErrors) > 0;
         #endregion
         #region Actions
@@ -233,13 +234,7 @@ namespace TimekeeperWPF
             FilterLabelsCollection.Source = Context.Labels.Local;
             FilterLabelsView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(FilterLabelsView));
-
-            FilterNotesCollection = new CollectionViewSource();
-            await Context.Notes.LoadAsync();
-            FilterNotesCollection.Source = Context.Notes.Local;
-            FilterNotesView.CustomSort = new NoteDateTimeSorterDesc();
-            OnPropertyChanged(nameof(FilterNotesView));
-
+            
             FilterPatternsCollection = new CollectionViewSource();
             await Context.TimePatterns.LoadAsync();
             FilterPatternsCollection.Source = Context.TimePatterns.Local;
@@ -276,17 +271,7 @@ namespace TimekeeperWPF
                 TaskType = TaskTypesSource.First(N => N.Name == "Chore"),
                 AllocationMethod = "Even",
                 Dimension = 1,
-                PowerLevel = 100,
                 Priority = 1,
-                AsksForCheckin = false,
-                AsksForReschedule = false,
-                CanReschedule = false,
-                RaiseOnReschedule = false,
-                CanBeEarly = false,
-                CanBeLate = false,
-                CanBePushed = false,
-                CanInflate = false,
-                CanDeflate = false,
                 CanFill = false
             };
             View.AddNewItem(CurrentEditItem);

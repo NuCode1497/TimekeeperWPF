@@ -6,8 +6,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace TimekeeperDAL.EF
 {
     [Table("Notes")]
-    public partial class Note : TypedLabeledEntity
+    public partial class Note
     {
+        [Key]
+        public int Id { get; set; }
+
         [Required]
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
@@ -17,7 +20,5 @@ namespace TimekeeperDAL.EF
         public string Text { get; set; }
 
         public TimeTask TimeTask { get; set; }
-
-        public int Dimension { get; set; }
     }
 }

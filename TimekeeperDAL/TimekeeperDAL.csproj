@@ -110,6 +110,14 @@
     <Compile Include="Migrations\201711220539388_NoteToTask.Designer.cs">
       <DependentUpon>201711220539388_NoteToTask.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201711260509240_TaskSimplified.cs" />
+    <Compile Include="Migrations\201711260509240_TaskSimplified.Designer.cs">
+      <DependentUpon>201711260509240_TaskSimplified.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201711282125585_NotesSimplified.cs" />
+    <Compile Include="Migrations\201711282125585_NotesSimplified.Designer.cs">
+      <DependentUpon>201711282125585_NotesSimplified.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Label.cs" />
     <Compile Include="Models\LabeledEntity.cs" />
@@ -189,6 +197,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201711220539388_NoteToTask.resx">
       <DependentUpon>201711220539388_NoteToTask.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711260509240_TaskSimplified.resx">
+      <DependentUpon>201711260509240_TaskSimplified.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201711282125585_NotesSimplified.resx">
+      <DependentUpon>201711282125585_NotesSimplified.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

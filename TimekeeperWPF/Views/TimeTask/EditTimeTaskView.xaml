@@ -44,11 +44,11 @@
                 UpdateSourceTrigger=PropertyChanged,
                 ValidatesOnDataErrors=True,ValidatesOnExceptions=True}" />
         </StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <StackPanel Width="230">
-                <local:TaskTypeSelectorView 
+        <local:TaskTypeSelectorView 
                     DataContext="{Binding Path=DataContext, 
                     RelativeSource={RelativeSource AncestorType=Grid}}"/>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Width="230">
                 <StackPanel x:Name="PriorityPanel" Orientation="Horizontal">
                     <Label Content="Priority" Width="80" />
                     <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Priority, 
@@ -86,17 +86,7 @@
                 </StackPanel>
             </StackPanel>
             <StackPanel Margin="5">
-                <CheckBox Content="Request Check-in" IsChecked="{Binding Path=AsksForCheckin}"/>
-                <CheckBox Content="Can Reschedule" IsChecked="{Binding Path=CanReschedule}"/>
-                <CheckBox Content="Automatically" IsChecked="{Binding Path=AsksForReschedule}"
-                          Style="{StaticResource ReschedChecksStyle}"/>
-                <CheckBox Content="Raise Priority" IsChecked="{Binding Path=RaiseOnReschedule}"
-                          Style="{StaticResource ReschedChecksStyle}"/>
-                <CheckBox Content="Can Be Early" IsChecked="{Binding Path=CanBeEarly}"/>
-                <CheckBox Content="Can Be Late" IsChecked="{Binding Path=CanBeLate}"/>
-                <CheckBox Content="Can Be Pushed" IsChecked="{Binding Path=CanBePushed}"/>
-                <CheckBox Content="Can Inflate" IsChecked="{Binding Path=CanInflate}"/>
-                <CheckBox Content="Can Deflate" IsChecked="{Binding Path=CanDeflate}"/>
+                <CheckBox Content="Auto CheckIn" IsChecked="{Binding Path=AsksForCheckin}"/>
                 <CheckBox Content="Can Fill" IsChecked="{Binding Path=CanFill}"/>
             </StackPanel>
         </StackPanel>

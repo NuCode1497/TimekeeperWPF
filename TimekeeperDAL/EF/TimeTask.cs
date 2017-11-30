@@ -25,31 +25,13 @@ namespace TimekeeperDAL.EF
         public string Description { get; set; }
 
         public int Priority { get; set; }
-
-        public bool RaiseOnReschedule { get; set; }
-
-        public bool AsksForReschedule { get; set; }
-
-        public bool CanReschedule { get; set; }
-
-        public bool AsksForCheckin { get; set; }
-
-        public bool CanBePushed { get; set; }
-
-        public bool CanInflate { get; set; }
-
-        public bool CanDeflate { get; set; }
-
+        
+        public bool AutoCheckIn { get; set; }
+        
         public bool CanFill { get; set; }
-
-        public bool CanBeEarly { get; set; }
-
-        public bool CanBeLate { get; set; }
-
+        
         public int Dimension { get; set; }
-
-        public int PowerLevel { get; set; }
-
+        
         [Required]
         public string AllocationMethod { get; set; }
 

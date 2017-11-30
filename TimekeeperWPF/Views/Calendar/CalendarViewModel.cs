@@ -256,16 +256,6 @@ namespace TimekeeperWPF
                             Remaining = T.TimeAllocation.AmountAsTimeSpan().Ticks,
                         };
                     }
-                    NotesVM.View.Filter = N => per.Intersects((Note)N);
-                    foreach (Note N in NotesVM.View)
-                    {
-                        CalendarNoteObject CalObj = new CalendarNoteObject
-                        {
-                            DateTime = N.DateTime,
-                            ToolTip = N,
-                            Note = N,
-                        };
-                    }
                     //foreach (var A in T.Allocations)
                     //{
                     //    if (A == T.TimeAllocation) continue;
@@ -289,6 +279,59 @@ namespace TimekeeperWPF
                     map.PerZones.Add(per);
                 }
                 TaskMaps.Add(map);
+            }
+        }
+        private void AllocateTimeFromNotes()
+        {
+            //get the relevant notes in each dimension
+            var noteDimensions =
+                from N in NotesVM.Source
+                where N.TimeTask != null
+                from M in TaskMaps
+                where M.TimeTask.Dimension == N.TimeTask.Dimension
+                from P in M.PerZones
+                where P.Intersects(N)
+                orderby N.DateTime
+                group N by N.TimeTask.Dimension;
+            foreach (var dimension in noteDimensions)
+            {
+                CalendarTaskObject calObj = null;
+                PerZone per = null;
+                InclusionZone inZone = null;
+                Note prevN = null;
+                foreach (var N in dimension)
+                {
+                    //check if per ended
+                    if (per != null)
+                    {
+                        if (N.DateTime > per.End)
+                        {
+                            calObj.End = per.End;
+
+                        }
+                        else if (per.End == N.DateTime)
+                        {
+                            calObj.End = per.End;
+                        }
+                    }
+                    switch (N.Text.ToLower())
+                    {
+                        case "start":
+                            if (calObj != null)
+                            {
+                                calObj.End = N.DateTime;
+
+                            }
+                            calObj = new CalendarTaskObject
+                            {
+                                Start = N.DateTime,
+                                End = N.DateTime + TimeTask.MinimumDuration,
+                                ParentMap = TaskMaps.First(M => M.TimeTask == N.TimeTask),
+                            };
+                            break;
+                    }
+                    prevN = N;
+                }
             }
         }
         private void BuildAllocations()
@@ -495,7 +538,6 @@ namespace TimekeeperWPF
                     foreach (var N in P.CalNoteObjs)
                     {
                         bool hasTask = N.Note.TimeTask != null;
-                        bool isRelevant = N.Note.Dimension == M.TimeTask.Dimension && N.Note.TaskType == M.TimeTask.TaskType;
                         bool isOverInZone = P.InclusionZones.Count(Z => Z.Intersects(N.Note)) > 0;
                         var CalObj = P.CalTaskObjs.Where(C => C.Intersects(N.Note)).FirstOrDefault();
                         bool isOverCalObj = CalObj != null;
@@ -556,10 +598,6 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
-                        }
-                        else if (isRelevant)
-                        {
-                            
                         }
                     }
                 }

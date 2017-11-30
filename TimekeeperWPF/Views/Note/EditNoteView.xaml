@@ -13,37 +13,32 @@
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time" />
             <wpftools:DateTimePicker Grid.Column="1" Grid.Row="0"
                 x:Name="DateTimeTextBox" 
                 Value="{Binding Path=DateTime, Mode=TwoWay}" />
-            <Label Grid.Row="1" Grid.Column="0" Content="Note"/>
+            <Label Grid.Row="1" Grid.Column="0" Content="Text"/>
             <TextBox Grid.Row="1" Grid.Column="1"
                 x:Name="NoteTextBox" MinWidth="200"
                 TextWrapping="Wrap" MaxLength="160" 
                 Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
                 ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
-        </Grid>
-        <StackPanel Orientation="Horizontal">
-            <StackPanel Orientation="Horizontal">
+            <Label Grid.Row="2" Grid.Column="0" Content="Task"/>
+            <StackPanel 
+                Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
+                DataContext="{Binding Path=DataContext,
+                RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}">
+                <CheckBox 
+                    VerticalAlignment="Center" 
+                    IsChecked="{Binding Path=HasTimeTask, Mode=TwoWay}"/>
+                <ComboBox
+                    MinWidth="150"
+                    IsEnabled="{Binding Path=HasTimeTask}"
+                    SelectedItem="{Binding Path=CurrentEditItem.TimeTask, Mode=TwoWay}"
+                    ItemsSource="{Binding Path=TimeTasksView}"/>
             </StackPanel>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal">
-        </StackPanel>
-        <Control>
-            <Control.Style>
-                <Style TargetType="Control">
-                    <Style.Triggers>
-                    </Style.Triggers>
-                </Style>
-            </Control.Style>
-        </Control>
-        <StackPanel DataContext="{Binding Path=DataContext, 
-            RelativeSource={RelativeSource AncestorType=Grid}}">
-            <!--DataContext is NotesViewModel-->
-            <local:TaskTypeSelectorView/>
-            <local:LabelSelectorView/>
-        </StackPanel>
+        </Grid>
     </StackPanel>
 </UserControl>

@@ -56,8 +56,9 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        public CollectionViewSource Items { get; protected set; } = new CollectionViewSource();
-        public ObservableCollection<ModelType> Source => Items?.Source as ObservableCollection<ModelType>;
+        public CollectionViewSource Items { get; protected set; }
+        public ObservableCollection<ModelType> Source => 
+            Items?.Source as ObservableCollection<ModelType>;
         public ListCollectionView View => Items?.View as ListCollectionView;
         /// <summary>
         /// Bind DataGrid.CurrentItem otherwise Selector.SelectedItem to this property

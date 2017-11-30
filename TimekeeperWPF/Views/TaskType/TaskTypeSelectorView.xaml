@@ -8,7 +8,7 @@
             SelectedItem="{Binding Path=CurrentEditItem.TaskType, Mode=TwoWay}">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel ItemWidth="45" Width="140"/>
+                    <WrapPanel ItemWidth="45" Width="200"/>
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
         </ListView>

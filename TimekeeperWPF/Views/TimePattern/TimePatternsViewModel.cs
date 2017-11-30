@@ -15,7 +15,7 @@ namespace TimekeeperWPF
         private ICommand _RemoveClauseCommand;
         private ICommand _AddClauseCommand;
         public override string Name => nameof(Context.TimePatterns) + " Editor";
-        public CollectionViewSource ClausesCollection { get; set; }
+        public CollectionViewSource ClausesCollection { get; protected set; }
         public ObservableCollection<TimePatternClause> ClausesSource => 
             ClausesCollection?.Source as ObservableCollection<TimePatternClause>;
         public ListCollectionView ClausesView => 
@@ -25,7 +25,9 @@ namespace TimekeeperWPF
             RemoveClause(ap as TimePatternClause), pp => pp is TimePatternClause));
         public ICommand AddClauseCommand => _AddClauseCommand
             ?? (_AddClauseCommand = new RelayCommand(ap => AddClause(), pp => true));
-        protected override bool CanCommit => base.CanCommit && !ClausesHaveErrors && Source.Count(C => C.Name == CurrentEditItem.Name) == 1;
+        protected override bool CanCommit => 
+            base.CanCommit && !ClausesHaveErrors && 
+            Source.Count(C => C.Name == CurrentEditItem.Name) == 1;
         private bool ClausesHaveErrors => ClausesSource?.Count(C => C.HasErrors) > 0;
         #region Actions
         protected override async Task GetDataAsync()

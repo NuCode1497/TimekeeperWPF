@@ -142,19 +142,27 @@ namespace TimekeeperWPF.Calendar
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
         public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
         #region States
+        public bool Affirmed =>
+            State == States.AutoComplete ||
+            State == States.AutoConfirm ||
+            State == States.Completed ||
+            State == States.Confirmed ||
+            State == States.Incomplete ||
+            State == States.Insufficient ||
+            State == States.Unscheduled;
         public enum States
         {
-            Current,        //Azure
+            AutoComplete,   //MediumAquamarine
+            AutoConfirm,    //Aquamarine
+            CheckIn,        //DodgerBlue
             Completed,      //LimeGreen
             Confirmed,      //SpringGreen
-            Incomplete,     //Crimson
             Conflict,       //Pink
+            Current,        //Azure
+            Incomplete,     //Crimson
             Insufficient,   //Orange
-            CheckIn,        //DodgerBlue
-            Unscheduled,    //Chartreuse
             Unconfirmed,    //SkyBlue
-            AutoCheckIn,    //MediumAquamarine
-            AutoConfirm,    //Aquamarine
+            Unscheduled,    //Chartreuse
         }
         public bool StateLock = false;
         public States State
@@ -200,7 +208,7 @@ namespace TimekeeperWPF.Calendar
                 case States.Unconfirmed:
                     CalObj.StateColor = Brushes.SkyBlue;
                     break;
-                case States.AutoCheckIn:
+                case States.AutoComplete:
                     CalObj.StateColor = Brushes.MediumAquamarine;
                     break;
                 case States.AutoConfirm:

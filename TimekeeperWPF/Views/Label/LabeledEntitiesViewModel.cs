@@ -26,8 +26,8 @@ namespace TimekeeperWPF
         private ICommand _AddLabelCommand;
         #endregion
         #region Properties
-        public CollectionViewSource LabelsCollection { get; set; }
-        public CollectionViewSource CurrentEntityLabelsCollection { get; set; }
+        public CollectionViewSource LabelsCollection { get; protected set; }
+        public CollectionViewSource CurrentEntityLabelsCollection { get; protected set; }
         public ObservableCollection<Label> LabelsSource => 
             LabelsCollection?.Source as ObservableCollection<Label>;
         public ObservableCollection<Label> CurrentEntityLabelsSource => 

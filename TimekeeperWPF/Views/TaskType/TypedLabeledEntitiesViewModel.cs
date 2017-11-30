@@ -20,9 +20,11 @@ namespace TimekeeperWPF
         where ModelType : TypedLabeledEntity, new()
     {
         #region Properties
-        public CollectionViewSource TaskTypesCollection { get; set; }
-        public ObservableCollection<TaskType> TaskTypesSource => TaskTypesCollection?.Source as ObservableCollection<TaskType>;
-        public ListCollectionView TaskTypesView => TaskTypesCollection?.View as ListCollectionView;
+        public CollectionViewSource TaskTypesCollection { get; protected set; }
+        public ObservableCollection<TaskType> TaskTypesSource => 
+            TaskTypesCollection?.Source as ObservableCollection<TaskType>;
+        public ListCollectionView TaskTypesView => 
+            TaskTypesCollection?.View as ListCollectionView;
         #endregion
         #region Actions
         protected override async Task GetDataAsync()

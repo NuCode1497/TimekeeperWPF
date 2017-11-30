@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF.Calendar
@@ -22,5 +23,10 @@ namespace TimekeeperWPF.Calendar
         public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
         public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
+
+        public bool IsAffirmedBeforePoint(DateTime point)
+        {
+            return CalTaskObjs.Count(C => C.Affirmed == false && C.Start < point) == 0;
+        }
     }
 }

@@ -17,13 +17,6 @@ namespace TimekeeperWPF
             await Task.Delay(0);
             Context = new FakeTimeKeeperContext();
             Items.Source = Context.Notes.Local;
-
-            //Load TaskTypes stuff
-            TaskTypesCollection = new CollectionViewSource();
-            TaskTypesCollection.Source = Context.TaskTypes.Local;
-            TaskTypesView.CustomSort = NameSorter;
-            OnPropertyChanged(nameof(TaskTypesView));
-
         }
     }
 }

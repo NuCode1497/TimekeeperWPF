@@ -33,16 +33,7 @@
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
                 <DataGridTextColumn Binding="{Binding Path=Priority}" Header="Priority"/>
                 <DataGridTextColumn Binding="{Binding Path=Dimension}" Header="Dimension"/>
-                <DataGridTextColumn Binding="{Binding Path=PowerLevel}" Header="PowerLevel"/>
-                <DataGridTextColumn Binding="{Binding Path=AsksForCheckin}" Header="AsksForCheckin"/>
-                <DataGridTextColumn Binding="{Binding Path=AsksForReschedule}" Header="AsksForReschedule"/>
-                <DataGridTextColumn Binding="{Binding Path=CanReschedule}" Header="CanReschedule"/>
-                <DataGridTextColumn Binding="{Binding Path=RaiseOnReschedule}" Header="RaiseOnReschedule"/>
-                <DataGridTextColumn Binding="{Binding Path=CanBeEarly}" Header="CanBeEarly"/>
-                <DataGridTextColumn Binding="{Binding Path=CanBeLate}" Header="CanBeLate"/>
-                <DataGridTextColumn Binding="{Binding Path=CanBePushed}" Header="CanBePushed"/>
-                <DataGridTextColumn Binding="{Binding Path=CanInflate}" Header="CanInflate"/>
-                <DataGridTextColumn Binding="{Binding Path=CanDeflate}" Header="CanDeflate"/>
+                <DataGridTextColumn Binding="{Binding Path=AutoCheckIn}" Header="AutoCheckIn"/>
                 <DataGridTextColumn Binding="{Binding Path=CanFill}" Header="CanFill"/>
                 <DataGridTextColumn Binding="{Binding Path=AllocationMethod}" Header="AllocationMethod"/>
             </DataGrid.Columns>

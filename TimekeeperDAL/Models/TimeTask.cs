@@ -89,14 +89,14 @@ namespace TimekeeperDAL.EF
                         }
                         errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);
                         break;
-                    case nameof(PowerLevel):
-                        if (PowerLevel < 1)
-                        {
-                            AddError(nameof(PowerLevel), "PowerLevel must be greater than 0");
-                            hasError = true;
-                        }
-                        errors = GetErrorsFromAnnotations(nameof(PowerLevel), PowerLevel);
-                        break;
+                    //case nameof(PowerLevel):
+                    //    if (PowerLevel < 1)
+                    //    {
+                    //        AddError(nameof(PowerLevel), "PowerLevel must be greater than 0");
+                    //        hasError = true;
+                    //    }
+                    //    errors = GetErrorsFromAnnotations(nameof(PowerLevel), PowerLevel);
+                    //    break;
                     case nameof(AllocationMethod):
                         errors = GetErrorsFromAnnotations(nameof(AllocationMethod), AllocationMethod);
                         break;

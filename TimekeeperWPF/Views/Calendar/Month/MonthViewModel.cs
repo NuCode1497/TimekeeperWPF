@@ -152,7 +152,7 @@ namespace TimekeeperWPF
             SelectedDate = nextMonth;
             await LoadData();
         }
-        protected override async Task SetUpCalendarObjects()
+        private async Task SetUpCalendarObjects()
         {
             await Task.Delay(0);
             MonthWeeksCollection = new CollectionViewSource();

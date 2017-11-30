@@ -40,7 +40,6 @@ namespace TimekeeperDAL.EF
         public static readonly List<string> FilterableTypesChoices = new List<string>()
         {
             "Label",
-            "Note",
             "Pattern",
             "Resource",
             "Task",

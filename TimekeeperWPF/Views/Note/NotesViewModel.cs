@@ -16,20 +16,23 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class NotesViewModel : TypedLabeledEntitiesViewModel<Note>
+    public class NotesViewModel : ViewModel<Note>
     {
-        #region Fields
         private ICommand _ContinueSaveCommand;
         private DateTime _SaveAsStart;
         private DateTime _SaveAsEnd;
         private string _SaveAsError;
-        #endregion
+        private bool _HasTimeTask;
         public NotesViewModel() : base()
         {
             Sorter = new NoteDateTimeSorterDesc();
         }
-        #region Properties
         public override string Name => nameof(Context.Notes) + " Editor";
+        public CollectionViewSource TimeTasksCollection { get; protected set; }
+        public ObservableCollection<TimeTask> TimeTasksSource => 
+            TimeTasksCollection.Source as ObservableCollection<TimeTask>;
+        public ListCollectionView TimeTasksView => 
+            TimeTasksCollection.View as ListCollectionView;
         public DateTime SaveAsStart
         {
             get
@@ -66,26 +69,32 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        #endregion
-        #region Conditions
-        #endregion
-        #region Commands
+        public bool HasTimeTask
+        {
+            get { return _HasTimeTask; }
+            set
+            {
+                _HasTimeTask = value;
+                if (CurrentEditItem != null && value == false)
+                {
+                    CurrentEditItem.TimeTask = null;
+                }
+                OnPropertyChanged();
+            }
+        }
         public ICommand ContinueSaveCommand => _ContinueSaveCommand
             ?? (_ContinueSaveCommand = new RelayCommand(ap => ContinueSave(), pp => CanContinueSave));
-        #endregion
-        #region Predicates
         private bool CanContinueSave => SaveAsStart <= SaveAsEnd;
-        #endregion
-        #region Actions
         protected override async Task GetDataAsync()
         {
-            //await Task.Delay(2000);
-            
             Context = new TimeKeeperContext();
             await Context.Notes.LoadAsync();
             Items.Source = Context.Notes.Local;
-            
-            await base.GetDataAsync();
+
+            TimeTasksCollection = new CollectionViewSource();
+            await Context.TimeTasks.LoadAsync();
+            TimeTasksCollection.Source = Context.TimeTasks.Local;
+            OnPropertyChanged(nameof(TimeTasksView));
         }
         protected override void SaveAs()
         {
@@ -123,8 +132,7 @@ namespace TimekeeperWPF
             Status = "Saving as text...";
             var selection = from n in Source
                             where n.DateTime.Date >= SaveAsStart.Date
-                            && n.DateTime.Date <= SaveAsEnd.Date
-                            && n.TaskType.Name != "DBTest"
+                            where n.DateTime.Date <= SaveAsEnd.Date
                             orderby n.DateTime
                             select n;
 
@@ -148,7 +156,7 @@ namespace TimekeeperWPF
 
                 foreach (var n in subSelection)
                 {
-                    text += String.Format("{0,12} | {1,-7} | ", n.DateTime.ToLongTimeString(), n.TaskType.Name);
+                    text += String.Format("{0,12} | ", n.DateTime.ToLongTimeString());
                     var charCount = 0;
                     var lineLength = 51;
                     var words = n.Text.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -172,14 +180,15 @@ namespace TimekeeperWPF
         {
             CurrentEditItem = new Note
             {
-                TaskType = TaskTypesSource.First(N => N.Name == "Note"),
                 DateTime = DateTime.Now,
-                Name = "Note",
                 Text = "Your text here."
             };
             View.AddNewItem(CurrentEditItem);
             base.AddNew();
         }
-        #endregion
+        protected override void EndEdit()
+        {
+            base.EndEdit();
+        }
     }
 }

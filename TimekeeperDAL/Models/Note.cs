@@ -6,11 +6,11 @@ using System.Collections.Generic;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class Note : TypedLabeledEntity
+    public partial class Note : EntityBase
     {
         public override string ToString()
         {
-            return TaskType.Name + " - " + DateTime.ToString() + " - " + Text;
+            return DateTime.ToString() + " - " + Text;
         }
 
         [NotMapped]
@@ -22,9 +22,6 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(Dimension):
-                        errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);
-                        break;
                     case nameof(DateTime):
                         errors = GetErrorsFromAnnotations(nameof(DateTime), DateTime);
                         break;
@@ -41,17 +38,13 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
-
-        public override bool HasDateTime(DateTime dt) { return false; }
-
+        
         public static readonly List<string> CheckInChoices = new List<string>
         {
-            "Complete",
-            "Confirm",
-            "Incomplete",
-            "Cancel",
-            "Start",
-            "End",
+            "confirm",
+            "cancel",
+            "start",
+            "end",
         };
     }
 }
