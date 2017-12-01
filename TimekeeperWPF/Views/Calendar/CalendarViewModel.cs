@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Controls;
 using System.Windows;
 using TimekeeperDAL.Tools;
+using static System.Math;
 
 namespace TimekeeperWPF
 {
@@ -246,7 +247,6 @@ namespace TimekeeperWPF
                         //Consumptions = new List<Consumption>(),
                         InclusionZones = new List<InclusionZone>(),
                         CalTaskObjs = new List<CalendarTaskObject>(),
-                        CalNoteObjs = new List<CalendarNoteObject>(),
                     };
                     if (T.TimeAllocation != null)
                     {
@@ -283,57 +283,434 @@ namespace TimekeeperWPF
         }
         private void AllocateTimeFromNotes()
         {
-            //get the relevant notes in each dimension
+            //We need all notes that intersect any relevant Per
             var noteDimensions =
                 from N in NotesVM.Source
                 where N.TimeTask != null
-                from M in TaskMaps
-                where M.TimeTask.Dimension == N.TimeTask.Dimension
-                from P in M.PerZones
-                where P.Intersects(N)
+                where TaskMaps.FirstOrDefault(M => M.PerZones.FirstOrDefault(P => P.Intersects(N)) != null) != null
                 orderby N.DateTime
                 group N by N.TimeTask.Dimension;
-            foreach (var dimension in noteDimensions)
+            foreach (var D in noteDimensions)
             {
-                CalendarTaskObject calObj = null;
-                PerZone per = null;
-                InclusionZone inZone = null;
-                Note prevN = null;
-                foreach (var N in dimension)
+                Note pN = null;
+                bool pNstart = false;
+                PerZone pP = null;
+                InclusionZone pZ = null;
+                bool pNoverZ = false;
+                CalendarTaskObject pC = null;
+                foreach (var N in D)
                 {
-                    //check if per ended
-                    if (per != null)
+                    //Is the Note start/end?
+                    string Nword = N.Text.ToLower();
+                    bool Nstart;
+                    if (Nword == "start")
                     {
-                        if (N.DateTime > per.End)
-                        {
-                            calObj.End = per.End;
-
-                        }
-                        else if (per.End == N.DateTime)
-                        {
-                            calObj.End = per.End;
-                        }
+                        Nstart = true;
                     }
-                    switch (N.Text.ToLower())
+                    else if (Nword == "end")
                     {
-                        case "start":
-                            if (calObj != null)
-                            {
-                                calObj.End = N.DateTime;
+                        Nstart = false;
+                    }
+                    //else if (Nword == "cancel")
+                    //{
 
+                    //}
+                    else continue;
+                    var M = TaskMaps.FirstOrDefault(m => m.TimeTask == N.TimeTask);
+                    if (M == null)
+                    {
+                        //Found a Note belonging to something outside of View
+                        //TODO what now?
+                        continue;
+                    }
+                    var P = M.PerZones.FirstOrDefault(p => p.Intersects(N));
+                    if (P == null) continue;
+                    var Z = P.InclusionZones.FirstOrDefault(z => z.Intersects(N));
+                    bool NoverZ = Z != null;
+                    if (pN == null) //2
+                    {
+                        if (Nstart) //B, C
+                        {
+                            if (NoverZ) //B
+                            {
+                                pC = ATFN_Start(N, M, P);
                             }
-                            calObj = new CalendarTaskObject
+                            else //C
                             {
-                                Start = N.DateTime,
-                                End = N.DateTime + TimeTask.MinimumDuration,
-                                ParentMap = TaskMaps.First(M => M.TimeTask == N.TimeTask),
-                            };
-                            break;
+                                pC = ATFN_UnStart(N, M, P);
+                            }
+                        }
+                        else //D, E
+                        {
+                            pC = ATFN_LooseEnd(N, M, P);
+                        }
                     }
-                    prevN = N;
+                    else if (pNstart) //3, 4
+                    {
+                        if (pNoverZ) //3
+                        {
+                            if (Nstart) //B, C, F, H, I
+                            {
+                                if (NoverZ) //B, F, H
+                                {
+                                    if (P == pP) //B, F
+                                    {
+                                        if (pZ == Z) //B
+                                        {
+                                            pC.End = N.DateTime;
+                                            pC = ATFN_Start(N, M, P);
+                                        }
+                                        else //F
+                                        {
+                                            pC.End = pZ.End;
+                                            pC = ATFN_Start(N, M, P);
+                                        }
+                                    }
+                                    else //H
+                                    {
+                                        pC.End = new DateTime(Min(pZ.End.Ticks, N.DateTime.Ticks));
+                                        pC = ATFN_Start(N, M, P);
+                                    }
+                                }
+                                else //C, I
+                                {
+                                    if (P == pP) //C
+                                    {
+                                        pC.End = pZ.End;
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                    else //I
+                                    {
+                                        pC.End = new DateTime(Min(pZ.End.Ticks, N.DateTime.Ticks));
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                }
+                            }
+                            else //D, E, G, J, K
+                            {
+                                if (NoverZ) //D, G, J
+                                {
+                                    if (P == pP) //D, G
+                                    {
+                                        if (pZ == Z) //D
+                                        {
+                                            pC.End = N.DateTime;
+                                        }
+                                        else //G
+                                        {
+                                            pC.End = pZ.End;
+                                            pC = ATFN_EndZsToN(N, M, P, Z);
+                                        }
+                                    }
+                                    else //J
+                                    {
+                                        pC.End = new DateTime(Min(pZ.End.Ticks, Z.Start.Ticks));
+                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
+                                    }
+                                }
+                                else //E, K
+                                {
+                                    if (P == pP) //E
+                                    {
+                                        pC.End = pZ.End;
+                                        pC = ATFN_UnEndToN(pC, N, M, P);
+                                    }
+                                    else //K
+                                    {
+                                        pC.End = new DateTime(Min(pZ.End.Ticks, N.DateTime.Ticks));
+                                        pC = ATFN_LooseEnd(N, M, P);
+                                    }
+                                }
+                            }
+                        }
+                        else //4
+                        {
+                            if (Nstart) //B, C, H, I
+                            {
+                                if (NoverZ) //B, H
+                                {
+                                    if (P == pP) //B
+                                    {
+                                        pC.End = Z.Start;
+                                        pC = ATFN_EndZsToN(N, M, P, Z);
+                                        pC = ATFN_Start(N, M, P);
+                                    }
+                                    else //H
+                                    {
+                                        pC.End = N.DateTime;
+                                        pC = ATFN_Start(N, M, P);
+                                    }
+                                }
+                                else //C, I
+                                {
+                                    if (P == pP) //C
+                                    {
+                                        pC.End = pZ.End;
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                    else //I
+                                    {
+                                        pC.End = N.DateTime;
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                }
+                            }
+                            else //D, E, J, K
+                            {
+                                if (NoverZ) //D, J
+                                {
+                                    if (P == pP) //D
+                                    {
+                                        pC.End = Z.Start;
+                                        pC = ATFN_EndZsToN(N, M, P, Z);
+                                    }
+                                    else //J
+                                    {
+                                        pC.End = new DateTime(Max(Z.Start.Ticks, pC.End.Ticks));
+                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
+                                    }
+                                }
+                                else //E, K
+                                {
+                                    if (P == pP) //E
+                                    {
+                                        pC.End = N.DateTime;
+                                    }
+                                    else //K
+                                    {
+                                        pC.End = N.DateTime;
+                                        pC = ATFN_LooseEnd(N, M, P);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else //5, 6
+                    {
+                        if (pNoverZ) //5
+                        {
+                            if (Nstart) //B, C, F, H, I
+                            {
+                                if (NoverZ) //B, F, H
+                                {
+                                    if (P == pP) //B, F
+                                    {
+                                        if (pZ == Z) //B
+                                        {
+                                            pC = ATFN_Start(N, M, P);
+                                        }
+                                        else //F
+                                        {
+                                            pC = ATFN_Start(N, M, P);
+                                        }
+                                    }
+                                    else //H
+                                    {
+                                        pC = ATFN_Start(N, M, P);
+                                    }
+                                }
+                                else //C, I
+                                {
+                                    if (P == pP) //C
+                                    {
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                    else //I
+                                    {
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                }
+                            }
+                            else //D, E, G, J, K
+                            {
+                                if (NoverZ) //D, G, J
+                                {
+                                    if (P == pP) //D, G
+                                    {
+                                        if (pZ == Z) //D
+                                        {
+                                            CalendarTaskObject C = new CalendarTaskObject
+                                            {
+                                                Start = pC.End,
+                                                End = N.DateTime,
+                                                State = CalendarTaskObject.States.Confirmed,
+                                                ParentMap = M,
+                                            };
+                                            P.CalTaskObjs.Add(C);
+                                            pC = C;
+                                        }
+                                        else //G
+                                        {
+                                            pC = ATFN_EndZsToN(N, M, P, Z);
+                                        }
+                                    }
+                                    else //J
+                                    {
+                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
+                                    }
+                                }
+                                else //E, K
+                                {
+                                    if (P == pP) //E
+                                    {
+                                        CalendarTaskObject C1 = new CalendarTaskObject
+                                        {
+                                            Start = pC.End,
+                                            End = pZ.End,
+                                            State = CalendarTaskObject.States.Confirmed,
+                                            ParentMap = pC.ParentMap,
+                                        };
+                                        pC = C1;
+                                        pC = ATFN_UnEndToN(pC, N, M, P);
+                                    }
+                                    else //K
+                                    {
+                                        pC = ATFN_LooseEnd(N, M, P);
+                                    }
+                                }
+                            }
+                        }
+                        else //6
+                        {
+                            if (Nstart) //B, C, H, I
+                            {
+                                if (NoverZ) //B, H
+                                {
+                                    if (P == pP) //B
+                                    {
+                                        pC = ATFN_Start(N, M, P);
+                                    }
+                                    else //H
+                                    {
+                                        pC = ATFN_Start(N, M, P);
+                                    }
+                                }
+                                else //C, I
+                                {
+                                    if (P == pP) //C
+                                    {
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                    else //I
+                                    {
+                                        pC = ATFN_UnStart(N, M, P);
+                                    }
+                                }
+                            }
+                            else //D, E, J, K
+                            {
+                                if (NoverZ) //D, J
+                                {
+                                    if (P == pP) //D
+                                    {
+                                        pC = ATFN_EndZsToN(N, M, P, Z);
+                                    }
+                                    else //J
+                                    {
+                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
+                                    }
+                                }
+                                else //E, K
+                                {
+                                    if (P == pP) //E
+                                    {
+                                        pC = ATFN_UnEndToN(pC, N, M, P);
+                                    }
+                                    else //K
+                                    {
+                                        pC = ATFN_LooseEnd(N, M, P);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    pN = N;
+                    pNstart = Nstart;
+                    pP = P;
+                    pZ = Z;
+                    pNoverZ = NoverZ;
                 }
             }
         }
+
+        private static CalendarTaskObject ATFN_EndZsToNdiff(CalendarTaskObject pC, Note N, CalendarTimeTaskMap M, PerZone P, InclusionZone Z)
+        {
+            CalendarTaskObject C = new CalendarTaskObject
+            {
+                Start = new DateTime(Max(pC.End.Ticks, Z.Start.Ticks)),
+                End = N.DateTime,
+                State = CalendarTaskObject.States.Confirmed,
+                ParentMap = M,
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+
+        private static CalendarTaskObject ATFN_UnEndToN(CalendarTaskObject pC, Note N, CalendarTimeTaskMap M, PerZone P)
+        {
+            CalendarTaskObject C = new CalendarTaskObject
+            {
+                Start = pC.End,
+                End = N.DateTime,
+                State = CalendarTaskObject.States.Unscheduled,
+                ParentMap = M,
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+
+        private static CalendarTaskObject ATFN_EndZsToN(Note N, CalendarTimeTaskMap M, PerZone P, InclusionZone Z)
+        {
+            CalendarTaskObject C = new CalendarTaskObject
+            {
+                Start = Z.Start,
+                End = N.DateTime,
+                State = CalendarTaskObject.States.Confirmed,
+                ParentMap = M
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+
+        private static CalendarTaskObject ATFN_UnStart(Note N, CalendarTimeTaskMap M, PerZone P)
+        {
+            CalendarTaskObject C = new CalendarTaskObject
+            {
+                Start = N.DateTime,
+                End = N.DateTime,
+                State = CalendarTaskObject.States.Unscheduled,
+                ParentMap = M
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+
+        private static CalendarTaskObject ATFN_Start(Note N, CalendarTimeTaskMap M, PerZone P)
+        {
+            CalendarTaskObject C = new CalendarTaskObject
+            {
+                Start = N.DateTime,
+                End = N.DateTime,
+                State = CalendarTaskObject.States.Confirmed,
+                ParentMap = M
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+        
+        private static CalendarTaskObject ATFN_LooseEnd(Note N, CalendarTimeTaskMap M, PerZone P)
+        {
+            CalendarTaskObject C = new CalendarTaskObject
+            {
+                Start = N.DateTime - TimeTask.MinimumDuration,
+                End = N.DateTime,
+                State = CalendarTaskObject.States.Conflict,
+                ParentMap = M
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+
         private void BuildAllocations()
         {
             //Time Allocations
@@ -518,91 +895,12 @@ namespace TimekeeperWPF
                         CalTaskObjsView.CommitNew();
                         AdditionalCalObjSetup(CalObj);
                     }
-                    foreach (var CalObj in P.CalNoteObjs)
-                    {
-                        CalNoteObjsView.AddNewItem(CalObj);
-                        CalNoteObjsView.CommitNew();
-                    }
                 }
             }
             OnPropertyChanged(nameof(CalTaskObjsView));
             OnPropertyChanged(nameof(CalNoteObjsView));
         }
         protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
-        private void DetermineTaskStates()
-        {
-            foreach (var M in TaskMaps)
-            {
-                foreach (var P in M.PerZones)
-                {
-                    foreach (var N in P.CalNoteObjs)
-                    {
-                        bool hasTask = N.Note.TimeTask != null;
-                        bool isOverInZone = P.InclusionZones.Count(Z => Z.Intersects(N.Note)) > 0;
-                        var CalObj = P.CalTaskObjs.Where(C => C.Intersects(N.Note)).FirstOrDefault();
-                        bool isOverCalObj = CalObj != null;
-                        bool isNoteInPast = N.Note.DateTime <= DateTime.Now;
-                        if (hasTask)
-                        {
-                            if (isOverInZone)
-                            {
-                                if (isOverCalObj)
-                                {
-                                    if (isNoteInPast)
-                                    {
-                                        switch (N.Note.Text)
-                                        {
-                                            case "Complete":
-                                                CalObj.State = CalendarTaskObject.States.Completed;
-                                                break;
-                                            case "Confirm":
-                                                CalObj.State = CalendarTaskObject.States.Completed;
-                                                break;
-                                            case "Incomplete":
-                                                CalObj.State = CalendarTaskObject.States.Incomplete;
-                                                break;
-                                            case "Cancel":
-                                                CalObj.State = CalendarTaskObject.States.Incomplete;
-                                                break;
-                                            case "Start":
-                                                CalObj.Start = N.Note.DateTime;
-                                                break;
-                                            case "End":
-                                                CalObj.End = N.Note.DateTime;
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        switch (N.Note.Text)
-                                        {
-                                            case "Complete":
-                                                CalObj.State = CalendarTaskObject.States.Completed;
-                                                break;
-                                            case "Confirm":
-                                                CalObj.State = CalendarTaskObject.States.Completed;
-                                                break;
-                                            case "Incomplete":
-                                                CalObj.State = CalendarTaskObject.States.Incomplete;
-                                                break;
-                                            case "Cancel":
-                                                CalObj.State = CalendarTaskObject.States.Incomplete;
-                                                break;
-                                            case "Start":
-                                                CalObj.Start = N.Note.DateTime;
-                                                break;
-                                            case "End":
-                                                CalObj.End = N.Note.DateTime;
-                                                break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
         protected virtual async Task PreviousAsync()
         {
             IsLoading = true;

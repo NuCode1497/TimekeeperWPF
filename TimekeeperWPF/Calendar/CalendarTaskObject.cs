@@ -44,17 +44,17 @@ namespace TimekeeperWPF.Calendar
         private void _Timer_Tick(object sender, EventArgs e)
         {
             //determine the state of this object based on the current time
-            if (DateTime.Now < Start)
-            {
+            //if (DateTime.Now < Start)
+            //{
 
-            }
-            else if (DateTime.Now > End)
-            {
+            //}
+            //else if (DateTime.Now > End)
+            //{
 
-            }
-            else
-            {
-            }
+            //}
+            //else
+            //{
+            //}
 
             //InvalidateArrange();
         }
@@ -81,6 +81,13 @@ namespace TimekeeperWPF.Calendar
             if (Duration.Minutes > 0) s += Duration.Minutes + " minutes ";
             return s;
         }
+        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
+        public bool Intersects(Note N) { return Intersects(N.DateTime); }
+        public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
+        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
+        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
+        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
+        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
         #region End
         public bool EndLock = false;
         public DateTime End
@@ -134,13 +141,6 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty TaskTypeNameProperty =
             TaskTypeNamePropertyKey.DependencyProperty;
         #endregion TaskType
-        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
-        public bool Intersects(Note N) { return Intersects(N.DateTime); }
-        public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
-        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
-        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
-        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
         #region States
         public bool Affirmed =>
             State == States.AutoComplete ||
@@ -170,7 +170,7 @@ namespace TimekeeperWPF.Calendar
             get { return (States)GetValue(StateProperty); }
             set { SetValue(StateProperty, value); }
         }
-        public static DependencyProperty StateProperty =
+        public static readonly DependencyProperty StateProperty =
             DependencyProperty.Register(
                 nameof(State), typeof(States), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(States.Unconfirmed,
@@ -219,11 +219,14 @@ namespace TimekeeperWPF.Calendar
         public SolidColorBrush StateColor
         {
             get { return (SolidColorBrush)GetValue(StateColorProperty); }
-            set { SetValue(StateColorProperty, value); }
+            private set { SetValue(StateColorPropertyKey, value); }
         }
-        public static DependencyProperty StateColorProperty =
-            DependencyProperty.Register(
-                nameof(StateColor), typeof(SolidColorBrush), typeof(CalendarTaskObject));
+        private static readonly DependencyPropertyKey StateColorPropertyKey =
+            DependencyProperty.RegisterReadOnly(
+                nameof(StateColor), typeof(SolidColorBrush), typeof(CalendarTaskObject),
+                new FrameworkPropertyMetadata(null));
+        public static readonly DependencyProperty StateColorProperty =
+            StateColorPropertyKey.DependencyProperty;
         #endregion
         #region Shadow Clone
         /// <summary>
