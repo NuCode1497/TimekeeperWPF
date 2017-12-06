@@ -61,6 +61,7 @@ namespace TimekeeperWPF
         public CollectionViewSource CalNoteObjsCollection { get; set; }
         public ObservableCollection<CalendarNoteObject> CalNoteObjsSource => CalNoteObjsCollection?.Source as ObservableCollection<CalendarNoteObject>;
         public ListCollectionView CalNoteObjsView => CalNoteObjsCollection?.View as ListCollectionView;
+        public ObservableCollection<CheckIn> CheckIns { get; set; }
         public UIElement SelectedCalendarObject
         {
             get { return _SelectedCalendarObect; }
@@ -211,32 +212,32 @@ namespace TimekeeperWPF
             NotesVM = new NotesViewModel();
             await NotesVM.LoadData();
             await base.GetDataAsync();
-
+            await Context.CheckIns.LoadAsync();
+            CheckIns = Context.CheckIns.Local;
             Status = "Creating CalendarObjects...";
             await CreateTaskObjects();
         }
         private async Task CreateTaskObjects()
         {
-            View.Filter = T => ((TimeTask)T).Intersects(SelectedDate, EndDate);
-            foreach (TimeTask T in View)
-            {
-                await T.BuildZonesAsync(SelectedDate, EndDate);
-            }
-            BuildTaskMaps();
+            await BuildTaskMaps();
             BuildAllocations();
-            //DetermineTaskStates();
-            //CalculateCollisions
             UnZipTaskMaps();
         }
-        private void BuildTaskMaps()
+        private async Task BuildTaskMaps()
         {
+            //Reduce the TimeTask set
+            var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), SelectedDate, EndDate);
+            foreach (var T in RelevantTasks)
+                await T.BuildPerZonesAsync();
             TaskMaps = new List<CalendarTimeTaskMap>();
-            foreach (TimeTask T in View)
+            //Create Maps with all PerZones; we will reduce this set later
+            foreach (var T in RelevantTasks)
             {
                 var map = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
                     PerZones = new List<PerZone>(),
+                    CheckIns = new LinkedList<CalendarCheckIn>(),
                 };
                 foreach (var P in T.PerZones)
                 {
@@ -244,29 +245,35 @@ namespace TimekeeperWPF
                     {
                         Start = P.Key,
                         End = P.Value,
-                        //Consumptions = new List<Consumption>(),
                         InclusionZones = new List<InclusionZone>(),
                         CalTaskObjs = new List<CalendarTaskObject>(),
                     };
-                    if (T.TimeAllocation != null)
+                    map.PerZones.Add(per);
+                }
+                TaskMaps.Add(map);
+            }
+            var RelevantPerZones = FindPerSet(new HashSet<PerZone>(), SelectedDate, EndDate);
+            foreach (var M in TaskMaps)
+            {
+                //Reduce the PerZone set
+                M.PerZones = new List<PerZone>(M.PerZones.Intersect(RelevantPerZones));
+                //Build InclusionZones with the reduced PerZone set
+                var pers = new Dictionary<DateTime, DateTime>();
+                foreach (var P in M.PerZones)
+                    pers.Add(P.Start, P.End);
+                await M.TimeTask.BuildInclusionZonesAsync(pers);
+                //Build the rest of the PerZones' properties
+                foreach (var P in M.PerZones)
+                {
+                    if (M.TimeTask.TimeAllocation != null)
                     {
-                        per.TimeConsumption = new Consumption
+                        P.TimeConsumption = new Consumption
                         {
-                            Allocation = T.TimeAllocation,
-                            Remaining = T.TimeAllocation.AmountAsTimeSpan().Ticks,
+                            Allocation = M.TimeTask.TimeAllocation,
+                            Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks,
                         };
                     }
-                    //foreach (var A in T.Allocations)
-                    //{
-                    //    if (A == T.TimeAllocation) continue;
-                    //    var consume = new Consumption
-                    //    {
-                    //        Allocation = A,
-                    //        Remaining = A.Amount,
-                    //    };
-                    //    per.Consumptions.Add(consume);
-                    //}
-                    var inZones = T.InclusionZones.Where(Z => per.Intersects(Z.Key, Z.Value));
+                    var inZones = M.TimeTask.InclusionZones.Where(Z => P.Intersects(Z.Key, Z.Value));
                     foreach (var Z in inZones)
                     {
                         var zone = new InclusionZone
@@ -274,12 +281,94 @@ namespace TimekeeperWPF
                             Start = Z.Key,
                             End = Z.Value,
                         };
-                        per.InclusionZones.Add(zone);
+                        P.InclusionZones.Add(zone);
                     }
-                    map.PerZones.Add(per);
                 }
-                TaskMaps.Add(map);
+                //Get the set of relevant notes for CheckIns
+                var checkIns = 
+                    from P in M.PerZones
+                    from CI in CheckIns
+                    where CI.TimeTask == M.TimeTask
+                    where P.Intersects(CI.DateTime)
+                    select CI;
+                //Turn them into CalendarCheckIns
+                var eventCheckIns = new List<CalendarCheckIn>();
+                foreach (var CI in CheckIns)
+                {
+                    eventCheckIns.Add(new CalendarCheckIn
+                    {
+                        DateTime = CI.DateTime,
+                        Kind = CI.Text == "start" ? CheckInKind.EventStart : CheckInKind.EventEnd,
+                        ParentMap = M,
+                    });
+                }
+                //Create CheckIns for zone boundaries
+                var perCheckIns = new List<CalendarCheckIn>();
+                var inZoneCheckIns = new List<CalendarCheckIn>();
+                foreach (var P in M.PerZones)
+                {
+                    perCheckIns.Add(new CalendarCheckIn
+                    {
+                        DateTime = P.Start,
+                        Kind = CheckInKind.PerZoneStart,
+                        ParentMap = M,
+                    });
+                    perCheckIns.Add(new CalendarCheckIn
+                    {
+                        DateTime = P.End,
+                        Kind = CheckInKind.PerZoneEnd,
+                        ParentMap = M,
+                    });
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        inZoneCheckIns.Add(new CalendarCheckIn
+                        {
+                            DateTime = Z.Start,
+                            Kind = CheckInKind.InclusionZoneStart,
+                            ParentMap = M,
+                        });
+                        inZoneCheckIns.Add(new CalendarCheckIn
+                        {
+                            DateTime = Z.End,
+                            Kind = CheckInKind.InclusionZoneEnd,
+                            ParentMap = M,
+                        });
+                    }
+                }
+                //Merge and sort sets.
+                var allCheckIns =
+                    from CI in eventCheckIns.Union(perCheckIns).Union(inZoneCheckIns)
+                    orderby CI.Kind, CI.DateTime
+                    select CI;
+                M.CheckIns = new LinkedList<CalendarCheckIn>(allCheckIns);
             }
+        }
+        private HashSet<TimeTask> FindTaskSet(HashSet<TimeTask> accumulatedFinds, DateTime start, DateTime end)
+        {
+            //Recursively select the set of Tasks that intersect the calendar view or previously added tasks.
+            var foundTasks = Source.Where(T => T.Intersects(start, end)).Except(accumulatedFinds);
+            if (foundTasks.Count() == 0) return accumulatedFinds;
+            accumulatedFinds.Union(foundTasks);
+            foreach (var T in foundTasks)
+            {
+                accumulatedFinds.Union(FindTaskSet(accumulatedFinds, T.Start, T.End));
+            }
+            return accumulatedFinds;
+        }
+        private HashSet<PerZone> FindPerSet(HashSet<PerZone> accumulatedFinds, DateTime start, DateTime end)
+        {
+            //Recursively select the set of PerZones that intersect the calendar view or previously added PerZones.
+            var foundPers = (from M in TaskMaps
+                             from P in M.PerZones
+                             where P.Intersects(start, end)
+                             select P).Except(accumulatedFinds);
+            if (foundPers.Count() == 0) return accumulatedFinds;
+            accumulatedFinds.Union(foundPers);
+            foreach (var P in foundPers)
+            {
+                accumulatedFinds.Union(FindPerSet(accumulatedFinds, P.Start, P.End));
+            }
+            return accumulatedFinds;
         }
         private void AllocateTimeFromNotes()
         {
@@ -292,30 +381,14 @@ namespace TimekeeperWPF
                 group N by N.TimeTask.Dimension;
             foreach (var D in noteDimensions)
             {
+                LinkedList<Note> notes = new LinkedList<Note>(D);
                 Note pN = null;
-                bool pNstart = false;
                 PerZone pP = null;
                 InclusionZone pZ = null;
                 bool pNoverZ = false;
                 CalendarTaskObject pC = null;
                 foreach (var N in D)
                 {
-                    //Is the Note start/end?
-                    string Nword = N.Text.ToLower();
-                    bool Nstart;
-                    if (Nword == "start")
-                    {
-                        Nstart = true;
-                    }
-                    else if (Nword == "end")
-                    {
-                        Nstart = false;
-                    }
-                    //else if (Nword == "cancel")
-                    //{
-
-                    //}
-                    else continue;
                     var M = TaskMaps.FirstOrDefault(m => m.TimeTask == N.TimeTask);
                     if (M == null)
                     {
@@ -329,7 +402,7 @@ namespace TimekeeperWPF
                     bool NoverZ = Z != null;
                     if (pN == null) //2
                     {
-                        if (Nstart) //B, C
+                        if (N.Text == "start") //B, C
                         {
                             if (NoverZ) //B
                             {
@@ -340,16 +413,16 @@ namespace TimekeeperWPF
                                 pC = ATFN_UnStart(N, M, P);
                             }
                         }
-                        else //D, E
+                        else if (N.Text == "end") //D, E
                         {
                             pC = ATFN_LooseEnd(N, M, P);
                         }
                     }
-                    else if (pNstart) //3, 4
+                    else if (pN.Text == "start") //3, 4
                     {
                         if (pNoverZ) //3
                         {
-                            if (Nstart) //B, C, F, H, I
+                            if (N.Text == "start") //B, C, F, H, I
                             {
                                 if (NoverZ) //B, F, H
                                 {
@@ -386,7 +459,7 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
-                            else //D, E, G, J, K
+                            else if (N.Text == "end") //D, E, G, J, K
                             {
                                 if (NoverZ) //D, G, J
                                 {
@@ -422,10 +495,14 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
+                            else if (N.Text == "cancel") //L, M, N, O
+                            {
+
+                            }
                         }
                         else //4
                         {
-                            if (Nstart) //B, C, H, I
+                            if (N.Text == "start") //B, C, H, I
                             {
                                 if (NoverZ) //B, H
                                 {
@@ -455,7 +532,7 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
-                            else //D, E, J, K
+                            else if (N.Text == "end") //D, E, J, K
                             {
                                 if (NoverZ) //D, J
                                 {
@@ -483,13 +560,17 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
+                            else if (N.Text == "cancel") //L, M, N, O
+                            {
+
+                            }
                         }
                     }
                     else //5, 6
                     {
                         if (pNoverZ) //5
                         {
-                            if (Nstart) //B, C, F, H, I
+                            if (N.Text == "start") //B, C, F, H, I
                             {
                                 if (NoverZ) //B, F, H
                                 {
@@ -521,7 +602,7 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
-                            else //D, E, G, J, K
+                            else if (N.Text == "end") //D, E, G, J, K
                             {
                                 if (NoverZ) //D, G, J
                                 {
@@ -572,7 +653,7 @@ namespace TimekeeperWPF
                         }
                         else //6
                         {
-                            if (Nstart) //B, C, H, I
+                            if (N.Text == "start") //B, C, H, I
                             {
                                 if (NoverZ) //B, H
                                 {
@@ -597,7 +678,7 @@ namespace TimekeeperWPF
                                     }
                                 }
                             }
-                            else //D, E, J, K
+                            else if (N.Text == "end") //D, E, J, K
                             {
                                 if (NoverZ) //D, J
                                 {
@@ -625,14 +706,12 @@ namespace TimekeeperWPF
                         }
                     }
                     pN = N;
-                    pNstart = Nstart;
                     pP = P;
                     pZ = Z;
                     pNoverZ = NoverZ;
                 }
             }
         }
-
         private static CalendarTaskObject ATFN_EndZsToNdiff(CalendarTaskObject pC, Note N, CalendarTimeTaskMap M, PerZone P, InclusionZone Z)
         {
             CalendarTaskObject C = new CalendarTaskObject
@@ -645,7 +724,6 @@ namespace TimekeeperWPF
             P.CalTaskObjs.Add(C);
             return C;
         }
-
         private static CalendarTaskObject ATFN_UnEndToN(CalendarTaskObject pC, Note N, CalendarTimeTaskMap M, PerZone P)
         {
             CalendarTaskObject C = new CalendarTaskObject
@@ -658,7 +736,6 @@ namespace TimekeeperWPF
             P.CalTaskObjs.Add(C);
             return C;
         }
-
         private static CalendarTaskObject ATFN_EndZsToN(Note N, CalendarTimeTaskMap M, PerZone P, InclusionZone Z)
         {
             CalendarTaskObject C = new CalendarTaskObject
@@ -671,7 +748,6 @@ namespace TimekeeperWPF
             P.CalTaskObjs.Add(C);
             return C;
         }
-
         private static CalendarTaskObject ATFN_UnStart(Note N, CalendarTimeTaskMap M, PerZone P)
         {
             CalendarTaskObject C = new CalendarTaskObject
@@ -684,7 +760,6 @@ namespace TimekeeperWPF
             P.CalTaskObjs.Add(C);
             return C;
         }
-
         private static CalendarTaskObject ATFN_Start(Note N, CalendarTimeTaskMap M, PerZone P)
         {
             CalendarTaskObject C = new CalendarTaskObject
@@ -697,7 +772,6 @@ namespace TimekeeperWPF
             P.CalTaskObjs.Add(C);
             return C;
         }
-        
         private static CalendarTaskObject ATFN_LooseEnd(Note N, CalendarTimeTaskMap M, PerZone P)
         {
             CalendarTaskObject C = new CalendarTaskObject
@@ -710,7 +784,6 @@ namespace TimekeeperWPF
             P.CalTaskObjs.Add(C);
             return C;
         }
-
         private void BuildAllocations()
         {
             //Time Allocations

@@ -13,6 +13,7 @@ namespace TimekeeperDAL.EF
             Allocations = new HashSet<TimeTaskAllocation>();
             Filters = new HashSet<TimeTaskFilter>();
             Notes = new HashSet<Note>();
+            CheckIns = new HashSet<CheckIn>();
         }
 
         [Column(TypeName = "datetime2")]
@@ -36,9 +37,8 @@ namespace TimekeeperDAL.EF
         public string AllocationMethod { get; set; }
 
         public virtual ICollection<TimeTaskAllocation> Allocations { get; set; }
-
         public virtual ICollection<TimeTaskFilter> Filters { get; set; }
-
         public virtual ICollection<Note> Notes { get; set; }
+        public virtual ICollection<CheckIn> CheckIns { get; set; }
     }
 }

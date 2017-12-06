@@ -89,16 +89,25 @@ namespace TimekeeperDAL.EF
                         }
                         errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);
                         break;
-                    //case nameof(PowerLevel):
-                    //    if (PowerLevel < 1)
-                    //    {
-                    //        AddError(nameof(PowerLevel), "PowerLevel must be greater than 0");
-                    //        hasError = true;
-                    //    }
-                    //    errors = GetErrorsFromAnnotations(nameof(PowerLevel), PowerLevel);
-                    //    break;
                     case nameof(AllocationMethod):
+                        if (!AllocationMethodChoices.Contains(AllocationMethod))
+                        {
+                            AddError(nameof(AllocationMethod), String.Format("{0} must be: {1}",
+                                nameof(AllocationMethod),
+                                String.Join(", ", AllocationMethod)));
+                            hasError = true;
+                        }
                         errors = GetErrorsFromAnnotations(nameof(AllocationMethod), AllocationMethod);
+                        break;
+                    case nameof(TaskType):
+                        if (!TaskType.DefaultChoices.Contains(TaskType.Name))
+                        {
+                            AddError(nameof(TaskType), String.Format("{0} must be: {1}",
+                                nameof(TaskType),
+                                String.Join(", ", TaskType)));
+                            hasError = true;
+                        }
+                        errors = GetErrorsFromAnnotations(nameof(TaskType), TaskType);
                         break;
                 }
                 if (errors != null && errors.Length != 0)
@@ -116,7 +125,9 @@ namespace TimekeeperDAL.EF
         {
             "Eager",
             "Even",
-            "Apathetic"
+            "EvenCentered",
+            "EvenApathetic",
+            "Apathetic",
         };
         
         [NotMapped]
@@ -144,10 +155,14 @@ namespace TimekeeperDAL.EF
             }
             return false;
         }
-        private void BuildInclusionZones()
+        public async Task BuildInclusionZonesAsync(Dictionary<DateTime, DateTime> PerZonesSubset)
+        {
+            await Task.Run(() => BuildInclusionZones(PerZonesSubset));
+        }
+        public void BuildInclusionZones(Dictionary<DateTime, DateTime> PerZonesSubset)
         {
             InclusionZones = new Dictionary<DateTime, DateTime>();
-            foreach (var P in PerZones) BIZPart2(P.Key, P.Value);
+            foreach (var P in PerZonesSubset) BIZPart2(P.Key, P.Value);
         }
         private void BIZPart2(DateTime start, DateTime end)
         {
@@ -212,24 +227,12 @@ namespace TimekeeperDAL.EF
                 InclusionZones.Add(zoneStart, end);
             }
         }
-        /// <summary>
-        /// Create and Filter the set of PerZones that intersect a Calendar view.
-        /// </summary>
-        /// <param name="start">The beginning of the Calendar view.</param>
-        /// <param name="end">The end of the Calendar view.</param>
-        public async Task BuildZonesAsync(DateTime start, DateTime end)
+        public async Task BuildPerZonesAsync()
         {
-            await Task.Run(() => BuildZones(start, end));
+            await Task.Run(() => BuildPerZones());
         }
-        /// <summary>
-        /// Create and Filter the set of PerZones that intersect a Calendar view.
-        /// </summary>
-        /// <param name="start">The beginning of the Calendar view.</param>
-        /// <param name="end">The end of the Calendar view.</param>
-        public void BuildZones(DateTime start, DateTime end)
+        public void BuildPerZones()
         {
-            if (start.Ticks >= end.Ticks) throw new ArgumentException("start must be less than end.", nameof(start));
-            //We will filter the set of per zones to the ones that intersect start and end.
             PerZones = new Dictionary<DateTime, DateTime>();
             //Find the time allocation if it exists
             TimeAllocation = Allocations.Where(A => Resource.TimeResourceChoices.Contains(A.Resource.Name)).FirstOrDefault();
@@ -241,29 +244,28 @@ namespace TimekeeperDAL.EF
             else switch (TimeAllocation?.Per?.Name)
             {
                 case "Hour":
-                    BPZPart2(start, end, dt => dt.HourStart(), dt => dt.AddHours(1));
+                    BPZPart2(dt => dt.HourStart(), dt => dt.AddHours(1));
                     break;
                 case "Day":
-                    BPZPart2(start, end, dt => dt.Date, dt => dt.AddDays(1));
+                    BPZPart2(dt => dt.Date, dt => dt.AddDays(1));
                     break;
                 case "Week":
-                    BPZPart2(start, end, dt => dt.WeekStart(), dt => dt.AddDays(7));
+                    BPZPart2(dt => dt.WeekStart(), dt => dt.AddDays(7));
                     break;
                 case "Month":
-                    BPZPart2(start, end, dt => dt.MonthStart(), dt => dt.AddMonths(1));
+                    BPZPart2(dt => dt.MonthStart(), dt => dt.AddMonths(1));
                     break;
                 case "Year":
-                    BPZPart2(start, end, dt => dt.YearStart(), dt => dt.AddYears(1));
+                    BPZPart2(dt => dt.YearStart(), dt => dt.AddYears(1));
                     break;
             }
-            BuildInclusionZones();
         }
-        private void BPZPart2(DateTime start, DateTime end, Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
+        private void BPZPart2(Func<DateTime, DateTime> starter, Func<DateTime, DateTime> adder)
         {
-            DateTime perStart = starter(start);
+            DateTime perStart = starter(Start);
             DateTime perEnd = adder(perStart);
             //for each relevant per zone
-            while (Intersects(perStart, perEnd) && Intersects(start, end))
+            while (Intersects(perStart, perEnd))
             {
                 PerZones.Add(perStart, perEnd);
                 perStart = perEnd;

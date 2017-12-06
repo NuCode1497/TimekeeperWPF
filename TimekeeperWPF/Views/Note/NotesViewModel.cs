@@ -30,9 +30,9 @@ namespace TimekeeperWPF
         public override string Name => nameof(Context.Notes) + " Editor";
         public CollectionViewSource TimeTasksCollection { get; protected set; }
         public ObservableCollection<TimeTask> TimeTasksSource => 
-            TimeTasksCollection.Source as ObservableCollection<TimeTask>;
+            TimeTasksCollection?.Source as ObservableCollection<TimeTask>;
         public ListCollectionView TimeTasksView => 
-            TimeTasksCollection.View as ListCollectionView;
+            TimeTasksCollection?.View as ListCollectionView;
         public DateTime SaveAsStart
         {
             get

@@ -7,13 +7,13 @@ namespace TimekeeperWPF.Calendar
 {
     public class PerZone
     {
+        public CalendarTimeTaskMap ParentMap { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public TimeSpan Duration => End - Start;
-        public List<InclusionZone> InclusionZones { get; set; }
-        //public List<Consumption> Consumptions { get; set; }
         public Consumption TimeConsumption { get; set; }
-        public List<CalendarTaskObject> CalTaskObjs { get; set; }
+        public List<InclusionZone> InclusionZones { get; set; }
+        public HashSet<CalendarTaskObject> CalTaskObjs { get; set; }
 
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }

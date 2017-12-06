@@ -6,6 +6,7 @@ namespace TimekeeperWPF.Calendar
 {
     public class InclusionZone
     {
+        public PerZone ParentPerZone { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public TimeSpan Duration => End - Start;

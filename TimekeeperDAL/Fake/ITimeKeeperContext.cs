@@ -24,6 +24,7 @@ namespace TimekeeperDAL.EF
         IDbSet<LabeledEntity> LabeledEntities { get; set; }
         IDbSet<TypedLabeledEntity> TypedLabeledEntities { get; set; }
         IDbSet<Labelling> Labellings { get; set; }
+        IDbSet<CheckIn> CheckIns { get; set; }
         int SaveChanges();
         Task<int> SaveChangesAsync();
     }

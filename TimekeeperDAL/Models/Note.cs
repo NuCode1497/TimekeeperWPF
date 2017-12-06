@@ -38,13 +38,5 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
-        
-        public static readonly List<string> CheckInChoices = new List<string>
-        {
-            "confirm",
-            "cancel",
-            "start",
-            "end",
-        };
     }
 }

@@ -110,6 +110,7 @@
       <DependentUpon>CalendarNoteObject.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\CalendarTimeTaskMap.cs" />
+    <Compile Include="Calendar\CalendarCheckIn.cs" />
     <Compile Include="Calendar\Consumption.cs" />
     <Compile Include="Calendar\InclusionSorter.cs" />
     <Compile Include="Calendar\InclusionZone.cs" />
