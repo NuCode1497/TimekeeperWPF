@@ -7,6 +7,5 @@ namespace TimekeeperWPF.Calendar
     {
         public TimeTask TimeTask { get; set; }
         public HashSet<PerZone> PerZones { get; set; }
-        public LinkedList<CalendarCheckIn> CheckIns { get; set; }
     }
 }

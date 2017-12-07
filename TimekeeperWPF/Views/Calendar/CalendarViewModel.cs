@@ -189,6 +189,9 @@ namespace TimekeeperWPF
 
         public bool Intersects(DateTime dt) { return SelectedDate <= dt && dt <= EndDate; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
+        public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
+        public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
+        public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < EndDate && SelectedDate < end; }
         public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
@@ -220,11 +223,13 @@ namespace TimekeeperWPF
         private async Task CreateTaskObjects()
         {
             await BuildTaskMaps();
-            BuildAllocations();
-            UnZipTaskMaps();
+            BuildCheckIns();
+            //BuildAllocations();
+            //UnZipTaskMaps();
         }
         private async Task BuildTaskMaps()
         {
+            //This function is more intensive than others, you only need to call it once on load
             //Reduce the TimeTask set
             var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), SelectedDate, EndDate);
             foreach (var T in RelevantTasks)
@@ -236,8 +241,7 @@ namespace TimekeeperWPF
                 var map = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
-                    PerZones = new List<PerZone>(),
-                    CheckIns = new LinkedList<CalendarCheckIn>(),
+                    PerZones = new HashSet<PerZone>(),
                 };
                 foreach (var P in T.PerZones)
                 {
@@ -246,7 +250,8 @@ namespace TimekeeperWPF
                         Start = P.Key,
                         End = P.Value,
                         InclusionZones = new List<InclusionZone>(),
-                        CalTaskObjs = new List<CalendarTaskObject>(),
+                        CalTaskObjs = new HashSet<CalendarTaskObject>(),
+                        CheckIns = new List<CalendarCheckIn>(),
                     };
                     map.PerZones.Add(per);
                 }
@@ -256,13 +261,12 @@ namespace TimekeeperWPF
             foreach (var M in TaskMaps)
             {
                 //Reduce the PerZone set
-                M.PerZones = new List<PerZone>(M.PerZones.Intersect(RelevantPerZones));
+                M.PerZones = new HashSet<PerZone>(M.PerZones.Intersect(RelevantPerZones));
                 //Build InclusionZones with the reduced PerZone set
                 var pers = new Dictionary<DateTime, DateTime>();
                 foreach (var P in M.PerZones)
                     pers.Add(P.Start, P.End);
                 await M.TimeTask.BuildInclusionZonesAsync(pers);
-                //Build the rest of the PerZones' properties
                 foreach (var P in M.PerZones)
                 {
                     if (M.TimeTask.TimeAllocation != null)
@@ -284,63 +288,6 @@ namespace TimekeeperWPF
                         P.InclusionZones.Add(zone);
                     }
                 }
-                //Get the set of relevant notes for CheckIns
-                var checkIns = 
-                    from P in M.PerZones
-                    from CI in CheckIns
-                    where CI.TimeTask == M.TimeTask
-                    where P.Intersects(CI.DateTime)
-                    select CI;
-                //Turn them into CalendarCheckIns
-                var eventCheckIns = new List<CalendarCheckIn>();
-                foreach (var CI in CheckIns)
-                {
-                    eventCheckIns.Add(new CalendarCheckIn
-                    {
-                        DateTime = CI.DateTime,
-                        Kind = CI.Text == "start" ? CheckInKind.EventStart : CheckInKind.EventEnd,
-                        ParentMap = M,
-                    });
-                }
-                //Create CheckIns for zone boundaries
-                var perCheckIns = new List<CalendarCheckIn>();
-                var inZoneCheckIns = new List<CalendarCheckIn>();
-                foreach (var P in M.PerZones)
-                {
-                    perCheckIns.Add(new CalendarCheckIn
-                    {
-                        DateTime = P.Start,
-                        Kind = CheckInKind.PerZoneStart,
-                        ParentMap = M,
-                    });
-                    perCheckIns.Add(new CalendarCheckIn
-                    {
-                        DateTime = P.End,
-                        Kind = CheckInKind.PerZoneEnd,
-                        ParentMap = M,
-                    });
-                    foreach (var Z in P.InclusionZones)
-                    {
-                        inZoneCheckIns.Add(new CalendarCheckIn
-                        {
-                            DateTime = Z.Start,
-                            Kind = CheckInKind.InclusionZoneStart,
-                            ParentMap = M,
-                        });
-                        inZoneCheckIns.Add(new CalendarCheckIn
-                        {
-                            DateTime = Z.End,
-                            Kind = CheckInKind.InclusionZoneEnd,
-                            ParentMap = M,
-                        });
-                    }
-                }
-                //Merge and sort sets.
-                var allCheckIns =
-                    from CI in eventCheckIns.Union(perCheckIns).Union(inZoneCheckIns)
-                    orderby CI.Kind, CI.DateTime
-                    select CI;
-                M.CheckIns = new LinkedList<CalendarCheckIn>(allCheckIns);
             }
         }
         private HashSet<TimeTask> FindTaskSet(HashSet<TimeTask> accumulatedFinds, DateTime start, DateTime end)
@@ -370,419 +317,272 @@ namespace TimekeeperWPF
             }
             return accumulatedFinds;
         }
-        private void AllocateTimeFromNotes()
+        private void BuildCheckIns()
         {
-            //We need all notes that intersect any relevant Per
-            var noteDimensions =
-                from N in NotesVM.Source
-                where N.TimeTask != null
-                where TaskMaps.FirstOrDefault(M => M.PerZones.FirstOrDefault(P => P.Intersects(N)) != null) != null
-                orderby N.DateTime
-                group N by N.TimeTask.Dimension;
-            foreach (var D in noteDimensions)
+            foreach (var M in TaskMaps)
             {
-                LinkedList<Note> notes = new LinkedList<Note>(D);
-                Note pN = null;
-                PerZone pP = null;
-                InclusionZone pZ = null;
-                bool pNoverZ = false;
-                CalendarTaskObject pC = null;
-                foreach (var N in D)
+                foreach (var P in M.PerZones)
                 {
-                    var M = TaskMaps.FirstOrDefault(m => m.TimeTask == N.TimeTask);
-                    if (M == null)
+                    var eventCheckIns = new List<CalendarCheckIn>();
+                    var perCheckIns = new List<CalendarCheckIn>();
+                    var inZoneCheckIns = new List<CalendarCheckIn>();
+                    //find and map relevant event CIs in this PerZone
+                    var checkIns =
+                        from CI in CheckIns
+                        where CI.TimeTask == M.TimeTask
+                        where P.Intersects(CI.DateTime)
+                        select CI;
+                    foreach (var CI in checkIns)
                     {
-                        //Found a Note belonging to something outside of View
-                        //TODO what now?
-                        continue;
+                        eventCheckIns.Add(new CalendarCheckIn
+                        {
+                            DateTime = CI.DateTime,
+                            Kind = CI.Text == "start" ? CheckInKind.EventStart : CheckInKind.EventEnd,
+                            ParentMap = M,
+                            ParentPerZone = P,
+                        });
                     }
-                    var P = M.PerZones.FirstOrDefault(p => p.Intersects(N));
-                    if (P == null) continue;
-                    var Z = P.InclusionZones.FirstOrDefault(z => z.Intersects(N));
-                    bool NoverZ = Z != null;
-                    if (pN == null) //2
+                    //map zone ends as CheckIns
+                    perCheckIns.Add(new CalendarCheckIn
                     {
-                        if (N.Text == "start") //B, C
-                        {
-                            if (NoverZ) //B
-                            {
-                                pC = ATFN_Start(N, M, P);
-                            }
-                            else //C
-                            {
-                                pC = ATFN_UnStart(N, M, P);
-                            }
-                        }
-                        else if (N.Text == "end") //D, E
-                        {
-                            pC = ATFN_LooseEnd(N, M, P);
-                        }
-                    }
-                    else if (pN.Text == "start") //3, 4
+                        DateTime = P.Start,
+                        Kind = CheckInKind.PerZoneStart,
+                        ParentMap = M,
+                        ParentPerZone = P,
+                    });
+                    perCheckIns.Add(new CalendarCheckIn
                     {
-                        if (pNoverZ) //3
-                        {
-                            if (N.Text == "start") //B, C, F, H, I
-                            {
-                                if (NoverZ) //B, F, H
-                                {
-                                    if (P == pP) //B, F
-                                    {
-                                        if (pZ == Z) //B
-                                        {
-                                            pC.End = N.DateTime;
-                                            pC = ATFN_Start(N, M, P);
-                                        }
-                                        else //F
-                                        {
-                                            pC.End = pZ.End;
-                                            pC = ATFN_Start(N, M, P);
-                                        }
-                                    }
-                                    else //H
-                                    {
-                                        pC.End = new DateTime(Min(pZ.End.Ticks, N.DateTime.Ticks));
-                                        pC = ATFN_Start(N, M, P);
-                                    }
-                                }
-                                else //C, I
-                                {
-                                    if (P == pP) //C
-                                    {
-                                        pC.End = pZ.End;
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                    else //I
-                                    {
-                                        pC.End = new DateTime(Min(pZ.End.Ticks, N.DateTime.Ticks));
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                }
-                            }
-                            else if (N.Text == "end") //D, E, G, J, K
-                            {
-                                if (NoverZ) //D, G, J
-                                {
-                                    if (P == pP) //D, G
-                                    {
-                                        if (pZ == Z) //D
-                                        {
-                                            pC.End = N.DateTime;
-                                        }
-                                        else //G
-                                        {
-                                            pC.End = pZ.End;
-                                            pC = ATFN_EndZsToN(N, M, P, Z);
-                                        }
-                                    }
-                                    else //J
-                                    {
-                                        pC.End = new DateTime(Min(pZ.End.Ticks, Z.Start.Ticks));
-                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
-                                    }
-                                }
-                                else //E, K
-                                {
-                                    if (P == pP) //E
-                                    {
-                                        pC.End = pZ.End;
-                                        pC = ATFN_UnEndToN(pC, N, M, P);
-                                    }
-                                    else //K
-                                    {
-                                        pC.End = new DateTime(Min(pZ.End.Ticks, N.DateTime.Ticks));
-                                        pC = ATFN_LooseEnd(N, M, P);
-                                    }
-                                }
-                            }
-                            else if (N.Text == "cancel") //L, M, N, O
-                            {
-
-                            }
-                        }
-                        else //4
-                        {
-                            if (N.Text == "start") //B, C, H, I
-                            {
-                                if (NoverZ) //B, H
-                                {
-                                    if (P == pP) //B
-                                    {
-                                        pC.End = Z.Start;
-                                        pC = ATFN_EndZsToN(N, M, P, Z);
-                                        pC = ATFN_Start(N, M, P);
-                                    }
-                                    else //H
-                                    {
-                                        pC.End = N.DateTime;
-                                        pC = ATFN_Start(N, M, P);
-                                    }
-                                }
-                                else //C, I
-                                {
-                                    if (P == pP) //C
-                                    {
-                                        pC.End = pZ.End;
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                    else //I
-                                    {
-                                        pC.End = N.DateTime;
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                }
-                            }
-                            else if (N.Text == "end") //D, E, J, K
-                            {
-                                if (NoverZ) //D, J
-                                {
-                                    if (P == pP) //D
-                                    {
-                                        pC.End = Z.Start;
-                                        pC = ATFN_EndZsToN(N, M, P, Z);
-                                    }
-                                    else //J
-                                    {
-                                        pC.End = new DateTime(Max(Z.Start.Ticks, pC.End.Ticks));
-                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
-                                    }
-                                }
-                                else //E, K
-                                {
-                                    if (P == pP) //E
-                                    {
-                                        pC.End = N.DateTime;
-                                    }
-                                    else //K
-                                    {
-                                        pC.End = N.DateTime;
-                                        pC = ATFN_LooseEnd(N, M, P);
-                                    }
-                                }
-                            }
-                            else if (N.Text == "cancel") //L, M, N, O
-                            {
-
-                            }
-                        }
-                    }
-                    else //5, 6
+                        DateTime = P.End,
+                        Kind = CheckInKind.PerZoneEnd,
+                        ParentMap = M,
+                        ParentPerZone = P,
+                    });
+                    foreach (var Z in P.InclusionZones)
                     {
-                        if (pNoverZ) //5
+                        //find and map relevant event CIs in this InclusionZone
+                        var CIsOverZ =
+                            from CI in eventCheckIns
+                            where Z.Intersects(CI)
+                            select CI;
+                        foreach (var CI in CIsOverZ)
+                            CI.ParentInclusionZone = Z;
+                        //map zone ends as CheckIns
+                        inZoneCheckIns.Add(new CalendarCheckIn
                         {
-                            if (N.Text == "start") //B, C, F, H, I
-                            {
-                                if (NoverZ) //B, F, H
-                                {
-                                    if (P == pP) //B, F
-                                    {
-                                        if (pZ == Z) //B
-                                        {
-                                            pC = ATFN_Start(N, M, P);
-                                        }
-                                        else //F
-                                        {
-                                            pC = ATFN_Start(N, M, P);
-                                        }
-                                    }
-                                    else //H
-                                    {
-                                        pC = ATFN_Start(N, M, P);
-                                    }
-                                }
-                                else //C, I
-                                {
-                                    if (P == pP) //C
-                                    {
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                    else //I
-                                    {
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                }
-                            }
-                            else if (N.Text == "end") //D, E, G, J, K
-                            {
-                                if (NoverZ) //D, G, J
-                                {
-                                    if (P == pP) //D, G
-                                    {
-                                        if (pZ == Z) //D
-                                        {
-                                            CalendarTaskObject C = new CalendarTaskObject
-                                            {
-                                                Start = pC.End,
-                                                End = N.DateTime,
-                                                State = CalendarTaskObject.States.Confirmed,
-                                                ParentMap = M,
-                                            };
-                                            P.CalTaskObjs.Add(C);
-                                            pC = C;
-                                        }
-                                        else //G
-                                        {
-                                            pC = ATFN_EndZsToN(N, M, P, Z);
-                                        }
-                                    }
-                                    else //J
-                                    {
-                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
-                                    }
-                                }
-                                else //E, K
-                                {
-                                    if (P == pP) //E
-                                    {
-                                        CalendarTaskObject C1 = new CalendarTaskObject
-                                        {
-                                            Start = pC.End,
-                                            End = pZ.End,
-                                            State = CalendarTaskObject.States.Confirmed,
-                                            ParentMap = pC.ParentMap,
-                                        };
-                                        pC = C1;
-                                        pC = ATFN_UnEndToN(pC, N, M, P);
-                                    }
-                                    else //K
-                                    {
-                                        pC = ATFN_LooseEnd(N, M, P);
-                                    }
-                                }
-                            }
-                        }
-                        else //6
+                            DateTime = Z.Start,
+                            Kind = CheckInKind.InclusionZoneStart,
+                            ParentMap = M,
+                            ParentPerZone = P,
+                            ParentInclusionZone = Z,
+                        });
+                        inZoneCheckIns.Add(new CalendarCheckIn
                         {
-                            if (N.Text == "start") //B, C, H, I
-                            {
-                                if (NoverZ) //B, H
-                                {
-                                    if (P == pP) //B
-                                    {
-                                        pC = ATFN_Start(N, M, P);
-                                    }
-                                    else //H
-                                    {
-                                        pC = ATFN_Start(N, M, P);
-                                    }
-                                }
-                                else //C, I
-                                {
-                                    if (P == pP) //C
-                                    {
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                    else //I
-                                    {
-                                        pC = ATFN_UnStart(N, M, P);
-                                    }
-                                }
-                            }
-                            else if (N.Text == "end") //D, E, J, K
-                            {
-                                if (NoverZ) //D, J
-                                {
-                                    if (P == pP) //D
-                                    {
-                                        pC = ATFN_EndZsToN(N, M, P, Z);
-                                    }
-                                    else //J
-                                    {
-                                        pC = ATFN_EndZsToNdiff(pC, N, M, P, Z);
-                                    }
-                                }
-                                else //E, K
-                                {
-                                    if (P == pP) //E
-                                    {
-                                        pC = ATFN_UnEndToN(pC, N, M, P);
-                                    }
-                                    else //K
-                                    {
-                                        pC = ATFN_LooseEnd(N, M, P);
-                                    }
-                                }
-                            }
-                        }
+                            DateTime = Z.End,
+                            Kind = CheckInKind.InclusionZoneEnd,
+                            ParentMap = M,
+                            ParentPerZone = P,
+                            ParentInclusionZone = Z,
+                        });
                     }
-                    pN = N;
-                    pP = P;
-                    pZ = Z;
-                    pNoverZ = NoverZ;
+                    //Merge and sort CheckIn sets.
+                    var allCheckIns =
+                        from CI in eventCheckIns.Union(perCheckIns).Union(inZoneCheckIns)
+                        orderby CI.Kind, CI.DateTime
+                        select CI;
+                    P.CheckIns = new List<CalendarCheckIn>(allCheckIns);
                 }
             }
         }
-        private static CalendarTaskObject ATFN_EndZsToNdiff(CalendarTaskObject pC, Note N, CalendarTimeTaskMap M, PerZone P, InclusionZone Z)
+        private void AllocateTimeFromCheckIns()
         {
-            CalendarTaskObject C = new CalendarTaskObject
+            foreach (var M in TaskMaps)
             {
-                Start = new DateTime(Max(pC.End.Ticks, Z.Start.Ticks)),
-                End = N.DateTime,
-                State = CalendarTaskObject.States.Confirmed,
-                ParentMap = M,
-            };
-            P.CalTaskObjs.Add(C);
-            return C;
+                foreach (var P in M.PerZones)
+                {
+                    //Create CalObjs from CheckIns
+                    CalendarTaskObject pC = null;
+                    CalendarCheckIn pN = null;
+                    bool inZ = false;
+                    foreach (var N in P.CheckIns)
+                    {
+                        // Refer to Plans.xlsx\CheckIns
+                        switch (N.Kind)
+                        {
+                            case CheckInKind.InclusionZoneStart:
+                                // F
+                                if (pN.Kind == CheckInKind.EventStart && inZ == false)
+                                {
+                                    // 4
+                                    pC.End = N.DateTime;
+                                }
+                                inZ = true;
+                                break;
+                            case CheckInKind.EventStart:
+                                // B D
+                                if (inZ)
+                                {
+                                    // B
+                                    switch (pN.Kind)
+                                    {
+                                        case CheckInKind.InclusionZoneStart:
+                                            // 6
+                                            var C = new CalendarTaskObject
+                                            {
+                                                Start = N.DateTime,
+                                                End = N.DateTime,
+                                                State = CalendarTaskObject.States.Confirmed,
+                                                ParentMap = M,
+                                                StartLock = true,
+                                                StateLock = true,
+                                            };
+                                            pC = C;
+                                            P.CalTaskObjs.Add(C);
+                                            break;
+                                        case CheckInKind.EventStart:
+                                            // 2
+                                            pC.End = N.DateTime;
+                                            goto case CheckInKind.InclusionZoneStart;
+                                        case CheckInKind.EventEnd:
+                                            // 3
+                                            goto case CheckInKind.InclusionZoneStart;
+                                    }
+                                }
+                                else
+                                {
+                                    // D
+                                    switch (pN.Kind)
+                                    {
+                                        case CheckInKind.PerZoneStart:
+                                            // 8
+                                            var C = new CalendarTaskObject
+                                            {
+                                                Start = N.DateTime,
+                                                End = N.DateTime,
+                                                State = CalendarTaskObject.States.Unscheduled,
+                                                ParentMap = M,
+                                                StartLock = true,
+                                                StateLock = true,
+                                            };
+                                            pC = C;
+                                            P.CalTaskObjs.Add(C);
+                                            break;
+                                        case CheckInKind.EventStart:
+                                            // 4
+                                            pC.End = N.DateTime;
+                                            goto case CheckInKind.PerZoneStart;
+                                        case CheckInKind.EventEnd:
+                                            // 5
+                                            goto case CheckInKind.PerZoneStart;
+                                    }
+                                }
+                                break;
+                            case CheckInKind.EventEnd:
+                                // C E
+                                if (inZ)
+                                {
+                                    // C
+                                    switch (pN.Kind)
+                                    {
+                                        case CheckInKind.InclusionZoneStart:
+                                            // 6
+                                            var C = new CalendarTaskObject
+                                            {
+                                                Start = pN.DateTime,
+                                                End = N.DateTime,
+                                                State = CalendarTaskObject.States.Confirmed,
+                                                ParentMap = M,
+                                                EndLock = true,
+                                                StateLock = true,
+                                            };
+                                            pC = C;
+                                            P.CalTaskObjs.Add(C);
+                                            break;
+                                        case CheckInKind.EventStart:
+                                            // 2
+                                            pC.End = N.DateTime;
+                                            pC.EndLock = true;
+                                            break;
+                                        case CheckInKind.EventEnd:
+                                            // 3
+                                            goto case CheckInKind.InclusionZoneStart;
+                                    }
+                                }
+                                else
+                                {
+                                    // E
+                                    switch (pN.Kind)
+                                    {
+                                        case CheckInKind.PerZoneStart:
+                                            // 8
+                                            var C = new CalendarTaskObject
+                                            {
+                                                Start = pN.DateTime,
+                                                End = N.DateTime,
+                                                State = CalendarTaskObject.States.Unscheduled,
+                                                ParentMap = M,
+                                                EndLock = true,
+                                                StateLock = true,
+                                            };
+                                            pC = C;
+                                            P.CalTaskObjs.Add(C);
+                                            break;
+                                        case CheckInKind.EventStart:
+                                            // 4
+                                            pC.End = N.DateTime;
+                                            pC.EndLock = true;
+                                            break;
+                                        case CheckInKind.EventEnd:
+                                            // 5
+                                            var C2 = new CalendarTaskObject
+                                            {
+                                                Start = pC.End,
+                                                End = N.DateTime,
+                                                State = CalendarTaskObject.States.Unscheduled,
+                                                ParentMap = M,
+                                                EndLock = true,
+                                                StateLock = true,
+                                            };
+                                            pC = C2;
+                                            P.CalTaskObjs.Add(C2);
+                                            break;
+                                        case CheckInKind.InclusionZoneEnd:
+                                            // 7
+                                            goto case CheckInKind.PerZoneStart;
+                                    }
+                                }
+                                break;
+                            case CheckInKind.InclusionZoneEnd:
+                                // G
+                                if (pN.Kind == CheckInKind.EventStart && inZ == true)
+                                {
+                                    // 2
+                                    pC.End = N.DateTime;
+                                }
+                                inZ = false;
+                                break;
+                            case CheckInKind.PerZoneEnd:
+                                // H
+                                if (pN.Kind == CheckInKind.EventStart && inZ == false)
+                                {
+                                    // 4
+                                    pC.End = N.DateTime;
+                                }
+                                break;
+                        }
+                        pN = N;
+                    }
+                    //Add up all the time
+                    TimeSpan spent = new TimeSpan();
+                    foreach (var C in P.CalTaskObjs)
+                        spent += C.Duration;
+                    //Allocate time
+                    P.TimeConsumption.Remaining -= spent.Ticks;
+                }
+            }
         }
-        private static CalendarTaskObject ATFN_UnEndToN(CalendarTaskObject pC, Note N, CalendarTimeTaskMap M, PerZone P)
+        private void AllocateTimeFromFilters()
         {
-            CalendarTaskObject C = new CalendarTaskObject
-            {
-                Start = pC.End,
-                End = N.DateTime,
-                State = CalendarTaskObject.States.Unscheduled,
-                ParentMap = M,
-            };
-            P.CalTaskObjs.Add(C);
-            return C;
-        }
-        private static CalendarTaskObject ATFN_EndZsToN(Note N, CalendarTimeTaskMap M, PerZone P, InclusionZone Z)
-        {
-            CalendarTaskObject C = new CalendarTaskObject
-            {
-                Start = Z.Start,
-                End = N.DateTime,
-                State = CalendarTaskObject.States.Confirmed,
-                ParentMap = M
-            };
-            P.CalTaskObjs.Add(C);
-            return C;
-        }
-        private static CalendarTaskObject ATFN_UnStart(Note N, CalendarTimeTaskMap M, PerZone P)
-        {
-            CalendarTaskObject C = new CalendarTaskObject
-            {
-                Start = N.DateTime,
-                End = N.DateTime,
-                State = CalendarTaskObject.States.Unscheduled,
-                ParentMap = M
-            };
-            P.CalTaskObjs.Add(C);
-            return C;
-        }
-        private static CalendarTaskObject ATFN_Start(Note N, CalendarTimeTaskMap M, PerZone P)
-        {
-            CalendarTaskObject C = new CalendarTaskObject
-            {
-                Start = N.DateTime,
-                End = N.DateTime,
-                State = CalendarTaskObject.States.Confirmed,
-                ParentMap = M
-            };
-            P.CalTaskObjs.Add(C);
-            return C;
-        }
-        private static CalendarTaskObject ATFN_LooseEnd(Note N, CalendarTimeTaskMap M, PerZone P)
-        {
-            CalendarTaskObject C = new CalendarTaskObject
-            {
-                Start = N.DateTime - TimeTask.MinimumDuration,
-                End = N.DateTime,
-                State = CalendarTaskObject.States.Conflict,
-                ParentMap = M
-            };
-            P.CalTaskObjs.Add(C);
-            return C;
+            //
         }
         private void BuildAllocations()
         {
@@ -974,6 +774,27 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(CalNoteObjsView));
         }
         protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
+        private void AddNewCheckIn(DateTime dt, bool start, TimeTask task)
+        {
+            //TODO
+            //add to the correct map, no need to call BuildCheckIns()
+            //add to the database collection
+            //rebuild CalObjs
+        }
+        private void EditCheckIn(CalendarCheckIn CI)
+        {
+            //TODO
+            //find and edit the CI from TaskMaps, no need to call BuildCheckIns()
+            //find and edit the CI in the database collection
+            //rebuild CalObjs
+        }
+        private void DeleteCheckIn(CalendarCheckIn CI)
+        {
+            //TODO
+            //find and delete the CI from TaskMaps, no need to call BuildCheckIns()
+            //find and delete the CI from the database collection
+            //rebuild CalObjs
+        }
         protected virtual async Task PreviousAsync()
         {
             IsLoading = true;

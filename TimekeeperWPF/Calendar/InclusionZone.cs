@@ -15,6 +15,8 @@ namespace TimekeeperWPF.Calendar
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
         public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
+        public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
+        public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
         public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
