@@ -582,18 +582,13 @@ namespace TimekeeperWPF
         }
         private void AllocateTimeFromFilters()
         {
-            //
-        }
-        private void BuildAllocations()
-        {
-            //Time Allocations
             foreach (var M in TaskMaps)
             {
-                if (M.PerZones.Count == 0) continue;
-                if (M.TimeTask.TimeAllocation == null) AllocateAllTime(M);
-                else AllocationMethod(M);
+                if (M.TimeTask.TimeAllocation == null)
+                    AllocateAllTime(M);
+                else
+                    AllocationMethod(M);
             }
-            //Other Allocations
         }
         private void AllocateAllTime(CalendarTimeTaskMap M)
         {
@@ -603,6 +598,8 @@ namespace TimekeeperWPF
             {
                 foreach (var Z in P.InclusionZones)
                 {
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
                     //create cal object that matches zone
                     CalendarTaskObject CalObj = new CalendarTaskObject
                     {
@@ -610,8 +607,6 @@ namespace TimekeeperWPF
                         End = Z.End,
                         ParentMap = M
                     };
-                    CalObj.Start = CalObj.Start.RoundUp(TimeTask.MinimumDuration);
-                    CalObj.End = CalObj.End.RoundUp(TimeTask.MinimumDuration);
                     P.CalTaskObjs.Add(CalObj);
                 }
             }
@@ -640,6 +635,8 @@ namespace TimekeeperWPF
                 P.InclusionZones.Sort(new InclusionSorterAsc());
                 foreach (var Z in P.InclusionZones)
                 {
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
                     if (P.TimeConsumption.Remaining <= 0) break;
                     if (Z.Duration.Ticks <= 0) break;
                     if (P.TimeConsumption.RemainingAsTimeSpan < Z.Duration)
@@ -651,7 +648,6 @@ namespace TimekeeperWPF
                             End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
                             ParentMap = M
                         };
-                        Z.SeedTaskObj = CalObj;
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining = 0;
                     }
@@ -664,7 +660,6 @@ namespace TimekeeperWPF
                             End = Z.End,
                             ParentMap = M
                         };
-                        Z.SeedTaskObj = CalObj;
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
                     }
@@ -681,30 +676,31 @@ namespace TimekeeperWPF
                 //First loop that creates CalendarObjects
                 foreach (var Z in P.InclusionZones)
                 {
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
                     if (P.TimeConsumption.Remaining <= 0) break;
-                    if (Z.Duration.Ticks <= 0) break;
+                    if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
                     CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
                         End = Z.Start + TimeTask.MinimumDuration,
                         ParentMap = M
                     };
-                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
                     Z.SeedTaskObj = CalObj;
+                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
                     P.CalTaskObjs.Add(CalObj);
                 }
                 //Second loop that adds more time to CalendarObjects
                 bool full = false;
-                while (!full && (P.TimeConsumption.Remaining >= TimeTask.MinimumDuration.Ticks))
+                while (!full && (P.TimeConsumption.Remaining > 0))
                 {
                     full = true;
                     //add a small amount of time to each CalObj until they are full or out of allocated time
                     foreach (var Z in P.InclusionZones)
                     {
-                        if (Z.Duration.Ticks <= 0) break;
                         if (P.TimeConsumption.Remaining <= 0) break;
-                        //If zone is full
-                        if (Z.Duration.Ticks - Z.SeedTaskObj.Duration.Ticks <= 0) break;
+                        if (Z.SeedTaskObj == null) continue;
+                        if (Z.SeedTaskObj.End >= Z.End) continue;
                         Z.SeedTaskObj.End += TimeTask.MinimumDuration;
                         P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
                         full = false;
@@ -721,6 +717,9 @@ namespace TimekeeperWPF
                 P.InclusionZones.Sort(new InclusionSorterDesc());
                 foreach (var Z in P.InclusionZones)
                 {
+                    //Does this zone have a CalObj already?
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
                     if (P.TimeConsumption.Remaining <= 0) break;
                     if (Z.Duration.Ticks <= 0) break;
                     if (P.TimeConsumption.RemainingAsTimeSpan < Z.Duration)
@@ -733,7 +732,6 @@ namespace TimekeeperWPF
                             ParentMap = M
                         };
                         P.CalTaskObjs.Add(CalObj);
-                        Z.SeedTaskObj = CalObj;
                         P.TimeConsumption.Remaining = 0;
                     }
                     else
@@ -746,11 +744,14 @@ namespace TimekeeperWPF
                             ParentMap = M
                         };
                         P.CalTaskObjs.Add(CalObj);
-                        Z.SeedTaskObj = CalObj;
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
                     }
                 }
             }
+        }
+        private void CalculateCollisions()
+        {
+
         }
         private void UnZipTaskMaps()
         {
