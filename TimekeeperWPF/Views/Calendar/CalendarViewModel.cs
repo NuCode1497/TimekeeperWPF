@@ -224,12 +224,13 @@ namespace TimekeeperWPF
         {
             await BuildTaskMaps();
             BuildCheckIns();
-            //BuildAllocations();
+            AllocateTimeFromCheckIns();
+            AllocateTimeFromFilters();
             //UnZipTaskMaps();
         }
         private async Task BuildTaskMaps()
         {
-            //This function is more intensive than others, you only need to call it once on load
+            //This function is more intensive than others, it will be called once on load
             //Reduce the TimeTask set
             var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), SelectedDate, EndDate);
             foreach (var T in RelevantTasks)
@@ -431,7 +432,9 @@ namespace TimekeeperWPF
                                                 Start = N.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Confirmed,
-                                                ParentMap = M,
+                                                ParentMap = N.ParentMap,
+                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                ParentPerZone = N.ParentPerZone,
                                                 StartLock = true,
                                                 StateLock = true,
                                             };
@@ -459,7 +462,9 @@ namespace TimekeeperWPF
                                                 Start = N.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Unscheduled,
-                                                ParentMap = M,
+                                                ParentMap = N.ParentMap,
+                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                ParentPerZone = N.ParentPerZone,
                                                 StartLock = true,
                                                 StateLock = true,
                                             };
@@ -490,7 +495,9 @@ namespace TimekeeperWPF
                                                 Start = pN.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Confirmed,
-                                                ParentMap = M,
+                                                ParentMap = N.ParentMap,
+                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                ParentPerZone = N.ParentPerZone,
                                                 EndLock = true,
                                                 StateLock = true,
                                             };
@@ -519,7 +526,9 @@ namespace TimekeeperWPF
                                                 Start = pN.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Unscheduled,
-                                                ParentMap = M,
+                                                ParentMap = N.ParentMap,
+                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                ParentPerZone = N.ParentPerZone,
                                                 EndLock = true,
                                                 StateLock = true,
                                             };
@@ -538,7 +547,9 @@ namespace TimekeeperWPF
                                                 Start = pC.End,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Unscheduled,
-                                                ParentMap = M,
+                                                ParentMap = N.ParentMap,
+                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                ParentPerZone = N.ParentPerZone,
                                                 EndLock = true,
                                                 StateLock = true,
                                             };
@@ -605,7 +616,9 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Start,
                         End = Z.End,
-                        ParentMap = M
+                        ParentMap = M,
+                        ParentPerZone = P,
+                        ParentInclusionZone = Z,
                     };
                     P.CalTaskObjs.Add(CalObj);
                 }
@@ -646,7 +659,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
-                            ParentMap = M
+                            ParentMap = M,
+                            ParentPerZone = P,
+                            ParentInclusionZone = Z,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining = 0;
@@ -658,7 +673,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.End,
-                            ParentMap = M
+                            ParentMap = M,
+                            ParentPerZone = P,
+                            ParentInclusionZone = Z,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
@@ -684,7 +701,9 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Start,
                         End = Z.Start + TimeTask.MinimumDuration,
-                        ParentMap = M
+                        ParentMap = M,
+                        ParentPerZone = P,
+                        ParentInclusionZone = Z,
                     };
                     Z.SeedTaskObj = CalObj;
                     P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
@@ -729,7 +748,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.End - P.TimeConsumption.RemainingAsTimeSpan,
                             End = Z.End,
-                            ParentMap = M
+                            ParentMap = M,
+                            ParentPerZone = P,
+                            ParentInclusionZone = Z,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining = 0;
@@ -741,7 +762,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.End,
-                            ParentMap = M
+                            ParentMap = M,
+                            ParentPerZone = P,
+                            ParentInclusionZone = Z,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
@@ -751,7 +774,33 @@ namespace TimekeeperWPF
         }
         private void CalculateCollisions()
         {
+            //group calobjs by dimension
+            var calObjDimensions =
+                from M in TaskMaps
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                orderby C.Start
+                group C by C.ParentMap.TimeTask.Dimension;
+            foreach (var dimension in calObjDimensions)
+            {
+                bool hasChanges = true;
+                while (hasChanges)
+                {
+                    hasChanges = false;
+                    foreach (var C1 in dimension)
+                    {
+                        //get any intersecting CalObjs
+                        var intersections =
+                            from C2 in dimension
+                            where C1.Intersects(C2)
+                            select C2;
+                        foreach (var C2 in intersections)
+                        {
 
+                        }
+                    }
+                }
+            }
         }
         private void UnZipTaskMaps()
         {

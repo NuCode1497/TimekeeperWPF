@@ -72,6 +72,8 @@ namespace TimekeeperWPF.Calendar
                 TaskType = _ParentMap.TimeTask.TaskType;
             }
         }
+        public PerZone ParentPerZone { get; set; }
+        public InclusionZone ParentInclusionZone { get; set; }
         public TimeSpan Duration => End - Start;
         public string DurationString()
         {
