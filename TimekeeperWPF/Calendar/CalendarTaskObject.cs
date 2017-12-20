@@ -39,7 +39,7 @@ namespace TimekeeperWPF.Calendar
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             base.OnPropertyChanged(e);
-            PropagateMimicry();
+            if (!IsMimicking) PropagateMimicry();
         }
         private void _Timer_Tick(object sender, EventArgs e)
         {
@@ -58,22 +58,6 @@ namespace TimekeeperWPF.Calendar
 
             //InvalidateArrange();
         }
-        private CalendarTimeTaskMap _ParentMap;
-        public CalendarTimeTaskMap ParentMap
-        {
-            get { return _ParentMap; }
-            set
-            {
-                if (value == _ParentMap) return;
-                if (_ParentMap != null)
-                    _ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
-                _ParentMap = value;
-                _ParentMap.TimeTask.PropertyChanged += OnParentEntityPropertyChanged;
-                TaskType = _ParentMap.TimeTask.TaskType;
-            }
-        }
-        public PerZone ParentPerZone { get; set; }
-        public InclusionZone ParentInclusionZone { get; set; }
         public TimeSpan Duration => End - Start;
         public string DurationString()
         {
@@ -90,10 +74,66 @@ namespace TimekeeperWPF.Calendar
         public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
         public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
+        public bool Intersects(PerZone P) { return Intersects(P.Start, P.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
         public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
+        public bool Within(DateTime start, DateTime end) { return start <= Start && End <= end; }
+        public bool Within(CalendarTaskObject C) { return Within(C.Start, C.End); }
+        public bool Within(InclusionZone Z) { return Within(Z.Start, Z.End); }
+        public bool Within(PerZone P) { return Within(P.Start, P.End); }
+        public bool Within(TimeTask T) { return Within(T.Start, T.End); }
+        #region ParentMap
+        public CalendarTimeTaskMap ParentMap
+        {
+            get { return (CalendarTimeTaskMap)GetValue(ParentMapProperty); }
+            set { SetValue(ParentMapProperty, value); }
+        }
+        public static readonly DependencyProperty ParentMapProperty =
+            DependencyProperty.Register(
+                nameof(ParentMap), typeof(CalendarTimeTaskMap), typeof(CalendarTaskObject),
+                new FrameworkPropertyMetadata(null,
+                    null,
+                    new CoerceValueCallback(OnCoerceParentMap)));
+        private static CalendarTimeTaskMap OnCoerceParentMap(DependencyObject d, object value)
+        {
+            CalendarTaskObject CalObj = d as CalendarTaskObject;
+            CalendarTimeTaskMap NewValue = (CalendarTimeTaskMap)value;
+            if (CalObj.ParentMap != null)
+                CalObj.ParentMap.TimeTask.PropertyChanged -= CalObj.OnParentEntityPropertyChanged;
+            NewValue.TimeTask.PropertyChanged += CalObj.OnParentEntityPropertyChanged;
+            CalObj.TaskType = NewValue.TimeTask.TaskType;
+            return NewValue;
+        }
+        #endregion
+        #region ParentPerZone
+        public PerZone ParentPerZone
+        {
+            get { return (PerZone)GetValue(ParentPerZoneProperty); }
+            set { SetValue(ParentPerZoneProperty, value); }
+        }
+        public static readonly DependencyProperty ParentPerZoneProperty =
+            DependencyProperty.Register(
+                nameof(ParentPerZone), typeof(PerZone), typeof(CalendarTaskObject));
+        #endregion
+        #region ParentInclusionZone
+        public InclusionZone ParentInclusionZone
+        {
+            get { return (InclusionZone)GetValue(ParentInclusionZoneProperty); }
+            set { SetValue(ParentInclusionZoneProperty, value); }
+        }
+        public static readonly DependencyProperty ParentInclusionZoneProperty =
+            DependencyProperty.Register(
+                nameof(ParentInclusionZone), typeof(InclusionZone), typeof(CalendarTaskObject));
+        #endregion
         #region End
-        public bool EndLock = false;
+        public bool EndLock
+        {
+            get { return (bool)GetValue(EndLockProperty); }
+            set { SetValue(EndLockProperty, value); }
+        }
+        public static readonly DependencyProperty EndLockProperty =
+            DependencyProperty.Register(
+                nameof(EndLock), typeof(bool), typeof(CalendarTaskObject));
         public DateTime End
         {
             get { return (DateTime)GetValue(EndProperty); }
@@ -103,9 +143,17 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(End), typeof(DateTime), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
+        public CalendarTaskObject RightTangent { get; set; }
         #endregion End
         #region Start
-        public bool StartLock = false;
+        public bool StartLock
+        {
+            get { return (bool)GetValue(StartLockProperty); }
+            set { SetValue(StartLockProperty, value); }
+        }
+        public static readonly DependencyProperty StartLockProperty =
+            DependencyProperty.Register(
+                nameof(StartLock), typeof(bool), typeof(CalendarTaskObject));
         public DateTime Start
         {
             get { return (DateTime)GetValue(StartProperty); }
@@ -115,6 +163,7 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(Start), typeof(DateTime), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
+        public CalendarTaskObject LeftTangent { get; set; }
         #endregion Start
         #region TaskType
         public TaskType TaskType
@@ -168,7 +217,14 @@ namespace TimekeeperWPF.Calendar
             Unconfirmed,    //SkyBlue
             Unscheduled,    //Chartreuse
         }
-        public bool StateLock = false;
+        public bool StateLock
+        {
+            get { return (bool)GetValue(StateLockProperty); }
+            set { SetValue(StateLockProperty, value); }
+        }
+        public static readonly DependencyProperty StateLockProperty =
+            DependencyProperty.Register(
+                nameof(StateLock), typeof(bool), typeof(CalendarTaskObject));
         public States State
         {
             get { return (States)GetValue(StateProperty); }
@@ -233,6 +289,10 @@ namespace TimekeeperWPF.Calendar
             StateColorPropertyKey.DependencyProperty;
         #endregion
         #region Shadow Clone
+        // ShadowClones are used in WeekViewModel when a CalObj intersects the bounds of a day.
+        // The ShadowClone is used to simulate the perception that the CalObj logically continues
+        // into the next day even though the days are visually split.
+
         /// <summary>
         ///This is configured such that CalendarObjects that normally span across more than 
         ///one day shall have additional copies for each day it occupies in this week, up to 7.
@@ -240,6 +300,7 @@ namespace TimekeeperWPF.Calendar
         /// </summary>
         public int DayOffset { get; set; } = 0;
         public bool IsPropagatingMimicry { get; private set; }
+        public bool IsMimicking { get; private set; }
         public CalendarTaskObject OriginalCalObj { get; set; } = null;
         private List<CalendarTaskObject> _Clones = null;
         public CalendarTaskObject ShadowClone()
@@ -247,18 +308,26 @@ namespace TimekeeperWPF.Calendar
             //A ShadowClone mimics the original. If either the original or the ShadowClone has
             //a property changed, the change needs to be propagated to the original and other clones.
             CalendarTaskObject KageBunshin = new CalendarTaskObject();
-            KageBunshin.Mimic(this);
             KageBunshin.OriginalCalObj = this;
             if (_Clones == null) _Clones = new List<CalendarTaskObject>();
             _Clones.Add(KageBunshin);
+            PropagateMimicry();
             return KageBunshin;
         }
         public void Mimic(CalendarTaskObject CalObj)
         {
+            IsMimicking = true;
             End = CalObj.End;
+            EndLock = CalObj.EndLock;
+            RightTangent = CalObj.RightTangent;
             Start = CalObj.Start;
+            StartLock = CalObj.StartLock;
+            LeftTangent = CalObj.LeftTangent;
             ToolTip = CalObj.ToolTip;
             ParentMap = CalObj.ParentMap;
+            ParentPerZone = CalObj.ParentPerZone;
+            ParentInclusionZone = CalObj.ParentInclusionZone;
+            IsMimicking = false;
             PropagateMimicry();
         }
         public void PropagateMimicry()
@@ -293,7 +362,7 @@ namespace TimekeeperWPF.Calendar
                 {
                     // TODO: dispose managed state (managed objects).
                     Day._Timer.Tick -= _Timer_Tick;
-                    _ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
+                    ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

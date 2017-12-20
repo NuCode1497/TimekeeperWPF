@@ -406,7 +406,7 @@ namespace TimekeeperWPF
                     bool inZ = false;
                     foreach (var N in P.CheckIns)
                     {
-                        // Refer to Plans.xlsx\CheckIns
+                        // Refer to Plans.xlsx - CheckIns
                         switch (N.Kind)
                         {
                             case CheckInKind.InclusionZoneStart:
@@ -779,28 +779,125 @@ namespace TimekeeperWPF
                 from M in TaskMaps
                 from P in M.PerZones
                 from C in P.CalTaskObjs
-                orderby C.Start
+                orderby C.ParentMap.TimeTask.Priority, C.Start
                 group C by C.ParentMap.TimeTask.Dimension;
             foreach (var dimension in calObjDimensions)
             {
+                //Clear tangents
+                foreach (var C1 in dimension)
+                {
+                    C1.LeftTangent = null;
+                    C1.RightTangent = null;
+                }
+                //look for collisions
                 bool hasChanges = true;
                 while (hasChanges)
                 {
+                    //set to true when a CO is changed
                     hasChanges = false;
                     foreach (var C1 in dimension)
                     {
                         //get any intersecting CalObjs
                         var intersections =
                             from C2 in dimension
+                            where C2 != C1
                             where C1.Intersects(C2)
+                            orderby C2.ParentMap.TimeTask.Priority, C2.Start
                             select C2;
                         foreach (var C2 in intersections)
                         {
-
+                            if (C1.Start <= C2.Start &&
+                                CalculateCollision(C1, C2))
+                                hasChanges = true;
+                            else if (CalculateCollision(C2, C1))
+                                hasChanges = true;
                         }
                     }
                 }
             }
+        }
+        private bool CalculateCollision(CalendarTaskObject C1, CalendarTaskObject C2)
+        {
+            // Refer to Plans.xlsx - Collisions
+            //Inside Collisions C1 © C2
+            if (C1.Within(C2))
+            {
+                //TODO
+                return false;
+            }
+            else if (C2.Within(C1))
+            {
+                //TODO
+                return false;
+            }
+            //Left Right Intersection Collisions C1 ∩ C2
+            if (C1.EndLock && C2.StartLock)
+            {
+                //H5 conflict
+                return false;
+            }
+            //Determine C1HasRoom, LP
+            bool C1HasRoom = true;
+            var LT = C1;
+            double LP = C1.ParentMap.TimeTask.Priority;
+            while (true)
+            {
+                //If C1.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >=LT.S or LT.LT.E🔒. 
+                //LP = C.P where C is the LT with the lowest priority from C1 to LC.
+                if (LT.ParentMap.TimeTask.Priority < LP)
+                {
+                    LP = LT.ParentMap.TimeTask.Priority;
+                }
+                //LT.HasRoom = F when LT.E🔒 or LT.S🔒 or LT.Z.S >= LT.S or LT.LT.HasRoom=F
+                if (LT.EndLock ||
+                    LT.StartLock ||
+                    LT.ParentInclusionZone?.Start >= LT.Start)
+                {
+                    C1HasRoom = false;
+                    break;
+                }
+                if (LT.LeftTangent == null)
+                {
+                    //If C1.HasRoom == T, LC is the LT where LT.LT == null. LP = LC.P.
+                    LP = LT.ParentMap.TimeTask.Priority;
+                    break;
+                }
+                else
+                {
+                    LT = LT.LeftTangent;
+                }
+            }
+            //Determine C2HasRoom, RP
+            bool C2HasRoom = true;
+            var RT = C2;
+            double RP = C2.ParentMap.TimeTask.Priority;
+            while (true)
+            {
+                if (RT.ParentMap.TimeTask.Priority < RP)
+                {
+                    RP = RT.ParentMap.TimeTask.Priority;
+                }
+                if (RT.EndLock ||
+                    RT.StartLock ||
+                    RT.ParentInclusionZone?.End <= RT.End)
+                {
+                    C2HasRoom = false;
+                    break;
+                }
+                if (RT.RightTangent == null)
+                {
+                    RP = RT.ParentMap.TimeTask.Priority;
+                    break;
+                }
+                else
+                {
+                    RT = RT.RightTangent;
+                }
+            }
+            //Determine Collision
+            //Refer to Plans.xlsx - Collisions2
+            //TODO
+            return true;
         }
         private void UnZipTaskMaps()
         {

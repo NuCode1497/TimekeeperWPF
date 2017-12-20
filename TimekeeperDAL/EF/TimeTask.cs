@@ -25,7 +25,7 @@ namespace TimekeeperDAL.EF
         [StringLength(150)]
         public string Description { get; set; }
 
-        public int Priority { get; set; }
+        public double Priority { get; set; }
         
         public bool AutoCheckIn { get; set; }
         
