@@ -77,11 +77,11 @@ namespace TimekeeperWPF.Calendar
         public bool Intersects(PerZone P) { return Intersects(P.Start, P.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
         public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
-        public bool Within(DateTime start, DateTime end) { return start <= Start && End <= end; }
-        public bool Within(CalendarTaskObject C) { return Within(C.Start, C.End); }
-        public bool Within(InclusionZone Z) { return Within(Z.Start, Z.End); }
-        public bool Within(PerZone P) { return Within(P.Start, P.End); }
-        public bool Within(TimeTask T) { return Within(T.Start, T.End); }
+        public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
+        public bool IsInside(CalendarTaskObject C) { return IsInside(C.Start, C.End); }
+        public bool IsInside(InclusionZone Z) { return IsInside(Z.Start, Z.End); }
+        public bool IsInside(PerZone P) { return IsInside(P.Start, P.End); }
+        public bool IsInside(TimeTask T) { return IsInside(T.Start, T.End); }
         #region ParentMap
         public CalendarTimeTaskMap ParentMap
         {
