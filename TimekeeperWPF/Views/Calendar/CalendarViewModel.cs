@@ -231,9 +231,8 @@ namespace TimekeeperWPF
 
             //Organize Data
             CalculateCollisions();
-            //AllocateInsufficient();
-            //AllocateFiller();
-            //CleanUpStates();
+            AllocateEmptySpace();
+            CleanUpStates();
             UnZipTaskMaps();
         }
         #region BuildTaskMaps
@@ -1170,6 +1169,304 @@ namespace TimekeeperWPF
             C2.LeftTangent = C1;
         }
         #endregion Collisions
+        #region AllocateEmptySpace
+        private void AllocateEmptySpace()
+        {
+            //Recalculate remaining allocations. Identify empty spaces. For each empty space, 
+            //check if there is any relevant task that can be allocated by priority of: 
+            //Highest priority intersecting insufficient InclusionZone, 
+            //highest priority intersecting InclusionZone that CanFill.
+            CalculateTimeConsumptions();
+            bool hasChanges = true;
+            while (hasChanges)
+            {
+                hasChanges = false;
+                var spaceDimensions = GetEmptySpaces();
+                foreach (var dimension in spaceDimensions)
+                {
+                    foreach (var space in dimension)
+                    {
+                        //find any intersecting insufficient InclusionZones
+                        var zones =
+                            from M in TaskMaps
+                            where M.TimeTask.Dimension == dimension.Key
+                            from P in M.PerZones
+                            from Z in P.InclusionZones
+                            where Z.Intersects(space)
+                            select Z;
+                        var insuffZones =
+                            from Z in zones
+                            where Z.ParentPerZone.TimeConsumption.Remaining > 0
+                            orderby Z.ParentPerZone.ParentMap.TimeTask.Priority
+                            select Z;
+                        var insuffZone = insuffZones.FirstOrDefault();
+                        if (insuffZone != null)
+                        {
+                            AllocateEmptySpacePart2(space, insuffZone);
+                            hasChanges = true;
+                        }
+                        else
+                        {
+                            //no insufficient zone found
+                            //look for CanFill zones
+                            var fillZones =
+                                from Z in zones
+                                where Z.ParentPerZone.ParentMap.TimeTask.CanFill
+                                orderby Z.ParentPerZone.ParentMap.TimeTask.Priority
+                                select Z;
+                            var fillZone = fillZones.FirstOrDefault();
+                            if (fillZone != null)
+                            {
+                                AllocateEmptySpacePart2(space, fillZone);
+                                hasChanges = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private static void AllocateEmptySpacePart2(EmptyZone space, InclusionZone inZone)
+        {
+            if (inZone.Start <= space.Start &&
+                space.Left?.ParentInclusionZone == inZone &&
+                !space.Left.EndLock)
+            {
+                var newEnd = new DateTime(Min(inZone.End.Ticks, Min(space.End.Ticks, 
+                    space.End.Ticks + (long)space.Left.ParentPerZone.TimeConsumption.Remaining)));
+                var diff = newEnd - space.Left.End;
+                space.Left.End = newEnd;
+                space.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+            }
+            else
+            if (inZone.End >= space.End &&
+                space.Right?.ParentInclusionZone == inZone &&
+                !space.Right.EndLock)
+            {
+                var newStart = new DateTime(Max(inZone.Start.Ticks, Max(space.Start.Ticks,
+                    space.Start.Ticks - (long)space.Left.ParentPerZone.TimeConsumption.Remaining)));
+                var diff = space.Right.Start - newStart;
+                space.Right.Start = newStart;
+                space.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+            }
+            else
+            {
+                var start = new DateTime(Max(inZone.Start.Ticks, space.Start.Ticks));
+                var end = new DateTime(Min(inZone.End.Ticks, Min(space.End.Ticks,
+                    start.Ticks + (long)inZone.ParentPerZone.TimeConsumption.Remaining)));
+                var C = new CalendarTaskObject
+                {
+                    Start = start,
+                    End = end,
+                    ParentMap = inZone.ParentPerZone.ParentMap,
+                    ParentPerZone = inZone.ParentPerZone,
+                    ParentInclusionZone = inZone,
+                };
+                inZone.ParentPerZone.CalTaskObjs.Add(C);
+            }
+        }
+        private void CalculateTimeConsumptions()
+        {
+            foreach (var M in TaskMaps)
+            {
+                foreach (var P in M.PerZones)
+                {
+                    TimeSpan spent = new TimeSpan(0);
+                    foreach (var C in P.CalTaskObjs)
+                        spent += C.Duration;
+                    P.TimeConsumption.Remaining = P.TimeConsumption.Allocation.Amount - spent.Ticks;
+                }
+            }
+        }
+        private List<Grouping<int, EmptyZone>> GetEmptySpaces()
+        {
+            //group COs by dimension
+            var calObjDimensions =
+                from M in TaskMaps
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                orderby C.Start
+                group C by C.ParentMap.TimeTask.Dimension;
+            var spaceDimensions = new List<Grouping<int, EmptyZone>>();
+            foreach (var dimension in calObjDimensions)
+            {
+                var spaces = new Grouping<int, EmptyZone>();
+                spaces.Key = dimension.Key;
+                //Find earliest Per
+                var start =
+                    (from M in TaskMaps
+                     where M.TimeTask.Dimension == dimension.Key
+                     from P in M.PerZones
+                     select P).Min(P =>
+                     P.Start);
+                DateTime dt = start;
+                CalendarTaskObject prev = null;
+                foreach (var C in dimension)
+                {
+                    if (dt < C.Start)
+                    {
+                        //found an empty space
+                        var Z = new EmptyZone
+                        {
+                            Start = dt,
+                            End = C.Start,
+                            Left = prev,
+                            Right = C,
+                        };
+                        spaces.Add(Z);
+                    }
+                    dt = C.End;
+                }
+                spaceDimensions.Add(spaces);
+            }
+            return spaceDimensions;
+        }
+        #endregion AllocateEmptySpace
+        #region CleanUpStates
+        private void CleanUpStates()
+        {
+            FixMisalignments();
+            FixWrongStates();
+            FlagInsufficients();
+            FlagConflicts();
+        }
+        private void FixMisalignments()
+        {
+            //If there are any CalObjs that cross a zone boundary by more than MinDur, split it. 
+            var misalignments =
+                from M in TaskMaps
+                from P in M.PerZones
+                from Z in P.InclusionZones
+                from C in P.CalTaskObjs
+                where C.ParentPerZone == Z.ParentPerZone
+                where C.Intersects(Z) && !C.IsInside(Z)
+                select C;
+            foreach (var C in misalignments)
+            {
+                if (C.Start < C.ParentInclusionZone.Start)
+                {
+                    var split = new CalendarTaskObject();
+                    split.Mimic(C);
+                    split.End = C.ParentInclusionZone.Start;
+                    split.State = CalendarTaskObject.States.Unscheduled;
+                    if (split.Duration.Ticks >= 0)
+                    {
+                        C.Start = split.End;
+                        split.ParentPerZone.CalTaskObjs.Add(split);
+                    }
+                }
+                if (C.End > C.ParentInclusionZone.End)
+                {
+                    var split = new CalendarTaskObject();
+                    split.Mimic(C);
+                    split.Start = C.ParentInclusionZone.End;
+                    split.State = CalendarTaskObject.States.Unscheduled;
+                    if (split.Duration.Ticks >= 0)
+                    {
+                        C.End = split.Start;
+                        split.ParentPerZone.CalTaskObjs.Add(split);
+                    }
+                }
+            }
+        }
+        private void FixWrongStates()
+        {
+            //If a CalObj marked Unscheduled is within a proper InclusionZone, mark it correctly. 
+            //If any CalObj not marked Unscheduled is outside of a proper InclusionZone, mark it Unscheduled.
+            var CalObjsOverZones =
+                from M in TaskMaps
+                from P in M.PerZones
+                from Z in P.InclusionZones
+                from C in P.CalTaskObjs
+                where C.ParentPerZone == Z.ParentPerZone
+                where C.Intersects(Z)
+                select C;
+            var CalObjs =
+                from M in TaskMaps
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                select C;
+            var CalObjsOutside = CalObjs.Except(CalObjsOverZones);
+            foreach (var C in CalObjsOverZones)
+            {
+                if (C.State == CalendarTaskObject.States.Unscheduled)
+                {
+                    if (C.StartLock || C.EndLock)
+                    {
+                        C.State = CalendarTaskObject.States.Confirmed;
+                    }
+                    else if (C.ParentMap.TimeTask.AutoCheckIn)
+                    {
+                        C.State = CalendarTaskObject.States.AutoConfirm;
+                    }
+                    else
+                    {
+                        C.State = CalendarTaskObject.States.Unconfirmed;
+                    }
+                }
+            }
+            foreach (var C in CalObjsOutside)
+            {
+                if (C.State != CalendarTaskObject.States.Unscheduled)
+                {
+                    C.State = CalendarTaskObject.States.Unscheduled;
+                }
+            }
+        }
+        private void FlagInsufficients()
+        {
+            //If a Per has remaining > 0, mark all of its CalObjs as Insufficient. 
+            var insuffPers =
+                from M in TaskMaps
+                from P in M.PerZones
+                where P.TimeConsumption.Remaining > 0
+                select P;
+            foreach (var P in insuffPers)
+            {
+                foreach (var C in P.CalTaskObjs)
+                {
+                    C.State = CalendarTaskObject.States.Insufficient;
+                }
+            }
+        }
+        private void FlagConflicts()
+        {
+            //If there are still collisions, mark them as Conflict. 
+            var calObjDimensions =
+                from M in TaskMaps
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                group C by C.ParentMap.TimeTask.Dimension;
+            foreach (var dimension in calObjDimensions)
+            {
+                foreach (var C1 in dimension)
+                {
+                    var intersections =
+                        from C2 in dimension
+                        where C2 != C1
+                        where C1.Intersects(C2)
+                        select C2;
+                    foreach (var C2 in intersections)
+                    {
+                        C1.State = CalendarTaskObject.States.Conflict;
+                        C2.State = CalendarTaskObject.States.Conflict;
+                    }
+                }
+            }
+            //If there are any CalObjs with no time, mark them as cancelled
+            var CalObjs =
+                from M in TaskMaps
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                select C;
+            foreach (var C in CalObjs)
+            {
+                if (C.Start == C.End)
+                {
+                    C.State = CalendarTaskObject.States.Cancel;
+                }
+            }
+        }
+        #endregion CleanUpStates
         private void UnZipTaskMaps()
         {
             CalNoteObjsCollection = new CollectionViewSource();

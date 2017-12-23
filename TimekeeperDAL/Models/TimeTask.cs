@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace TimekeeperDAL.EF
 {
-    public partial class TimeTask : TypedLabeledEntity
+    public partial class TimeTask : TypedLabeledEntity, IZone
     {
         [NotMapped]
         public string AllocationsToString
@@ -274,8 +274,8 @@ namespace TimekeeperDAL.EF
         }
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
-        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
-        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
         public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
+        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
+        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
     }
 }

@@ -143,6 +143,7 @@
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
     <Compile Include="Models\TimeTaskAllocation.cs" />
+    <Compile Include="Tools\IZone.cs" />
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="EF\TimePattern.cs" />
     <Compile Include="Fake\FakeTaskTypeSet.cs" />

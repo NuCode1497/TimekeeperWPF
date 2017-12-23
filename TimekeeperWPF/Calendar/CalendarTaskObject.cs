@@ -5,10 +5,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using TimekeeperDAL.EF;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF.Calendar
 {
-    public class CalendarTaskObject : ContentControl, IDisposable
+    public class CalendarTaskObject : ContentControl, IDisposable, IZone
     {
         static CalendarTaskObject()
         {
@@ -44,20 +45,42 @@ namespace TimekeeperWPF.Calendar
         private void _Timer_Tick(object sender, EventArgs e)
         {
             //determine the state of this object based on the current time
-            //if (DateTime.Now < Start)
-            //{
-
-            //}
-            //else if (DateTime.Now > End)
-            //{
-
-            //}
-            //else
-            //{
-            //}
+            if (DateTime.Now < Start)
+            {
+            }
+            else
+            if (DateTime.Now > End)
+            {
+                switch (State)
+                {
+                    case States.Current:
+                        State = _State;
+                        break;
+                    case States.Confirmed:
+                        State = States.Completed;
+                        break;
+                    case States.AutoConfirm:
+                        State = States.AutoCompleted;
+                        break;
+                    case States.Unconfirmed:
+                        State = States.CheckIn;
+                        break;
+                }
+            }
+            else
+            {
+                if (State != States.Current)
+                {
+                    _State = State;
+                    State = States.Current;
+                }
+            }
 
             //InvalidateArrange();
         }
+        #region Zone
+        public CalendarTaskObject LeftTangent { get; set; }
+        public CalendarTaskObject RightTangent { get; set; }
         public TimeSpan Duration => End - Start;
         public string DurationString()
         {
@@ -67,21 +90,54 @@ namespace TimekeeperWPF.Calendar
             if (Duration.Minutes > 0) s += Duration.Minutes + " minutes ";
             return s;
         }
+        #region End
+        public bool EndLock
+        {
+            get { return (bool)GetValue(EndLockProperty); }
+            set { SetValue(EndLockProperty, value); }
+        }
+        public static readonly DependencyProperty EndLockProperty =
+            DependencyProperty.Register(
+                nameof(EndLock), typeof(bool), typeof(CalendarTaskObject));
+        public DateTime End
+        {
+            get { return (DateTime)GetValue(EndProperty); }
+            set { SetValue(EndProperty, value); }
+        }
+        public static readonly DependencyProperty EndProperty =
+            DependencyProperty.Register(
+                nameof(End), typeof(DateTime), typeof(CalendarTaskObject),
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
+        #endregion End
+        #region Start
+        public bool StartLock
+        {
+            get { return (bool)GetValue(StartLockProperty); }
+            set { SetValue(StartLockProperty, value); }
+        }
+        public static readonly DependencyProperty StartLockProperty =
+            DependencyProperty.Register(
+                nameof(StartLock), typeof(bool), typeof(CalendarTaskObject));
+        public DateTime Start
+        {
+            get { return (DateTime)GetValue(StartProperty); }
+            set { SetValue(StartProperty, value); }
+        }
+        public static readonly DependencyProperty StartProperty =
+            DependencyProperty.Register(
+                nameof(Start), typeof(DateTime), typeof(CalendarTaskObject),
+                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
+        #endregion Start
         public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
         public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
         public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
-        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool Intersects(PerZone P) { return Intersects(P.Start, P.End); }
-        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
-        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
+        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
         public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
-        public bool IsInside(CalendarTaskObject C) { return IsInside(C.Start, C.End); }
-        public bool IsInside(InclusionZone Z) { return IsInside(Z.Start, Z.End); }
-        public bool IsInside(PerZone P) { return IsInside(P.Start, P.End); }
-        public bool IsInside(TimeTask T) { return IsInside(T.Start, T.End); }
+        public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
+        #endregion Zone
         #region ParentMap
         public CalendarTimeTaskMap ParentMap
         {
@@ -125,46 +181,6 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(ParentInclusionZone), typeof(InclusionZone), typeof(CalendarTaskObject));
         #endregion
-        #region End
-        public bool EndLock
-        {
-            get { return (bool)GetValue(EndLockProperty); }
-            set { SetValue(EndLockProperty, value); }
-        }
-        public static readonly DependencyProperty EndLockProperty =
-            DependencyProperty.Register(
-                nameof(EndLock), typeof(bool), typeof(CalendarTaskObject));
-        public DateTime End
-        {
-            get { return (DateTime)GetValue(EndProperty); }
-            set { SetValue(EndProperty, value); }
-        }
-        public static readonly DependencyProperty EndProperty =
-            DependencyProperty.Register(
-                nameof(End), typeof(DateTime), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
-        public CalendarTaskObject RightTangent { get; set; }
-        #endregion End
-        #region Start
-        public bool StartLock
-        {
-            get { return (bool)GetValue(StartLockProperty); }
-            set { SetValue(StartLockProperty, value); }
-        }
-        public static readonly DependencyProperty StartLockProperty =
-            DependencyProperty.Register(
-                nameof(StartLock), typeof(bool), typeof(CalendarTaskObject));
-        public DateTime Start
-        {
-            get { return (DateTime)GetValue(StartProperty); }
-            set { SetValue(StartProperty, value); }
-        }
-        public static readonly DependencyProperty StartProperty =
-            DependencyProperty.Register(
-                nameof(Start), typeof(DateTime), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
-        public CalendarTaskObject LeftTangent { get; set; }
-        #endregion Start
         #region TaskType
         public TaskType TaskType
         {
@@ -196,23 +212,23 @@ namespace TimekeeperWPF.Calendar
         #endregion TaskType
         #region States
         public bool Affirmed =>
-            State == States.AutoComplete ||
+            State == States.AutoCompleted ||
             State == States.AutoConfirm ||
             State == States.Completed ||
             State == States.Confirmed ||
-            State == States.Incomplete ||
+            State == States.Cancel ||
             State == States.Insufficient ||
             State == States.Unscheduled;
         public enum States
         {
-            AutoComplete,   //MediumAquamarine
+            AutoCompleted,   //MediumAquamarine
             AutoConfirm,    //Aquamarine
             CheckIn,        //DodgerBlue
             Completed,      //LimeGreen
             Confirmed,      //SpringGreen
             Conflict,       //Pink
             Current,        //Azure
-            Incomplete,     //Crimson
+            Cancel,     //Crimson
             Insufficient,   //Orange
             Unconfirmed,    //SkyBlue
             Unscheduled,    //Chartreuse
@@ -230,6 +246,7 @@ namespace TimekeeperWPF.Calendar
             get { return (States)GetValue(StateProperty); }
             set { SetValue(StateProperty, value); }
         }
+        private States _State;
         public static readonly DependencyProperty StateProperty =
             DependencyProperty.Register(
                 nameof(State), typeof(States), typeof(CalendarTaskObject),
@@ -250,7 +267,7 @@ namespace TimekeeperWPF.Calendar
                 case States.Confirmed:
                     CalObj.StateColor = Brushes.SpringGreen;
                     break;
-                case States.Incomplete:
+                case States.Cancel:
                     CalObj.StateColor = Brushes.Crimson;
                     break;
                 case States.Conflict:
@@ -268,7 +285,7 @@ namespace TimekeeperWPF.Calendar
                 case States.Unconfirmed:
                     CalObj.StateColor = Brushes.SkyBlue;
                     break;
-                case States.AutoComplete:
+                case States.AutoCompleted:
                     CalObj.StateColor = Brushes.MediumAquamarine;
                     break;
                 case States.AutoConfirm:

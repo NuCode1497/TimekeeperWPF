@@ -112,6 +112,7 @@
     <Compile Include="Calendar\CalendarTimeTaskMap.cs" />
     <Compile Include="Calendar\CalendarCheckIn.cs" />
     <Compile Include="Calendar\Consumption.cs" />
+    <Compile Include="Calendar\EmptyZone.cs" />
     <Compile Include="Calendar\InclusionSorter.cs" />
     <Compile Include="Calendar\InclusionZone.cs" />
     <Compile Include="Calendar\NowMarkerVertical.xaml.cs">
@@ -119,6 +120,8 @@
     </Compile>
     <Compile Include="Calendar\PerZone.cs" />
     <Compile Include="Calendar\Week.cs" />
+    <Compile Include="Calendar\Zone.cs" />
+    <Compile Include="Tools\Grouping.cs" />
     <Compile Include="Tools\InvalidatingConverter.cs" />
     <Compile Include="Tools\PluralizingConverter.cs" />
     <Compile Include="Views\Filter\FilterSelectorView.xaml.cs">
