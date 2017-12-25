@@ -16,39 +16,25 @@ using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
-    public class NotesViewModel : ViewModel<Note>
+    public class CheckInsViewModel : ViewModel<CheckIn>
     {
-        private bool _HasTimeTask;
-        public NotesViewModel() : base()
+        public CheckInsViewModel() : base()
         {
-            Sorter = new NoteDateTimeSorterDesc();
+            Sorter = new CheckInDateTimeSorterDesc();
         }
-        public override string Name => nameof(Context.Notes) + " Editor";
+        public override string Name => nameof(Context.CheckIns) + " Editor";
         public CollectionViewSource TimeTasksCollection { get; protected set; }
-        public ObservableCollection<TimeTask> TimeTasksSource => 
+        public ObservableCollection<TimeTask> TimeTasksSource =>
             TimeTasksCollection?.Source as ObservableCollection<TimeTask>;
-        public ListCollectionView TimeTasksView => 
+        public ListCollectionView TimeTasksView =>
             TimeTasksCollection?.View as ListCollectionView;
-        public bool HasTimeTask
-        {
-            get { return _HasTimeTask; }
-            set
-            {
-                _HasTimeTask = value;
-                if (CurrentEditItem != null && value == false)
-                {
-                    CurrentEditItem.TimeTask = null;
-                }
-                OnPropertyChanged();
-            }
-        }
         protected override bool CanSave => false;
-        protected override bool CanCommit => base.CanCommit && (HasTimeTask ? CurrentEditItem.TimeTask != null : true);
+        protected override bool CanCommit => base.CanCommit && CurrentEditItem.TimeTask != null;
         protected override async Task GetDataAsync()
         {
             Context = new TimeKeeperContext();
-            await Context.Notes.LoadAsync();
-            Items.Source = Context.Notes.Local;
+            await Context.CheckIns.LoadAsync();
+            Items.Source = Context.CheckIns.Local;
 
             TimeTasksCollection = new CollectionViewSource();
             await Context.TimeTasks.LoadAsync();
@@ -57,10 +43,10 @@ namespace TimekeeperWPF
         }
         protected override void AddNew()
         {
-            CurrentEditItem = new Note
+            CurrentEditItem = new CheckIn
             {
                 DateTime = DateTime.Now,
-                Text = "Your text here."
+                Start = true
             };
             View.AddNewItem(CurrentEditItem);
             base.AddNew();

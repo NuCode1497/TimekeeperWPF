@@ -34,22 +34,19 @@ namespace TimekeeperWPF
         private bool _IsSaving = false;
         private ModelType _SelectedItem;
         private ModelType _CurrentEditItem;
-        private ICommand _GetDataCommand = null;
-        private ICommand _NewItemCommand = null;
-        private ICommand _CancelCommand = null;
-        private ICommand _CommitCommand = null;
-        private ICommand _EditSelectedCommand = null;
-        private ICommand _DeleteSelectedCommand = null;
-        private ICommand _SaveAsCommand = null;
+        private ICommand _GetDataCommand;
+        private ICommand _NewItemCommand;
+        private ICommand _CancelCommand;
+        private ICommand _CommitCommand;
+        private ICommand _EditSelectedCommand;
+        private ICommand _DeleteSelectedCommand;
+        private ICommand _SaveAsCommand;
         #endregion
         #region Properties
         public abstract string Name { get; }
         public String Status
         {
-            get
-            {
-                return _status;
-            }
+            get { return _status; }
             protected set
             {
                 _status = value;
@@ -181,14 +178,14 @@ namespace TimekeeperWPF
         public bool HasNotSelected => !HasSelected;
         #endregion
         #region Commands
-        public ICommand GetDataCommand => _GetDataCommand
-            ?? (_GetDataCommand = new RelayCommand(async ap => await LoadData(), pp => CanGetData));
-        public ICommand NewItemCommand => _NewItemCommand
-            ?? (_NewItemCommand = new RelayCommand(ap => AddNew(), pp => CanAddNew));
         public ICommand CancelCommand => _CancelCommand
             ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
         public ICommand CommitCommand => _CommitCommand
             ?? (_CommitCommand = new RelayCommand(ap => Commit(), pp => CanCommit));
+        public ICommand GetDataCommand => _GetDataCommand
+            ?? (_GetDataCommand = new RelayCommand(async ap => await LoadDataAsync(), pp => CanGetData));
+        public ICommand NewItemCommand => _NewItemCommand
+            ?? (_NewItemCommand = new RelayCommand(ap => AddNew(), pp => CanAddNew));
         public ICommand EditSelectedCommand => _EditSelectedCommand
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
@@ -197,19 +194,19 @@ namespace TimekeeperWPF
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         #endregion
         #region Predicates
-        protected virtual bool CanGetData => IsNotSaving && IsNotLoading;
-        protected virtual bool CanAddNew => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew && (View?.CanAddNew ?? false);
         protected virtual bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
-        protected virtual bool CanCommit => IsNotSaving && IsEditingItemOrAddingNew && !CurrentEditItem.HasErrors;
-        protected virtual bool CanDeselect => IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
-        protected virtual bool CanEditSelected => IsNotSaving && IsEnabled && HasSelected && IsNotEditingItemOrAddingNew;
-        protected virtual bool CanDeleteSelected => IsNotSaving && IsEnabled && HasSelected && IsNotEditingItemOrAddingNew && (View?.CanRemove ?? false);
-        protected virtual bool CanSave => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanCommit => IsNotSaving && IsEditingItemOrAddingNew && !(CurrentEditItem?.HasErrors ?? true);
+        protected virtual bool CanGetData => IsNotSaving && IsNotLoading;
+        private bool IsReady => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanAddNew => IsReady && (View?.CanAddNew ?? false);
+        protected virtual bool CanEditSelected => IsReady && HasSelected;
+        protected virtual bool CanDeleteSelected => IsReady && HasSelected && (View?.CanRemove ?? false);
+        protected virtual bool CanSave => IsReady;
         #endregion
         #region Actions
         protected abstract Task GetDataAsync();
         protected abstract void SaveAs();
-        public virtual async Task LoadData()
+        public virtual async Task LoadDataAsync()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -232,7 +229,6 @@ namespace TimekeeperWPF
             {
                 ExceptionViewer ev = new ExceptionViewer(String.Format("Error Loading {0} Data", Name), ex);
                 ev.ShowDialog();
-                //MessageBox.Show(ex.Message, String.Format("Error Loading {0} Data", Name), MessageBoxButton.OK, MessageBoxImage.Error);
                 Status = "Failed to get data!";
             }
             IsLoading = false;
@@ -240,6 +236,7 @@ namespace TimekeeperWPF
         }
         protected virtual void AddNew()
         {
+            if (CurrentEditItem == null || !View.IsAddingNew) throw new Exception(nameof(ModelType) + " needs to override AddNew()");
             SelectedItem = null;
             IsAddingNew = true;
             Status = "Adding new " + nameof(ModelType);

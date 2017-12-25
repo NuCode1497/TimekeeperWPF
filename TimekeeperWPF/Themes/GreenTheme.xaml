@@ -34,12 +34,23 @@ MMM d</clr:String>
     <SolidColorBrush x:Key="Week.MonthBoundsHighlight" Color="LightGray"/>
     <SolidColorBrush x:Key="Week.MonthBoundsWatermarkBrush" Color="MintCream"/>
     <SolidColorBrush x:Key="CalendarTitleBar.Background" Color="AliceBlue"/>
-    <SolidColorBrush x:Key="CalendarObject.Note.Background" Color="BlanchedAlmond"/>
-    <SolidColorBrush x:Key="CalendarObject.Sleep.Background" Color="#7F7B1EFF"/>
-    <SolidColorBrush x:Key="CalendarObject.Eat.Background" Color="#7FFF9A21"/>
-    <SolidColorBrush x:Key="CalendarObject.Work.Background" Color="#7FE81E33"/>
-    <SolidColorBrush x:Key="CalendarObject.Chore.Background" Color="#7FE8DF1E"/>
-    <SolidColorBrush x:Key="CalendarObject.Play.Background" Color="#7F21FF49"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Note" Color="BlanchedAlmond"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Sleep" Color="#7F7B1EFF"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Eat" Color="#7FFF9A21"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Work" Color="#7FE81E33"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Chore" Color="#7FE8DF1E"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Play" Color="#7F21FF49"/>
+    <SolidColorBrush x:Key="CalendarObject.State.AutoCompleted" Color="MediumAquamarine"/>
+    <SolidColorBrush x:Key="CalendarObject.State.AutoConfirm" Color="Aquamarine"/>
+    <SolidColorBrush x:Key="CalendarObject.State.CheckIn" Color="DodgerBlue"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Completed" Color="LimeGreen"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Confirmed" Color="SpringGreen"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Conflict" Color="Pink"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Current" Color="Azure"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Cancel" Color="Crimson"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Insufficient" Color="Orange"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Unconfirmed" Color="SkyBlue"/>
+    <SolidColorBrush x:Key="CalendarObject.State.Unscheduled" Color="Chartreuse"/>
     <RadialGradientBrush x:Key="TinyButton.Delete.Background.Static">
         <GradientStop Color="Red" Offset="0.432"/>
         <GradientStop Color="Black" Offset="0.932"/>

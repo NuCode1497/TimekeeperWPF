@@ -22,21 +22,30 @@ namespace TimekeeperWPF
         private int _SelectedMonthOverride = DateTime.Now.Month;
         public WeekViewModel() : base()
         {
-            SelectedDate = DateTime.Now;
+            Start = DateTime.Now;
         }
         #region Properties
         public override string Name => "Week View";
-        public override DateTime SelectedDate
+        public override DateTime Start
         {
-            get => base.SelectedDate;
+            get => base.Start;
             set
             {
                 //Here we intercept and set the date to the first of the week
-                base.SelectedDate = value.WeekStart();
+                base.Start = value.WeekStart();
                 SelectedMonthOverride = value.Month;
             }
         }
-        public override DateTime EndDate => SelectedDate.AddDays(7);
+        public override DateTime End
+        {
+            get
+            {
+                return Start.AddDays(7);
+            }
+            set
+            {
+            }
+        }
         public int SelectedMonthOverride
         {
             get { return _SelectedMonthOverride; }
@@ -59,7 +68,7 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        protected override void AdditionalCalObjSetup(CalendarTaskObject CalObj)
+        protected override void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj)
         {
             ShadowClone(CalObj);
         }
@@ -70,8 +79,8 @@ namespace TimekeeperWPF
                 //CalObj covers more than one day, so we need to make copies and set
                 //the DayOffset property to help Week panel, otherwise it will not be
                 //displayed properly and only show up on one day.
-                int startDayOfWeek = (int)(CalObj.Start.Date - SelectedDate.WeekStart()).TotalDays.Within(0, 6);
-                int endDayOfWeek = (int)(CalObj.End.Date - SelectedDate.WeekStart()).TotalDays.Within(0, 6);
+                int startDayOfWeek = (int)(CalObj.Start.Date - Start.WeekStart()).TotalDays.Within(0, 6);
+                int endDayOfWeek = (int)(CalObj.End.Date - Start.WeekStart()).TotalDays.Within(0, 6);
                 int numExtraDays = endDayOfWeek - startDayOfWeek;
                 CalObj.DayOffset = 0;
                 for (int i = 1; i <= numExtraDays; i++)
@@ -85,12 +94,12 @@ namespace TimekeeperWPF
         }
         protected override async Task PreviousAsync()
         {
-            SelectedDate = SelectedDate.AddDays(-7);
+            Start = Start.AddDays(-7);
             await base.PreviousAsync();
         }
         protected override async Task NextAsync()
         {
-            SelectedDate = SelectedDate.AddDays(7);
+            Start = Start.AddDays(7);
             await base.NextAsync();
         }
         #endregion

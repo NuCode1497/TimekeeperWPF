@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
              d:DesignHeight="30" d:DesignWidth="200">
     <UserControl.Triggers>
@@ -12,7 +11,7 @@
         </EventTrigger>
     </UserControl.Triggers>
     <Grid Height="11" VerticalAlignment="Center">
-        <Path x:Name="MarkyMcMarkFace" Data="M1.4902204,2.5 L-98.50978,2.5" 
+        <Path x:Name="MarkyMcMarkFace" Data="M1.5,2.5 L-100,2.5" 
               StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
               Stretch="Fill" VerticalAlignment="Center" >
             <Path.Stroke>

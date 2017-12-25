@@ -11,12 +11,10 @@ namespace TimekeeperDAL.EF
         public int Id { get; set; }
 
         [Required]
-        [StringLength(10)]
-        public string Text { get; set; }
-
-        [Required]
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
+        
+        public bool Start { get; set; }
 
         [Required]
         public TimeTask TimeTask { get; set; }

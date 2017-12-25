@@ -36,5 +36,8 @@
     <DataTemplate DataType="{x:Type local:MonthWeekViewModel}">
         <local:MonthWeekView/>
     </DataTemplate>
+    <DataTemplate DataType="{x:Type local:CheckInsViewModel}">
+        <local:CheckInsView/>
+    </DataTemplate>
     <!--#endregion-->
 </ResourceDictionary>

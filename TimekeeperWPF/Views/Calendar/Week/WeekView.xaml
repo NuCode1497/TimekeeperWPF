@@ -15,25 +15,31 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
-                 SelectedItem="{Binding Path=SelectedCalendarObject}"
-                 Style="{StaticResource CalObjsListBoxStyle}">
+            <ListBox 
+                x:Name="CalendarObjectsIC" Grid.Row="2"
+                SelectedItem="{Binding Path=SelectedCalendarObject}"
+                Style="{StaticResource CalObjsListBoxStyle}">
                 <ListBox.Resources>
                     <CollectionContainer 
-                    x:Key="CalTaskObjs"
-                    Collection="{Binding DataContext.CalTaskObjsView, 
-                    Source={x:Reference CalendarObjectsIC}}"/>
+                        x:Key="CalCIObjs"
+                        Collection="{Binding DataContext.CalCIObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
                     <CollectionContainer 
-                    x:Key="CalNoteObjs"
-                    Collection="{Binding DataContext.CalNoteObjsView, 
-                    Source={x:Reference CalendarObjectsIC}}"/>
+                        x:Key="CalNoteObjs"
+                        Collection="{Binding DataContext.CalNoteObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                    <CollectionContainer 
+                        x:Key="CalTaskObjs"
+                        Collection="{Binding DataContext.CalTaskObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
                 </ListBox.Resources>
                 <ItemsControl.ItemsSource>
                     <CompositeCollection>
+                        <StaticResource ResourceKey="CalTaskObjs"/>
+                        <StaticResource ResourceKey="CalCIObjs"/>
+                        <StaticResource ResourceKey="CalNoteObjs"/>
                         <cal:NowMarkerHorizontal/>
                         <cal:NowMarkerVertical/>
-                        <StaticResource ResourceKey="CalTaskObjs"/>
-                        <StaticResource ResourceKey="CalNoteObjs"/>
                     </CompositeCollection>
                 </ItemsControl.ItemsSource>
                 <ItemsControl.ItemsPanel>
@@ -42,8 +48,9 @@
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ListBox>
-            <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
-                        Template="{StaticResource CalendarTitleBarTemplate}">
+            <ContentControl
+                x:Name="CalendarTitleBar" Grid.Row="1" 
+                Template="{StaticResource CalendarTitleBarTemplate}">
                 <Grid Width="360">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -52,30 +59,28 @@
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <TextBlock Text="Week of" 
-                        Style="{StaticResource CalendarTitleBarTextStyle}"/>
-                        <TextBlock Text="{Binding Path=WeekString, FallbackValue='QQQQQQQQQ 88, 7777'}" 
-                        Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                            Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                        <TextBlock Text="{Binding Path=WeekString, FallbackValue='QQQQQQQQQ 77, 7777'}" 
+                            Style="{StaticResource CalendarTitleBarTextStyle}"/>
                     </StackPanel>
                 </Grid>
             </ContentControl>
             <ContentControl
-            x:Name="CommandsToolbar" Grid.Row="0" 
-            Template="{StaticResource CalendarViewControlsTemplate}"/>
+                x:Name="CommandsToolbar" Grid.Row="0" 
+                Template="{StaticResource CalendarViewControlsTemplate}"/>
         </Grid>
-        <Grid DataContext="{Binding Path=NotesVM}">
-            <ContentControl x:Name="EditNotePopUp"
-                IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
-                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-                FallbackValue=Collapsed,
-                Converter={StaticResource BooleanToVisibilityConverter}}"
-                Template="{StaticResource EditPopUpTemplate}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <local:EditNoteView 
-                        x:Name="DataEditor" 
-                        DataContext="{Binding Path=CurrentEditItem}"/>
-                </ScrollViewer>
-            </ContentControl>
-        </Grid>
+        <ContentControl x:Name="EditNotePopUp"
+            IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
+            Visibility="{Binding Path=NotesVM.IsEditingItemOrAddingNew, 
+            FallbackValue=Collapsed,
+            Converter={StaticResource BooleanToVisibilityConverter}}"
+            Template="{StaticResource EditPopUpTemplate}">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <local:EditNoteView 
+                    x:Name="DataEditor" 
+                    DataContext="{Binding Path=NotesVM.CurrentEditItem}"/>
+            </ScrollViewer>
+        </ContentControl>
         <local:LoadingView/>
     </Grid>
 </UserControl>

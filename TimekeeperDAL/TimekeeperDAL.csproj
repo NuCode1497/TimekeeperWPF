@@ -127,6 +127,10 @@
     <Compile Include="Migrations\201712192308055_PriorityDouble.Designer.cs">
       <DependentUpon>201712192308055_PriorityDouble.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712240641136_CheckInSimplified.cs" />
+    <Compile Include="Migrations\201712240641136_CheckInSimplified.Designer.cs">
+      <DependentUpon>201712240641136_CheckInSimplified.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\CheckIn.cs" />
     <Compile Include="Models\Label.cs" />
@@ -220,6 +224,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712192308055_PriorityDouble.resx">
       <DependentUpon>201712192308055_PriorityDouble.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712240641136_CheckInSimplified.resx">
+      <DependentUpon>201712240641136_CheckInSimplified.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

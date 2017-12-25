@@ -13,35 +13,32 @@ namespace TimekeeperWPF
 {
     public class DayViewModel : CalendarViewModel
     {
-        #region Fields
-        #endregion
-        public DayViewModel() : base()
-        {
-        }
-        #region Properties
         public override string Name => "Day View";
-        #endregion
-        #region Predicates
         protected override bool CanSave => false;
         protected override bool CanSelectDay => false;
-
-        public override DateTime EndDate => SelectedDate.AddDays(1);
-        #endregion
-        #region Actions
+        public override DateTime End
+        {
+            get
+            {
+                return Start.AddDays(1);
+            }
+            set
+            {
+            }
+        }
         protected override void SaveAs()
         {
             throw new NotImplementedException();
         }
         protected override async Task PreviousAsync()
         {
-            SelectedDate = SelectedDate.AddDays(-1);
+            Start = Start.AddDays(-1);
             await base.PreviousAsync();
         }
         protected override async Task NextAsync()
         {
-            SelectedDate = SelectedDate.AddDays(1);
+            Start = Start.AddDays(1);
             await base.NextAsync();
         }
-        #endregion
     }
 }

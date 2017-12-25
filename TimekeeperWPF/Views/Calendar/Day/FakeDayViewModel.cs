@@ -16,9 +16,6 @@ namespace TimekeeperWPF
         {
             await Task.Delay(0);
 
-            Context = new FakeTimeKeeperContext();
-            Items.Source = Context.Notes.Local;
-
             CalTaskObjsCollection = new CollectionViewSource();
             CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>()
             {

@@ -52,6 +52,12 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
+        protected override void AddNew()
+        {
+            CurrentEditItem = new Resource();
+            View.AddNewItem(CurrentEditItem);
+            base.AddNew();
+        }
         #endregion
     }
 }

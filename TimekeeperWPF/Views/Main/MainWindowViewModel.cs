@@ -38,12 +38,13 @@ namespace TimekeeperWPF
             _WeekVM.RequestViewChange += OnRequestViewChange;
             _DayVM.RequestViewChange += OnRequestViewChange;
 
-            Views.Add(new TimeTasksViewModel());
-            Views.Add(new TimePatternsViewModel());
-            Views.Add(new NotesViewModel());
             Views.Add(_WeekVM);
             Views.Add(_DayVM);
             Views.Add(_MonthVM);
+            Views.Add(new TimeTasksViewModel());
+            Views.Add(new TimePatternsViewModel());
+            Views.Add(new NotesViewModel());
+            Views.Add(new CheckInsViewModel());
             Views.Add(new LabelsViewModel());
             Views.Add(new ResourcesViewModel());
             Views.Add(new TaskTypesViewModel());
@@ -88,15 +89,15 @@ namespace TimekeeperWPF
             switch (e.Type) 
             {
                 case CalendarViewType.Day:
-                    _DayVM.SelectedDate = e.Date;
+                    _DayVM.Start = e.Date;
                     Navigate(_DayVM);
                     break;
                 case CalendarViewType.Week:
-                    _WeekVM.SelectedDate = e.Date;
+                    _WeekVM.Start = e.Date;
                     Navigate(_WeekVM);
                     break;
                 case CalendarViewType.Month:
-                    _MonthVM.SelectedDate = e.Date;
+                    _MonthVM.Start = e.Date;
                     Navigate(_MonthVM);
                     break;
                 case CalendarViewType.Year:

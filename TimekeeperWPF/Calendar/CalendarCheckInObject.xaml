@@ -1,8 +1,9 @@
-﻿<UserControl x:Class="TimekeeperWPF.Calendar.CalendarNoteObject"
+﻿<UserControl x:Class="TimekeeperWPF.Calendar.CalendarCheckInObject"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
              d:DesignHeight="30" d:DesignWidth="200">
     <Grid Height="20" VerticalAlignment="Center">
@@ -10,7 +11,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="&#x1f4dc;"/>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="&#x1f512;"/>
         <Path Grid.Column="1" Data="M16.5,10 L200,10" HorizontalAlignment="Left"
               StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
               Stretch="Fill" Stroke="Black" VerticalAlignment="Center"/>

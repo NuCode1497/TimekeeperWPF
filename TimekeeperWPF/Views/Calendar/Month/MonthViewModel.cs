@@ -19,28 +19,32 @@ namespace TimekeeperWPF
 {
     public class MonthViewModel : CalendarViewModel
     {
-        #region Fields
         private MonthWeekViewModel _SelectedWeek;
         private bool _HasSelectedWeek = false;
-        #endregion
-        public MonthViewModel() : base()
-        {
-        }
         #region Properties
         public override string Name => "Month View";
         public CollectionViewSource MonthWeeksCollection { get; set; }
         public ObservableCollection<MonthWeekViewModel> MonthWeeksSource => MonthWeeksCollection.Source as ObservableCollection<MonthWeekViewModel>;
         public ListCollectionView MonthWeeksView => MonthWeeksCollection.View as ListCollectionView;
-        public override DateTime SelectedDate
+        public override DateTime Start
         {
-            get { return base.SelectedDate; }
+            get { return base.Start; }
             set
             {
                 DateTime newValue = value.MonthStart();
-                base.SelectedDate = newValue;
+                base.Start = newValue;
             }
         }
-        public override DateTime EndDate => SelectedDate.AddMonths(1);
+        public override DateTime End
+        {
+            get
+            {
+                return Start.AddMonths(1);
+            }
+            set
+            {
+            }
+        }
         public MonthWeekViewModel SelectedWeek
         {
             get { return _SelectedWeek; }
@@ -87,10 +91,9 @@ namespace TimekeeperWPF
         public bool HasNotSelectedWeek => !HasSelectedWeek;
         #endregion
         #region Predicates
-        protected override bool CanAddNew => false;
+        protected override bool CanAddNew(CalendarObjectTypes CO) { return false; }
         protected override bool CanCancel => false;
         protected override bool CanCommit => false;
-        protected override bool CanDeselect => false;
         protected override bool CanEditSelected => false;
         protected override bool CanDeleteSelected => false;
         protected override bool CanSave => false;
@@ -103,8 +106,8 @@ namespace TimekeeperWPF
         #region Actions
         protected override void SelectWeek()
         {
-            DateTime selectedDate = SelectedDate;
-            if (HasSelectedWeek) selectedDate = SelectedWeek.SelectedDate;
+            DateTime selectedDate = Start;
+            if (HasSelectedWeek) selectedDate = SelectedWeek.Start;
             RequestViewChangeEventArgs e = new RequestViewChangeEventArgs(
                 CalendarViewType.Week, selectedDate);
             OnRequestViewChange(e);
@@ -142,14 +145,14 @@ namespace TimekeeperWPF
         }
         protected override async Task PreviousAsync()
         {
-            DateTime previousMonth = SelectedDate.AddMonths(-1);
-            SelectedDate = previousMonth;
+            DateTime previousMonth = Start.AddMonths(-1);
+            Start = previousMonth;
             await LoadData();
         }
         protected override async Task NextAsync()
         {
-            DateTime nextMonth = SelectedDate.AddMonths(1);
-            SelectedDate = nextMonth;
+            DateTime nextMonth = Start.AddMonths(1);
+            Start = nextMonth;
             await LoadData();
         }
         private async Task SetUpCalendarObjects()
@@ -157,16 +160,16 @@ namespace TimekeeperWPF
             await Task.Delay(0);
             MonthWeeksCollection = new CollectionViewSource();
             MonthWeeksCollection.Source = new ObservableCollection<MonthWeekViewModel>();
-            int numWeeks = SelectedDate.MonthWeeks();
-            DateTime firstDay = new DateTime(SelectedYear, SelectedMonth, 1);
+            int numWeeks = Start.MonthWeeks();
+            DateTime firstDay = new DateTime(Year, Month, 1);
             for (int i = 0; i < numWeeks; i++)
             {
                 //TODO: any way to make this more efficient? This is creating up to 6 copies of
                 //DbContexts for each month. Are these getting disposed?
                 MonthWeekViewModel week = new MonthWeekViewModel();
                 week.GetDataCommand.Execute(null);
-                week.SelectedDate = firstDay.AddDays(7 * i);
-                week.SelectedMonthOverride = SelectedMonth;
+                week.Start = firstDay.AddDays(7 * i);
+                week.SelectedMonthOverride = Month;
                 week.TextMargin = TextMargin;
                 MonthWeeksView.AddNewItem(week);
                 MonthWeeksView.CommitNew();

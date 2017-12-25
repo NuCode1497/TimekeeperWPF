@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using TimekeeperDAL.Tools;
 
@@ -7,6 +6,14 @@ namespace TimekeeperDAL.EF
 {
     public partial class CheckIn : EntityBase
     {
+        public override string ToString()
+        {
+            return DateTime.ToString() + " - " + TimeTask + " - " + (Start ? "Start" : "End");
+        }
+
+        [NotMapped]
+        public bool End => !Start;
+
         [NotMapped]
         public override string this[string columnName]
         {
@@ -16,16 +23,6 @@ namespace TimekeeperDAL.EF
                 bool hasError = false;
                 switch (columnName)
                 {
-                    case nameof(Text):
-                        if (!TextChoices.Contains(Text))
-                        {
-                            AddError(nameof(Text), String.Format("{0} must be: {1}",
-                                nameof(Text),
-                                String.Join(", ", Text)));
-                            hasError = true;
-                        }
-                        errors = GetErrorsFromAnnotations(nameof(Text), Text);
-                        break;
                     case nameof(TimeTask):
                         errors = GetErrorsFromAnnotations(nameof(TimeTask), TimeTask);
                         break;
@@ -42,12 +39,5 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
-
-        [NotMapped]
-        public static readonly List<string> TextChoices = new List<string>
-        {
-            "start",
-            "end",
-        };
     }
 }

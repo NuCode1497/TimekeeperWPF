@@ -277,5 +277,7 @@ namespace TimekeeperDAL.EF
         public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
         public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
+        public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
+        public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
     }
 }

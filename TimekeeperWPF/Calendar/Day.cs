@@ -894,6 +894,11 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarNoteObject)
                 {
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
+                }
+                else if (actualChild is CalendarCheckInObject)
+                {
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
                 }
                 else
                 {
@@ -928,6 +933,11 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarNoteObject)
                 {
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
+                }
+                else if (actualChild is CalendarCheckInObject)
+                {
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
                 }
                 else
                 {
@@ -983,7 +993,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         x = TextMargin;
-                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale;
+                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
@@ -1018,6 +1028,23 @@ namespace TimekeeperWPF.Calendar
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
                         child.Visibility = Visibility.Visible;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
+                        x = TextMargin;
+                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                    }
+                    else
+                    {
+                        child.Visibility = Visibility.Collapsed;
+                        continue;
+                    }
+                }
+                else if (actualChild is CalendarCheckInObject)
+                {
+                    CalendarCheckInObject CalObj = actualChild as CalendarCheckInObject;
+                    if (IsDateTimeRelevant(CalObj.DateTime))
+                    {
+                        child.Visibility = Visibility.Visible;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         x = TextMargin;
                         y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
                     }
@@ -1066,7 +1093,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         //y = 0
-                        x = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale;
+                        x = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
                     {
@@ -1101,6 +1128,23 @@ namespace TimekeeperWPF.Calendar
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
                         child.Visibility = Visibility.Visible;
+                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
+                        y = TextMargin;
+                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                    }
+                    else
+                    {
+                        child.Visibility = Visibility.Collapsed;
+                        continue;
+                    }
+                }
+                else if (actualChild is CalendarCheckInObject)
+                {
+                    CalendarCheckInObject CalObj = actualChild as CalendarCheckInObject;
+                    if (IsDateTimeRelevant(CalObj.DateTime))
+                    {
+                        child.Visibility = Visibility.Visible;
+                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         y = TextMargin;
                         x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
                     }

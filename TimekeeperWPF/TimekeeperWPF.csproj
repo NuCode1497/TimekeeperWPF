@@ -106,6 +106,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Calendar\CalendarCheckInObject.xaml.cs">
+      <DependentUpon>CalendarCheckInObject.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Calendar\CalendarNoteObject.xaml.cs">
       <DependentUpon>CalendarNoteObject.xaml</DependentUpon>
     </Compile>
@@ -121,6 +124,15 @@
     <Compile Include="Calendar\PerZone.cs" />
     <Compile Include="Calendar\Week.cs" />
     <Compile Include="Calendar\Zone.cs" />
+    <Compile Include="Tools\BoolToStartEndConverter.cs" />
+    <Compile Include="Views\CheckIn\CheckInDateTimeSorter.cs" />
+    <Compile Include="Views\CheckIn\CheckInsView.xaml.cs">
+      <DependentUpon>CheckInsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CheckIn\CheckInsViewModel.cs" />
+    <Compile Include="Views\CheckIn\EditCheckInView.xaml.cs">
+      <DependentUpon>EditCheckInView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\Grouping.cs" />
     <Compile Include="Tools\InvalidatingConverter.cs" />
     <Compile Include="Tools\PluralizingConverter.cs" />
@@ -238,6 +250,10 @@
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Week\WeekViewModel.cs" />
+    <Page Include="Calendar\CalendarCheckInObject.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Calendar\CalendarNoteObject.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -247,6 +263,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Calendar\NowMarkerHorizontal.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CheckIn\CheckInsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CheckIn\EditCheckInView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

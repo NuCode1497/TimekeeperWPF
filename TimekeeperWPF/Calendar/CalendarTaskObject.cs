@@ -26,8 +26,8 @@ namespace TimekeeperWPF.Calendar
         public CalendarTaskObject()
         {
             Day._Timer.Tick += _Timer_Tick;
-            if (ParentMap != null)
-                ParentMap.TimeTask.PropertyChanged += OnParentEntityPropertyChanged;
+            if (ParentPerZone?.ParentMap != null)
+                ParentPerZone.ParentMap.TimeTask.PropertyChanged += OnParentEntityPropertyChanged;
         }
         private void OnParentEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -133,33 +133,34 @@ namespace TimekeeperWPF.Calendar
         public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
         public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
+        public bool Intersects(CalendarCheckInObject CI) { return Intersects(CI.DateTime); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
         public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
         public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
         public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
         #endregion Zone
         #region ParentMap
-        public CalendarTimeTaskMap ParentMap
-        {
-            get { return (CalendarTimeTaskMap)GetValue(ParentMapProperty); }
-            set { SetValue(ParentMapProperty, value); }
-        }
-        public static readonly DependencyProperty ParentMapProperty =
-            DependencyProperty.Register(
-                nameof(ParentMap), typeof(CalendarTimeTaskMap), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(null,
-                    null,
-                    new CoerceValueCallback(OnCoerceParentMap)));
-        private static CalendarTimeTaskMap OnCoerceParentMap(DependencyObject d, object value)
-        {
-            CalendarTaskObject CalObj = d as CalendarTaskObject;
-            CalendarTimeTaskMap NewValue = (CalendarTimeTaskMap)value;
-            if (CalObj.ParentMap != null)
-                CalObj.ParentMap.TimeTask.PropertyChanged -= CalObj.OnParentEntityPropertyChanged;
-            NewValue.TimeTask.PropertyChanged += CalObj.OnParentEntityPropertyChanged;
-            CalObj.TaskType = NewValue.TimeTask.TaskType;
-            return NewValue;
-        }
+        //public CalendarTimeTaskMap ParentMap
+        //{
+        //    get { return (CalendarTimeTaskMap)GetValue(ParentMapProperty); }
+        //    set { SetValue(ParentMapProperty, value); }
+        //}
+        //public static readonly DependencyProperty ParentMapProperty =
+        //    DependencyProperty.Register(
+        //        nameof(ParentMap), typeof(CalendarTimeTaskMap), typeof(CalendarTaskObject),
+        //        new FrameworkPropertyMetadata(null,
+        //            null,
+        //            new CoerceValueCallback(OnCoerceParentMap)));
+        //private static CalendarTimeTaskMap OnCoerceParentMap(DependencyObject d, object value)
+        //{
+        //    CalendarTaskObject CalObj = d as CalendarTaskObject;
+        //    CalendarTimeTaskMap NewValue = (CalendarTimeTaskMap)value;
+        //    if (CalObj.ParentMap != null)
+        //        CalObj.ParentMap.TimeTask.PropertyChanged -= CalObj.OnParentEntityPropertyChanged;
+        //    NewValue.TimeTask.PropertyChanged += CalObj.OnParentEntityPropertyChanged;
+        //    CalObj.TaskType = NewValue.TimeTask.TaskType;
+        //    return NewValue;
+        //}
         #endregion
         #region ParentPerZone
         public PerZone ParentPerZone
@@ -169,7 +170,20 @@ namespace TimekeeperWPF.Calendar
         }
         public static readonly DependencyProperty ParentPerZoneProperty =
             DependencyProperty.Register(
-                nameof(ParentPerZone), typeof(PerZone), typeof(CalendarTaskObject));
+                nameof(ParentPerZone), typeof(PerZone), typeof(CalendarTaskObject),
+                new FrameworkPropertyMetadata(null,
+                    null,
+                    new CoerceValueCallback(OnCoerceParentPerZone)));
+        private static PerZone OnCoerceParentPerZone(DependencyObject d, object value)
+        {
+            CalendarTaskObject CalObj = d as CalendarTaskObject;
+            PerZone NewValue = (PerZone)value;
+            if (CalObj.ParentPerZone != null)
+                CalObj.ParentPerZone.ParentMap.TimeTask.PropertyChanged -= CalObj.OnParentEntityPropertyChanged;
+            NewValue.ParentMap.TimeTask.PropertyChanged += CalObj.OnParentEntityPropertyChanged;
+            CalObj.TaskType = NewValue.ParentMap.TimeTask.TaskType;
+            return NewValue;
+        }
         #endregion
         #region ParentInclusionZone
         public InclusionZone ParentInclusionZone
@@ -221,14 +235,14 @@ namespace TimekeeperWPF.Calendar
             State == States.Unscheduled;
         public enum States
         {
-            AutoCompleted,   //MediumAquamarine
+            AutoCompleted,  //MediumAquamarine
             AutoConfirm,    //Aquamarine
             CheckIn,        //DodgerBlue
             Completed,      //LimeGreen
             Confirmed,      //SpringGreen
             Conflict,       //Pink
             Current,        //Azure
-            Cancel,     //Crimson
+            Cancel,         //Crimson
             Insufficient,   //Orange
             Unconfirmed,    //SkyBlue
             Unscheduled,    //Chartreuse
@@ -250,60 +264,7 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty StateProperty =
             DependencyProperty.Register(
                 nameof(State), typeof(States), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(States.Unconfirmed,
-                    new PropertyChangedCallback(OnStateChanged)));
-        public static void OnStateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            CalendarTaskObject CalObj = d as CalendarTaskObject;
-            States value = (States)e.NewValue;
-            switch (value)
-            {
-                case States.Current:
-                    CalObj.StateColor = Brushes.Azure;
-                    break;
-                case States.Completed:
-                    CalObj.StateColor = Brushes.LimeGreen;
-                    break;
-                case States.Confirmed:
-                    CalObj.StateColor = Brushes.SpringGreen;
-                    break;
-                case States.Cancel:
-                    CalObj.StateColor = Brushes.Crimson;
-                    break;
-                case States.Conflict:
-                    CalObj.StateColor = Brushes.Pink;
-                    break;
-                case States.Insufficient:
-                    CalObj.StateColor = Brushes.Orange;
-                    break;
-                case States.CheckIn:
-                    CalObj.StateColor = Brushes.DodgerBlue;
-                    break;
-                case States.Unscheduled:
-                    CalObj.StateColor = Brushes.Chartreuse;
-                    break;
-                case States.Unconfirmed:
-                    CalObj.StateColor = Brushes.SkyBlue;
-                    break;
-                case States.AutoCompleted:
-                    CalObj.StateColor = Brushes.MediumAquamarine;
-                    break;
-                case States.AutoConfirm:
-                    CalObj.StateColor = Brushes.Aquamarine;
-                    break;
-            }
-        }
-        public SolidColorBrush StateColor
-        {
-            get { return (SolidColorBrush)GetValue(StateColorProperty); }
-            private set { SetValue(StateColorPropertyKey, value); }
-        }
-        private static readonly DependencyPropertyKey StateColorPropertyKey =
-            DependencyProperty.RegisterReadOnly(
-                nameof(StateColor), typeof(SolidColorBrush), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(null));
-        public static readonly DependencyProperty StateColorProperty =
-            StateColorPropertyKey.DependencyProperty;
+                new FrameworkPropertyMetadata(States.Unconfirmed));
         #endregion
         #region Shadow Clone
         // ShadowClones are used in WeekViewModel when a CalObj intersects the bounds of a day.
@@ -341,7 +302,7 @@ namespace TimekeeperWPF.Calendar
             StartLock = CalObj.StartLock;
             LeftTangent = CalObj.LeftTangent;
             ToolTip = CalObj.ToolTip;
-            ParentMap = CalObj.ParentMap;
+            //ParentMap = CalObj.ParentMap;
             ParentPerZone = CalObj.ParentPerZone;
             ParentInclusionZone = CalObj.ParentInclusionZone;
             IsMimicking = false;
@@ -379,7 +340,7 @@ namespace TimekeeperWPF.Calendar
                 {
                     // TODO: dispose managed state (managed objects).
                     Day._Timer.Tick -= _Timer_Tick;
-                    ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
+                    ParentPerZone.ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

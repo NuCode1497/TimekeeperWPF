@@ -18,93 +18,27 @@ using static System.Math;
 
 namespace TimekeeperWPF
 {
-    public abstract class CalendarViewModel : TypedLabeledEntitiesViewModel<TimeTask>
+    public enum CalendarObjectTypes
+    { CheckIn, Note, Task }
+
+    public abstract class CalendarViewModel : ObservableObject, IView, IDisposable, IZone
     {
-        #region Fields
-        private NotesViewModel _NotesVM;
-        private UIElement _SelectedCalendarObect;
-        private DateTime _SelectedDate = DateTime.Now.Date;
         private Orientation _Orientation = Orientation.Vertical;
+        private String _status = "Ready";
+        private bool _IsEnabled = true;
         private bool _Max = false;
         private bool _TextMargin = true;
-        private int _ScaleSudoCommand;
-        private ICommand _PreviousCommand;
-        private ICommand _NextCommand;
         private ICommand _OrientationCommand;
-        private ICommand _ScaleUpCommand;
-        private ICommand _ScaleDownCommand;
-        private ICommand _SelectWeekCommand;
-        private ICommand _SelectDayCommand;
-        private ICommand _SelectYearCommand;
-        private ICommand _SelectMonthCommand;
-        private ICommand _NewNoteCommand;
-        #endregion Fields
-        #region Events
-        public event RequestViewChangeEventHandler RequestViewChange;
-        protected virtual void OnRequestViewChange(RequestViewChangeEventArgs e)
-        { RequestViewChange?.Invoke(this, e); }
-        #endregion Events
-        #region Properties
-        public NotesViewModel NotesVM
+        public abstract string Name { get; }
+        public String Status
         {
-            get { return _NotesVM; }
-            set
+            get { return _status; }
+            protected set
             {
-                _NotesVM = value;
+                _status = value;
                 OnPropertyChanged();
             }
         }
-        public List<CalendarTimeTaskMap> TaskMaps;
-        public CollectionViewSource CalTaskObjsCollection { get; set; }
-        public ObservableCollection<CalendarTaskObject> CalTaskObjsSource => CalTaskObjsCollection?.Source as ObservableCollection<CalendarTaskObject>;
-        public ListCollectionView CalTaskObjsView => CalTaskObjsCollection?.View as ListCollectionView;
-        public CollectionViewSource CalNoteObjsCollection { get; set; }
-        public ObservableCollection<CalendarNoteObject> CalNoteObjsSource => CalNoteObjsCollection?.Source as ObservableCollection<CalendarNoteObject>;
-        public ListCollectionView CalNoteObjsView => CalNoteObjsCollection?.View as ListCollectionView;
-        public ObservableCollection<CheckIn> CheckIns { get; set; }
-        public UIElement SelectedCalendarObject
-        {
-            get { return _SelectedCalendarObect; }
-            set
-            {
-                if (_SelectedCalendarObect == value) return;
-                if (value is NowMarkerHorizontal) return;
-                if (value is NowMarkerVertical) return;
-                if (value is CalendarNoteObject)
-                    NotesVM.SelectedItem = ((CalendarNoteObject)value).Note;
-                if (value is CalendarTaskObject)
-                    SelectedItem = ((CalendarTaskObject)value).ParentMap.TimeTask;
-                _SelectedCalendarObect = value;
-                OnPropertyChanged();
-            }
-        }
-        public virtual DateTime SelectedDate
-        {
-            get { return _SelectedDate; }
-            set
-            {
-                DateTime newValue = value.Date;
-                if (_SelectedDate == newValue) return;
-                _SelectedDate = newValue;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(SelectedYear));
-                OnPropertyChanged(nameof(SelectedMonth));
-                OnPropertyChanged(nameof(SelectedDay));
-                OnPropertyChanged(nameof(MonthString));
-                OnPropertyChanged(nameof(YearString));
-                OnPropertyChanged(nameof(DayLongString));
-                OnPropertyChanged(nameof(WeekString));
-                OnPropertyChanged(nameof(EndDate));
-            }
-        }
-        public int SelectedYear => SelectedDate.Year;
-        public int SelectedMonth => SelectedDate.Month;
-        public int SelectedDay => SelectedDate.Day;
-        public string DayLongString => SelectedDate.ToLongDateString();
-        public string YearString => SelectedDate.ToString("yyy");
-        public string MonthString => SelectedDate.ToString("MMMM");
-        public string WeekString => SelectedDate.ToString("MMMM dd, yyy");
-        public abstract DateTime EndDate { get; }
         public virtual Orientation Orientation
         {
             get{ return _Orientation; }
@@ -137,6 +71,84 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(CanTextMargin));
             }
         }
+        public bool IsEnabled
+        {
+            get { return _IsEnabled; }
+            protected set
+            {
+                _IsEnabled = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotEnabled));
+            }
+        }
+        public bool IsNotEnabled => !IsEnabled;
+        public ICommand OrientationCommand => _OrientationCommand
+            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
+        protected virtual bool CanOrientation => true;
+        public virtual bool CanMax => true;
+        public virtual bool CanTextMargin => true;
+        protected virtual void ToggleOrientation()
+        {
+            if (Orientation == Orientation.Horizontal)
+                Orientation = Orientation.Vertical;
+            else
+                Orientation = Orientation.Horizontal;
+        }
+        #region Navigate
+        private ICommand _PreviousCommand;
+        private ICommand _NextCommand;
+        private ICommand _SelectWeekCommand;
+        private ICommand _SelectDayCommand;
+        private ICommand _SelectYearCommand;
+        private ICommand _SelectMonthCommand;
+        public ICommand PreviousCommand => _PreviousCommand
+            ?? (_PreviousCommand = new RelayCommand(async ap => await PreviousAsync(), pp => CanPrevious));
+        public ICommand NextCommand => _NextCommand
+            ?? (_NextCommand = new RelayCommand(async ap => await NextAsync(), pp => CanNext));
+        public ICommand SelectWeekCommand => _SelectWeekCommand
+            ?? (_SelectWeekCommand = new RelayCommand(ap => SelectWeek(), pp => CanSelectWeek));
+        public ICommand SelectDayCommand => _SelectDayCommand
+            ?? (_SelectDayCommand = new RelayCommand(ap => SelectDay(), pp => CanSelectDay));
+        public ICommand SelectYearCommand => _SelectYearCommand
+            ?? (_SelectYearCommand = new RelayCommand(ap => SelectYear(), pp => CanSelectYear));
+        public ICommand SelectMonthCommand => _SelectMonthCommand
+            ?? (_SelectMonthCommand = new RelayCommand(ap => SelectMonth(), pp => CanSelectMonth));
+        protected virtual bool CanPrevious => IsNotLoading;
+        protected virtual bool CanNext => IsNotLoading;
+        protected virtual bool CanSelectWeek => IsNotLoading;
+        protected virtual bool CanSelectDay => IsNotLoading;
+        protected virtual bool CanSelectYear => IsNotLoading;
+        protected virtual bool CanSelectMonth => IsNotLoading;
+        public event RequestViewChangeEventHandler RequestViewChange;
+        protected virtual void OnRequestViewChange(RequestViewChangeEventArgs e)
+        { RequestViewChange?.Invoke(this, e); }
+        protected virtual void SelectWeek()
+        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Week, Start)); }
+        protected virtual void SelectMonth()
+        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Month, Start)); }
+        protected virtual void SelectYear()
+        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Year, Start)); }
+        protected virtual void SelectDay()
+        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Day, Start)); }
+        protected virtual async Task PreviousAsync()
+        {
+            IsLoading = true;
+            await BuildTaskMaps();
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
+        protected virtual async Task NextAsync()
+        {
+            IsLoading = true;
+            await BuildTaskMaps();
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
+        #endregion Navigate
+        #region Scale
+        private int _ScaleSudoCommand;
+        private ICommand _ScaleUpCommand;
+        private ICommand _ScaleDownCommand;
         public int ScaleSudoCommand
         {
             get { return _ScaleSudoCommand; }
@@ -146,108 +158,612 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        #endregion Properties
-        #region Commands
-        public ICommand PreviousCommand => _PreviousCommand
-            ?? (_PreviousCommand = new RelayCommand(async ap => await PreviousAsync(), pp => CanPrevious));
-        public ICommand NextCommand => _NextCommand
-            ?? (_NextCommand = new RelayCommand(async ap => await NextAsync(), pp => CanNext));
-        public ICommand OrientationCommand => _OrientationCommand
-            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
         public ICommand ScaleUpCommand => _ScaleUpCommand
             ?? (_ScaleUpCommand = new RelayCommand(ap => ScaleUp(), pp => CanScaleUp));
         public ICommand ScaleDownCommand => _ScaleDownCommand
             ?? (_ScaleDownCommand = new RelayCommand(ap => ScaleDown(), pp => CanScaleDown));
-        public ICommand SelectWeekCommand => _SelectWeekCommand
-            ?? (_SelectWeekCommand = new RelayCommand(ap => SelectWeek(), pp => CanSelectWeek));
-        public ICommand SelectDayCommand => _SelectDayCommand
-            ?? (_SelectDayCommand = new RelayCommand(ap => SelectDay(), pp => CanSelectDay));
-        public ICommand SelectYearCommand => _SelectYearCommand
-            ?? (_SelectYearCommand = new RelayCommand(ap => SelectYear(), pp => CanSelectYear));
-        public ICommand SelectMonthCommand => _SelectMonthCommand
-            ?? (_SelectMonthCommand = new RelayCommand(ap => SelectMonth(), pp => CanSelectMonth));
-        public ICommand NewNoteCommand => _NewNoteCommand
-            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(), pp => CanAddNewNote));
-        #endregion Commands
-        #region Predicates
-        protected virtual bool CanPrevious => IsNotLoading;
-        protected virtual bool CanNext => IsNotLoading;
-        protected virtual bool CanOrientation => true;
-        public virtual bool CanMax => true;
-        public virtual bool CanTextMargin => true;
         protected virtual bool CanScaleUp => true;
         protected virtual bool CanScaleDown => true;
-        protected virtual bool CanSelectWeek => IsNotLoading;
-        protected virtual bool CanSelectDay => IsNotLoading;
-        protected virtual bool CanSelectYear => IsNotLoading;
-        protected virtual bool CanSelectMonth => IsNotLoading;
-        protected override bool CanAddNew => false;
-        private bool CanAddNewNote => NotesVM?.NewItemCommand?.CanExecute(null) ?? false;
-        protected override bool CanEditSelected => false;
-        protected override bool CanSave => false;
-        protected override bool CanDeleteSelected => false;
-        public bool Intersects(DateTime dt) { return SelectedDate <= dt && dt <= EndDate; }
+        protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
+        protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
+        #endregion Scale
+        #region Zone
+        private DateTime _Start;
+        public virtual DateTime Start
+        {
+            get { return _Start; }
+            set
+            {
+                DateTime newValue = value.Date;
+                if (_Start == newValue) return;
+                _Start = newValue;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Year));
+                OnPropertyChanged(nameof(Month));
+                OnPropertyChanged(nameof(Day));
+                OnPropertyChanged(nameof(MonthString));
+                OnPropertyChanged(nameof(YearString));
+                OnPropertyChanged(nameof(DayLongString));
+                OnPropertyChanged(nameof(WeekString));
+                OnPropertyChanged(nameof(End));
+            }
+        }
+        public abstract DateTime End { get; set; }
+        public TimeSpan Duration => End - Start;
+        public int Year => Start.Year;
+        public int Month => Start.Month;
+        public int Day => Start.Day;
+        public string DayLongString => Start.ToLongDateString();
+        public string YearString => Start.ToString("yyy");
+        public string MonthString => Start.ToString("MMMM");
+        public string WeekString => Start.ToString("MMMM dd, yyy");
+        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
         public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
         public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
         public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(DateTime start, DateTime end) { return start < EndDate && SelectedDate < end; }
-        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
-        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
-        #endregion Predicates
-        #region Actions
-        protected virtual void SelectWeek()
-        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Week, SelectedDate)); }
-        protected virtual void SelectMonth()
-        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Month, SelectedDate)); }
-        protected virtual void SelectYear()
-        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Year, SelectedDate)); }
-        protected virtual void SelectDay()
-        { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Day, SelectedDate)); }
-        protected override async Task GetDataAsync()
+        public bool Intersects(CalendarCheckInObject CI) { return Intersects(CI.DateTime); }
+        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
+        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
+        public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
+        public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
+        #endregion Zone
+        #region CRUDS
+        private TimeTasksViewModel _TimeTasksVM;
+        private CheckInsViewModel _CheckInsVM;
+        private NotesViewModel _NotesVM;
+        private UIElement _SelectedItem;
+        private UIElement _CurrentEditItem;
+        private CalendarObjectTypes _SelectedItemType;
+        private CalendarObjectTypes _CurrentEditItemType;
+        private bool _IsLoading = false;
+        private bool _IsEditingItem = false;
+        private bool _IsAddingNew = false;
+        private bool _HasSelected = false;
+        private bool _IsSaving = false;
+        private ICommand _CancelCommand;
+        private ICommand _CommitCommand;
+        private ICommand _GetDataCommand;
+        private ICommand _NewItemCommand;
+        private ICommand _NewNoteCommand;
+        private ICommand _NewCheckInCommand;
+        private ICommand _NewTimeTaskCommand;
+        private ICommand _EditSelectedCommand;
+        private ICommand _DeleteSelectedCommand;
+        private ICommand _SaveAsCommand;
+        public NotesViewModel NotesVM
         {
-            Context = new TimeKeeperContext();
-            Status = "Getting data from database...";
-            await Context.TimeTasks.LoadAsync();
-            Items.Source = Context.TimeTasks.Local;
-            NotesVM = new NotesViewModel();
-            await NotesVM.LoadData();
-            await base.GetDataAsync();
-            await Context.CheckIns.LoadAsync();
-            CheckIns = Context.CheckIns.Local;
-            Status = "Creating CalendarObjects...";
-            await CreateTaskObjects();
+            get { return _NotesVM; }
+            set
+            {
+                _NotesVM = value;
+                OnPropertyChanged();
+            }
         }
-        private async Task CreateTaskObjects()
+        public CheckInsViewModel CheckInsVM
         {
-            //Build Data
+            get { return _CheckInsVM; }
+            set
+            {
+                _CheckInsVM = value;
+                OnPropertyChanged();
+            }
+        }
+        public TimeTasksViewModel TimeTasksVM
+        {
+            get { return _TimeTasksVM; }
+            set
+            {
+                _TimeTasksVM = value;
+                OnPropertyChanged();
+            }
+        }
+        public CollectionViewSource CalTaskObjsCollection { get; set; }
+        public ObservableCollection<CalendarTaskObject> CalTaskObjsSource =>
+            CalTaskObjsCollection?.Source as ObservableCollection<CalendarTaskObject>;
+        public ListCollectionView CalTaskObjsView =>
+            CalTaskObjsCollection?.View as ListCollectionView;
+        public CollectionViewSource CalNoteObjsCollection { get; set; }
+        public ObservableCollection<CalendarNoteObject> CalNoteObjsSource =>
+            CalNoteObjsCollection?.Source as ObservableCollection<CalendarNoteObject>;
+        public ListCollectionView CalNoteObjsView =>
+            CalNoteObjsCollection?.View as ListCollectionView;
+        public CollectionViewSource CalCIObjsCollection { get; set; }
+        public ObservableCollection<CalendarCheckInObject> CalCIObjsSource =>
+            CalCIObjsCollection?.Source as ObservableCollection<CalendarCheckInObject>;
+        public ListCollectionView CalCIObjsView =>
+            CalCIObjsCollection?.View as ListCollectionView;
+        public UIElement SelectedItem
+        {
+            get { return _SelectedItem; }
+            set
+            {
+                if (IsEditingItemOrAddingNew)
+                {
+                    OnPropertyChanged();
+                    return;
+                }
+                if (_SelectedItem == value) return;
+                if (value is NowMarkerHorizontal
+                    || value is NowMarkerVertical)
+                {
+                    SelectedItem = null;
+                    return;
+                }
+                if (value is CalendarCheckInObject)
+                {
+                    SelectedItemType = CalendarObjectTypes.CheckIn;
+                    CheckInsVM.SelectedItem = ((CalendarCheckInObject)value).CheckIn;
+                }
+                else if (value is CalendarNoteObject)
+                {
+                    SelectedItemType = CalendarObjectTypes.Note;
+                    NotesVM.SelectedItem = ((CalendarNoteObject)value).Note;
+                }
+                else if (value is CalendarTaskObject)
+                {
+                    SelectedItemType = CalendarObjectTypes.Task;
+                    TimeTasksVM.SelectedItem = ((CalendarTaskObject)value).ParentPerZone.ParentMap.TimeTask;
+                }
+                _SelectedItem = value;
+                if (SelectedItem == null)
+                {
+                    HasSelected = false;
+                }
+                else
+                {
+                    HasSelected = true;
+                    Status = SelectedItemType + " Selected";
+                }
+                OnPropertyChanged();
+            }
+        }
+        public UIElement CurrentEditItem
+        {
+            get { return _CurrentEditItem; }
+            protected set
+            {
+                if (IsEditingItemOrAddingNew)
+                {
+                    OnPropertyChanged();
+                    return;
+                }
+                if (value == _CurrentEditItem) return;
+                if (value is NowMarkerHorizontal
+                    || value is NowMarkerVertical)
+                {
+                    return;
+                }
+                if (value is CalendarCheckInObject)
+                {
+                    CurrentEditItemType = CalendarObjectTypes.CheckIn;
+                }
+                else if (value is CalendarNoteObject)
+                {
+                    CurrentEditItemType = CalendarObjectTypes.Note;
+                }
+                else if (value is CalendarTaskObject)
+                {
+                    CurrentEditItemType = CalendarObjectTypes.Task;
+                }
+                _CurrentEditItem = value;
+                OnPropertyChanged();
+            }
+        }
+        public CalendarObjectTypes SelectedItemType
+        {
+            get { return _SelectedItemType; }
+            set
+            {
+                _SelectedItemType = value;
+                OnPropertyChanged();
+            }
+        }
+        public CalendarObjectTypes CurrentEditItemType
+        {
+            get { return _CurrentEditItemType; }
+            set
+            {
+                _CurrentEditItemType = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool IsLoading
+        {
+            get { return _IsLoading; }
+            protected set
+            {
+                _IsLoading = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotLoading));
+            }
+        }
+        public bool IsEditingItem
+        {
+            get { return _IsEditingItem; }
+            protected set
+            {
+                _IsEditingItem = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotEditingItem));
+                OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
+                OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
+            }
+        }
+        public bool IsAddingNew
+        {
+            get { return _IsAddingNew; }
+            protected set
+            {
+                _IsAddingNew = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsNotAddingNew));
+                OnPropertyChanged(nameof(IsEditingItemOrAddingNew));
+                OnPropertyChanged(nameof(IsNotEditingItemOrAddingNew));
+            }
+        }
+        public bool IsSaving
+        {
+            get { return _IsSaving; }
+            set
+            {
+                _IsSaving = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool HasSelected
+        {
+            get { return _HasSelected; }
+            protected set
+            {
+                _HasSelected = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasNotSelected));
+            }
+        }
+        public bool IsEditingItemOrAddingNew => IsEditingItem || IsAddingNew;
+        public bool IsNotEditingItemOrAddingNew => !IsEditingItemOrAddingNew;
+        public bool IsNotLoading => !IsLoading;
+        public bool IsNotEditingItem => !IsEditingItem;
+        public bool IsNotAddingNew => !IsAddingNew;
+        public bool IsNotSaving => !IsSaving;
+        public bool HasNotSelected => !HasSelected;
+        public ICommand CancelCommand => _CancelCommand
+            ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
+        public ICommand CommitCommand => _CommitCommand
+            ?? (_CommitCommand = new RelayCommand(ap => Commit(), pp => CanCommit));
+        public ICommand GetDataCommand => _GetDataCommand
+            ?? (_GetDataCommand = new RelayCommand(async ap => await LoadData(), pp => CanGetData));
+        public ICommand NewItemCommand => _NewItemCommand
+            ?? (_NewItemCommand = new RelayCommand(ap => AddNew((CalendarObjectTypes)ap), pp => 
+            pp is CalendarObjectTypes && CanAddNew((CalendarObjectTypes)pp)));
+        public ICommand EditSelectedCommand => _EditSelectedCommand
+            ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
+        public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
+            ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanDeleteSelected));
+        public ICommand SaveAsCommand => _SaveAsCommand
+            ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
+        public ICommand NewNoteCommand => _NewNoteCommand
+            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(), pp => CanAddNewNote));
+        public ICommand NewCheckInCommand => _NewCheckInCommand
+            ?? (_NewCheckInCommand = new RelayCommand(ap => NewCheckIn(), pp => CanAddNewCheckIn));
+        public ICommand NewTimeTaskCommand => _NewTimeTaskCommand
+            ?? (_NewTimeTaskCommand = new RelayCommand(ap => NewTimeTask(), pp => CanAddNewTimeTask));
+        private bool IsReady => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
+        protected virtual bool CanCancel
+        {
+            get
+            {
+                if (IsEditingItemOrAddingNew)
+                {
+                    switch (CurrentEditItemType)
+                    {
+                        case CalendarObjectTypes.CheckIn:
+                            return CheckInsVM?.CancelCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Note:
+                            return NotesVM?.CancelCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Task:
+                            return TimeTasksVM?.CancelCommand?.CanExecute(null) ?? false;
+                    }
+                }
+                return false;
+            }
+        }
+        protected virtual bool CanCommit
+        {
+            get
+            {
+                if (IsEditingItemOrAddingNew)
+                {
+                    switch (CurrentEditItemType)
+                    {
+                        case CalendarObjectTypes.CheckIn:
+                            return CheckInsVM?.CommitCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Note:
+                            return NotesVM?.CommitCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Task:
+                            return TimeTasksVM?.CommitCommand?.CanExecute(null) ?? false;
+                    }
+                }
+                return false;
+            }
+        }
+        protected virtual bool CanGetData
+        {
+            get
+            {
+                return IsNotSaving
+                    && IsNotLoading
+                    && (NotesVM == null ? true : NotesVM?.GetDataCommand?.CanExecute(null) ?? false)
+                    && (CheckInsVM == null ? true : CheckInsVM?.GetDataCommand?.CanExecute(null) ?? false)
+                    && (TimeTasksVM == null ? true : TimeTasksVM?.GetDataCommand?.CanExecute(null) ?? false);
+            }
+        }
+        protected virtual bool CanAddNew(CalendarObjectTypes type)
+        {
+            if (IsReady)
+            {
+                switch (type)
+                {
+                    case CalendarObjectTypes.CheckIn:
+                        return CheckInsVM?.NewItemCommand?.CanExecute(null) ?? false;
+                    case CalendarObjectTypes.Note:
+                        return NotesVM?.NewItemCommand?.CanExecute(null) ?? false;
+                    case CalendarObjectTypes.Task:
+                        return TimeTasksVM?.NewItemCommand?.CanExecute(null) ?? false;
+                }
+            }
+            return false;
+        }
+        protected virtual bool CanEditSelected
+        {
+            get
+            {
+                if (IsReady && HasSelected)
+                {
+                    switch (SelectedItemType)
+                    {
+                        case CalendarObjectTypes.CheckIn:
+                            return CheckInsVM?.EditSelectedCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Note:
+                            return NotesVM?.EditSelectedCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Task:
+                            return TimeTasksVM?.EditSelectedCommand?.CanExecute(null) ?? false;
+                    }
+                }
+                return false;
+            }
+        }
+        protected virtual bool CanDeleteSelected
+        {
+            get
+            {
+                if (IsReady && HasSelected)
+                {
+                    switch (SelectedItemType)
+                    {
+                        case CalendarObjectTypes.CheckIn:
+                            return CheckInsVM?.DeleteSelectedCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Note:
+                            return NotesVM?.DeleteSelectedCommand?.CanExecute(null) ?? false;
+                        case CalendarObjectTypes.Task:
+                            return TimeTasksVM?.DeleteSelectedCommand?.CanExecute(null) ?? false;
+                    }
+                }
+                return false;
+            }
+        }
+        protected virtual bool CanSave
+        {
+            get
+            {
+                return IsReady
+                    && (NotesVM?.SaveAsCommand?.CanExecute(null) ?? false)
+                    && (CheckInsVM?.SaveAsCommand?.CanExecute(null) ?? false)
+                    && (TimeTasksVM?.SaveAsCommand?.CanExecute(null) ?? false);
+            }
+        }
+        protected virtual bool CanAddNewNote => IsReady && (NotesVM?.NewItemCommand?.CanExecute(null) ?? false);
+        protected virtual bool CanAddNewCheckIn => IsReady && (CheckInsVM?.NewItemCommand?.CanExecute(null) ?? false);
+        protected virtual bool CanAddNewTimeTask => IsReady && (TimeTasksVM?.NewItemCommand?.CanExecute(null) ?? false);
+        public virtual async Task LoadData()
+        {
+            IsEnabled = false;
+            IsLoading = true;
+            Cancel();
+            SelectedItem = null;
+            Status = "Loading Data...";
+            Dispose();
+            try
+            {
+                await GetDataAsync();
+                IsEnabled = true;
+                Status = "Ready";
+            }
+            catch (Exception ex)
+            {
+                ExceptionViewer ev = new ExceptionViewer(String.Format("Error Loading {0} Data", Name), ex);
+                ev.ShowDialog();
+                Status = "Failed to get data!";
+            }
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
+        protected virtual async Task GetDataAsync()
+        {
+            Status = "Getting data from database...";
+            NotesVM = new NotesViewModel();
+            await NotesVM.LoadDataAsync();
+            CheckInsVM = new CheckInsViewModel();
+            await CheckInsVM.LoadDataAsync();
+            TimeTasksVM = new TimeTasksViewModel();
+            await TimeTasksVM.LoadDataAsync();
             await BuildTaskMaps();
+            CreateCheckInObjects();
+            CreateNoteObjects();
+        }
+        protected virtual void AddNew(CalendarObjectTypes type)
+        {
+            switch (type)
+            {
+                case CalendarObjectTypes.CheckIn:
+                    NewCheckIn();
+                    break;
+                case CalendarObjectTypes.Note:
+                    NewNote();
+                    break;
+                case CalendarObjectTypes.Task:
+                    NewTimeTask();
+                    break;
+            }
+        }
+        protected virtual void NewCheckIn()
+        {
+            CurrentEditItemType = CalendarObjectTypes.CheckIn;
+            CheckInsVM.NewItemCommand.Execute(null);
+            Status = "Adding new CheckIn";
+            SelectedItem = null;
+            IsAddingNew = true;
+        }
+        protected virtual void NewNote()
+        {
+            CurrentEditItemType = CalendarObjectTypes.Note;
+            NotesVM.NewItemCommand.Execute(null);
+            Status = "Adding new Note";
+            SelectedItem = null;
+            IsAddingNew = true;
+        }
+        protected virtual void NewTimeTask()
+        {
+            CurrentEditItemType = CalendarObjectTypes.Task;
+            TimeTasksVM.NewItemCommand.Execute(null);
+            Status = "Adding new Task";
+            SelectedItem = null;
+            IsAddingNew = true;
+        }
+        protected virtual void EditSelected()
+        {
+            CurrentEditItem = SelectedItem;
+            SelectedItem = null;
+            IsEditingItem = true;
+            switch (SelectedItemType)
+            {
+                case CalendarObjectTypes.CheckIn:
+                    CheckInsVM.EditSelectedCommand.Execute(null);
+                    break;
+                case CalendarObjectTypes.Note:
+                    NotesVM.EditSelectedCommand.Execute(null);
+                    break;
+                case CalendarObjectTypes.Task:
+                    TimeTasksVM.EditSelectedCommand.Execute(null);
+                    break;
+            }
+            Status = "Editing " + CurrentEditItemType;
+        }
+        protected virtual void EndEdit()
+        {
+            IsEditingItem = false;
+            IsAddingNew = false;
+            CurrentEditItem = null;
+            SelectedItem = null;
+            //Refresh all of the buttons
+            CommandManager.InvalidateRequerySuggested();
+        }
+        protected virtual void Cancel()
+        {
+            CheckInsVM?.CancelCommand?.Execute(null);
+            NotesVM?.CancelCommand?.Execute(null);
+            TimeTasksVM?.CancelCommand?.Execute(null);
+            Status = "Canceled";
+            EndEdit();
+        }
+        protected virtual void Commit()
+        {
+            switch(CurrentEditItemType)
+            {
+                case CalendarObjectTypes.CheckIn:
+                    CheckInsVM.CommitCommand.Execute(null);
+                    break;
+                case CalendarObjectTypes.Note:
+                    NotesVM.CommitCommand.Execute(null);
+                    break;
+                case CalendarObjectTypes.Task:
+                    TimeTasksVM.CommitCommand.Execute(null);
+                    break;
+            }
+            Status = CurrentEditItemType + " Modified";
+            EndEdit();
+        }
+        protected virtual void DeleteSelected()
+        {
+            switch (CurrentEditItemType)
+            {
+                case CalendarObjectTypes.CheckIn:
+                    CheckInsVM.DeleteSelectedCommand.Execute(null);
+                    break;
+                case CalendarObjectTypes.Note:
+                    NotesVM.DeleteSelectedCommand.Execute(null);
+                    break;
+                case CalendarObjectTypes.Task:
+                    TimeTasksVM.DeleteSelectedCommand.Execute(null);
+                    break;
+            }
+            SelectedItem = null;
+        }
+        protected abstract void SaveAs();
+        private void AddNewCheckIn(DateTime dt, bool start, TimeTask task)
+        {
+            //TODO
+            //add to the correct map, no need to call BuildCheckIns()
+            //add to the database collection
+            //rebuild CalObjs
+        }
+        private void EditCheckIn(CalendarCheckIn CI)
+        {
+            //TODO
+            //find and edit the CI from TaskMaps, no need to call BuildCheckIns()
+            //find and edit the CI in the database collection
+            //rebuild CalObjs
+        }
+        private void DeleteCheckIn(CalendarCheckIn CI)
+        {
+            //TODO
+            //find and delete the CI from TaskMaps, no need to call BuildCheckIns()
+            //find and delete the CI from the database collection
+            //rebuild CalObjs
+        }
+        #endregion CRUDS
+        #region TaskMaps
+        public List<CalendarTimeTaskMap> TaskMaps;
+        private async Task BuildTaskMaps()
+        {
+            Status = "Building TaskMaps...";
+            await InitTaskMaps();
             BuildCheckIns();
-
-            //Interpret Data
+            CreateTaskObjects();
+        }
+        private void CreateTaskObjects()
+        {
             AllocateTimeFromCheckIns();
             AllocateTimeFromFilters();
-
-            //Organize Data
             CalculateCollisions();
             AllocateEmptySpace();
             CleanUpStates();
             UnZipTaskMaps();
         }
-        #region BuildTaskMaps
-        private async Task BuildTaskMaps()
+        #region InitTaskMaps
+        private async Task InitTaskMaps()
         {
-            //This function is more intensive than others, it will be called once on load
-            //Reduce the TimeTask set
-            var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), SelectedDate, EndDate);
+            //This function is more intensive than others, it will be called once on load.
+            //Reduce the TimeTask set.
+            var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), Start, End);
             foreach (var T in RelevantTasks)
                 await T.BuildPerZonesAsync();
             TaskMaps = new List<CalendarTimeTaskMap>();
-            //Create Maps with all PerZones; we will reduce this set later
+            //Create Maps with all PerZones; we will reduce this set later.
             foreach (var T in RelevantTasks)
             {
-                var map = new CalendarTimeTaskMap
+                var M = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
                     PerZones = new HashSet<PerZone>(),
@@ -258,20 +774,21 @@ namespace TimekeeperWPF
                     {
                         Start = P.Key,
                         End = P.Value,
+                        ParentMap = M,
                         InclusionZones = new List<InclusionZone>(),
                         CalTaskObjs = new HashSet<CalendarTaskObject>(),
                         CheckIns = new List<CalendarCheckIn>(),
                     };
-                    map.PerZones.Add(per);
+                    M.PerZones.Add(per);
                 }
-                TaskMaps.Add(map);
+                TaskMaps.Add(M);
             }
-            var RelevantPerZones = FindPerSet(new HashSet<PerZone>(), SelectedDate, EndDate);
+            var RelevantPerZones = FindPerSet(new HashSet<PerZone>(), Start, End);
             foreach (var M in TaskMaps)
             {
-                //Reduce the PerZone set
+                //Reduce the PerZone set.
                 M.PerZones = new HashSet<PerZone>(M.PerZones.Intersect(RelevantPerZones));
-                //Build InclusionZones with the reduced PerZone set
+                //Build InclusionZones with the reduced PerZone set.
                 var pers = new Dictionary<DateTime, DateTime>();
                 foreach (var P in M.PerZones)
                     pers.Add(P.Start, P.End);
@@ -293,6 +810,7 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Key,
                             End = Z.Value,
+                            ParentPerZone = P,
                         };
                         P.InclusionZones.Add(zone);
                     }
@@ -302,12 +820,12 @@ namespace TimekeeperWPF
         private HashSet<TimeTask> FindTaskSet(HashSet<TimeTask> accumulatedFinds, DateTime start, DateTime end)
         {
             //Recursively select the set of Tasks that intersect the calendar view or previously added tasks.
-            var foundTasks = Source.Where(T => T.Intersects(start, end)).Except(accumulatedFinds);
+            var foundTasks = TimeTasksVM.Source.Where(T => T.Intersects(start, end)).Except(accumulatedFinds);
             if (foundTasks.Count() == 0) return accumulatedFinds;
-            accumulatedFinds.Union(foundTasks);
+            accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(foundTasks));
             foreach (var T in foundTasks)
             {
-                accumulatedFinds.Union(FindTaskSet(accumulatedFinds, T.Start, T.End));
+                accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(FindTaskSet(accumulatedFinds, T.Start, T.End)));
             }
             return accumulatedFinds;
         }
@@ -319,14 +837,14 @@ namespace TimekeeperWPF
                              where P.Intersects(start, end)
                              select P).Except(accumulatedFinds);
             if (foundPers.Count() == 0) return accumulatedFinds;
-            accumulatedFinds.Union(foundPers);
+            accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(foundPers));
             foreach (var P in foundPers)
             {
-                accumulatedFinds.Union(FindPerSet(accumulatedFinds, P.Start, P.End));
+                accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(FindPerSet(accumulatedFinds, P.Start, P.End)));
             }
             return accumulatedFinds;
         }
-        #endregion BuildTaskMaps
+        #endregion InitTaskMaps
         private void BuildCheckIns()
         {
             foreach (var M in TaskMaps)
@@ -338,7 +856,7 @@ namespace TimekeeperWPF
                     var inZoneCheckIns = new List<CalendarCheckIn>();
                     //find and map relevant event CIs in this PerZone
                     var checkIns =
-                        from CI in CheckIns
+                        from CI in CheckInsVM.Source
                         where CI.TimeTask == M.TimeTask
                         where P.Intersects(CI.DateTime)
                         select CI;
@@ -347,7 +865,7 @@ namespace TimekeeperWPF
                         eventCheckIns.Add(new CalendarCheckIn
                         {
                             DateTime = CI.DateTime,
-                            Kind = CI.Text == "start" ? CheckInKind.EventStart : CheckInKind.EventEnd,
+                            Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
                             ParentMap = M,
                             ParentPerZone = P,
                         });
@@ -397,7 +915,7 @@ namespace TimekeeperWPF
                     //Merge and sort CheckIn sets.
                     var allCheckIns =
                         from CI in eventCheckIns.Union(perCheckIns).Union(inZoneCheckIns)
-                        orderby CI.Kind, CI.DateTime
+                        orderby CI.DateTime, CI.Kind
                         select CI;
                     P.CheckIns = new List<CalendarCheckIn>(allCheckIns);
                 }
@@ -405,6 +923,7 @@ namespace TimekeeperWPF
         }
         private void AllocateTimeFromCheckIns()
         {
+            Status = "Allocating Time From CheckIns...";
             foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
@@ -441,8 +960,8 @@ namespace TimekeeperWPF
                                                 Start = N.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Confirmed,
-                                                ParentMap = N.ParentMap,
-                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                //ParentMap = N.ParentMap,
+                                                //ParentInclusionZone = N.ParentInclusionZone,
                                                 ParentPerZone = N.ParentPerZone,
                                                 StartLock = true,
                                                 StateLock = true,
@@ -471,8 +990,8 @@ namespace TimekeeperWPF
                                                 Start = N.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Unscheduled,
-                                                ParentMap = N.ParentMap,
-                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                //ParentMap = N.ParentMap,
+                                                //ParentInclusionZone = N.ParentInclusionZone,
                                                 ParentPerZone = N.ParentPerZone,
                                                 StartLock = true,
                                                 StateLock = true,
@@ -504,8 +1023,8 @@ namespace TimekeeperWPF
                                                 Start = pN.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Confirmed,
-                                                ParentMap = N.ParentMap,
-                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                //ParentMap = N.ParentMap,
+                                                //ParentInclusionZone = N.ParentInclusionZone,
                                                 ParentPerZone = N.ParentPerZone,
                                                 EndLock = true,
                                                 StateLock = true,
@@ -535,8 +1054,8 @@ namespace TimekeeperWPF
                                                 Start = pN.DateTime,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Unscheduled,
-                                                ParentMap = N.ParentMap,
-                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                //ParentMap = N.ParentMap,
+                                                //ParentInclusionZone = N.ParentInclusionZone,
                                                 ParentPerZone = N.ParentPerZone,
                                                 EndLock = true,
                                                 StateLock = true,
@@ -556,8 +1075,8 @@ namespace TimekeeperWPF
                                                 Start = pC.End,
                                                 End = N.DateTime,
                                                 State = CalendarTaskObject.States.Unscheduled,
-                                                ParentMap = N.ParentMap,
-                                                ParentInclusionZone = N.ParentInclusionZone,
+                                                //ParentMap = N.ParentMap,
+                                                //ParentInclusionZone = N.ParentInclusionZone,
                                                 ParentPerZone = N.ParentPerZone,
                                                 EndLock = true,
                                                 StateLock = true,
@@ -603,6 +1122,7 @@ namespace TimekeeperWPF
         #region AllocateTimeFromFilters
         private void AllocateTimeFromFilters()
         {
+            Status = "Allocating Time From Filters...";
             foreach (var M in TaskMaps)
             {
                 if (M.TimeTask.TimeAllocation == null)
@@ -626,9 +1146,9 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Start,
                         End = Z.End,
-                        ParentMap = M,
-                        ParentPerZone = P,
+                        //ParentMap = M,
                         ParentInclusionZone = Z,
+                        ParentPerZone = P,
                     };
                     P.CalTaskObjs.Add(CalObj);
                 }
@@ -669,9 +1189,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
-                            ParentMap = M,
-                            ParentPerZone = P,
+                            //ParentMap = M,
                             ParentInclusionZone = Z,
+                            ParentPerZone = P,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining = 0;
@@ -683,9 +1203,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.End,
-                            ParentMap = M,
-                            ParentPerZone = P,
+                            //ParentMap = M,
                             ParentInclusionZone = Z,
+                            ParentPerZone = P,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
@@ -711,9 +1231,9 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Start,
                         End = Z.Start + TimeTask.MinimumDuration,
-                        ParentMap = M,
-                        ParentPerZone = P,
+                        //ParentMap = M,
                         ParentInclusionZone = Z,
+                        ParentPerZone = P,
                     };
                     Z.SeedTaskObj = CalObj;
                     P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
@@ -758,9 +1278,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.End - P.TimeConsumption.RemainingAsTimeSpan,
                             End = Z.End,
-                            ParentMap = M,
-                            ParentPerZone = P,
+                            //ParentMap = M,
                             ParentInclusionZone = Z,
+                            ParentPerZone = P,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining = 0;
@@ -772,9 +1292,9 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.End,
-                            ParentMap = M,
-                            ParentPerZone = P,
+                            //ParentMap = M,
                             ParentInclusionZone = Z,
+                            ParentPerZone = P,
                         };
                         P.CalTaskObjs.Add(CalObj);
                         P.TimeConsumption.Remaining -= Z.Duration.Ticks;
@@ -786,6 +1306,7 @@ namespace TimekeeperWPF
         #region CalculateCollisions
         private void CalculateCollisions()
         {
+            Status = "Calculating Collisions...";
             bool hasCollisions = true;
             while (hasCollisions)
             {
@@ -821,8 +1342,8 @@ namespace TimekeeperWPF
                 from M in TaskMaps
                 from P in M.PerZones
                 from C in P.CalTaskObjs
-                orderby C.ParentMap.TimeTask.Priority, C.Start, C.End
-                group C by C.ParentMap.TimeTask.Dimension;
+                orderby C.ParentPerZone.ParentMap.TimeTask.Priority, C.Start, C.End
+                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
             foreach (var dimension in calObjDimensions)
             {
                 //Clear tangents
@@ -844,7 +1365,7 @@ namespace TimekeeperWPF
                             from C2 in dimension
                             where C2 != C1
                             where C1.Intersects(C2)
-                            orderby C2.ParentMap.TimeTask.Priority, C2.Start, C2.End
+                            orderby C2.ParentPerZone.ParentMap.TimeTask.Priority, C2.Start, C2.End
                             select C2;
                         foreach (var C2 in intersections)
                         {
@@ -876,7 +1397,7 @@ namespace TimekeeperWPF
         {
             //Refer to Plans.xlsx - Collisions
             if (insider.StartLock || insider.EndLock ||
-                insider.ParentMap.TimeTask.Priority > outsider.ParentMap.TimeTask.Priority)
+                insider.ParentPerZone.ParentMap.TimeTask.Priority > outsider.ParentPerZone.ParentMap.TimeTask.Priority)
             {
                 //split outsider
                 DateTime MDT = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
@@ -914,7 +1435,7 @@ namespace TimekeeperWPF
                 }
                 else //3 4
                 {
-                    if (LData.Priority < C1.ParentMap.TimeTask.Priority) //3
+                    if (LData.Priority < C1.ParentPerZone.ParentMap.TimeTask.Priority) //3
                     {
                         //C1 Push L
                         Push(C1, C2, LData);
@@ -951,7 +1472,7 @@ namespace TimekeeperWPF
             {
                 if (LData.Priority >= RData.Priority) //D E
                 {
-                    if (C2.ParentMap.TimeTask.Priority > RData.Priority) //D
+                    if (C2.ParentPerZone.ParentMap.TimeTask.Priority > RData.Priority) //D
                     {
                         if (LData.HasRoom) //2
                         {
@@ -980,7 +1501,7 @@ namespace TimekeeperWPF
                 }
                 else //F G
                 {
-                    if (C2.ParentMap.TimeTask.Priority > RData.Priority) //F
+                    if (C2.ParentPerZone.ParentMap.TimeTask.Priority > RData.Priority) //F
                     {
                         if (C1.EndLock) //5
                         {
@@ -994,7 +1515,7 @@ namespace TimekeeperWPF
                         }
                         else //3 4
                         {
-                            if (LData.Priority < C1.ParentMap.TimeTask.Priority) //3
+                            if (LData.Priority < C1.ParentPerZone.ParentMap.TimeTask.Priority) //3
                             {
                                 //C1 Push L
                                 Push(C1, C2, LData);
@@ -1020,7 +1541,7 @@ namespace TimekeeperWPF
                         }
                         else //3 4
                         {
-                            if (LData.Priority < C1.ParentMap.TimeTask.Priority) //3
+                            if (LData.Priority < C1.ParentPerZone.ParentMap.TimeTask.Priority) //3
                             {
                                 //C1 Push L
                                 Push(C1, C2, LData);
@@ -1048,16 +1569,16 @@ namespace TimekeeperWPF
         {
             bool C1HasRoom = true;
             var LT = C;
-            double LP = C.ParentMap.TimeTask.Priority;
+            double LP = C.ParentPerZone.ParentMap.TimeTask.Priority;
             TimeSpan LmaxRoom = new TimeSpan();
             while (true)
             {
                 //If C1.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >=LT.S or LT.LT.E🔒. 
                 //LP = C.P where C is the LT with the lowest priority from C1 to LC.
-                if (LT.ParentMap.TimeTask.Priority < LP)
+                if (LT.ParentPerZone.ParentMap.TimeTask.Priority < LP)
                 {
-                    LP = LT.ParentMap.TimeTask.Priority;
-                    LmaxRoom = LT.ParentMap.TimeTask.Duration;
+                    LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
+                    LmaxRoom = LT.ParentPerZone.ParentMap.TimeTask.Duration;
                 }
                 //LT.HasRoom = F when LT.E🔒 or LT.S🔒 or LT.Z.S >= LT.S or LT.LT.HasRoom=F
                 if (LT.EndLock ||
@@ -1070,7 +1591,7 @@ namespace TimekeeperWPF
                 if (LT.LeftTangent == null)
                 {
                     //If C1.HasRoom == T, LC is the LT where LT.LT == null. LP = LC.P.
-                    LP = LT.ParentMap.TimeTask.Priority;
+                    LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
                     LmaxRoom = LT.Start - LT.ParentInclusionZone?.Start ?? TimeSpan.FromDays(1);
                     break;
                 }
@@ -1091,14 +1612,14 @@ namespace TimekeeperWPF
         {
             bool C2HasRoom = true;
             var RT = C;
-            double RP = C.ParentMap.TimeTask.Priority;
+            double RP = C.ParentPerZone.ParentMap.TimeTask.Priority;
             TimeSpan RmaxRoom = new TimeSpan();
             while (true)
             {
-                if (RT.ParentMap.TimeTask.Priority < RP)
+                if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
                 {
-                    RP = RT.ParentMap.TimeTask.Priority;
-                    RmaxRoom = RT.ParentMap.TimeTask.Duration;
+                    RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
+                    RmaxRoom = RT.ParentPerZone.ParentMap.TimeTask.Duration;
                 }
                 if (RT.EndLock ||
                     RT.StartLock ||
@@ -1109,7 +1630,7 @@ namespace TimekeeperWPF
                 }
                 if (RT.RightTangent == null)
                 {
-                    RP = RT.ParentMap.TimeTask.Priority;
+                    RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
                     RmaxRoom = RT.ParentInclusionZone?.End - RT.End ?? TimeSpan.FromDays(1);
                     break;
                 }
@@ -1172,6 +1693,7 @@ namespace TimekeeperWPF
         #region AllocateEmptySpace
         private void AllocateEmptySpace()
         {
+            Status = "Allocating Empty Space...";
             //Recalculate remaining allocations. Identify empty spaces. For each empty space, 
             //check if there is any relevant task that can be allocated by priority of: 
             //Highest priority intersecting insufficient InclusionZone, 
@@ -1257,7 +1779,7 @@ namespace TimekeeperWPF
                 {
                     Start = start,
                     End = end,
-                    ParentMap = inZone.ParentPerZone.ParentMap,
+                    //ParentMap = inZone.ParentPerZone.ParentMap,
                     ParentPerZone = inZone.ParentPerZone,
                     ParentInclusionZone = inZone,
                 };
@@ -1285,7 +1807,7 @@ namespace TimekeeperWPF
                 from P in M.PerZones
                 from C in P.CalTaskObjs
                 orderby C.Start
-                group C by C.ParentMap.TimeTask.Dimension;
+                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
             var spaceDimensions = new List<Grouping<int, EmptyZone>>();
             foreach (var dimension in calObjDimensions)
             {
@@ -1324,6 +1846,7 @@ namespace TimekeeperWPF
         #region CleanUpStates
         private void CleanUpStates()
         {
+            Status = "Cleaning Up...";
             FixMisalignments();
             FixWrongStates();
             FlagInsufficients();
@@ -1394,7 +1917,7 @@ namespace TimekeeperWPF
                     {
                         C.State = CalendarTaskObject.States.Confirmed;
                     }
-                    else if (C.ParentMap.TimeTask.AutoCheckIn)
+                    else if (C.ParentPerZone.ParentMap.TimeTask.AutoCheckIn)
                     {
                         C.State = CalendarTaskObject.States.AutoConfirm;
                     }
@@ -1435,7 +1958,7 @@ namespace TimekeeperWPF
                 from M in TaskMaps
                 from P in M.PerZones
                 from C in P.CalTaskObjs
-                group C by C.ParentMap.TimeTask.Dimension;
+                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
             foreach (var dimension in calObjDimensions)
             {
                 foreach (var C1 in dimension)
@@ -1469,74 +1992,96 @@ namespace TimekeeperWPF
         #endregion CleanUpStates
         private void UnZipTaskMaps()
         {
-            CalNoteObjsCollection = new CollectionViewSource();
-            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
+            Status = "Un-Zipping TaskMaps...";
             CalTaskObjsCollection = new CollectionViewSource();
             CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
             foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
                 {
-                    foreach (var CalObj in P.CalTaskObjs)
+                    foreach (var C in P.CalTaskObjs)
                     {
-                        CalTaskObjsView.AddNewItem(CalObj);
+                        C.ToolTip = String.Format("{0}\n{1}",
+                            C.ParentPerZone.ParentMap.TimeTask,
+                            C.Start.ToString() + " to " + C.End.ToString());
+                        CalTaskObjsView.AddNewItem(C);
                         CalTaskObjsView.CommitNew();
-                        AdditionalCalObjSetup(CalObj);
+                        AdditionalCalTaskObjSetup(C);
                     }
                 }
             }
             OnPropertyChanged(nameof(CalTaskObjsView));
+        }
+        private void CreateCheckInObjects()
+        {
+            CalCIObjsCollection = new CollectionViewSource();
+            CalCIObjsCollection.Source = new ObservableCollection<CalendarCheckInObject>();
+            var checkIns = CheckInsVM.Source.Where(CI => Intersects(CI));
+            foreach (var CI in checkIns)
+            {
+                var C = new CalendarCheckInObject
+                {
+                    CheckIn = CI,
+                    ToolTip = CI,
+                };
+                CalCIObjsView.AddNewItem(C);
+                CalCIObjsView.CommitNew();
+            }
+            OnPropertyChanged(nameof(CalCIObjsView));
+        }
+        private void CreateNoteObjects()
+        {
+            CalNoteObjsCollection = new CollectionViewSource();
+            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
+            var notes = NotesVM.Source.Where(N => Intersects(N));
+            foreach (var N in notes)
+            {
+                var C = new CalendarNoteObject
+                {
+                    Note = N,
+                    ToolTip = N,
+                };
+                CalNoteObjsView.AddNewItem(C);
+                CalNoteObjsView.CommitNew();
+            }
             OnPropertyChanged(nameof(CalNoteObjsView));
         }
-        protected virtual void AdditionalCalObjSetup(CalendarTaskObject CalObj) { }
-        private void AddNewCheckIn(DateTime dt, bool start, TimeTask task)
+        protected virtual void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj) { }
+        #endregion TaskMaps
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+        protected virtual void Dispose(bool disposing)
         {
-            //TODO
-            //add to the correct map, no need to call BuildCheckIns()
-            //add to the database collection
-            //rebuild CalObjs
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    CheckInsVM?.Dispose();
+                    NotesVM?.Dispose();
+                    TimeTasksVM?.Dispose();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
         }
-        private void EditCheckIn(CalendarCheckIn CI)
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~ViewModel() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
         {
-            //TODO
-            //find and edit the CI from TaskMaps, no need to call BuildCheckIns()
-            //find and edit the CI in the database collection
-            //rebuild CalObjs
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
         }
-        private void DeleteCheckIn(CalendarCheckIn CI)
-        {
-            //TODO
-            //find and delete the CI from TaskMaps, no need to call BuildCheckIns()
-            //find and delete the CI from the database collection
-            //rebuild CalObjs
-        }
-        protected virtual async Task PreviousAsync()
-        {
-            IsLoading = true;
-            await CreateTaskObjects();
-            IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
-        }
-        protected virtual async Task NextAsync()
-        {
-            IsLoading = true;
-            await CreateTaskObjects();
-            IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
-        }
-        protected virtual void ToggleOrientation()
-        {
-            if (Orientation == Orientation.Horizontal)
-                Orientation = Orientation.Vertical;
-            else
-                Orientation = Orientation.Horizontal;
-        }
-        protected virtual void ScaleUp() { ScaleSudoCommand = 1; }
-        protected virtual void ScaleDown() { ScaleSudoCommand = -1; }
-        private void NewNote()
-        {
-            NotesVM.NewItemCommand.Execute(null);
-        }
-        #endregion Actions
+        #endregion
     }
 }
