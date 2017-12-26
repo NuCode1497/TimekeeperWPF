@@ -2,12 +2,15 @@
 using System.Windows;
 using System.Windows.Controls;
 using TimekeeperDAL.EF;
+using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF.Calendar
 {
-    /// <summary>
-    /// Interaction logic for CalendarCheckInObject.xaml
-    /// </summary>
+    //The order here is important for proper sorting
+    public enum CheckInKind
+    {
+        PerZoneStart, InclusionZoneStart, EventStart, EventEnd, InclusionZoneEnd, PerZoneEnd
+    }
     public partial class CalendarCheckInObject : UserControl
     {
         public CalendarCheckInObject()
@@ -15,11 +18,10 @@ namespace TimekeeperWPF.Calendar
             InitializeComponent();
         }
         public CheckIn CheckIn { get; set; }
+        public CheckInKind Kind { get; set; }
         public DateTime DateTime => CheckIn.DateTime;
         public bool Intersects(DateTime start, DateTime end) { return start < DateTime && DateTime < end; }
-        public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }
-        public bool Intersects(CalendarTaskObject C) { return Intersects(C.Start, C.End); }
+        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
         #region ParentMap
         //public CalendarTimeTaskMap ParentMap
         //{

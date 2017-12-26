@@ -12,7 +12,7 @@ namespace TimekeeperWPF.Calendar
         public Consumption TimeConsumption { get; set; }
         public List<InclusionZone> InclusionZones { get; set; }
         public HashSet<CalendarTaskObject> CalTaskObjs { get; set; }
-        public List<CalendarCheckIn> CheckIns { get; set; }
+        public List<CalendarCheckInObject> CheckIns { get; set; }
         
         public bool IsAffirmedBeforePoint(DateTime point)
         {

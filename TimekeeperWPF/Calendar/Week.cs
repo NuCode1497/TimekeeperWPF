@@ -247,7 +247,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
                         x = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayWidth;
-                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
@@ -263,7 +263,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
                         x = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayWidth;
-                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
@@ -347,7 +347,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
                         y = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayHeight;
-                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
                     {
@@ -363,7 +363,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
                         y = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayHeight;
-                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
                     {

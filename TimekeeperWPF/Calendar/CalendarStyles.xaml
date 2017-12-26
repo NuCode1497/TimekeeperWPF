@@ -7,7 +7,7 @@
 
 
     <Style TargetType="cal:CalendarTaskObject">
-        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="BorderThickness" Value="3"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type cal:CalendarTaskObject}">
@@ -42,14 +42,14 @@
             </Trigger>
             <Trigger Property="State" Value="CheckIn">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.CheckIn}"/>
-                <Setter Property="BorderThickness" Value="5"/>
+                <Setter Property="BorderThickness" Value="8"/>
             </Trigger>
             <Trigger Property="State" Value="Completed">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Completed}"/>
             </Trigger>
             <Trigger Property="State" Value="Conflict">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Conflict}"/>
-                <Setter Property="BorderThickness" Value="5"/>
+                <Setter Property="BorderThickness" Value="8"/>
             </Trigger>
             <Trigger Property="State" Value="Current">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Current}"/>
@@ -59,7 +59,7 @@
             </Trigger>
             <Trigger Property="State" Value="Insufficient">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Insufficient}"/>
-                <Setter Property="BorderThickness" Value="5"/>
+                <Setter Property="BorderThickness" Value="8"/>
             </Trigger>
             <Trigger Property="State" Value="Unconfirmed">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Unconfirmed}"/>

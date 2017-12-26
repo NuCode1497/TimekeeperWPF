@@ -65,10 +65,6 @@ namespace TimekeeperWPF
             View.AddNewItem(CurrentEditItem);
             base.AddNew();
         }
-        protected override void EndEdit()
-        {
-            base.EndEdit();
-        }
         protected override void SaveAs()
         {
             throw new NotImplementedException();

@@ -29,6 +29,7 @@ namespace TimekeeperWPF
         public ListCollectionView TimeTasksView =>
             TimeTasksCollection?.View as ListCollectionView;
         protected override bool CanSave => false;
+        protected override bool CanEditSelected => false;
         protected override bool CanCommit => base.CanCommit && CurrentEditItem.TimeTask != null;
         protected override async Task GetDataAsync()
         {
@@ -50,10 +51,6 @@ namespace TimekeeperWPF
             };
             View.AddNewItem(CurrentEditItem);
             base.AddNew();
-        }
-        protected override void EndEdit()
-        {
-            base.EndEdit();
         }
         protected override void SaveAs()
         {

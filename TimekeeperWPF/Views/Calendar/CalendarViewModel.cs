@@ -133,14 +133,14 @@ namespace TimekeeperWPF
         protected virtual async Task PreviousAsync()
         {
             IsLoading = true;
-            await BuildTaskMaps();
+            await CreateCalendarObjects();
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
         protected virtual async Task NextAsync()
         {
             IsLoading = true;
-            await BuildTaskMaps();
+            await CreateCalendarObjects();
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
@@ -201,8 +201,7 @@ namespace TimekeeperWPF
         public bool Intersects(Note N) { return Intersects(N.DateTime); }
         public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
         public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(CalendarCheckIn CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(CalendarCheckInObject CI) { return Intersects(CI.DateTime); }
+        public bool Intersects(CalendarCheckInObject CI) { return Intersects(CI.CheckIn); }
         public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
         public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
         public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
@@ -431,7 +430,7 @@ namespace TimekeeperWPF
         public ICommand CancelCommand => _CancelCommand
             ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
         public ICommand CommitCommand => _CommitCommand
-            ?? (_CommitCommand = new RelayCommand(ap => Commit(), pp => CanCommit));
+            ?? (_CommitCommand = new RelayCommand(async ap => await Commit(), pp => CanCommit));
         public ICommand GetDataCommand => _GetDataCommand
             ?? (_GetDataCommand = new RelayCommand(async ap => await LoadData(), pp => CanGetData));
         public ICommand NewItemCommand => _NewItemCommand
@@ -440,7 +439,7 @@ namespace TimekeeperWPF
         public ICommand EditSelectedCommand => _EditSelectedCommand
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
-            ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanDeleteSelected));
+            ?? (_DeleteSelectedCommand = new RelayCommand(async ap => await DeleteSelected(), pp => CanDeleteSelected));
         public ICommand SaveAsCommand => _SaveAsCommand
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         public ICommand NewNoteCommand => _NewNoteCommand
@@ -598,9 +597,7 @@ namespace TimekeeperWPF
             await CheckInsVM.LoadDataAsync();
             TimeTasksVM = new TimeTasksViewModel();
             await TimeTasksVM.LoadDataAsync();
-            await BuildTaskMaps();
-            CreateCheckInObjects();
-            CreateNoteObjects();
+            await CreateCalendarObjects();
         }
         protected virtual void AddNew(CalendarObjectTypes type)
         {
@@ -649,7 +646,7 @@ namespace TimekeeperWPF
             switch (SelectedItemType)
             {
                 case CalendarObjectTypes.CheckIn:
-                    CheckInsVM.EditSelectedCommand.Execute(null);
+                    Cancel();
                     break;
                 case CalendarObjectTypes.Note:
                     NotesVM.EditSelectedCommand.Execute(null);
@@ -677,89 +674,176 @@ namespace TimekeeperWPF
             Status = "Canceled";
             EndEdit();
         }
-        protected virtual void Commit()
-        {
-            switch(CurrentEditItemType)
-            {
-                case CalendarObjectTypes.CheckIn:
-                    CheckInsVM.CommitCommand.Execute(null);
-                    break;
-                case CalendarObjectTypes.Note:
-                    NotesVM.CommitCommand.Execute(null);
-                    break;
-                case CalendarObjectTypes.Task:
-                    TimeTasksVM.CommitCommand.Execute(null);
-                    break;
-            }
-            Status = CurrentEditItemType + " Modified";
-            EndEdit();
-        }
-        protected virtual void DeleteSelected()
+        protected virtual async Task Commit()
         {
             switch (CurrentEditItemType)
             {
                 case CalendarObjectTypes.CheckIn:
+                    if (IsAddingNew)
+                    {
+                        var NCIO = MapNewCheckIn(CheckInsVM.CurrentEditItem);
+                        MapTaskObjects();
+                        CheckInsVM.CommitCommand.Execute(null);
+                        if (NCIO != null) AddNewCheckInObject(NCIO);
+                        OnPropertyChanged(nameof(CalCIObjsView));
+                        Status = CalendarObjectTypes.CheckIn + " Added";
+                    }
+                    break;
+                case CalendarObjectTypes.Note:
+                    if (IsAddingNew)
+                    {
+                        AddNewNoteObject(NotesVM.CurrentEditItem);
+                        OnPropertyChanged(nameof(CalNoteObjsView));
+                        NotesVM.CommitCommand.Execute(null);
+                        Status = CalendarObjectTypes.Note + " Added";
+                    }
+                    else if (IsEditingItem)
+                    {
+                        var N = CurrentEditItem as CalendarNoteObject;
+                        N.Note = NotesVM.CurrentEditItem;
+                        NotesVM.CommitCommand.Execute(null);
+                        Status = CalendarObjectTypes.Note + " Modified";
+                    }
+                    break;
+                case CalendarObjectTypes.Task:
+                    if (IsAddingNew)
+                    {
+                        TimeTasksVM.CommitCommand.Execute(null);
+                        await BuildNewTaskMap(TimeTasksVM.CurrentEditItem);
+                        Status = CalendarObjectTypes.Task + " Added";
+                    }
+                    else if (IsEditingItem)
+                    {
+                        var T = CurrentEditItem as CalendarTaskObject;
+                        TaskMaps.Remove(T.ParentPerZone.ParentMap);
+                        await BuildNewTaskMap(TimeTasksVM.CurrentEditItem);
+                        TimeTasksVM.CommitCommand.Execute(null);
+                        Status = CalendarObjectTypes.Task + " Modified";
+                    }
+                    break;
+            }
+            EndEdit();
+        }
+        protected virtual async Task DeleteSelected()
+        {
+            switch (SelectedItemType)
+            {
+                case CalendarObjectTypes.CheckIn:
                     CheckInsVM.DeleteSelectedCommand.Execute(null);
+                    var CCIO = SelectedItem as CalendarCheckInObject;
+                    CCIO?.ParentPerZone.CheckIns.Remove(CCIO);
+                    MapTaskObjects();
+                    CalCIObjsView.Remove(CCIO);
+                    OnPropertyChanged(nameof(CalCIObjsView));
+                    Status = CalendarObjectTypes.CheckIn + " Deleted";
                     break;
                 case CalendarObjectTypes.Note:
                     NotesVM.DeleteSelectedCommand.Execute(null);
+                    var N = SelectedItem as CalendarNoteObject;
+                    CalNoteObjsView.Remove(N);
+                    OnPropertyChanged(nameof(CalNoteObjsView));
+                    Status = CalendarObjectTypes.Note + " Deleted";
                     break;
                 case CalendarObjectTypes.Task:
                     TimeTasksVM.DeleteSelectedCommand.Execute(null);
+                    var T = SelectedItem as CalendarTaskObject;
+                    TaskMaps.Remove(T.ParentPerZone.ParentMap);
+                    await BuildTaskMaps();
+                    Status = CalendarObjectTypes.Task + " Deleted";
                     break;
             }
             SelectedItem = null;
         }
         protected abstract void SaveAs();
-        private void AddNewCheckIn(DateTime dt, bool start, TimeTask task)
+        private async Task CreateCalendarObjects()
         {
-            //TODO
-            //add to the correct map, no need to call BuildCheckIns()
-            //add to the database collection
-            //rebuild CalObjs
+            await BuildTaskMaps();
+            CreateCheckInObjects();
+            CreateNoteObjects();
+            Status = "Ready";
         }
-        private void EditCheckIn(CalendarCheckIn CI)
+        private void CreateCheckInObjects()
         {
-            //TODO
-            //find and edit the CI from TaskMaps, no need to call BuildCheckIns()
-            //find and edit the CI in the database collection
-            //rebuild CalObjs
+            CalCIObjsCollection = new CollectionViewSource();
+            CalCIObjsCollection.Source = new ObservableCollection<CalendarCheckInObject>();
+            var mappedEventCheckInObjects =
+                from M in TaskMaps
+                from P in M.PerZones
+                from CIO in P.CheckIns
+                where CIO.Kind == CheckInKind.EventEnd || CIO.Kind == CheckInKind.EventStart
+                select CIO;
+            var mappedEventCheckIns =
+                from CIO in mappedEventCheckInObjects
+                select CIO.CheckIn;
+            var checkIns = CheckInsVM.Source
+                .Where(CI => Intersects(CI))
+                .Except(mappedEventCheckIns);
+            foreach (var CI in checkIns)
+                AddNewCheckInObject(new CalendarCheckInObject
+                {
+                    CheckIn = CI,
+                    Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
+                });
+            foreach (var CIO in mappedEventCheckInObjects)
+                AddNewCheckInObject(CIO);
+            OnPropertyChanged(nameof(CalCIObjsView));
         }
-        private void DeleteCheckIn(CalendarCheckIn CI)
+        private void AddNewCheckInObject(CalendarCheckInObject CIO)
         {
-            //TODO
-            //find and delete the CI from TaskMaps, no need to call BuildCheckIns()
-            //find and delete the CI from the database collection
-            //rebuild CalObjs
+            CIO.ToolTip = CIO.CheckIn;
+            CalCIObjsView.AddNewItem(CIO);
+            CalCIObjsView.CommitNew();
+        }
+        private void CreateNoteObjects()
+        {
+            CalNoteObjsCollection = new CollectionViewSource();
+            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
+            var notes = NotesVM.Source.Where(N => Intersects(N));
+            foreach (var N in notes)
+                AddNewNoteObject(N);
+            OnPropertyChanged(nameof(CalNoteObjsView));
+        }
+        private void AddNewNoteObject(Note N)
+        {
+            var NO = new CalendarNoteObject
+            {
+                Note = N,
+                ToolTip = N,
+            };
+            CalNoteObjsView.AddNewItem(NO);
+            CalNoteObjsView.CommitNew();
         }
         #endregion CRUDS
         #region TaskMaps
-        public List<CalendarTimeTaskMap> TaskMaps;
+        // See: Plans.xlsx - Calendar Passes, States, CheckIns, Collisions, Collisions2
+        public HashSet<CalendarTimeTaskMap> TaskMaps;
         private async Task BuildTaskMaps()
         {
-            Status = "Building TaskMaps...";
-            await InitTaskMaps();
-            BuildCheckIns();
-            CreateTaskObjects();
+            Status = "Mapping Relevant Tasks...";
+            TaskMaps = new HashSet<CalendarTimeTaskMap>();
+            var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), Start, End);
+            await InitTaskMaps(RelevantTasks);
+            MapCheckIns(TaskMaps);
+            MapTaskObjects();
         }
-        private void CreateTaskObjects()
+        private async Task BuildNewTaskMap(TimeTask task)
         {
-            AllocateTimeFromCheckIns();
-            AllocateTimeFromFilters();
-            CalculateCollisions();
-            AllocateEmptySpace();
-            CleanUpStates();
-            UnZipTaskMaps();
+            Status = "Mapping New Task...";
+            var RelevantTasks = 
+                FindTaskSet(new HashSet<TimeTask>(), task.Start, task.End)
+                .Except(from M in TaskMaps select M.TimeTask);
+            await InitTaskMaps(RelevantTasks);
+            var RelevantMaps = TaskMaps.Where(M => RelevantTasks.Contains(M.TimeTask));
+            MapCheckIns(RelevantMaps);
+            MapTaskObjects();
+            Status = "Ready";
         }
         #region InitTaskMaps
-        private async Task InitTaskMaps()
+        private async Task InitTaskMaps(IEnumerable<TimeTask> RelevantTasks)
         {
             //This function is more intensive than others, it will be called once on load.
-            //Reduce the TimeTask set.
-            var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), Start, End);
             foreach (var T in RelevantTasks)
                 await T.BuildPerZonesAsync();
-            TaskMaps = new List<CalendarTimeTaskMap>();
             //Create Maps with all PerZones; we will reduce this set later.
             foreach (var T in RelevantTasks)
             {
@@ -775,9 +859,6 @@ namespace TimekeeperWPF
                         Start = P.Key,
                         End = P.Value,
                         ParentMap = M,
-                        InclusionZones = new List<InclusionZone>(),
-                        CalTaskObjs = new HashSet<CalendarTaskObject>(),
-                        CheckIns = new List<CalendarCheckIn>(),
                     };
                     M.PerZones.Add(per);
                 }
@@ -788,11 +869,13 @@ namespace TimekeeperWPF
             {
                 //Reduce the PerZone set.
                 M.PerZones = new HashSet<PerZone>(M.PerZones.Intersect(RelevantPerZones));
+
                 //Build InclusionZones with the reduced PerZone set.
                 var pers = new Dictionary<DateTime, DateTime>();
                 foreach (var P in M.PerZones)
                     pers.Add(P.Start, P.End);
                 await M.TimeTask.BuildInclusionZonesAsync(pers);
+
                 foreach (var P in M.PerZones)
                 {
                     if (M.TimeTask.TimeAllocation != null)
@@ -803,6 +886,7 @@ namespace TimekeeperWPF
                             Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks,
                         };
                     }
+                    P.InclusionZones = new List<InclusionZone>();
                     var inZones = M.TimeTask.InclusionZones.Where(Z => P.Intersects(Z.Key, Z.Value));
                     foreach (var Z in inZones)
                     {
@@ -817,7 +901,7 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private HashSet<TimeTask> FindTaskSet(HashSet<TimeTask> accumulatedFinds, DateTime start, DateTime end)
+        private IEnumerable<TimeTask> FindTaskSet(IEnumerable<TimeTask> accumulatedFinds, DateTime start, DateTime end)
         {
             //Recursively select the set of Tasks that intersect the calendar view or previously added tasks.
             var foundTasks = TimeTasksVM.Source.Where(T => T.Intersects(start, end)).Except(accumulatedFinds);
@@ -829,7 +913,7 @@ namespace TimekeeperWPF
             }
             return accumulatedFinds;
         }
-        private HashSet<PerZone> FindPerSet(HashSet<PerZone> accumulatedFinds, DateTime start, DateTime end)
+        private IEnumerable<PerZone> FindPerSet(IEnumerable<PerZone> accumulatedFinds, DateTime start, DateTime end)
         {
             //Recursively select the set of PerZones that intersect the calendar view or previously added PerZones.
             var foundPers = (from M in TaskMaps
@@ -845,44 +929,77 @@ namespace TimekeeperWPF
             return accumulatedFinds;
         }
         #endregion InitTaskMaps
-        private void BuildCheckIns()
+        private CalendarCheckInObject MapNewCheckIn(CheckIn CI)
         {
             foreach (var M in TaskMaps)
             {
+                if (M.TimeTask != CI.TimeTask) continue;
                 foreach (var P in M.PerZones)
                 {
-                    var eventCheckIns = new List<CalendarCheckIn>();
-                    var perCheckIns = new List<CalendarCheckIn>();
-                    var inZoneCheckIns = new List<CalendarCheckIn>();
+                    if (!P.Intersects(CI)) continue;
+                    var CCI = new CalendarCheckInObject
+                    {
+                        CheckIn = CI,
+                        Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
+                        ParentPerZone = P,
+                    };
+                    P.CheckIns.Add(CCI);
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        if (!Z.Intersects(CI)) continue;
+                        CCI.ParentInclusionZone = Z;
+                        return CCI;
+                    }
+                    return CCI;
+                }
+            }
+            return null;
+        }
+        private void MapCheckIns(IEnumerable<CalendarTimeTaskMap> RelevantMaps)
+        {
+            foreach (var M in RelevantMaps)
+            {
+                foreach (var P in M.PerZones)
+                {
+                    var eventCheckIns = new List<CalendarCheckInObject>();
+                    var perCheckIns = new List<CalendarCheckInObject>();
+                    var inZoneCheckIns = new List<CalendarCheckInObject>();
                     //find and map relevant event CIs in this PerZone
                     var checkIns =
                         from CI in CheckInsVM.Source
-                        where CI.TimeTask == M.TimeTask
+                        where CI.TimeTask.Id == M.TimeTask.Id
                         where P.Intersects(CI.DateTime)
                         select CI;
                     foreach (var CI in checkIns)
                     {
-                        eventCheckIns.Add(new CalendarCheckIn
+                        eventCheckIns.Add(new CalendarCheckInObject
                         {
-                            DateTime = CI.DateTime,
+                            CheckIn = CI,
                             Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
-                            ParentMap = M,
                             ParentPerZone = P,
                         });
                     }
                     //map zone ends as CheckIns
-                    perCheckIns.Add(new CalendarCheckIn
+                    perCheckIns.Add(new CalendarCheckInObject
                     {
-                        DateTime = P.Start,
+                        CheckIn = new CheckIn
+                        {
+                            Start = true,
+                            DateTime = P.Start,
+                            TimeTask = P.ParentMap.TimeTask,
+                        },
                         Kind = CheckInKind.PerZoneStart,
-                        ParentMap = M,
                         ParentPerZone = P,
                     });
-                    perCheckIns.Add(new CalendarCheckIn
+                    perCheckIns.Add(new CalendarCheckInObject
                     {
-                        DateTime = P.End,
+                        CheckIn = new CheckIn
+                        {
+                            Start = false,
+                            DateTime = P.End,
+                            TimeTask = P.ParentMap.TimeTask,
+                        },
                         Kind = CheckInKind.PerZoneEnd,
-                        ParentMap = M,
                         ParentPerZone = P,
                     });
                     foreach (var Z in P.InclusionZones)
@@ -890,24 +1007,32 @@ namespace TimekeeperWPF
                         //find and map relevant event CIs in this InclusionZone
                         var CIsOverZ =
                             from CI in eventCheckIns
-                            where Z.Intersects(CI)
+                            where Z.Intersects(CI.CheckIn)
                             select CI;
                         foreach (var CI in CIsOverZ)
                             CI.ParentInclusionZone = Z;
                         //map zone ends as CheckIns
-                        inZoneCheckIns.Add(new CalendarCheckIn
+                        inZoneCheckIns.Add(new CalendarCheckInObject
                         {
-                            DateTime = Z.Start,
+                            CheckIn = new CheckIn
+                            {
+                                Start = true,
+                                DateTime = Z.Start,
+                                TimeTask = P.ParentMap.TimeTask,
+                            },
                             Kind = CheckInKind.InclusionZoneStart,
-                            ParentMap = M,
                             ParentPerZone = P,
                             ParentInclusionZone = Z,
                         });
-                        inZoneCheckIns.Add(new CalendarCheckIn
+                        inZoneCheckIns.Add(new CalendarCheckInObject
                         {
-                            DateTime = Z.End,
+                            CheckIn = new CheckIn
+                            {
+                                Start = false,
+                                DateTime = Z.End,
+                                TimeTask = P.ParentMap.TimeTask,
+                            },
                             Kind = CheckInKind.InclusionZoneEnd,
-                            ParentMap = M,
                             ParentPerZone = P,
                             ParentInclusionZone = Z,
                         });
@@ -917,9 +1042,22 @@ namespace TimekeeperWPF
                         from CI in eventCheckIns.Union(perCheckIns).Union(inZoneCheckIns)
                         orderby CI.DateTime, CI.Kind
                         select CI;
-                    P.CheckIns = new List<CalendarCheckIn>(allCheckIns);
+                    P.CheckIns = new List<CalendarCheckInObject>(allCheckIns);
                 }
             }
+        }
+        #region MapTaskObjects
+        private void MapTaskObjects()
+        {
+            foreach (var M in TaskMaps)
+                foreach (var P in M.PerZones)
+                    P.CalTaskObjs = new HashSet<CalendarTaskObject>();
+            AllocateTimeFromCheckIns();
+            AllocateTimeFromFilters();
+            CalculateCollisions();
+            AllocateEmptySpace();
+            CleanUpStates();
+            UnZipTaskMaps();
         }
         private void AllocateTimeFromCheckIns()
         {
@@ -930,7 +1068,7 @@ namespace TimekeeperWPF
                 {
                     //Create CalObjs from CheckIns
                     CalendarTaskObject pC = null;
-                    CalendarCheckIn pN = null;
+                    CalendarCheckInObject pN = null;
                     bool inZ = false;
                     foreach (var N in P.CheckIns)
                     {
@@ -1799,7 +1937,7 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private List<Grouping<int, EmptyZone>> GetEmptySpaces()
+        private IEnumerable<IGrouping<int, EmptyZone>> GetEmptySpaces()
         {
             //group COs by dimension
             var calObjDimensions =
@@ -1808,7 +1946,7 @@ namespace TimekeeperWPF
                 from C in P.CalTaskObjs
                 orderby C.Start
                 group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            var spaceDimensions = new List<Grouping<int, EmptyZone>>();
+            var spaceDimensions = new HashSet<Grouping<int, EmptyZone>>();
             foreach (var dimension in calObjDimensions)
             {
                 var spaces = new Grouping<int, EmptyZone>();
@@ -2012,40 +2150,7 @@ namespace TimekeeperWPF
             }
             OnPropertyChanged(nameof(CalTaskObjsView));
         }
-        private void CreateCheckInObjects()
-        {
-            CalCIObjsCollection = new CollectionViewSource();
-            CalCIObjsCollection.Source = new ObservableCollection<CalendarCheckInObject>();
-            var checkIns = CheckInsVM.Source.Where(CI => Intersects(CI));
-            foreach (var CI in checkIns)
-            {
-                var C = new CalendarCheckInObject
-                {
-                    CheckIn = CI,
-                    ToolTip = CI,
-                };
-                CalCIObjsView.AddNewItem(C);
-                CalCIObjsView.CommitNew();
-            }
-            OnPropertyChanged(nameof(CalCIObjsView));
-        }
-        private void CreateNoteObjects()
-        {
-            CalNoteObjsCollection = new CollectionViewSource();
-            CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
-            var notes = NotesVM.Source.Where(N => Intersects(N));
-            foreach (var N in notes)
-            {
-                var C = new CalendarNoteObject
-                {
-                    Note = N,
-                    ToolTip = N,
-                };
-                CalNoteObjsView.AddNewItem(C);
-                CalNoteObjsView.CommitNew();
-            }
-            OnPropertyChanged(nameof(CalNoteObjsView));
-        }
+        #endregion MapTaskObjects
         protected virtual void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj) { }
         #endregion TaskMaps
         #region IDisposable Support

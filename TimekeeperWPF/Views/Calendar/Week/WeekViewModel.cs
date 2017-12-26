@@ -24,7 +24,6 @@ namespace TimekeeperWPF
         {
             Start = DateTime.Now;
         }
-        #region Properties
         public override string Name => "Week View";
         public override DateTime Start
         {
@@ -56,14 +55,10 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        #endregion
-        #region Predicates
         protected override bool CanSave => false;
         public override bool CanMax => true;
         protected override bool CanOrientation => true;
         protected override bool CanSelectWeek => false;
-        #endregion
-        #region Actions
         protected override void SaveAs()
         {
             throw new NotImplementedException();
@@ -102,6 +97,5 @@ namespace TimekeeperWPF
             Start = Start.AddDays(7);
             await base.NextAsync();
         }
-        #endregion
     }
 }

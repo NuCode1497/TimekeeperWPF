@@ -1030,7 +1030,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         x = TextMargin;
-                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
@@ -1046,7 +1046,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         x = TextMargin;
-                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
@@ -1130,7 +1130,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         y = TextMargin;
-                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
                     {
@@ -1146,7 +1146,7 @@ namespace TimekeeperWPF.Calendar
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
                         y = TextMargin;
-                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale;
+                        x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
                     {

@@ -291,6 +291,13 @@ namespace TimekeeperWPF
                 EndEdit();
             }
         }
+        protected virtual async void DeleteSelected()
+        {
+            string status = SelectedItem?.GetTypeName() + " Deleted";
+            View.Remove(SelectedItem);
+            if (await SaveChangesAsync()) Status = status;
+            SelectedItem = null;
+        }
         protected virtual async Task<bool> SaveChangesAsync()
         {
             bool success = false;
@@ -342,13 +349,6 @@ namespace TimekeeperWPF
                 ev.ShowDialog();
             }
             return success;
-        }
-        protected virtual async void DeleteSelected()
-        {
-            string status = SelectedItem?.GetTypeName() + " Deleted";
-            View.Remove(SelectedItem);
-            if (await SaveChangesAsync()) Status = status;
-            SelectedItem = null;
         }
         #endregion
         #region IDisposable Support

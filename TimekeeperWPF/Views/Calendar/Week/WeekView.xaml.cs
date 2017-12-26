@@ -31,7 +31,27 @@ namespace TimekeeperWPF
             {
                 Dispatcher.BeginInvoke((Action)delegate
                 {
-                    DataEditor.NoteTextBox.Focus();
+                    NoteEditor.NoteTextBox.Focus();
+                }, DispatcherPriority.Render);
+            }
+        }
+        private void EditTimeTaskPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (EditTimeTaskPopUp.Visibility == Visibility.Visible)
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    TimeTaskEditor.NameTextBox.Focus();
+                }, DispatcherPriority.Render);
+            }
+        }
+        private void EditCheckInPopUp_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (EditCheckInPopUp.Visibility == Visibility.Visible)
+            {
+                Dispatcher.BeginInvoke((Action)delegate
+                {
+                    CheckInEditor.DateTimeTextBox.Focus();
                 }, DispatcherPriority.Render);
             }
         }
