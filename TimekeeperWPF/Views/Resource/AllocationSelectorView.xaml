@@ -14,10 +14,9 @@
                     Visibility="{Binding Path=IsNotAddingNewAllocation,
                     Converter={StaticResource BooleanToVisibilityConverter}}">
                     <ComboBox
-                        Name="ResourcesCbo" DisplayMemberPath="Name"
+                        Name="ResourcesCbo" DisplayMemberPath="Name" MinWidth="100"
                         IsEnabled="{Binding Path=IsNotAddingNewAllocation}"
-                        IsSynchronizedWithCurrentItem="False" MinWidth="100"
-                        SelectedItem="{Binding Path=SelectedResource, Mode=TwoWay}"
+                        SelectedItem="{Binding Path=SelectedResource}"
                         ItemsSource="{Binding Path=ResourcesView}" />
                     <Button Style="{StaticResource TinyButtonAddStyle}"
                     Command="{Binding Path=AddNewAllocationCommand}" />

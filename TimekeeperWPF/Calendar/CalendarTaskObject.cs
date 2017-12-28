@@ -75,8 +75,21 @@ namespace TimekeeperWPF.Calendar
                     State = States.Current;
                 }
             }
-
-            //InvalidateArrange();
+            BuildToolTip();
+        }
+        private void BuildToolTip()
+        {
+            ToolTip = String.Format("D[{0}] {1} - {2}\nP[{3}] {4}\nDur: {5:g}\nS[{7}]{6}\nE[{9}]{8}",
+                ParentPerZone.ParentMap.TimeTask.Dimension,
+                ParentPerZone.ParentMap.TimeTask.TaskType,
+                ParentPerZone.ParentMap.TimeTask,
+                ParentPerZone.ParentMap.TimeTask.Priority,
+                State,
+                Duration,
+                StateLock ? "🔒" : "",
+                Start.ToString(),
+                EndLock ? "🔒" : "",
+                End.ToString());
         }
         #region Zone
         public CalendarTaskObject LeftTangent { get; set; }
@@ -128,15 +141,6 @@ namespace TimekeeperWPF.Calendar
                 nameof(Start), typeof(DateTime), typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
         #endregion Start
-        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
-        public bool Intersects(Note N) { return Intersects(N.DateTime); }
-        public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
-        public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(CalendarCheckInObject CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
-        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
-        public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
         #endregion Zone
         #region ParentMap
         //public CalendarTimeTaskMap ParentMap
@@ -239,9 +243,9 @@ namespace TimekeeperWPF.Calendar
             CheckIn,        //DodgerBlue
             Completed,      //LimeGreen
             Confirmed,      //SpringGreen
-            Conflict,       //Pink
+            Conflict,       //Crimson
             Current,        //Azure
-            Cancel,         //Crimson
+            Cancel,         //Pink
             Insufficient,   //Orange
             Unconfirmed,    //SkyBlue
             Unscheduled,    //Chartreuse

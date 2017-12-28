@@ -197,15 +197,6 @@ namespace TimekeeperWPF
         public string YearString => Start.ToString("yyy");
         public string MonthString => Start.ToString("MMMM");
         public string WeekString => Start.ToString("MMMM dd, yyy");
-        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
-        public bool Intersects(Note N) { return Intersects(N.DateTime); }
-        public bool Intersects(CalendarNoteObject C) { return Intersects(C.DateTime); }
-        public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(CalendarCheckInObject CI) { return Intersects(CI.CheckIn); }
-        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
-        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
-        public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
         #endregion Zone
         #region CRUDS
         private TimeTasksViewModel _TimeTasksVM;
@@ -283,8 +274,8 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (_SelectedItem == value) return;
-                if (value is NowMarkerHorizontal
-                    || value is NowMarkerVertical)
+                if (value is NowMarkerHorizontal ||
+                    value is NowMarkerVertical)
                 {
                     SelectedItem = null;
                     return;
@@ -328,8 +319,8 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (value == _CurrentEditItem) return;
-                if (value is NowMarkerHorizontal
-                    || value is NowMarkerVertical)
+                if (value is NowMarkerHorizontal ||
+                    value is NowMarkerVertical)
                 {
                     return;
                 }
@@ -693,8 +684,8 @@ namespace TimekeeperWPF
                     if (IsAddingNew)
                     {
                         AddNewNoteObject(NotesVM.CurrentEditItem);
-                        OnPropertyChanged(nameof(CalNoteObjsView));
                         NotesVM.CommitCommand.Execute(null);
+                        OnPropertyChanged(nameof(CalNoteObjsView));
                         Status = CalendarObjectTypes.Note + " Added";
                     }
                     else if (IsEditingItem)
@@ -702,6 +693,7 @@ namespace TimekeeperWPF
                         var N = CurrentEditItem as CalendarNoteObject;
                         N.Note = NotesVM.CurrentEditItem;
                         NotesVM.CommitCommand.Execute(null);
+                        OnPropertyChanged(nameof(CalNoteObjsView));
                         Status = CalendarObjectTypes.Note + " Modified";
                     }
                     break;
@@ -729,9 +721,9 @@ namespace TimekeeperWPF
             switch (SelectedItemType)
             {
                 case CalendarObjectTypes.CheckIn:
-                    CheckInsVM.DeleteSelectedCommand.Execute(null);
                     var CCIO = SelectedItem as CalendarCheckInObject;
                     CCIO?.ParentPerZone.CheckIns.Remove(CCIO);
+                    CheckInsVM.DeleteSelectedCommand.Execute(null);
                     MapTaskObjects();
                     CalCIObjsView.Remove(CCIO);
                     OnPropertyChanged(nameof(CalCIObjsView));
@@ -745,9 +737,9 @@ namespace TimekeeperWPF
                     Status = CalendarObjectTypes.Note + " Deleted";
                     break;
                 case CalendarObjectTypes.Task:
-                    TimeTasksVM.DeleteSelectedCommand.Execute(null);
                     var T = SelectedItem as CalendarTaskObject;
                     TaskMaps.Remove(T.ParentPerZone.ParentMap);
+                    TimeTasksVM.DeleteSelectedCommand.Execute(null);
                     await BuildTaskMaps();
                     Status = CalendarObjectTypes.Task + " Deleted";
                     break;
@@ -776,7 +768,7 @@ namespace TimekeeperWPF
                 from CIO in mappedEventCheckInObjects
                 select CIO.CheckIn;
             var checkIns = CheckInsVM.Source
-                .Where(CI => Intersects(CI))
+                .Where(CI => CI.IsInside(this))
                 .Except(mappedEventCheckIns);
             foreach (var CI in checkIns)
                 AddNewCheckInObject(new CalendarCheckInObject
@@ -798,7 +790,7 @@ namespace TimekeeperWPF
         {
             CalNoteObjsCollection = new CollectionViewSource();
             CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
-            var notes = NotesVM.Source.Where(N => Intersects(N));
+            var notes = NotesVM.Source.Where(N => N.IsInside(this));
             foreach (var N in notes)
                 AddNewNoteObject(N);
             OnPropertyChanged(nameof(CalNoteObjsView));
@@ -878,14 +870,6 @@ namespace TimekeeperWPF
 
                 foreach (var P in M.PerZones)
                 {
-                    if (M.TimeTask.TimeAllocation != null)
-                    {
-                        P.TimeConsumption = new Consumption
-                        {
-                            Allocation = M.TimeTask.TimeAllocation,
-                            Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks,
-                        };
-                    }
                     P.InclusionZones = new List<InclusionZone>();
                     var inZones = M.TimeTask.InclusionZones.Where(Z => P.Intersects(Z.Key, Z.Value));
                     foreach (var Z in inZones)
@@ -933,20 +917,28 @@ namespace TimekeeperWPF
         {
             foreach (var M in TaskMaps)
             {
-                if (M.TimeTask != CI.TimeTask) continue;
+                if (M.TimeTask.Id != CI.TimeTask.Id) continue;
+                //find the correct Per
                 foreach (var P in M.PerZones)
                 {
-                    if (!P.Intersects(CI)) continue;
+                    if (!CI.IsInside(P)) continue;
                     var CCI = new CalendarCheckInObject
                     {
                         CheckIn = CI,
                         Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
                         ParentPerZone = P,
                     };
+                    //add
                     P.CheckIns.Add(CCI);
+                    //sort
+                    P.CheckIns = new List<CalendarCheckInObject>(
+                        from c in P.CheckIns
+                        orderby c.DateTime, c.Kind
+                        select c);
+                    //set the parent inclusion zone
                     foreach (var Z in P.InclusionZones)
                     {
-                        if (!Z.Intersects(CI)) continue;
+                        if (!CI.IsInside(Z)) continue;
                         CCI.ParentInclusionZone = Z;
                         return CCI;
                     }
@@ -965,13 +957,9 @@ namespace TimekeeperWPF
                     var perCheckIns = new List<CalendarCheckInObject>();
                     var inZoneCheckIns = new List<CalendarCheckInObject>();
                     //find and map relevant event CIs in this PerZone
-                    var checkIns =
-                        from CI in CheckInsVM.Source
-                        where CI.TimeTask.Id == M.TimeTask.Id
-                        where P.Intersects(CI.DateTime)
-                        select CI;
-                    foreach (var CI in checkIns)
+                    foreach (var CI in CheckInsVM.Source)
                     {
+                        if (CI.TimeTask.Id != M.TimeTask.Id || !CI.IsInside(P)) continue;
                         eventCheckIns.Add(new CalendarCheckInObject
                         {
                             CheckIn = CI,
@@ -1005,12 +993,11 @@ namespace TimekeeperWPF
                     foreach (var Z in P.InclusionZones)
                     {
                         //find and map relevant event CIs in this InclusionZone
-                        var CIsOverZ =
-                            from CI in eventCheckIns
-                            where Z.Intersects(CI.CheckIn)
-                            select CI;
-                        foreach (var CI in CIsOverZ)
+                        foreach (var CI in eventCheckIns)
+                        {
+                            if (!CI.IsInside(Z)) continue;
                             CI.ParentInclusionZone = Z;
+                        }
                         //map zone ends as CheckIns
                         inZoneCheckIns.Add(new CalendarCheckInObject
                         {
@@ -1051,7 +1038,17 @@ namespace TimekeeperWPF
         {
             foreach (var M in TaskMaps)
                 foreach (var P in M.PerZones)
+                {
                     P.CalTaskObjs = new HashSet<CalendarTaskObject>();
+                    if (M.TimeTask.TimeAllocation != null)
+                    {
+                        P.TimeConsumption = new Consumption
+                        {
+                            Allocation = M.TimeTask.TimeAllocation,
+                            Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks,
+                        };
+                    }
+                }
             AllocateTimeFromCheckIns();
             AllocateTimeFromFilters();
             CalculateCollisions();
@@ -1846,7 +1843,6 @@ namespace TimekeeperWPF
                 {
                     foreach (var space in dimension)
                     {
-                        //find any intersecting insufficient InclusionZones
                         var zones =
                             from M in TaskMaps
                             where M.TimeTask.Dimension == dimension.Key
@@ -1985,107 +1981,82 @@ namespace TimekeeperWPF
         private void CleanUpStates()
         {
             Status = "Cleaning Up...";
-            FixMisalignments();
-            FixWrongStates();
-            FlagInsufficients();
+            foreach (var M in TaskMaps)
+            {
+                foreach (var P in M.PerZones)
+                {
+                    FixMisalignments(P);
+                    foreach (var C in P.CalTaskObjs)
+                    {
+                        foreach (var Z in P.InclusionZones)
+                        {
+                            //Fix Wrong States for CalObjs over a zone
+                            if (C.State == CalendarTaskObject.States.Unscheduled)
+                            {
+                                if (C.StartLock || C.EndLock)
+                                    C.State = CalendarTaskObject.States.Confirmed;
+                                else if (C.ParentPerZone.ParentMap.TimeTask.AutoCheckIn)
+                                    C.State = CalendarTaskObject.States.AutoConfirm;
+                                else
+                                    C.State = CalendarTaskObject.States.Unconfirmed;
+                            }
+                        }
+                        //Fix Wrong States for CalObjs not over a zone
+                        if (C.ParentInclusionZone == null &&
+                            C.State != CalendarTaskObject.States.Unscheduled)
+                            C.State = CalendarTaskObject.States.Unscheduled;
+                        //Flag Cancels
+                        if (C.Start == C.End)
+                            C.State = CalendarTaskObject.States.Cancel;
+                    }
+                    //Flag Insufficients
+                    if (P.TimeConsumption.Remaining > 0)
+                        foreach (var C in P.CalTaskObjs)
+                            C.State = CalendarTaskObject.States.Insufficient;
+                }
+            }
             FlagConflicts();
         }
-        private void FixMisalignments()
+        private static void FixMisalignments(PerZone P)
         {
-            //If there are any CalObjs that cross a zone boundary by more than MinDur, split it. 
-            var misalignments =
-                from M in TaskMaps
-                from P in M.PerZones
-                from Z in P.InclusionZones
-                from C in P.CalTaskObjs
-                where C.ParentPerZone == Z.ParentPerZone
-                where C.Intersects(Z) && !C.IsInside(Z)
-                select C;
-            foreach (var C in misalignments)
+            HashSet<CalendarTaskObject> newTaskObjs = new HashSet<CalendarTaskObject>();
+            bool hasChanges = true;
+            while (hasChanges)
             {
-                if (C.Start < C.ParentInclusionZone.Start)
-                {
-                    var split = new CalendarTaskObject();
-                    split.Mimic(C);
-                    split.End = C.ParentInclusionZone.Start;
-                    split.State = CalendarTaskObject.States.Unscheduled;
-                    if (split.Duration.Ticks >= 0)
-                    {
-                        C.Start = split.End;
-                        split.ParentPerZone.CalTaskObjs.Add(split);
-                    }
-                }
-                if (C.End > C.ParentInclusionZone.End)
-                {
-                    var split = new CalendarTaskObject();
-                    split.Mimic(C);
-                    split.Start = C.ParentInclusionZone.End;
-                    split.State = CalendarTaskObject.States.Unscheduled;
-                    if (split.Duration.Ticks >= 0)
-                    {
-                        C.End = split.Start;
-                        split.ParentPerZone.CalTaskObjs.Add(split);
-                    }
-                }
-            }
-        }
-        private void FixWrongStates()
-        {
-            //If a CalObj marked Unscheduled is within a proper InclusionZone, mark it correctly. 
-            //If any CalObj not marked Unscheduled is outside of a proper InclusionZone, mark it Unscheduled.
-            var CalObjsOverZones =
-                from M in TaskMaps
-                from P in M.PerZones
-                from Z in P.InclusionZones
-                from C in P.CalTaskObjs
-                where C.ParentPerZone == Z.ParentPerZone
-                where C.Intersects(Z)
-                select C;
-            var CalObjs =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                select C;
-            var CalObjsOutside = CalObjs.Except(CalObjsOverZones);
-            foreach (var C in CalObjsOverZones)
-            {
-                if (C.State == CalendarTaskObject.States.Unscheduled)
-                {
-                    if (C.StartLock || C.EndLock)
-                    {
-                        C.State = CalendarTaskObject.States.Confirmed;
-                    }
-                    else if (C.ParentPerZone.ParentMap.TimeTask.AutoCheckIn)
-                    {
-                        C.State = CalendarTaskObject.States.AutoConfirm;
-                    }
-                    else
-                    {
-                        C.State = CalendarTaskObject.States.Unconfirmed;
-                    }
-                }
-            }
-            foreach (var C in CalObjsOutside)
-            {
-                if (C.State != CalendarTaskObject.States.Unscheduled)
-                {
-                    C.State = CalendarTaskObject.States.Unscheduled;
-                }
-            }
-        }
-        private void FlagInsufficients()
-        {
-            //If a Per has remaining > 0, mark all of its CalObjs as Insufficient. 
-            var insuffPers =
-                from M in TaskMaps
-                from P in M.PerZones
-                where P.TimeConsumption.Remaining > 0
-                select P;
-            foreach (var P in insuffPers)
-            {
+                hasChanges = false;
                 foreach (var C in P.CalTaskObjs)
                 {
-                    C.State = CalendarTaskObject.States.Insufficient;
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        //Fix Misalignments (this probably will never happen)
+                        if (C.Intersects(Z) && (!C.IsInside(Z) || C.ParentInclusionZone != Z))
+                        {
+                            if (C.Start < Z.Start)
+                            {
+                                var split = new CalendarTaskObject();
+                                split.Mimic(C);
+                                split.End = Z.Start;
+                                C.Start = Z.Start;
+                                newTaskObjs.Add(split);
+                            }
+                            if (C.End > Z.End)
+                            {
+                                var split = new CalendarTaskObject();
+                                split.Mimic(C);
+                                split.Start = Z.End;
+                                C.End = Z.End;
+                                newTaskObjs.Add(split);
+                            }
+                            C.ParentInclusionZone = Z;
+                        }
+                    }
+                }
+                if (newTaskObjs.Count > 0)
+                {
+                    foreach (var C in newTaskObjs)
+                        P.CalTaskObjs.Add(C);
+                    newTaskObjs.Clear();
+                    hasChanges = true;
                 }
             }
         }
@@ -2101,29 +2072,14 @@ namespace TimekeeperWPF
             {
                 foreach (var C1 in dimension)
                 {
-                    var intersections =
-                        from C2 in dimension
-                        where C2 != C1
-                        where C1.Intersects(C2)
-                        select C2;
-                    foreach (var C2 in intersections)
+                    foreach (var C2 in dimension)
                     {
-                        C1.State = CalendarTaskObject.States.Conflict;
-                        C2.State = CalendarTaskObject.States.Conflict;
+                        if (C1 != C2 && C1.Intersects(C2))
+                        {
+                            C1.State = CalendarTaskObject.States.Conflict;
+                            C2.State = CalendarTaskObject.States.Conflict;
+                        }
                     }
-                }
-            }
-            //If there are any CalObjs with no time, mark them as cancelled
-            var CalObjs =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                select C;
-            foreach (var C in CalObjs)
-            {
-                if (C.Start == C.End)
-                {
-                    C.State = CalendarTaskObject.States.Cancel;
                 }
             }
         }
@@ -2139,9 +2095,6 @@ namespace TimekeeperWPF
                 {
                     foreach (var C in P.CalTaskObjs)
                     {
-                        C.ToolTip = String.Format("{0}\n{1}",
-                            C.ParentPerZone.ParentMap.TimeTask,
-                            C.Start.ToString() + " to " + C.End.ToString());
                         CalTaskObjsView.AddNewItem(C);
                         CalTaskObjsView.CommitNew();
                         AdditionalCalTaskObjSetup(C);

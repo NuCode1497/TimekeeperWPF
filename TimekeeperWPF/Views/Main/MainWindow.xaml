@@ -11,7 +11,7 @@
     <Window.InputBindings>
         <KeyBinding Command="{Binding Path=CurrentView.NewItemCommand}" Gesture="CTRL+N"/>
         <KeyBinding Command="{Binding Path=CurrentView.EditSelectedCommand}" Gesture="CTRL+E"/>
-        <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Gesture="CTRL+D"/>
+        <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Gesture="Del"/>
         <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Gesture="CTRL+R"/>
         <KeyBinding Command="{Binding Path=CurrentView.PreviousCommand}" Gesture="Left"/>
         <KeyBinding Command="{Binding Path=CurrentView.NextCommand}" Gesture="Right"/>

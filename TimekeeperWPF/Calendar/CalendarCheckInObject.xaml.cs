@@ -17,11 +17,13 @@ namespace TimekeeperWPF.Calendar
         {
             InitializeComponent();
         }
+        public override string ToString()
+        {
+            return Kind + "\n" + CheckIn;
+        }
         public CheckIn CheckIn { get; set; }
         public CheckInKind Kind { get; set; }
         public DateTime DateTime => CheckIn.DateTime;
-        public bool Intersects(DateTime start, DateTime end) { return start < DateTime && DateTime < end; }
-        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
         #region ParentMap
         //public CalendarTimeTaskMap ParentMap
         //{

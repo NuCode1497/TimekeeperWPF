@@ -17,6 +17,7 @@
             </Grid.RowDefinitions>
             <ListBox 
                 x:Name="CalendarObjectsIC" Grid.Row="2"
+                SelectionMode="Extended"
                 SelectedItem="{Binding Path=SelectedItem}"
                 Style="{StaticResource CalObjsListBoxStyle}">
                 <ListBox.Resources>
@@ -38,8 +39,8 @@
                         <StaticResource ResourceKey="CalTaskObjs"/>
                         <StaticResource ResourceKey="CalCIObjs"/>
                         <StaticResource ResourceKey="CalNoteObjs"/>
-                        <cal:NowMarkerHorizontal/>
-                        <cal:NowMarkerVertical/>
+                        <cal:NowMarkerHorizontal IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
+                        <cal:NowMarkerVertical IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
                     </CompositeCollection>
                 </ItemsControl.ItemsSource>
                 <ItemsControl.ItemsPanel>
@@ -69,48 +70,48 @@
                 x:Name="CommandsToolbar" Grid.Row="0" 
                 Template="{StaticResource CalendarViewControlsTemplate}"/>
         </Grid>
-        <Grid DataContext="{Binding Path=NotesVM}">
-            <ContentControl x:Name="EditNotePopUp"
-                IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
-                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-                FallbackValue=Collapsed,
-                Converter={StaticResource BooleanToVisibilityConverter}}"
-                Template="{StaticResource EditPopUpTemplate}">
+        <ContentControl x:Name="EditNotePopUp"
+            IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
+            Visibility="{Binding Path=NotesVM.IsEditingItemOrAddingNew, 
+            FallbackValue=Collapsed,
+            Converter={StaticResource BooleanToVisibilityConverter}}"
+            Template="{StaticResource EditPopUpTemplate}">
+            <Grid DataContext="{Binding Path=NotesVM}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <local:EditNoteView 
                         x:Name="NoteEditor" 
                         DataContext="{Binding Path=CurrentEditItem}"/>
                 </ScrollViewer>
-            </ContentControl>
-        </Grid>
-        <Grid DataContext="{Binding Path=CheckInsVM}">
-            <ContentControl x:Name="EditCheckInPopUp"
-                IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
-                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-                FallbackValue=Collapsed,
-                Converter={StaticResource BooleanToVisibilityConverter}}"
-                Template="{StaticResource EditPopUpTemplate}">
+            </Grid>
+        </ContentControl>
+        <ContentControl x:Name="EditCheckInPopUp"
+            IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
+            Visibility="{Binding Path=CheckInsVM.IsEditingItemOrAddingNew, 
+            FallbackValue=Collapsed,
+            Converter={StaticResource BooleanToVisibilityConverter}}"
+            Template="{StaticResource EditPopUpTemplate}">
+            <Grid DataContext="{Binding Path=CheckInsVM}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <local:EditCheckInView 
                         x:Name="CheckInEditor" 
                         DataContext="{Binding Path=CurrentEditItem}"/>
                 </ScrollViewer>
-            </ContentControl>
-        </Grid>
-        <Grid DataContext="{Binding Path=TimeTasksVM}">
-            <ContentControl x:Name="EditTimeTaskPopUp"
-                IsVisibleChanged="EditTimeTaskPopUp_IsVisibleChanged"
-                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-                FallbackValue=Collapsed,
-                Converter={StaticResource BooleanToVisibilityConverter}}"
-                Template="{StaticResource EditPopUpTemplate}">
+            </Grid>
+        </ContentControl>
+        <ContentControl x:Name="EditTimeTaskPopUp"
+            IsVisibleChanged="EditTimeTaskPopUp_IsVisibleChanged"
+            Visibility="{Binding Path=TimeTasksVM.IsEditingItemOrAddingNew, 
+            FallbackValue=Collapsed,
+            Converter={StaticResource BooleanToVisibilityConverter}}"
+            Template="{StaticResource EditPopUpTemplate}">
+            <Grid DataContext="{Binding Path=TimeTasksVM}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <local:EditTimeTaskView 
                         x:Name="TimeTaskEditor" 
                         DataContext="{Binding Path=CurrentEditItem}"/>
                 </ScrollViewer>
-            </ContentControl>
-        </Grid>
+            </Grid>
+        </ContentControl>
         <local:LoadingView/>
     </Grid>
 </UserControl>

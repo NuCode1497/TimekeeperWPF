@@ -2,6 +2,7 @@
 using System;
 using System.Data.Entity.Design.PluralizationServices;
 using System.Globalization;
+using TimekeeperDAL.EF;
 
 namespace TimekeeperDAL.Tools
 {
@@ -92,5 +93,13 @@ namespace TimekeeperDAL.Tools
         {
             return (int)Math.Ceiling((dt.MonthDays() + (int)dt.MonthStart().DayOfWeek) / 7d);
         }
+
+        public static bool Intersects(this IZone myZ, DateTime start, DateTime end) { return start < myZ.End && myZ.Start < end; }
+        public static bool Intersects(this IZone myZ, IZone Z) { return myZ.Intersects(Z.Start, Z.End); }
+        public static bool IsInside(this IZone myZ, DateTime start, DateTime end) { return start <= myZ.Start && myZ.End <= end; }
+        public static bool IsInside(this IZone myZ, IZone Z) { return myZ.IsInside(Z.Start, Z.End); }
+        public static bool IsInside(this DateTime dt, IZone Z) { return Z.Start <= dt && dt <= Z.End; }
+        public static bool IsInside(this CheckIn CI, IZone Z) { return CI.DateTime.IsInside(Z); }
+        public static bool IsInside(this Note N, IZone Z) { return N.DateTime.IsInside(Z); }
     }
 }

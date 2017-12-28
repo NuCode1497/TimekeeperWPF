@@ -35,7 +35,7 @@
         <ComboBox
             Grid.Column="1" Name="FilterableTypesComboBox" MinWidth="100"
             ItemsSource="{x:Static dal:Filterable.FilterableTypesChoices}"
-            SelectedItem="{Binding Path=TypeChoice, Mode=TwoWay}"/>
+            SelectedItem="{Binding Path=TypeChoice}"/>
         <ComboBox 
             Grid.Column="2" MinWidth="100"
             DisplayMemberPath="Name" IsSynchronizedWithCurrentItem="False"

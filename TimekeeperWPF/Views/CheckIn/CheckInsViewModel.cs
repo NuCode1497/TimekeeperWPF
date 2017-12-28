@@ -47,7 +47,8 @@ namespace TimekeeperWPF
             CurrentEditItem = new CheckIn
             {
                 DateTime = DateTime.Now,
-                Start = true
+                Start = true,
+                TimeTask = TimeTasksSource.FirstOrDefault(),
             };
             View.AddNewItem(CurrentEditItem);
             base.AddNew();

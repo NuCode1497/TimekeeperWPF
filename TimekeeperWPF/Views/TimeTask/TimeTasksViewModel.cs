@@ -192,22 +192,28 @@ namespace TimekeeperWPF
             //Source.Count(T => T.Name == CurrentEditItem.Name) == 1 &&
             !FiltersHaveErrors;
         protected override bool CanSave => false;
-        private bool CanAddNewAllocation => 
+        private bool CanAddNewAllocation =>
+            IsEditingItemOrAddingNew &&
+            IsNotAddingNewAllocation &&
             HasSelectedResource && 
-            (HasAllocatedTime? !SelectedResource.IsTimeResource : true) &&
-            !IsResourceAllocated(SelectedResource) &&
-            IsNotAddingNewAllocation;
+            (HasAllocatedTime ? !SelectedResource.IsTimeResource : true) &&
+            !IsResourceAllocated(SelectedResource);
         private bool HasAllocatedTime => 
-            CurrentEditItem.Allocations.Count(A => A.Resource.IsTimeResource) > 0;
-        private bool CanCancelAllocation => IsAddingNewAllocation;
-        private bool CanCommitAllocation => 
+            CurrentEditItem?.Allocations?.Count(A => A.Resource.IsTimeResource) > 0;
+        private bool CanCancelAllocation =>
+            IsEditingItemOrAddingNew && 
+            IsAddingNewAllocation;
+        private bool CanCommitAllocation =>
+            IsEditingItemOrAddingNew &&
             IsAddingNewAllocation &&
             (HasAllocatedTime ? !SelectedResource.IsTimeResource : true) &&
             (CurrentEditAllocation.Per != SelectedResource) &&
             !CurrentEditAllocation.HasErrors && 
             (TogglePer ? CurrentEditAllocation.Per != null : true);
-        private bool CanDeleteAllocation(object pp) => 
-            pp is TimeTaskAllocation && IsNotAddingNewAllocation;
+        private bool CanDeleteAllocation(object pp) =>
+            IsEditingItemOrAddingNew &&
+            IsNotAddingNewAllocation &&
+            pp is TimeTaskAllocation;
         private bool FiltersHaveErrors => FiltersSource?.Count(F => F.HasErrors) > 0;
         #endregion
         #region Actions
@@ -341,7 +347,11 @@ namespace TimekeeperWPF
         }
         private void AddNewFilter()
         {
-            FiltersView.AddNew();
+            FiltersView.AddNewItem(new TimeTaskFilter
+            {
+                Include = true,
+                TypeChoice = "Pattern"
+            });
             ((TimeTaskFilter)FiltersView.CurrentAddItem).Include = true;
             FiltersView.CommitNew();
             OnPropertyChanged(nameof(FiltersView));

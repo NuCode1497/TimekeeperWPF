@@ -124,6 +124,7 @@
     <Compile Include="Calendar\Week.cs" />
     <Compile Include="Calendar\Zone.cs" />
     <Compile Include="Tools\BoolToStartEndConverter.cs" />
+    <Compile Include="Tools\ObjectToTypeStringConverter.cs" />
     <Compile Include="Views\CheckIn\CheckInDateTimeSorter.cs" />
     <Compile Include="Views\CheckIn\CheckInsView.xaml.cs">
       <DependentUpon>CheckInsView.xaml</DependentUpon>

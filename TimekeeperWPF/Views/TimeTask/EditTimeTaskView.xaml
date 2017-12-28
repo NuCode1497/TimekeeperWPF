@@ -80,8 +80,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Allocation"  Width="80"/>
                     <ComboBox Width="100" HorizontalAlignment="Left"
-                        SelectedItem="{Binding Path=AllocationMethod, 
-                        Mode=TwoWay, FallbackValue=Even}"
+                        SelectedItem="{Binding Path=AllocationMethod}"
                         ItemsSource="{x:Static dal:TimeTask.AllocationMethodChoices}" />
                 </StackPanel>
             </StackPanel>

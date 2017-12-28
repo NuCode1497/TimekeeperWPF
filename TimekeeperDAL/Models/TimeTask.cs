@@ -265,19 +265,12 @@ namespace TimekeeperDAL.EF
             DateTime perStart = starter(Start);
             DateTime perEnd = adder(perStart);
             //for each relevant per zone
-            while (Intersects(perStart, perEnd))
+            while (this.Intersects(perStart, perEnd))
             {
                 PerZones.Add(perStart, perEnd);
                 perStart = perEnd;
                 perEnd = adder(perStart);
             }
         }
-        public bool Intersects(DateTime dt) { return Start <= dt && dt <= End; }
-        public bool Intersects(Note N) { return Intersects(N.DateTime); }
-        public bool Intersects(CheckIn CI) { return Intersects(CI.DateTime); }
-        public bool Intersects(DateTime start, DateTime end) { return start < End && Start < end; }
-        public bool Intersects(IZone Z) { return Intersects(Z.Start, Z.End); }
-        public bool IsInside(DateTime start, DateTime end) { return start < Start && End < end; }
-        public bool IsInside(IZone Z) { return Z.Start < Start && End < Z.End; }
     }
 }

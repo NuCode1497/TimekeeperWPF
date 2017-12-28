@@ -8,7 +8,7 @@ namespace TimekeeperDAL.EF
     {
         public override string ToString()
         {
-            return DateTime.ToString() + " - " + TimeTask + " - " + (Start ? "Start" : "End");
+            return (Start ? "Start" : "End") + " - " + TimeTask + "\n" + DateTime.ToString();
         }
 
         [NotMapped]

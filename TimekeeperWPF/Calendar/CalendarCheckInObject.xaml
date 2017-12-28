@@ -11,7 +11,8 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="&#x1f512;"/>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="&#x1f512;">
+        </TextBlock>
         <Path Grid.Column="1" Data="M16.5,10 L200,10" HorizontalAlignment="Left"
               StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
               Stretch="Fill" Stroke="Black" VerticalAlignment="Center"/>

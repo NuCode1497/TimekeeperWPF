@@ -38,7 +38,8 @@
                 RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}">
                 <ComboBox
                     MinWidth="150"
-                    SelectedItem="{Binding Path=CurrentEditItem.TimeTask, Mode=TwoWay}"
+                    SelectedItem="{Binding Path=CurrentEditItem.TimeTask}"
+                    SelectedIndex="0"
                     ItemsSource="{Binding Path=TimeTasksView}"/>
             </StackPanel>
         </Grid>
