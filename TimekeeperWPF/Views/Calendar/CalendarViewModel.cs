@@ -674,43 +674,43 @@ namespace TimekeeperWPF
                     {
                         var NCIO = MapNewCheckIn(CheckInsVM.CurrentEditItem);
                         MapTaskObjects();
-                        CheckInsVM.CommitCommand.Execute(null);
                         if (NCIO != null) AddNewCheckInObject(NCIO);
                         OnPropertyChanged(nameof(CalCIObjsView));
                         Status = CalendarObjectTypes.CheckIn + " Added";
+                        CheckInsVM.CommitCommand.Execute(null);
                     }
                     break;
                 case CalendarObjectTypes.Note:
                     if (IsAddingNew)
                     {
                         AddNewNoteObject(NotesVM.CurrentEditItem);
-                        NotesVM.CommitCommand.Execute(null);
                         OnPropertyChanged(nameof(CalNoteObjsView));
                         Status = CalendarObjectTypes.Note + " Added";
+                        NotesVM.CommitCommand.Execute(null);
                     }
                     else if (IsEditingItem)
                     {
                         var N = CurrentEditItem as CalendarNoteObject;
                         N.Note = NotesVM.CurrentEditItem;
-                        NotesVM.CommitCommand.Execute(null);
                         OnPropertyChanged(nameof(CalNoteObjsView));
                         Status = CalendarObjectTypes.Note + " Modified";
+                        NotesVM.CommitCommand.Execute(null);
                     }
                     break;
                 case CalendarObjectTypes.Task:
                     if (IsAddingNew)
                     {
-                        TimeTasksVM.CommitCommand.Execute(null);
                         await BuildNewTaskMap(TimeTasksVM.CurrentEditItem);
                         Status = CalendarObjectTypes.Task + " Added";
+                        TimeTasksVM.CommitCommand.Execute(null);
                     }
                     else if (IsEditingItem)
                     {
                         var T = CurrentEditItem as CalendarTaskObject;
                         TaskMaps.Remove(T.ParentPerZone.ParentMap);
                         await BuildNewTaskMap(TimeTasksVM.CurrentEditItem);
-                        TimeTasksVM.CommitCommand.Execute(null);
                         Status = CalendarObjectTypes.Task + " Modified";
+                        TimeTasksVM.CommitCommand.Execute(null);
                     }
                     break;
             }
@@ -813,32 +813,41 @@ namespace TimekeeperWPF
         {
             Status = "Mapping Relevant Tasks...";
             TaskMaps = new HashSet<CalendarTimeTaskMap>();
-            var RelevantTasks = FindTaskSet(new HashSet<TimeTask>(), Start, End);
-            await InitTaskMaps(RelevantTasks);
-            MapCheckIns(TaskMaps);
+            var TaskDimensions =
+                from T in TimeTasksVM.Source
+                group T by T.Dimension;
+            foreach (var dimension in TaskDimensions)
+            {
+                var RelevantTasks = FindTaskSet(dimension, new HashSet<TimeTask>(), Start, End);
+                await InitTaskMaps(dimension.Key, RelevantTasks);
+            }
+            MapCheckIns();
             MapTaskObjects();
+            Status = "Ready";
         }
         private async Task BuildNewTaskMap(TimeTask task)
         {
             Status = "Mapping New Task...";
+            var dimensionTasks =
+                from T in TimeTasksVM.Source
+                where T.Dimension == task.Dimension
+                select T;
             var RelevantTasks = 
-                FindTaskSet(new HashSet<TimeTask>(), task.Start, task.End)
+                FindTaskSet(dimensionTasks, new HashSet<TimeTask>(), task.Start, task.End)
                 .Except(from M in TaskMaps select M.TimeTask);
-            await InitTaskMaps(RelevantTasks);
-            var RelevantMaps = TaskMaps.Where(M => RelevantTasks.Contains(M.TimeTask));
-            MapCheckIns(RelevantMaps);
+            await InitTaskMaps(task.Dimension, RelevantTasks);
+            MapCheckIns();
             MapTaskObjects();
             Status = "Ready";
         }
         #region InitTaskMaps
-        private async Task InitTaskMaps(IEnumerable<TimeTask> RelevantTasks)
+        private async Task InitTaskMaps(int dimension, IEnumerable<TimeTask> RelevantTasks)
         {
             //This function is more intensive than others, it will be called once on load.
-            foreach (var T in RelevantTasks)
-                await T.BuildPerZonesAsync();
             //Create Maps with all PerZones; we will reduce this set later.
             foreach (var T in RelevantTasks)
             {
+                await T.BuildPerZonesAsync();
                 var M = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
@@ -856,8 +865,12 @@ namespace TimekeeperWPF
                 }
                 TaskMaps.Add(M);
             }
-            var RelevantPerZones = FindPerSet(new HashSet<PerZone>(), Start, End);
-            foreach (var M in TaskMaps)
+            var dimensionMaps =
+                from M in TaskMaps
+                where M.TimeTask.Dimension == dimension
+                select M;
+            var RelevantPerZones = FindPerSet(dimensionMaps, new HashSet<PerZone>(), Start, End);
+            foreach (var M in dimensionMaps)
             {
                 //Reduce the PerZone set.
                 M.PerZones = new HashSet<PerZone>(M.PerZones.Intersect(RelevantPerZones));
@@ -867,7 +880,6 @@ namespace TimekeeperWPF
                 foreach (var P in M.PerZones)
                     pers.Add(P.Start, P.End);
                 await M.TimeTask.BuildInclusionZonesAsync(pers);
-
                 foreach (var P in M.PerZones)
                 {
                     P.InclusionZones = new List<InclusionZone>();
@@ -885,22 +897,24 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private IEnumerable<TimeTask> FindTaskSet(IEnumerable<TimeTask> accumulatedFinds, DateTime start, DateTime end)
+        private IEnumerable<TimeTask> FindTaskSet(IEnumerable<TimeTask> tasks, IEnumerable<TimeTask> accumulatedFinds, DateTime start, DateTime end)
         {
             //Recursively select the set of Tasks that intersect the calendar view or previously added tasks.
-            var foundTasks = TimeTasksVM.Source.Where(T => T.Intersects(start, end)).Except(accumulatedFinds);
+            var foundTasks = (from T in tasks
+                              where T.Intersects(start, end)
+                              select T).Except(accumulatedFinds);
             if (foundTasks.Count() == 0) return accumulatedFinds;
             accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(foundTasks));
             foreach (var T in foundTasks)
             {
-                accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(FindTaskSet(accumulatedFinds, T.Start, T.End)));
+                accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(FindTaskSet(tasks, accumulatedFinds, T.Start, T.End)));
             }
             return accumulatedFinds;
         }
-        private IEnumerable<PerZone> FindPerSet(IEnumerable<PerZone> accumulatedFinds, DateTime start, DateTime end)
+        private IEnumerable<PerZone> FindPerSet(IEnumerable<CalendarTimeTaskMap> maps, IEnumerable<PerZone> accumulatedFinds, DateTime start, DateTime end)
         {
             //Recursively select the set of PerZones that intersect the calendar view or previously added PerZones.
-            var foundPers = (from M in TaskMaps
+            var foundPers = (from M in maps
                              from P in M.PerZones
                              where P.Intersects(start, end)
                              select P).Except(accumulatedFinds);
@@ -908,7 +922,7 @@ namespace TimekeeperWPF
             accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(foundPers));
             foreach (var P in foundPers)
             {
-                accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(FindPerSet(accumulatedFinds, P.Start, P.End)));
+                accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(FindPerSet(maps, accumulatedFinds, P.Start, P.End)));
             }
             return accumulatedFinds;
         }
@@ -947,9 +961,9 @@ namespace TimekeeperWPF
             }
             return null;
         }
-        private void MapCheckIns(IEnumerable<CalendarTimeTaskMap> RelevantMaps)
+        private void MapCheckIns()
         {
-            foreach (var M in RelevantMaps)
+            foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
                 {
