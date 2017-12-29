@@ -94,6 +94,25 @@ namespace TimekeeperDAL.Tools
             return (int)Math.Ceiling((dt.MonthDays() + (int)dt.MonthStart().DayOfWeek) / 7d);
         }
 
+        public static string LongGoodString(this TimeSpan ts)
+        {
+            string s = "";
+            if (ts.Days > 0) s += ts.Days + " Days ";
+            if (ts.Hours > 0) s += ts.Hours + " Hours ";
+            if (ts.Minutes > 0) s += ts.Minutes + " Minutes ";
+            if (ts.Seconds > 0) s += ts.Seconds + " Seconds ";
+            return s;
+        }
+        public static string ShortGoodString(this TimeSpan ts)
+        {
+            string s = "";
+            if (ts.Days != 0) s += ts.Days + "d ";
+            if (ts.Hours != 0) s += ts.Hours + "h ";
+            if (ts.Minutes != 0) s += ts.Minutes + "m ";
+            if (ts.Seconds != 0) s += ts.Seconds + "s ";
+            return s;
+        }
+
         public static bool Intersects(this IZone myZ, DateTime start, DateTime end) { return start < myZ.End && myZ.Start < end; }
         public static bool Intersects(this IZone myZ, IZone Z) { return myZ.Intersects(Z.Start, Z.End); }
         public static bool IsInside(this IZone myZ, DateTime start, DateTime end) { return start <= myZ.Start && myZ.End <= end; }

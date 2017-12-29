@@ -1,14 +1,13 @@
-﻿<UserControl x:Class="TimekeeperWPF.AllocationSelectorView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:dal="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
-             xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
-             xmlns:local="clr-namespace:TimekeeperWPF">
+﻿<UserControl 
+    x:Class="TimekeeperWPF.AllocationSelectorView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
+    xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
+    xmlns:local="clr-namespace:TimekeeperWPF">
     <GroupBox Header="Resource Allocations">
         <StackPanel>
-            <StackPanel Name="AllocationEditorPanel"
-                    Orientation="Horizontal">
+            <StackPanel Name="AllocationEditorPanel" Orientation="Horizontal">
                 <StackPanel 
                     Orientation="Horizontal" VerticalAlignment="Center"
                     Visibility="{Binding Path=IsNotAddingNewAllocation,
@@ -19,7 +18,7 @@
                         SelectedItem="{Binding Path=SelectedResource}"
                         ItemsSource="{Binding Path=ResourcesView}" />
                     <Button Style="{StaticResource TinyButtonAddStyle}"
-                    Command="{Binding Path=AddNewAllocationCommand}" />
+                            Command="{Binding Path=AddNewAllocationCommand}" />
                 </StackPanel>
             </StackPanel>
             <StackPanel 

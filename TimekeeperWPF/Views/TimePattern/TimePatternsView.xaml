@@ -7,35 +7,39 @@
     xmlns:local="clr-namespace:TimekeeperWPF"
     mc:Ignorable="d" 
     d:DesignHeight="400" d:DesignWidth="600">
-    <Grid x:Name="SV">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
-        <DataGrid 
-            x:Name="DG" Grid.Row="1"
-            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-            IsEnabled="{Binding Path=IsEnabled}"
-            ItemsSource="{Binding Path=View}"
-            CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
-                <DataGridTextColumn Binding="{Binding Path=Any}" Header="Any"/>
-                <DataGridTextColumn Binding="{Binding Path=QueryToString}" Header="Query"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <ContentControl 
-            Grid.Row="0" Grid.RowSpan="2" x:Name="EditTPPopUp"
-            Template="{StaticResource EditPopUpTemplate}"
-            IsVisibleChanged="EditTPPopUp_IsVisibleChanged"
-            Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-            Converter={StaticResource BooleanToVisibilityConverter}}">
-            <local:EditTimePatternView x:Name="TPEditor" DataContext="{Binding Path=CurrentEditItem}"/>
-        </ContentControl>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="2"/>
+    <Grid x:Name="PatternsViewGrid">
+        <Grid x:Name="ContentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
+            <DataGrid 
+                x:Name="DG" Grid.Row="1"
+                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                IsEnabled="{Binding Path=IsEnabled}"
+                ItemsSource="{Binding Path=View}"
+                CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
+                    <DataGridTextColumn Binding="{Binding Path=Any}" Header="Any"/>
+                    <DataGridTextColumn Binding="{Binding Path=QueryToString}" Header="Query"
+                                        ElementStyle="{StaticResource DGLongTextStyle}"/>
+                    <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                                        ElementStyle="{StaticResource DGLongTextStyle}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <ContentControl 
+                Grid.Row="0" Grid.RowSpan="2" x:Name="EditTPPopUp"
+                Template="{StaticResource EditPopUpTemplate}"
+                IsVisibleChanged="EditTPPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                Converter={StaticResource BooleanToVisibilityConverter}}">
+                <local:EditTimePatternView 
+                    x:Name="TPEditor" 
+                    DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <local:LoadingView/>
     </Grid>
 </UserControl>

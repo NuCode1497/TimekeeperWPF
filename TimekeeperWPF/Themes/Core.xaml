@@ -1,7 +1,6 @@
 ﻿<ResourceDictionary 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:TimekeeperWPF"
     xmlns:clr="clr-namespace:System;assembly=mscorlib"
     xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
     xmlns:wpftk="http://schemas.xceed.com/wpf/xaml/toolkit">
@@ -30,7 +29,8 @@
             <Trigger Property="Validation.HasError" Value="true">
                 <Setter Property="Background" Value="Pink"/>
                 <Setter Property="Foreground" Value="Black"/>
-                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, 
+                    Path=(Validation.Errors)[0].ErrorContent}"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -352,29 +352,25 @@
         <Setter Property="ToolTip" Value="Add"/>
     </Style>
     <ControlTemplate x:Key="PopUpTemplate" TargetType="ContentControl">
-        <!--Grey out background content-->
-        <Grid Background="{StaticResource PopUp.Behind.Background}"
-                  KeyboardNavigation.TabNavigation="Cycle"
-                  Width="{Binding ElementName=SV, Path=ActualWidth}"
-                  Height="{Binding ElementName=SV, Path=ActualHeight}" >
-            <Border BorderBrush="{StaticResource PopUp.Window.Border}" 
-                        Margin="30" CornerRadius="4" BorderThickness="3" 
-                        Name="PopUpBorder"
-                        MaxWidth="500" MaxHeight="800" 
-                        SnapsToDevicePixels="True" UseLayoutRounding="True"
-                        HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Border x:Name="PopUpBlackoutBorder"
+                Background="{StaticResource PopUp.Behind.Background}">
+            <Border x:Name="PopUpContainerBorder"
+                    BorderBrush="{StaticResource PopUp.Window.Border}" 
+                    Background="{StaticResource PopUp.Window.Background}"
+                    Margin="30" CornerRadius="4" BorderThickness="3" 
+                    MaxWidth="500" MaxHeight="800" 
+                    SnapsToDevicePixels="True" UseLayoutRounding="True"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Border.Effect>
                     <DropShadowEffect/>
                 </Border.Effect>
-                <Grid Background="{StaticResource PopUp.Window.Background}">
-                    <ContentPresenter/>
-                </Grid>
+                <ContentPresenter x:Name="PopUpCP"/>
             </Border>
-        </Grid>
+        </Border>
     </ControlTemplate>
     <ControlTemplate x:Key="EditPopUpTemplate" TargetType="ContentControl" >
-        <ContentControl Template="{StaticResource PopUpTemplate}">
-            <Grid>
+        <ContentControl x:Name="EditPopUpCC" Template="{StaticResource PopUpTemplate}">
+            <Grid x:Name="EditPopUpContentGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -386,9 +382,15 @@
                     <RowDefinition Height="12"/>
                 </Grid.RowDefinitions>
                 <!--Properties Editor-->
-                <ContentPresenter x:Name="PropEditorCP" Grid.Row="0" Grid.ColumnSpan="2" Margin="5"/>
+                <Border Margin="5" Grid.ColumnSpan="2" 
+                        Background="#0a0a0a0a"
+                        BorderThickness="1" BorderBrush="LightGray">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ContentPresenter x:Name="PropEditorCP" Grid.Row="0" Grid.ColumnSpan="2" Margin="5"/>
+                    </ScrollViewer>
+                </Border>
                 <!--Validations List-->
-                <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" Name="ValidationsScroller" Height="Auto"
+                <ScrollViewer Grid.Row="1" Grid.ColumnSpan="2" x:Name="ValidationsSV" Height="Auto"
                               VerticalScrollBarVisibility="Auto"
                               IsTabStop="False" Margin="12,0,12,6">
                     <ItemsControl Margin="8" Foreground="Red" Name="ValidationsItemsControl" IsTabStop="False"
@@ -403,10 +405,14 @@
                     </ItemsControl>
                 </ScrollViewer>
                 <!--Cancel Save Buttons-->
-                <Button Grid.Column="0" Grid.Row="2" x:Name="CancelButton" Content="Cancel" Width="70"
-                        Command="{Binding Path=CancelCommand}"/>
-                <Button Grid.Column="1" Grid.Row="2" x:Name="SaveButton" Content="Save" Width="70"
-                        Command="{Binding Path=CommitCommand}"/>
+                <Button 
+                        Grid.Column="0" Grid.Row="2" x:Name="CancelButton" Content="Cancel" Width="70"
+                        Command="{Binding Path=DataContext.CancelCommand, 
+                        RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid, AncestorLevel=3}}"/>
+                <Button 
+                        Grid.Column="1" Grid.Row="2" x:Name="SaveButton" Content="Save" Width="70"
+                        Command="{Binding Path=DataContext.CommitCommand, 
+                        RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid, AncestorLevel=3}}"/>
             </Grid>
         </ContentControl>
     </ControlTemplate>

@@ -99,9 +99,17 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (value == _CurrentEditItem) return;
+                if (value == null)
+                    _CurrentEditItem.PropertyChanged -= CurrentEditItemPropertyChanged;
+                else
+                    value.PropertyChanged += CurrentEditItemPropertyChanged;
                 _CurrentEditItem = value;
                 OnPropertyChanged();
             }
+        }
+        private void CurrentEditItemPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
         #endregion
         #region Conditions
@@ -236,10 +244,9 @@ namespace TimekeeperWPF
         }
         protected virtual void AddNew()
         {
-            if (CurrentEditItem == null || !View.IsAddingNew) throw new Exception(nameof(ModelType) + " needs to override AddNew()");
             SelectedItem = null;
             IsAddingNew = true;
-            Status = "Adding new " + nameof(ModelType);
+            Status = "Adding new " + CurrentEditItem.GetTypeName();
         }
         protected virtual void EditSelected()
         {

@@ -79,17 +79,34 @@ namespace TimekeeperWPF.Calendar
         }
         private void BuildToolTip()
         {
-            ToolTip = String.Format("D[{0}] {1} - {2}\nP[{3}] {4}\nDur: {5:g}\nS[{7}]{6}\nE[{9}]{8}",
+            string s = String.Format("D[{0}] {1} - {2}\nP[{3}] {4}\nDur: {5:g}\nS[{7}]{6}\nE[{9}]{8}",
                 ParentPerZone.ParentMap.TimeTask.Dimension,
                 ParentPerZone.ParentMap.TimeTask.TaskType,
                 ParentPerZone.ParentMap.TimeTask,
                 ParentPerZone.ParentMap.TimeTask.Priority,
                 State,
-                Duration,
+                Duration.ShortGoodString(),
                 StateLock ? "🔒" : "",
                 Start.ToString(),
                 EndLock ? "🔒" : "",
                 End.ToString());
+            if (ParentPerZone.TimeConsumption != null)
+            {
+                s += String.Format("\nAlloc: {0}\nRem: {1}",
+                ParentPerZone.TimeConsumption.Allocation.AmountAsTimeSpan.ShortGoodString(),
+                ParentPerZone.TimeConsumption.RemainingAsTimeSpan.ShortGoodString());
+            }
+            ToolTip = s;
+        }
+        public override string ToString()
+        {
+            string s = String.Format("{0} {1} {2} → {3} {4}",
+                ParentPerZone.ParentMap.TimeTask,
+                Start.ToShortDateString(),
+                Start.ToShortTimeString(),
+                End.ToShortDateString(),
+                End.ToShortTimeString());
+            return s;
         }
         #region Zone
         public CalendarTaskObject LeftTangent { get; set; }

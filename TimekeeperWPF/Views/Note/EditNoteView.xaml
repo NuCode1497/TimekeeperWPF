@@ -1,44 +1,34 @@
-﻿<UserControl x:Class="TimekeeperWPF.EditNoteView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TimekeeperWPF"
-             xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
-             Margin="10">
+﻿<UserControl 
+    x:Class="TimekeeperWPF.EditNoteView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
     <StackPanel>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="80"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Label Grid.Column="0" Grid.Row="0" Content="Date &amp; Time" />
-            <wpftools:DateTimePicker Grid.Column="1" Grid.Row="0"
-                x:Name="DateTimeTextBox" 
-                Value="{Binding Path=DateTime, Mode=TwoWay}" />
-            <Label Grid.Row="1" Grid.Column="0" Content="Text"/>
-            <TextBox Grid.Row="1" Grid.Column="1"
-                x:Name="NoteTextBox" MinWidth="200"
+        <StackPanel x:Name="DateTimePanel" Orientation="Horizontal">
+            <Label Content="Date &amp; Time" Width="80"/>
+                <wpftools:DateTimePicker Grid.Column="1" Grid.Row="0"
+                    x:Name="DateTimeTextBox" Width="300"
+                    Value="{Binding Path=DateTime, Mode=TwoWay}" />
+        </StackPanel>
+        <StackPanel x:Name="TextPanel" Orientation="Horizontal">
+            <Label Content="Text" Width="80"/>
+            <TextBox x:Name="NoteTextBox" Width="300"
                 TextWrapping="Wrap" MaxLength="160" 
                 Text="{Binding Path=Text, ValidatesOnDataErrors=True, 
                 ValidatesOnExceptions=True, UpdateSourceTrigger=PropertyChanged}" />
-            <Label Grid.Row="2" Grid.Column="0" Content="Task"/>
-            <StackPanel 
-                Grid.Row="2" Grid.Column="1" Orientation="Horizontal"
-                DataContext="{Binding Path=DataContext,
-                RelativeSource={RelativeSource AncestorLevel=2, AncestorType=Grid}}">
-                <CheckBox 
-                    VerticalAlignment="Center" 
-                    IsChecked="{Binding Path=HasTimeTask, Mode=TwoWay}"/>
-                <ComboBox
-                    MinWidth="150"
-                    IsEnabled="{Binding Path=HasTimeTask}"
-                    SelectedItem="{Binding Path=CurrentEditItem.TimeTask, Mode=TwoWay}"
-                    ItemsSource="{Binding Path=TimeTasksView}"/>
-            </StackPanel>
-        </Grid>
+        </StackPanel>
+        <StackPanel x:Name="TaskPanel" Orientation="Horizontal"
+            DataContext="{Binding Path=DataContext,
+            RelativeSource={RelativeSource AncestorType=Grid}}">
+            <Label Content="Task" Width="80"/>
+            <CheckBox 
+                VerticalAlignment="Center" 
+                IsChecked="{Binding Path=HasTimeTask, Mode=TwoWay}"/>
+            <ComboBox
+                MinWidth="250"
+                IsEnabled="{Binding Path=HasTimeTask}"
+                SelectedItem="{Binding Path=CurrentEditItem.TimeTask, Mode=TwoWay}"
+                ItemsSource="{Binding Path=TimeTasksView}"/>
+        </StackPanel>
     </StackPanel>
 </UserControl>

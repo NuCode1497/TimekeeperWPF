@@ -3,17 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:dal="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
              Name="ThisControl">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <ToggleButton Width="50"
-            Grid.Column="0" Name="IncludeToggle"
-            IsChecked="{Binding Path=Include, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}">
+    <StackPanel Orientation="Horizontal">
+        <ToggleButton Name="IncludeToggle" Width="50"
+            IsChecked="{Binding Path=Include, 
+            ValidatesOnDataErrors=True, ValidatesOnExceptions=True}">
             <ToggleButton.Style>
                 <Style TargetType="ToggleButton" 
                        BasedOn="{StaticResource {x:Type ToggleButton}}">
@@ -33,14 +26,14 @@
             </ToggleButton.Style>
         </ToggleButton>
         <ComboBox
-            Grid.Column="1" Name="FilterableTypesComboBox" MinWidth="100"
+            Name="FilterableTypesComboBox" MinWidth="100"
             ItemsSource="{x:Static dal:Filterable.FilterableTypesChoices}"
             SelectedItem="{Binding Path=TypeChoice}"/>
         <ComboBox 
-            Grid.Column="2" MinWidth="100"
+            MinWidth="100"
             DisplayMemberPath="Name" IsSynchronizedWithCurrentItem="False"
             DataContext="{Binding Path=DataContext, 
-            RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"
+            RelativeSource={RelativeSource AncestorType=Grid}}"
             SelectedItem="{Binding ElementName=ThisControl, Path=DataContext.Filterable,
             ValidatesOnDataErrors=True, ValidatesOnExceptions=True, Mode=TwoWay}">
             <ComboBox.Style>
@@ -51,47 +44,48 @@
                             Value="Label">
                             <Setter Property="ItemsSource" 
                                 Value="{Binding Path=DataContext.FilterLabelsView, 
-                                RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
+                                RelativeSource={RelativeSource AncestorType=Grid}}"/>
                         </DataTrigger>
                         <DataTrigger 
                             Binding="{Binding ElementName=ThisControl, Path=DataContext.TypeChoice}"
                             Value="Note">
                             <Setter Property="ItemsSource" 
                                 Value="{Binding Path=DataContext.FilterNotesView, 
-                                RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
+                                RelativeSource={RelativeSource AncestorType=Grid}}"/>
                         </DataTrigger>
                         <DataTrigger 
                             Binding="{Binding ElementName=ThisControl, Path=DataContext.TypeChoice}"
                             Value="Pattern">
                             <Setter Property="ItemsSource" 
                                 Value="{Binding Path=DataContext.FilterPatternsView, 
-                                RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
+                                RelativeSource={RelativeSource AncestorType=Grid}}"/>
                         </DataTrigger>
                         <DataTrigger 
                             Binding="{Binding ElementName=ThisControl, Path=DataContext.TypeChoice}"
                             Value="Resource">
                             <Setter Property="ItemsSource" 
                                 Value="{Binding Path=DataContext.FilterResourcesView, 
-                                RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
+                                RelativeSource={RelativeSource AncestorType=Grid}}"/>
                         </DataTrigger>
                         <DataTrigger 
                             Binding="{Binding ElementName=ThisControl, Path=DataContext.TypeChoice}"
                             Value="Task">
                             <Setter Property="ItemsSource" 
                                 Value="{Binding Path=DataContext.FilterTasksView, 
-                                RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
+                                RelativeSource={RelativeSource AncestorType=Grid}}"/>
                         </DataTrigger>
                         <DataTrigger 
                             Binding="{Binding ElementName=ThisControl, Path=DataContext.TypeChoice}"
                             Value="Task Type">
                             <Setter Property="ItemsSource"
-                                Value="{Binding Path=DataContext.FilterTaskTypesView, 
-                                RelativeSource={RelativeSource AncestorType=Grid, AncestorLevel=2}}"/>
+                                Value="{Binding Path=DataContext.FilterTaskTypesView,
+                                RelativeSource={RelativeSource AncestorType=Grid}}"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </ComboBox.Style>
         </ComboBox>
-        <Button Grid.Column="3" Style="{StaticResource TinyButtonDeleteStyle}"/>
-    </Grid>
+        <Button ToolTip="Remove Filter"
+                Style="{StaticResource TinyButtonDeleteStyle}"/>
+    </StackPanel>
 </UserControl>

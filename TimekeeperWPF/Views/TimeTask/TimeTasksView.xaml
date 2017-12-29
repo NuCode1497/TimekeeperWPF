@@ -5,54 +5,51 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:local="clr-namespace:TimekeeperWPF"
-    mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="585">
-    <Grid x:Name="SV">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
-        <DataGrid 
+    mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400">
+    <Grid x:Name="TasksViewGrid">
+        <Grid x:Name="ContentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
+            <DataGrid 
             x:Name="DG" Grid.Row="1"
             HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
             IsEnabled="{Binding Path=IsEnabled}"
             ItemsSource="{Binding Path=View}"
             CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
-                <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"/>
-                <DataGridTextColumn Binding="{Binding Path=End}" Header="End"/>
-                <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
-                <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description"
+                <DataGrid.Columns>
+                    <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
+                    <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"/>
+                    <DataGridTextColumn Binding="{Binding Path=End}" Header="End"/>
+                    <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
+                    <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations"
+                    <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                    <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=FiltersToString}" Header="Filters"
+                    <DataGridTextColumn Binding="{Binding Path=FiltersToString}" Header="Filters"
                                     ElementStyle="{StaticResource DGLongTextStyle}"/>
-                <DataGridTextColumn Binding="{Binding Path=Priority}" Header="Priority"/>
-                <DataGridTextColumn Binding="{Binding Path=Dimension}" Header="Dimension"/>
-                <DataGridTextColumn Binding="{Binding Path=AutoCheckIn}" Header="AutoCheckIn"/>
-                <DataGridTextColumn Binding="{Binding Path=CanFill}" Header="CanFill"/>
-                <DataGridTextColumn Binding="{Binding Path=AllocationMethod}" Header="AllocationMethod"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <ContentControl 
-            Grid.Row="0" Grid.RowSpan="2" x:Name="EditTaskPopUp" IsTabStop="False"
-            IsVisibleChanged="EditTaskPopUp_IsVisibleChanged"
-            Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-            Converter={StaticResource BooleanToVisibilityConverter}}"
-            Template="{StaticResource EditPopUpTemplate}">
-            <ScrollViewer VerticalScrollBarVisibility="Visible">
+                    <DataGridTextColumn Binding="{Binding Path=Priority}" Header="Priority"/>
+                    <DataGridTextColumn Binding="{Binding Path=Dimension}" Header="Dimension"/>
+                    <DataGridTextColumn Binding="{Binding Path=AutoCheckIn}" Header="AutoCheckIn"/>
+                    <DataGridTextColumn Binding="{Binding Path=CanFill}" Header="CanFill"/>
+                    <DataGridTextColumn Binding="{Binding Path=AllocationMethod}" Header="AllocationMethod"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <ContentControl 
+                Grid.Row="0" Grid.RowSpan="2" x:Name="EditTaskPopUp"
+                IsVisibleChanged="EditTaskPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
                 <local:EditTimeTaskView 
-                    x:Name="DataEditor" DataContext="{Binding Path=CurrentEditItem}"/>
-            </ScrollViewer>
-        </ContentControl>
-        <local:LoadingView 
-            Grid.Row="0" Grid.RowSpan="2" 
-            Visibility="{Binding Path=IsLoading, 
-            Converter={StaticResource BooleanToVisibilityConverter},
-            FallbackValue=Collapsed}"/>
+                    x:Name="DataEditor" 
+                    DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <local:LoadingView/>
     </Grid>
 </UserControl>

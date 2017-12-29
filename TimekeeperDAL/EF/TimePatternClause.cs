@@ -3,10 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TimekeeperDAL.EF
 {
+    [Table("TimePatternClauses")]
     public partial class TimePatternClause
     {
         [Key]
+        [Column(Order = 1)]
         public int Id { get; set; }
+
+        [Key]
+        [Column(Order = 2)]
+        public int TimePattern_Id { get; set; }
         
         [Required]
         public string TimeProperty { get; set; }
@@ -18,6 +24,7 @@ namespace TimekeeperDAL.EF
         public string TimePropertyValue { get; set; }
 
         [Required]
+        [ForeignKey("TimePattern_Id")]
         public virtual TimePattern TimePattern { get; set; }
     }
 }

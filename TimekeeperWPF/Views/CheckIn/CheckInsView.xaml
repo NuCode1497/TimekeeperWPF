@@ -6,15 +6,15 @@
              xmlns:local="clr-namespace:TimekeeperWPF"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-        <Grid x:Name="SV">
+    <Grid x:Name="CheckInsViewGrid">
+        <Grid x:Name="ContentGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <ContentControl 
-            x:Name="CommandsToolbar" Grid.Row="0" 
-            Template="{StaticResource TableViewControlsTemplate}"/>
+                x:Name="CommandsToolbar" Grid.Row="0" 
+                Template="{StaticResource TableViewControlsTemplate}"/>
             <DataGrid x:Name="DG" Grid.Row="1"
                   HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                   IsEnabled="{Binding Path=IsEnabled}"
@@ -23,28 +23,28 @@
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
                     <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                                        ElementStyle="{StaticResource DGLongTextStyle}"/>
                     <DataGridTextColumn Binding="{Binding Path=TimeTask}" Header="TimeTask"/>
                 </DataGrid.Columns>
             </DataGrid>
             <ContentControl x:Name="EditCheckInPopUp"
-            Grid.Row="0" Grid.RowSpan="2"
-            IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
-            Visibility="{Binding Path=IsEditingItemOrAddingNew, 
-            FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"
-            Template="{StaticResource EditPopUpTemplate}">
+                Grid.Row="0" Grid.RowSpan="2"
+                IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <local:EditCheckInView 
-                    x:Name="DataEditor" 
-                    DataContext="{Binding Path=CurrentEditItem}"/>
+                        x:Name="DataEditor" 
+                        DataContext="{Binding Path=CurrentEditItem}"/>
                 </ScrollViewer>
             </ContentControl>
             <ContentControl x:Name="SaveDateSelectPopUp"
-            Grid.Row="0" Grid.RowSpan="2" Margin="10"
-            Visibility="{Binding Path=IsSaving, FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"
-            Template="{StaticResource PopUpTemplate}">
+                Grid.Row="0" Grid.RowSpan="2"
+                Visibility="{Binding Path=IsSaving, FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource PopUpTemplate}">
                 <StackPanel>
                     <GroupBox Header="Select date range to save">
                         <Grid Margin="5" Width="300">
@@ -60,15 +60,15 @@
                             <Label Grid.Column="0" Grid.Row="0" Content="Start" />
                             <Label Grid.Column="0" Grid.Row="1" Content="End" />
                             <DatePicker 
-                            Grid.Column="1" Grid.Row="0" Width="Auto"
-                            SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" />
+                                Grid.Column="1" Grid.Row="0" Width="Auto"
+                                SelectedDate="{Binding Path=SaveAsStart, Mode=TwoWay}" />
                             <DatePicker 
-                            Grid.Column="1" Grid.Row="1" Width="Auto" 
-                            SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
+                                Grid.Column="1" Grid.Row="1" Width="Auto" 
+                                SelectedDate="{Binding Path=SaveAsEnd, Mode=TwoWay}" />
                             <Button 
-                            Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
-                            Command="{Binding Path=ContinueSaveCommand}" 
-                            VerticalAlignment="Center"/>
+                                Grid.Column="2" Grid.RowSpan="2" Content="Continue" 
+                                Command="{Binding Path=ContinueSaveCommand}" 
+                                VerticalAlignment="Center"/>
                         </Grid>
                     </GroupBox>
                 </StackPanel>

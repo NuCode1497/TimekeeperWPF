@@ -2,14 +2,13 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:TimekeeperWPF"
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="800">
-    <Grid>
-        <Grid x:Name="SV">
+             d:DesignHeight="800" d:DesignWidth="800">
+    <Grid x:Name="WeekViewGrid">
+        <Grid x:Name="ContentGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -70,48 +69,47 @@
                 x:Name="CommandsToolbar" Grid.Row="0" 
                 Template="{StaticResource CalendarViewControlsTemplate}"/>
         </Grid>
-        <ContentControl x:Name="EditNotePopUp"
-            IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
-            Visibility="{Binding Path=NotesVM.IsEditingItemOrAddingNew, 
-            FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"
-            Template="{StaticResource EditPopUpTemplate}">
-            <Grid DataContext="{Binding Path=NotesVM}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <local:EditNoteView 
-                        x:Name="NoteEditor" 
-                        DataContext="{Binding Path=CurrentEditItem}"/>
-                </ScrollViewer>
-            </Grid>
-        </ContentControl>
-        <ContentControl x:Name="EditCheckInPopUp"
-            IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
-            Visibility="{Binding Path=CheckInsVM.IsEditingItemOrAddingNew, 
-            FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"
-            Template="{StaticResource EditPopUpTemplate}">
-            <Grid DataContext="{Binding Path=CheckInsVM}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <local:EditCheckInView 
-                        x:Name="CheckInEditor" 
-                        DataContext="{Binding Path=CurrentEditItem}"/>
-                </ScrollViewer>
-            </Grid>
-        </ContentControl>
-        <ContentControl x:Name="EditTimeTaskPopUp"
-            IsVisibleChanged="EditTimeTaskPopUp_IsVisibleChanged"
-            Visibility="{Binding Path=TimeTasksVM.IsEditingItemOrAddingNew, 
-            FallbackValue=Collapsed,
-            Converter={StaticResource BooleanToVisibilityConverter}}"
-            Template="{StaticResource EditPopUpTemplate}">
-            <Grid DataContext="{Binding Path=TimeTasksVM}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <local:EditTimeTaskView 
-                        x:Name="TimeTaskEditor" 
-                        DataContext="{Binding Path=CurrentEditItem}"/>
-                </ScrollViewer>
-            </Grid>
-        </ContentControl>
+        <Grid DataContext="{Binding Path=NotesVM}">
+            <ContentControl 
+                x:Name="EditNotePopUp"
+                IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+            <local:EditNoteView 
+                x:Name="NoteEditor" 
+                DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <Grid x:Name="CheckInViewGrid" 
+              DataContext="{Binding Path=CheckInsVM}">
+            <ContentControl 
+                x:Name="EditCheckInPopUp"
+                IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <local:EditCheckInView 
+                    x:Name="CheckInEditor" 
+                    DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <Grid x:Name="TaskViewGrid" 
+              DataContext="{Binding Path=TimeTasksVM}">
+            <ContentControl 
+                x:Name="EditTimeTaskPopUp"
+                IsVisibleChanged="EditTimeTaskPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <local:EditTimeTaskView 
+                    x:Name="TimeTaskEditor"
+                    DataContext="{Binding CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
         <local:LoadingView/>
     </Grid>
 </UserControl>

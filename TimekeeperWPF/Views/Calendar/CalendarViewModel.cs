@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows;
 using TimekeeperDAL.Tools;
 using static System.Math;
+using System.ComponentModel;
 
 namespace TimekeeperWPF
 {
@@ -199,9 +200,9 @@ namespace TimekeeperWPF
         public string WeekString => Start.ToString("MMMM dd, yyy");
         #endregion Zone
         #region CRUDS
-        private TimeTasksViewModel _TimeTasksVM;
-        private CheckInsViewModel _CheckInsVM;
-        private NotesViewModel _NotesVM;
+        private TimeTasksViewModel _TimeTasksVM = new TimeTasksViewModel();
+        private CheckInsViewModel _CheckInsVM = new CheckInsViewModel();
+        private NotesViewModel _NotesVM = new NotesViewModel();
         private UIElement _SelectedItem;
         private UIElement _CurrentEditItem;
         private CalendarObjectTypes _SelectedItemType;
@@ -582,11 +583,8 @@ namespace TimekeeperWPF
         protected virtual async Task GetDataAsync()
         {
             Status = "Getting data from database...";
-            NotesVM = new NotesViewModel();
             await NotesVM.LoadDataAsync();
-            CheckInsVM = new CheckInsViewModel();
             await CheckInsVM.LoadDataAsync();
-            TimeTasksVM = new TimeTasksViewModel();
             await TimeTasksVM.LoadDataAsync();
             await CreateCalendarObjects();
         }
@@ -712,6 +710,7 @@ namespace TimekeeperWPF
                         Status = CalendarObjectTypes.Task + " Modified";
                         TimeTasksVM.CommitCommand.Execute(null);
                     }
+                    await CheckInsVM.LoadDataAsync();
                     break;
             }
             EndEdit();
@@ -742,6 +741,7 @@ namespace TimekeeperWPF
                     TimeTasksVM.DeleteSelectedCommand.Execute(null);
                     await BuildTaskMaps();
                     Status = CalendarObjectTypes.Task + " Deleted";
+                    await CheckInsVM.LoadDataAsync();
                     break;
             }
             SelectedItem = null;
@@ -1059,7 +1059,7 @@ namespace TimekeeperWPF
                         P.TimeConsumption = new Consumption
                         {
                             Allocation = M.TimeTask.TimeAllocation,
-                            Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan().Ticks,
+                            Remaining = M.TimeTask.TimeAllocation.AmountAsTimeSpan.Ticks,
                         };
                     }
                 }
@@ -1264,7 +1264,8 @@ namespace TimekeeperWPF
                     foreach (var C in P.CalTaskObjs)
                         spent += C.Duration;
                     //Allocate time
-                    P.TimeConsumption.Remaining -= spent.Ticks;
+                    if (P.TimeConsumption != null)
+                        P.TimeConsumption.Remaining -= spent.Ticks;
                 }
             }
         }
@@ -1491,7 +1492,7 @@ namespace TimekeeperWPF
                 from M in TaskMaps
                 from P in M.PerZones
                 from C in P.CalTaskObjs
-                orderby C.ParentPerZone.ParentMap.TimeTask.Priority, C.Start, C.End
+                orderby C.ParentPerZone.ParentMap.TimeTask.Priority descending, C.Start, C.End
                 group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
             foreach (var dimension in calObjDimensions)
             {
@@ -1514,7 +1515,7 @@ namespace TimekeeperWPF
                             from C2 in dimension
                             where C2 != C1
                             where C1.Intersects(C2)
-                            orderby C2.ParentPerZone.ParentMap.TimeTask.Priority, C2.Start, C2.End
+                            orderby C2.ParentPerZone.ParentMap.TimeTask.Priority descending, C2.Start, C2.End
                             select C2;
                         foreach (var C2 in intersections)
                         {
@@ -1866,13 +1867,13 @@ namespace TimekeeperWPF
                             select Z;
                         var insuffZones =
                             from Z in zones
-                            where Z.ParentPerZone.TimeConsumption.Remaining > 0
-                            orderby Z.ParentPerZone.ParentMap.TimeTask.Priority
+                            where Z.ParentPerZone.TimeConsumption?.Remaining > 0
+                            orderby Z.ParentPerZone.ParentMap.TimeTask.Priority descending
                             select Z;
                         var insuffZone = insuffZones.FirstOrDefault();
                         if (insuffZone != null)
                         {
-                            AllocateEmptySpacePart2(space, insuffZone);
+                            FillEmptyWithInsuffZ(space, insuffZone);
                             hasChanges = true;
                         }
                         else
@@ -1882,12 +1883,12 @@ namespace TimekeeperWPF
                             var fillZones =
                                 from Z in zones
                                 where Z.ParentPerZone.ParentMap.TimeTask.CanFill
-                                orderby Z.ParentPerZone.ParentMap.TimeTask.Priority
+                                orderby Z.ParentPerZone.ParentMap.TimeTask.Priority descending
                                 select Z;
                             var fillZone = fillZones.FirstOrDefault();
                             if (fillZone != null)
                             {
-                                AllocateEmptySpacePart2(space, fillZone);
+                                FillEmptyWithFiller(space, fillZone);
                                 hasChanges = true;
                             }
                         }
@@ -1895,55 +1896,99 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private static void AllocateEmptySpacePart2(EmptyZone space, InclusionZone inZone)
+        private static void FillEmptyWithInsuffZ(EmptyZone S, InclusionZone Z)
         {
-            if (inZone.Start <= space.Start &&
-                space.Left?.ParentInclusionZone == inZone &&
-                !space.Left.EndLock)
+            //Check if the CalObjs on the left or right of the space can be used to fill
+            //otherwise, create a new CalObj to fill
+            if (Z.Start <= S.Start &&
+                S.Left?.ParentInclusionZone == Z &&
+                !S.Left.EndLock)
             {
-                var newEnd = new DateTime(Min(inZone.End.Ticks, Min(space.End.Ticks, 
-                    space.End.Ticks + (long)space.Left.ParentPerZone.TimeConsumption.Remaining)));
-                var diff = newEnd - space.Left.End;
-                space.Left.End = newEnd;
-                space.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                var newEnd = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
+                S.Left.End.Ticks + (long)Max(S.Left.ParentPerZone.TimeConsumption.Remaining, 0))));
+                var diff = newEnd - S.Left.End;
+                S.Left.End = newEnd;
+                S.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
             }
             else
-            if (inZone.End >= space.End &&
-                space.Right?.ParentInclusionZone == inZone &&
-                !space.Right.EndLock)
+            if (Z.End >= S.End &&
+                S.Right?.ParentInclusionZone == Z &&
+                !S.Right.StartLock)
             {
-                var newStart = new DateTime(Max(inZone.Start.Ticks, Max(space.Start.Ticks,
-                    space.Start.Ticks - (long)space.Left.ParentPerZone.TimeConsumption.Remaining)));
-                var diff = space.Right.Start - newStart;
-                space.Right.Start = newStart;
-                space.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                var newStart = new DateTime(Max(Z.Start.Ticks, Max(S.Start.Ticks,
+                S.Right.Start.Ticks - (long)Max(S.Right.ParentPerZone.TimeConsumption.Remaining, 0))));
+                var diff = S.Right.Start - newStart;
+                S.Right.Start = newStart;
+                S.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
             }
             else
             {
-                var start = new DateTime(Max(inZone.Start.Ticks, space.Start.Ticks));
-                var end = new DateTime(Min(inZone.End.Ticks, Min(space.End.Ticks,
-                    start.Ticks + (long)inZone.ParentPerZone.TimeConsumption.Remaining)));
+                var start = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
+                var end = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
+                    start.Ticks + (long)Max(Z.ParentPerZone.TimeConsumption.Remaining, 0))));
                 var C = new CalendarTaskObject
                 {
                     Start = start,
                     End = end,
-                    //ParentMap = inZone.ParentPerZone.ParentMap,
-                    ParentPerZone = inZone.ParentPerZone,
-                    ParentInclusionZone = inZone,
+                    ParentPerZone = Z.ParentPerZone,
+                    ParentInclusionZone = Z,
                 };
-                inZone.ParentPerZone.CalTaskObjs.Add(C);
+                Z.ParentPerZone.CalTaskObjs.Add(C);
+                Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
+            }
+        }
+        private static void FillEmptyWithFiller(EmptyZone S, InclusionZone Z)
+        {
+            //Check if the CalObjs on the left or right of the space can be used to fill
+            //otherwise, create a new CalObj to fill
+            if (Z.Start <= S.Start &&
+                S.Left?.ParentInclusionZone == Z &&
+                !S.Left.EndLock)
+            {
+                var newEnd = new DateTime(Min(Z.End.Ticks, S.End.Ticks));
+                var diff = newEnd - S.Left.End;
+                S.Left.End = newEnd;
+                if (S.Left.ParentPerZone.TimeConsumption != null)
+                    S.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+            }
+            else
+            if (Z.End >= S.End &&
+                S.Right?.ParentInclusionZone == Z &&
+                !S.Right.StartLock)
+            {
+                var newStart = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
+                var diff = S.Right.Start - newStart;
+                S.Right.Start = newStart;
+                if (S.Right.ParentPerZone.TimeConsumption != null)
+                    S.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+            }
+            else
+            {
+                var start = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
+                var end = new DateTime(Min(Z.End.Ticks, S.End.Ticks));
+                var C = new CalendarTaskObject
+                {
+                    Start = start,
+                    End = end,
+                    ParentPerZone = Z.ParentPerZone,
+                    ParentInclusionZone = Z,
+                };
+                Z.ParentPerZone.CalTaskObjs.Add(C);
+                if (Z.ParentPerZone.TimeConsumption != null)
+                    Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
             }
         }
         private void CalculateTimeConsumptions()
         {
             foreach (var M in TaskMaps)
             {
+                if (M.TimeTask.TimeAllocation == null) continue;
                 foreach (var P in M.PerZones)
                 {
                     TimeSpan spent = new TimeSpan(0);
                     foreach (var C in P.CalTaskObjs)
                         spent += C.Duration;
-                    P.TimeConsumption.Remaining = P.TimeConsumption.Allocation.Amount - spent.Ticks;
+                    P.TimeConsumption.Remaining = P.TimeConsumption.Allocation.AmountAsTimeSpan.Ticks - spent.Ticks;
                 }
             }
         }
@@ -1985,6 +2030,7 @@ namespace TimekeeperWPF
                         spaces.Add(Z);
                     }
                     dt = C.End;
+                    prev = C;
                 }
                 spaceDimensions.Add(spaces);
             }
@@ -2024,7 +2070,7 @@ namespace TimekeeperWPF
                             C.State = CalendarTaskObject.States.Cancel;
                     }
                     //Flag Insufficients
-                    if (P.TimeConsumption.Remaining > 0)
+                    if (P.TimeConsumption?.Remaining > 0)
                         foreach (var C in P.CalTaskObjs)
                             C.State = CalendarTaskObject.States.Insufficient;
                 }

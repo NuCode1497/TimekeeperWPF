@@ -60,7 +60,7 @@ namespace TimekeeperDAL.EF
             if (Per != null
                 && Per.IsTimeResource
                 && Resource.IsTimeResource
-                && AmountAsTimeSpan() > Per.AsTimeSpan())
+                && AmountAsTimeSpan > Per.AsTimeSpan())
             {
                 AddError(nameof(Per), "Per must be larger than Resource");
                 AddError(nameof(Amount), "Per must be larger than Resource");
@@ -81,31 +81,34 @@ namespace TimekeeperDAL.EF
         /// <summary>
         /// A rough estimate of the duration of the time allocation. e.g. Month = Amount * 30.437
         /// </summary>
-        public TimeSpan AmountAsTimeSpan()
+        public TimeSpan AmountAsTimeSpan
         {
-            TimeSpan allocatedTime = new TimeSpan();
-            switch (Resource.Name)
+            get
             {
-                case "Minute":
-                    allocatedTime = new TimeSpan(0, (int)Amount, 0);
-                    break;
-                case "Hour":
-                    allocatedTime = new TimeSpan((int)Amount, 0, 0);
-                    break;
-                case "Day":
-                    allocatedTime = new TimeSpan((int)Amount, 0, 0, 0);
-                    break;
-                case "Week":
-                    allocatedTime = new TimeSpan((int)Amount * 7, 0, 0, 0);
-                    break;
-                case "Month":
-                    allocatedTime = new TimeSpan((int)(Amount * 30.437), 0, 0, 0);
-                    break;
-                case "Year":
-                    allocatedTime = new TimeSpan((int)(Amount * 365.2425), 0, 0, 0);
-                    break;
+                TimeSpan allocatedTime = new TimeSpan();
+                switch (Resource.Name)
+                {
+                    case "Minute":
+                        allocatedTime = new TimeSpan(0, (int)Amount, 0);
+                        break;
+                    case "Hour":
+                        allocatedTime = new TimeSpan((int)Amount, 0, 0);
+                        break;
+                    case "Day":
+                        allocatedTime = new TimeSpan((int)Amount, 0, 0, 0);
+                        break;
+                    case "Week":
+                        allocatedTime = new TimeSpan((int)Amount * 7, 0, 0, 0);
+                        break;
+                    case "Month":
+                        allocatedTime = new TimeSpan((int)(Amount * 30.437), 0, 0, 0);
+                        break;
+                    case "Year":
+                        allocatedTime = new TimeSpan((int)(Amount * 365.2425), 0, 0, 0);
+                        break;
+                }
+                return allocatedTime;
             }
-            return allocatedTime;
         }
     }
 }

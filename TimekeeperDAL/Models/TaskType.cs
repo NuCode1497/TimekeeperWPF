@@ -32,7 +32,6 @@ namespace TimekeeperDAL.EF
             "Eat",
             "Sleep",
             "Chore",
-            "Note",
         };
 
         [NotMapped]

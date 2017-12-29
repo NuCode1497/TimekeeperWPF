@@ -131,6 +131,10 @@
     <Compile Include="Migrations\201712240641136_CheckInSimplified.Designer.cs">
       <DependentUpon>201712240641136_CheckInSimplified.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712290637434_ClauseFK.cs" />
+    <Compile Include="Migrations\201712290637434_ClauseFK.Designer.cs">
+      <DependentUpon>201712290637434_ClauseFK.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\CheckIn.cs" />
     <Compile Include="Models\Label.cs" />
@@ -227,6 +231,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712240641136_CheckInSimplified.resx">
       <DependentUpon>201712240641136_CheckInSimplified.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712290637434_ClauseFK.resx">
+      <DependentUpon>201712290637434_ClauseFK.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
