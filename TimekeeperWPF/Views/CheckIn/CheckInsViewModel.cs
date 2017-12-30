@@ -42,7 +42,7 @@ namespace TimekeeperWPF
             TimeTasksCollection.Source = Context.TimeTasks.Local;
             OnPropertyChanged(nameof(TimeTasksView));
         }
-        protected override void AddNew()
+        internal override void AddNew()
         {
             CurrentEditItem = new CheckIn
             {
@@ -53,7 +53,7 @@ namespace TimekeeperWPF
             View.AddNewItem(CurrentEditItem);
             base.AddNew();
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }

@@ -27,12 +27,12 @@ namespace TimekeeperWPF
             await Context.Labels.LoadAsync();
             Items.Source = Context.Labels.Local;
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }
 
-        protected override void AddNew()
+        internal override void AddNew()
         {
             CurrentEditItem = new Label();
             View.AddNewItem(CurrentEditItem);

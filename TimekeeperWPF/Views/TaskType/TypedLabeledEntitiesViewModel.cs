@@ -29,12 +29,12 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
-            TaskTypesCollection = new CollectionViewSource();
             await Context.TaskTypes.LoadAsync();
+            await base.GetDataAsync();
+
+            TaskTypesCollection = new CollectionViewSource();
             TaskTypesCollection.Source = Context.TaskTypes.Local;
             OnPropertyChanged(nameof(TaskTypesView));
-
-            await base.GetDataAsync();
         }
         #endregion
     }

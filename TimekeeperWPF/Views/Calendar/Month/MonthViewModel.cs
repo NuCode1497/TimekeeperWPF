@@ -120,7 +120,7 @@ namespace TimekeeperWPF
                 mwVM.TextMargin = TextMargin;
             }
         }
-        public override async Task LoadData()
+        internal override async Task LoadData()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -176,7 +176,7 @@ namespace TimekeeperWPF
             }
             OnPropertyChanged(nameof(MonthWeeksView));
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }

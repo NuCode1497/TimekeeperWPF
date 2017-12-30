@@ -24,6 +24,12 @@ namespace TimekeeperWPF
 
     public abstract class CalendarViewModel : ObservableObject, IView, IDisposable, IZone
     {
+        public CalendarViewModel()
+        {
+            _TimeTasksVM.Parent = this;
+            _CheckInsVM.Parent = this;
+            _NotesVM.Parent = this;
+        }
         private Orientation _Orientation = Orientation.Vertical;
         private String _status = "Ready";
         private bool _IsEnabled = true;
@@ -557,7 +563,7 @@ namespace TimekeeperWPF
         protected virtual bool CanAddNewNote => IsReady && (NotesVM?.NewItemCommand?.CanExecute(null) ?? false);
         protected virtual bool CanAddNewCheckIn => IsReady && (CheckInsVM?.NewItemCommand?.CanExecute(null) ?? false);
         protected virtual bool CanAddNewTimeTask => IsReady && (TimeTasksVM?.NewItemCommand?.CanExecute(null) ?? false);
-        public virtual async Task LoadData()
+        internal virtual async Task LoadData()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -588,7 +594,7 @@ namespace TimekeeperWPF
             await TimeTasksVM.LoadDataAsync();
             await CreateCalendarObjects();
         }
-        protected virtual void AddNew(CalendarObjectTypes type)
+        internal virtual void AddNew(CalendarObjectTypes type)
         {
             switch (type)
             {
@@ -603,7 +609,7 @@ namespace TimekeeperWPF
                     break;
             }
         }
-        protected virtual void NewCheckIn()
+        internal virtual void NewCheckIn()
         {
             CurrentEditItemType = CalendarObjectTypes.CheckIn;
             CheckInsVM.NewItemCommand.Execute(null);
@@ -611,7 +617,7 @@ namespace TimekeeperWPF
             SelectedItem = null;
             IsAddingNew = true;
         }
-        protected virtual void NewNote()
+        internal virtual void NewNote()
         {
             CurrentEditItemType = CalendarObjectTypes.Note;
             NotesVM.NewItemCommand.Execute(null);
@@ -619,7 +625,7 @@ namespace TimekeeperWPF
             SelectedItem = null;
             IsAddingNew = true;
         }
-        protected virtual void NewTimeTask()
+        internal virtual void NewTimeTask()
         {
             CurrentEditItemType = CalendarObjectTypes.Task;
             TimeTasksVM.NewItemCommand.Execute(null);
@@ -627,7 +633,7 @@ namespace TimekeeperWPF
             SelectedItem = null;
             IsAddingNew = true;
         }
-        protected virtual void EditSelected()
+        internal virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
             SelectedItem = null;
@@ -655,98 +661,115 @@ namespace TimekeeperWPF
             //Refresh all of the buttons
             CommandManager.InvalidateRequerySuggested();
         }
-        protected virtual void Cancel()
+        internal virtual void Cancel()
         {
-            CheckInsVM?.CancelCommand?.Execute(null);
-            NotesVM?.CancelCommand?.Execute(null);
-            TimeTasksVM?.CancelCommand?.Execute(null);
+            CheckInsVM?.Cancel();
+            NotesVM?.Cancel();
+            TimeTasksVM?.Cancel();
             Status = "Canceled";
             EndEdit();
         }
-        protected virtual async Task Commit()
+        internal virtual async Task<bool> Commit()
         {
+            bool success = false;
             switch (CurrentEditItemType)
             {
                 case CalendarObjectTypes.CheckIn:
                     if (IsAddingNew)
                     {
-                        var NCIO = MapNewCheckIn(CheckInsVM.CurrentEditItem);
+                        var CI = CheckInsVM.CurrentEditItem;
+                        success = await CheckInsVM.Commit();
+                        if (!success) break;
+                        var NCIO = MapNewCheckIn(CI);
                         MapTaskObjects();
                         if (NCIO != null) AddNewCheckInObject(NCIO);
                         OnPropertyChanged(nameof(CalCIObjsView));
                         Status = CalendarObjectTypes.CheckIn + " Added";
-                        CheckInsVM.CommitCommand.Execute(null);
                     }
                     break;
                 case CalendarObjectTypes.Note:
                     if (IsAddingNew)
                     {
-                        AddNewNoteObject(NotesVM.CurrentEditItem);
+                        var N = NotesVM.CurrentEditItem;
+                        success = await NotesVM.Commit();
+                        if (!success) break;
+                        AddNewNoteObject(N);
                         OnPropertyChanged(nameof(CalNoteObjsView));
                         Status = CalendarObjectTypes.Note + " Added";
-                        NotesVM.CommitCommand.Execute(null);
                     }
                     else if (IsEditingItem)
                     {
-                        var N = CurrentEditItem as CalendarNoteObject;
-                        N.Note = NotesVM.CurrentEditItem;
+                        var N = NotesVM.CurrentEditItem;
+                        success = await NotesVM.Commit();
+                        if (!success) break;
+                        var NO = CurrentEditItem as CalendarNoteObject;
+                        NO.Note = N;
                         OnPropertyChanged(nameof(CalNoteObjsView));
                         Status = CalendarObjectTypes.Note + " Modified";
-                        NotesVM.CommitCommand.Execute(null);
                     }
                     break;
                 case CalendarObjectTypes.Task:
                     if (IsAddingNew)
                     {
-                        await BuildNewTaskMap(TimeTasksVM.CurrentEditItem);
+                        var T = TimeTasksVM.CurrentEditItem;
+                        success = await TimeTasksVM.Commit();
+                        if (!success) break;
+                        await BuildNewTaskMap(T);
                         Status = CalendarObjectTypes.Task + " Added";
-                        TimeTasksVM.CommitCommand.Execute(null);
                     }
                     else if (IsEditingItem)
                     {
-                        var T = CurrentEditItem as CalendarTaskObject;
-                        TaskMaps.Remove(T.ParentPerZone.ParentMap);
-                        await BuildNewTaskMap(TimeTasksVM.CurrentEditItem);
+                        var T = TimeTasksVM.CurrentEditItem;
+                        success = await TimeTasksVM.Commit();
+                        if (!success) break;
+                        var TO = CurrentEditItem as CalendarTaskObject;
+                        TaskMaps.Remove(TO.ParentPerZone.ParentMap);
+                        await BuildNewTaskMap(T);
                         Status = CalendarObjectTypes.Task + " Modified";
-                        TimeTasksVM.CommitCommand.Execute(null);
                     }
                     await CheckInsVM.LoadDataAsync();
                     break;
             }
             EndEdit();
+            return success;
         }
-        protected virtual async Task DeleteSelected()
+        internal virtual async Task<bool> DeleteSelected()
         {
+            bool success = false;
             switch (SelectedItemType)
             {
                 case CalendarObjectTypes.CheckIn:
+                    success = await CheckInsVM.DeleteSelected();
+                    if (!success) break;
                     var CCIO = SelectedItem as CalendarCheckInObject;
                     CCIO?.ParentPerZone.CheckIns.Remove(CCIO);
-                    CheckInsVM.DeleteSelectedCommand.Execute(null);
                     MapTaskObjects();
                     CalCIObjsView.Remove(CCIO);
                     OnPropertyChanged(nameof(CalCIObjsView));
                     Status = CalendarObjectTypes.CheckIn + " Deleted";
                     break;
                 case CalendarObjectTypes.Note:
-                    NotesVM.DeleteSelectedCommand.Execute(null);
+                    success = await NotesVM.DeleteSelected();
+                    if (!success) break;
                     var N = SelectedItem as CalendarNoteObject;
                     CalNoteObjsView.Remove(N);
                     OnPropertyChanged(nameof(CalNoteObjsView));
                     Status = CalendarObjectTypes.Note + " Deleted";
                     break;
                 case CalendarObjectTypes.Task:
+                    success = await TimeTasksVM.DeleteSelected();
+                    if (!success) break;
                     var T = SelectedItem as CalendarTaskObject;
                     TaskMaps.Remove(T.ParentPerZone.ParentMap);
-                    TimeTasksVM.DeleteSelectedCommand.Execute(null);
                     await BuildTaskMaps();
                     Status = CalendarObjectTypes.Task + " Deleted";
                     await CheckInsVM.LoadDataAsync();
                     break;
             }
             SelectedItem = null;
+            return success;
         }
-        protected abstract void SaveAs();
+        internal abstract void SaveAs();
         private async Task CreateCalendarObjects()
         {
             await BuildTaskMaps();
@@ -768,7 +791,7 @@ namespace TimekeeperWPF
                 from CIO in mappedEventCheckInObjects
                 select CIO.CheckIn;
             var checkIns = CheckInsVM.Source
-                .Where(CI => CI.IsInside(this))
+                .Where(CI => CI.IsWithin(this))
                 .Except(mappedEventCheckIns);
             foreach (var CI in checkIns)
                 AddNewCheckInObject(new CalendarCheckInObject
@@ -790,7 +813,7 @@ namespace TimekeeperWPF
         {
             CalNoteObjsCollection = new CollectionViewSource();
             CalNoteObjsCollection.Source = new ObservableCollection<CalendarNoteObject>();
-            var notes = NotesVM.Source.Where(N => N.IsInside(this));
+            var notes = NotesVM.Source.Where(N => N.IsWithin(this));
             foreach (var N in notes)
                 AddNewNoteObject(N);
             OnPropertyChanged(nameof(CalNoteObjsView));
@@ -935,7 +958,7 @@ namespace TimekeeperWPF
                 //find the correct Per
                 foreach (var P in M.PerZones)
                 {
-                    if (!CI.IsInside(P)) continue;
+                    if (!CI.IsWithin(P)) continue;
                     var CCI = new CalendarCheckInObject
                     {
                         CheckIn = CI,
@@ -952,7 +975,7 @@ namespace TimekeeperWPF
                     //set the parent inclusion zone
                     foreach (var Z in P.InclusionZones)
                     {
-                        if (!CI.IsInside(Z)) continue;
+                        if (!CI.IsWithin(Z)) continue;
                         CCI.ParentInclusionZone = Z;
                         return CCI;
                     }
@@ -973,7 +996,7 @@ namespace TimekeeperWPF
                     //find and map relevant event CIs in this PerZone
                     foreach (var CI in CheckInsVM.Source)
                     {
-                        if (CI.TimeTask.Id != M.TimeTask.Id || !CI.IsInside(P)) continue;
+                        if (CI.TimeTask.Id != M.TimeTask.Id || !CI.IsWithin(P)) continue;
                         eventCheckIns.Add(new CalendarCheckInObject
                         {
                             CheckIn = CI,
@@ -1529,7 +1552,9 @@ namespace TimekeeperWPF
                                 var change = CalculateInsideCollision(C2, C1);
                                 if (change != null) return change;
                             }
-                            else if (C1.Start <= C2.Start && CalculateIntersectionCollision(C1, C2))
+                            else 
+                            if (C1.Start <= C2.Start && 
+                                CalculateIntersectionCollision(C1, C2))
                             {
                                 hasChanges = true;
                             }
@@ -1714,6 +1739,15 @@ namespace TimekeeperWPF
             public bool HasRoom;
             public double Priority;
             public TimeSpan MaxRoom;
+            public override string ToString()
+            {
+                string s = String.Format("{0} {1} P[{2}] {3}",
+                    Direction,
+                    HasRoom ? "" : "🔒",
+                    Priority,
+                    MaxRoom.ShortGoodString());
+                return s;
+            }
         }
         private PushData GetLeftPushData(CalendarTaskObject C)
         {

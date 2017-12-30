@@ -26,7 +26,7 @@ namespace TimekeeperWPF
             {
             }
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }

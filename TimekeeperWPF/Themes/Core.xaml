@@ -205,6 +205,10 @@
             </MultiTrigger>
         </Style.Triggers>
     </Style>
+    <Style TargetType="{x:Type ListBoxItem}">
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Top" />
+    </Style>
     <Style TargetType="DataGridCell">
         <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self},Path=Content.Text}"/>
     </Style>

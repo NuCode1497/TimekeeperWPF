@@ -189,24 +189,19 @@ namespace TimekeeperWPF
         #region Predicates
         protected override bool CanCommit => 
             base.CanCommit && IsNotAddingNewAllocation &&
-            //Source.Count(T => T.Name == CurrentEditItem.Name) == 1 &&
             !FiltersHaveErrors;
         protected override bool CanSave => false;
         private bool CanAddNewAllocation =>
             IsEditingItemOrAddingNew &&
             IsNotAddingNewAllocation &&
             HasSelectedResource && 
-            (HasAllocatedTime ? !SelectedResource.IsTimeResource : true) &&
             !IsResourceAllocated(SelectedResource);
-        private bool HasAllocatedTime => 
-            CurrentEditItem?.Allocations?.Count(A => A.Resource.IsTimeResource) > 0;
         private bool CanCancelAllocation =>
             IsEditingItemOrAddingNew && 
             IsAddingNewAllocation;
         private bool CanCommitAllocation =>
             IsEditingItemOrAddingNew &&
             IsAddingNewAllocation &&
-            (HasAllocatedTime ? !SelectedResource.IsTimeResource : true) &&
             (CurrentEditAllocation.Per != SelectedResource) &&
             !CurrentEditAllocation.HasErrors && 
             (TogglePer ? CurrentEditAllocation.Per != null : true);
@@ -221,12 +216,13 @@ namespace TimekeeperWPF
         {
             Context = new TimeKeeperContext();
             await Context.TimeTasks.LoadAsync();
-            Items.Source = Context.TimeTasks.Local;
-
+            await Context.Resources.LoadAsync();
+            await Context.TimePatterns.LoadAsync();
             await base.GetDataAsync();
 
+            Items.Source = Context.TimeTasks.Local;
+
             ResourcesCollection = new CollectionViewSource();
-            await Context.Resources.LoadAsync();
             ResourcesCollection.Source = Context.Resources.Local;
             ResourcesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(ResourcesView));
@@ -242,7 +238,6 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(FilterLabelsView));
             
             FilterPatternsCollection = new CollectionViewSource();
-            await Context.TimePatterns.LoadAsync();
             FilterPatternsCollection.Source = Context.TimePatterns.Local;
             FilterPatternsView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(FilterPatternsView));
@@ -262,11 +257,11 @@ namespace TimekeeperWPF
             FilterTaskTypesView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(FilterTaskTypesView));
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }
-        protected override void AddNew()
+        internal override void AddNew()
         {
             CurrentEditItem = new TimeTask
             {
@@ -284,7 +279,7 @@ namespace TimekeeperWPF
             BeginEdit();
             base.AddNew();
         }
-        protected override void EditSelected()
+        internal override void EditSelected()
         {
             base.EditSelected();
             BeginEdit();
@@ -334,16 +329,16 @@ namespace TimekeeperWPF
             FiltersCollection = null;
             base.EndEdit();
         }
-        protected override void Cancel()
+        internal override void Cancel()
         {
             CancelAllocation();
             base.Cancel();
         }
-        protected override void Commit()
+        internal override async Task<bool> Commit()
         {
             CurrentEditItem.Allocations = new HashSet<TimeTaskAllocation>(AllocationsSource);
             CurrentEditItem.Filters = new HashSet<TimeTaskFilter>(FiltersSource);
-            base.Commit();
+            return await base.Commit();
         }
         private void AddNewFilter()
         {

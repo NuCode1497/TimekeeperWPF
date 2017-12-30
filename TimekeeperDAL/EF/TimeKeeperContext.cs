@@ -1,15 +1,26 @@
 using System;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure.Interception;
 using System.Data.Entity.ModelConfiguration.Conventions;
+using TimekeeperDAL.Interception;
 
 namespace TimekeeperDAL.EF
 {
     public partial class TimeKeeperContext : DbContext, ITimeKeeperContext
     {
+        static readonly DatabaseLogger loggo = new DatabaseLogger("sqllog.txt", true);
+        static TimeKeeperContext()
+        {
+            ////print sql queries to the console
+            //DbInterception.Add(new Interceptor());
+
+            ////print sql queries to a file sqllog.txt
+            //loggo.StartLogging();
+            //DbInterception.Add(loggo);
+        }
         public TimeKeeperContext()
             : base("name=TimeKeeperContext")
         {
-            AppDomain.CurrentDomain.SetData("DataDirectory", System.IO.Directory.GetCurrentDirectory());
         }
 
         public virtual IDbSet<TimeTaskAllocation> Allocations { get; set; }

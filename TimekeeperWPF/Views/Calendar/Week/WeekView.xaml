@@ -38,13 +38,17 @@
                         <StaticResource ResourceKey="CalTaskObjs"/>
                         <StaticResource ResourceKey="CalCIObjs"/>
                         <StaticResource ResourceKey="CalNoteObjs"/>
-                        <cal:NowMarkerHorizontal IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
-                        <cal:NowMarkerVertical IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
+                        <cal:NowMarkerHorizontal 
+                            x:Name="HorizMark"
+                            IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
+                        <cal:NowMarkerVertical 
+                            x:Name="VertMark"
+                            IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
                     </CompositeCollection>
                 </ItemsControl.ItemsSource>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <cal:Week/>
+                        <cal:Week x:Name="WeekPanel"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ListBox>

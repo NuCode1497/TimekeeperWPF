@@ -48,11 +48,11 @@ namespace TimekeeperWPF
                 if (await SaveChangesAsync()) Status = "Missing defaults were added.";
             }
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }
-        protected override void AddNew()
+        internal override void AddNew()
         {
             CurrentEditItem = new Resource();
             View.AddNewItem(CurrentEditItem);

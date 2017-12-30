@@ -22,6 +22,7 @@ namespace TimekeeperWPF
         where ModelType: EntityBase, new() 
     {
         #region Fields
+        internal IView Parent;
         protected ITimeKeeperContext Context;
         protected IComparer Sorter;
         protected static IComparer NameSorter = new NameSorter();
@@ -189,7 +190,7 @@ namespace TimekeeperWPF
         public ICommand CancelCommand => _CancelCommand
             ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
         public ICommand CommitCommand => _CommitCommand
-            ?? (_CommitCommand = new RelayCommand(ap => Commit(), pp => CanCommit));
+            ?? (_CommitCommand = new RelayCommand(async ap => await Commit(), pp => CanCommit));
         public ICommand GetDataCommand => _GetDataCommand
             ?? (_GetDataCommand = new RelayCommand(async ap => await LoadDataAsync(), pp => CanGetData));
         public ICommand NewItemCommand => _NewItemCommand
@@ -197,7 +198,7 @@ namespace TimekeeperWPF
         public ICommand EditSelectedCommand => _EditSelectedCommand
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
-            ?? (_DeleteSelectedCommand = new RelayCommand(ap => DeleteSelected(), pp => CanDeleteSelected));
+            ?? (_DeleteSelectedCommand = new RelayCommand(async ap => await DeleteSelected(), pp => CanDeleteSelected));
         public ICommand SaveAsCommand => _SaveAsCommand
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         #endregion
@@ -213,8 +214,8 @@ namespace TimekeeperWPF
         #endregion
         #region Actions
         protected abstract Task GetDataAsync();
-        protected abstract void SaveAs();
-        public virtual async Task LoadDataAsync()
+        internal abstract void SaveAs();
+        internal virtual async Task LoadDataAsync()
         {
             IsEnabled = false;
             IsLoading = true;
@@ -242,13 +243,13 @@ namespace TimekeeperWPF
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
-        protected virtual void AddNew()
+        internal virtual void AddNew()
         {
             SelectedItem = null;
             IsAddingNew = true;
             Status = "Adding new " + CurrentEditItem.GetTypeName();
         }
-        protected virtual void EditSelected()
+        internal virtual void EditSelected()
         {
             CurrentEditItem = SelectedItem;
             SelectedItem = null;
@@ -267,7 +268,7 @@ namespace TimekeeperWPF
             //Refresh all of the buttons
             CommandManager.InvalidateRequerySuggested();
         }
-        protected virtual void Cancel()
+        internal virtual void Cancel()
         {
             if (IsEditingItem)
             {
@@ -281,9 +282,10 @@ namespace TimekeeperWPF
             }
             EndEdit();
         }
-        protected virtual async void Commit()
+        internal virtual async Task<bool> Commit()
         {
-            if (await SaveChangesAsync())
+            bool success = await SaveChangesAsync();
+            if (success)
             {
                 if (IsAddingNew)
                 {
@@ -297,15 +299,18 @@ namespace TimekeeperWPF
                 }
                 EndEdit();
             }
+            return success;
         }
-        protected virtual async void DeleteSelected()
+        internal virtual async Task<bool> DeleteSelected()
         {
-            string status = SelectedItem?.GetTypeName() + " Deleted";
+            string status = SelectedItem.GetTypeName() + " Deleted";
             View.Remove(SelectedItem);
-            if (await SaveChangesAsync()) Status = status;
+            bool success = await SaveChangesAsync();
+            if (success) Status = status;
             SelectedItem = null;
+            return success;
         }
-        protected virtual async Task<bool> SaveChangesAsync()
+        internal virtual async Task<bool> SaveChangesAsync()
         {
             bool success = false;
             try

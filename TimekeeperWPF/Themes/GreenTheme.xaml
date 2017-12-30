@@ -35,10 +35,10 @@ MMM d</clr:String>
     <SolidColorBrush x:Key="Week.MonthBoundsWatermarkBrush" Color="MintCream"/>
     <SolidColorBrush x:Key="CalendarTitleBar.Background" Color="AliceBlue"/>
     <SolidColorBrush x:Key="CalendarObject.Type.Chore" Color="Gold"/>
-    <SolidColorBrush x:Key="CalendarObject.Type.Eat" Color="Chocolate"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Eat" Color="Tomato"/>
     <SolidColorBrush x:Key="CalendarObject.Type.Play" Color="SeaGreen"/>
     <SolidColorBrush x:Key="CalendarObject.Type.Sleep" Color="MediumPurple"/>
-    <SolidColorBrush x:Key="CalendarObject.Type.Work" Color="Tomato"/>
+    <SolidColorBrush x:Key="CalendarObject.Type.Work" Color="Blue"/>
     <SolidColorBrush x:Key="CalendarObject.State.AutoCompleted" Color="MediumAquamarine"/>
     <SolidColorBrush x:Key="CalendarObject.State.AutoConfirm" Color="Aquamarine"/>
     <SolidColorBrush x:Key="CalendarObject.State.CheckIn" Color="DodgerBlue"/>

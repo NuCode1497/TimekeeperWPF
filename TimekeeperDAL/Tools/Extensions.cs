@@ -115,10 +115,12 @@ namespace TimekeeperDAL.Tools
 
         public static bool Intersects(this IZone myZ, DateTime start, DateTime end) { return start < myZ.End && myZ.Start < end; }
         public static bool Intersects(this IZone myZ, IZone Z) { return myZ.Intersects(Z.Start, Z.End); }
-        public static bool IsInside(this IZone myZ, DateTime start, DateTime end) { return start <= myZ.Start && myZ.End <= end; }
+        public static bool IsInside(this IZone myZ, DateTime start, DateTime end) { return start < myZ.Start && myZ.End < end; }
         public static bool IsInside(this IZone myZ, IZone Z) { return myZ.IsInside(Z.Start, Z.End); }
-        public static bool IsInside(this DateTime dt, IZone Z) { return Z.Start <= dt && dt <= Z.End; }
-        public static bool IsInside(this CheckIn CI, IZone Z) { return CI.DateTime.IsInside(Z); }
-        public static bool IsInside(this Note N, IZone Z) { return N.DateTime.IsInside(Z); }
+        public static bool IsWithin(this IZone myZ, DateTime start, DateTime end) { return start <= myZ.Start && myZ.End <= end; }
+        public static bool IsWithin(this IZone myZ, IZone Z) { return myZ.IsWithin(Z.Start, Z.End); }
+        public static bool IsWithin(this DateTime dt, IZone Z) { return Z.Start < dt && dt < Z.End; }
+        public static bool IsWithin(this CheckIn CI, IZone Z) { return CI.DateTime.IsWithin(Z); }
+        public static bool IsWithin(this Note N, IZone Z) { return N.DateTime.IsWithin(Z); }
     }
 }

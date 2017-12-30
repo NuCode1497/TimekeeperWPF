@@ -166,7 +166,7 @@ namespace TimekeeperDAL.Migrations
                         RaiseOnReschedule = c.Boolean(nullable: false),
                         AsksForReschedule = c.Boolean(nullable: false),
                         CanReschedule = c.Boolean(nullable: false),
-                        AsksForCheckin = c.Boolean(nullable: false),
+                        AutoCheckIn = c.Boolean(nullable: false),
                         CanBePushed = c.Boolean(nullable: false),
                         CanInflate = c.Boolean(nullable: false),
                         CanDeflate = c.Boolean(nullable: false),

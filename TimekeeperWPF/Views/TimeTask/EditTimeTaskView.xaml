@@ -61,7 +61,7 @@
                 </StackPanel>
             </StackPanel>
             <StackPanel Margin="5">
-                <CheckBox Content="Auto CheckIn" IsChecked="{Binding Path=AsksForCheckin}"/>
+                <CheckBox Content="Auto CheckIn" IsChecked="{Binding Path=AutoCheckIn}"/>
                 <CheckBox Content="Can Fill" IsChecked="{Binding Path=CanFill}"/>
             </StackPanel>
         </StackPanel>

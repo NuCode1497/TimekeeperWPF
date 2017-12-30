@@ -38,11 +38,11 @@ namespace TimekeeperWPF
 
             await base.GetDataAsync();
         }
-        protected override void SaveAs()
+        internal override void SaveAs()
         {
             throw new NotImplementedException();
         }
-        protected override void AddNew()
+        internal override void AddNew()
         {
             CurrentEditItem = new TimePattern
             {
@@ -54,7 +54,7 @@ namespace TimekeeperWPF
             AddClause();
             base.AddNew();
         }
-        protected override void EditSelected()
+        internal override void EditSelected()
         {
             base.EditSelected();
             BeginEdit();
@@ -71,10 +71,10 @@ namespace TimekeeperWPF
             ClausesCollection = null;
             base.EndEdit();
         }
-        protected override void Commit()
+        internal override async Task<bool> Commit()
         {
             CurrentEditItem.Query = new HashSet<TimePatternClause>(ClausesSource);
-            base.Commit();
+            return await base.Commit();
         }
         private void AddClause()
         {

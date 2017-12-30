@@ -41,6 +41,11 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(Resource), Resource);
                         break;
                     case nameof(Amount):
+                        if (Amount <= 0)
+                        {
+                            AddError(nameof(Amount), "Amount must be positive");
+                            hasError = true;
+                        }
                         hasError = ValidateTimeSelection(hasError);
                         errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
                         break;
@@ -66,7 +71,8 @@ namespace TimekeeperDAL.EF
                 AddError(nameof(Amount), "Per must be larger than Resource");
                 hasError = true;
             }
-            else if (Per != null
+            else 
+            if (Per != null
                 && Resource.IsTimeResource
                 && !Per.IsTimeResource)
             {
@@ -86,7 +92,7 @@ namespace TimekeeperDAL.EF
             get
             {
                 TimeSpan allocatedTime = new TimeSpan();
-                switch (Resource.Name)
+                switch (Resource?.Name)
                 {
                     case "Minute":
                         allocatedTime = new TimeSpan(0, (int)Amount, 0);

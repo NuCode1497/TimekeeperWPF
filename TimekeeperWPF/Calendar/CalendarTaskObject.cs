@@ -79,7 +79,8 @@ namespace TimekeeperWPF.Calendar
         }
         private void BuildToolTip()
         {
-            string s = String.Format("D[{0}] {1} - {2}\nP[{3}] {4}\nDur: {5:g}\nS[{7}]{6}\nE[{9}]{8}",
+            string s = String.Format("D[{0}] {1} - {2}\nP[{3}] {4}\nDur: {5:g}" +
+                "\nS  [{7}]{6}\nE  [{9}]{8}\nPS [{10}]\nPE [{11}]\nZS [{12}]\nZE [{13}]\nAs: {14}\nFs: {15}\nLs: {16}",
                 ParentPerZone.ParentMap.TimeTask.Dimension,
                 ParentPerZone.ParentMap.TimeTask.TaskType,
                 ParentPerZone.ParentMap.TimeTask,
@@ -89,23 +90,37 @@ namespace TimekeeperWPF.Calendar
                 StateLock ? "🔒" : "",
                 Start.ToString(),
                 EndLock ? "🔒" : "",
-                End.ToString());
+                End.ToString(),
+                ParentPerZone.Start.ToString(),
+                ParentPerZone.End.ToString(),
+                ParentInclusionZone?.Start.ToString(),
+                ParentInclusionZone?.End.ToString(),
+                ParentPerZone.ParentMap.TimeTask.AllocationsToString,
+                ParentPerZone.ParentMap.TimeTask.FiltersToString,
+                ParentPerZone.ParentMap.TimeTask.LabelsToString
+                );
             if (ParentPerZone.TimeConsumption != null)
             {
-                s += String.Format("\nAlloc: {0}\nRem: {1}",
+                s += String.Format("\nAlloc: {0} {2}\nRem: {1}",
                 ParentPerZone.TimeConsumption.Allocation.AmountAsTimeSpan.ShortGoodString(),
-                ParentPerZone.TimeConsumption.RemainingAsTimeSpan.ShortGoodString());
+                ParentPerZone.TimeConsumption.RemainingAsTimeSpan.ShortGoodString(),
+                ParentPerZone.ParentMap.TimeTask.AllocationMethod);
             }
+            if (ParentPerZone.ParentMap.TimeTask.CanFill) s += "\nCanFill";
+            if (ParentPerZone.ParentMap.TimeTask.AutoCheckIn) s += "\nAutoCheckIn";
             ToolTip = s;
         }
         public override string ToString()
         {
-            string s = String.Format("{0} {1} {2} → {3} {4}",
+            string s = String.Format("{0} P[{5}] {1} {2} → {3} {4}",
                 ParentPerZone.ParentMap.TimeTask,
+                (StartLock ? "🔒" : "") +
                 Start.ToShortDateString(),
                 Start.ToShortTimeString(),
+                (EndLock ? "🔒" : "") +
                 End.ToShortDateString(),
-                End.ToShortTimeString());
+                End.ToShortTimeString(),
+                ParentPerZone.ParentMap.TimeTask.Priority);
             return s;
         }
         #region Zone
@@ -230,7 +245,7 @@ namespace TimekeeperWPF.Calendar
         {
             CalendarTaskObject CalObj = d as CalendarTaskObject;
             TaskType value = (TaskType)e.NewValue;
-            CalObj.SetValue(TaskTypeNamePropertyKey, value.Name);
+            CalObj.SetValue(TaskTypeNamePropertyKey, value?.Name);
         }
         public string TaskTypeName
         {

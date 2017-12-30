@@ -11,7 +11,7 @@ namespace TimekeeperDAL.Migrations
             DropColumn("dbo.TimeTasks", "RaiseOnReschedule");
             DropColumn("dbo.TimeTasks", "AsksForReschedule");
             DropColumn("dbo.TimeTasks", "CanReschedule");
-            DropColumn("dbo.TimeTasks", "AsksForCheckin");
+            DropColumn("dbo.TimeTasks", "AutoCheckIn");
             DropColumn("dbo.TimeTasks", "CanBePushed");
             DropColumn("dbo.TimeTasks", "CanInflate");
             DropColumn("dbo.TimeTasks", "CanDeflate");
@@ -28,7 +28,7 @@ namespace TimekeeperDAL.Migrations
             AddColumn("dbo.TimeTasks", "CanDeflate", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "CanInflate", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "CanBePushed", c => c.Boolean(nullable: false));
-            AddColumn("dbo.TimeTasks", "AsksForCheckin", c => c.Boolean(nullable: false));
+            AddColumn("dbo.TimeTasks", "AutoCheckIn", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "CanReschedule", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "AsksForReschedule", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "RaiseOnReschedule", c => c.Boolean(nullable: false));

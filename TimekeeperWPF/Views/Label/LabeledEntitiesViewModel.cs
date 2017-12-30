@@ -84,18 +84,20 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
-            LabelsCollection = new CollectionViewSource();
             await Context.Labels.LoadAsync();
+            await Context.Labellings.LoadAsync();
+
+            LabelsCollection = new CollectionViewSource();
             LabelsCollection.Source = Context.Labels.Local;
             LabelsView.CustomSort = NameSorter;
             OnPropertyChanged(nameof(LabelsView));
         }
-        protected override void AddNew()
+        internal override void AddNew()
         {
             BeginEdit();
             base.AddNew();
         }
-        protected override void EditSelected()
+        internal override void EditSelected()
         {
             base.EditSelected();
             BeginEdit();
@@ -117,7 +119,7 @@ namespace TimekeeperWPF
             CurrentEntityLabelsCollection = null;
             base.EndEdit();
         }
-        protected override void Commit()
+        internal override async Task<bool> Commit()
         {
             HashSet<Labelling> labellings = new HashSet<Labelling>();
             foreach (Label l in CurrentEntityLabelsSource)
@@ -129,7 +131,7 @@ namespace TimekeeperWPF
                 });
             }
             CurrentEditItem.Labellings = labellings;
-            base.Commit();
+            return await base.Commit();
         }
         private void AddLabel()
         {
