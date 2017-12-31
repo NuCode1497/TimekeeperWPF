@@ -267,12 +267,12 @@ namespace TimekeeperWPF
             {
                 Name = "New Task",
                 Description = "Your text here.",
-                End = DateTime.Now.RoundToHour().AddHours(1), //init before start
-                Start = DateTime.Now.RoundToHour(),
+                End = DateTime.Now.Date.AddDays(1), //init before start
+                Start = DateTime.Now.Date,
                 TaskType = TaskTypesSource.First(N => N.Name == "Chore"),
-                AllocationMethod = "Even",
+                AllocationMethod = "EvenEager",
                 Dimension = 1,
-                Priority = 1,
+                Priority = 100,
                 CanFill = false
             };
             View.AddNewItem(CurrentEditItem);

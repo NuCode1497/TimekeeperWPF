@@ -43,19 +43,19 @@
             <StackPanel Width="230">
                 <StackPanel x:Name="PriorityPanel" Orientation="Horizontal">
                     <Label Content="Priority" Width="80" />
-                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Priority, 
+                    <wpftools:IntegerUpDown Width="80" Value="{Binding Path=Priority, 
                         Mode=TwoWay, UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
                 <StackPanel x:Name="DimensionPanel" Orientation="Horizontal">
                     <Label Content="Dimension" Width="80" />
-                    <wpftools:IntegerUpDown Width="100" Value="{Binding Path=Dimension, Mode=TwoWay, 
+                    <wpftools:IntegerUpDown Width="80" Value="{Binding Path=Dimension, Mode=TwoWay, 
                         UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Label Content="Allocation"  Width="80"/>
-                    <ComboBox Width="100" HorizontalAlignment="Left"
+                    <ComboBox Width="130" HorizontalAlignment="Left"
                         SelectedItem="{Binding Path=AllocationMethod}"
                         ItemsSource="{x:Static dal:TimeTask.AllocationMethodChoices}" />
                 </StackPanel>

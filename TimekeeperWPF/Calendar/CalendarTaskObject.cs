@@ -44,7 +44,11 @@ namespace TimekeeperWPF.Calendar
         }
         private void _Timer_Tick(object sender, EventArgs e)
         {
-            //determine the state of this object based on the current time
+            DetermineCurrentState();
+            BuildToolTip();
+        }
+        private void DetermineCurrentState()
+        {
             if (DateTime.Now < Start)
             {
             }
@@ -75,7 +79,6 @@ namespace TimekeeperWPF.Calendar
                     State = States.Current;
                 }
             }
-            BuildToolTip();
         }
         private void BuildToolTip()
         {
@@ -112,15 +115,16 @@ namespace TimekeeperWPF.Calendar
         }
         public override string ToString()
         {
-            string s = String.Format("{0} P[{5}] {1} {2} → {3} {4}",
-                ParentPerZone.ParentMap.TimeTask,
+            string s = String.Format("{0} P{1} {2} S{3} E{4} ZS{5} ZE{6}",
+                ParentPerZone.ParentMap.TimeTask.ToString(),
+                ParentPerZone.ParentMap.TimeTask.Priority,
+                Start.ToString("y-M-d"),
                 (StartLock ? "🔒" : "") +
-                Start.ToShortDateString(),
                 Start.ToShortTimeString(),
                 (EndLock ? "🔒" : "") +
-                End.ToShortDateString(),
                 End.ToShortTimeString(),
-                ParentPerZone.ParentMap.TimeTask.Priority);
+                ParentInclusionZone?.Start.ToShortTimeString(),
+                ParentInclusionZone?.End.ToShortTimeString());
             return s;
         }
         #region Zone

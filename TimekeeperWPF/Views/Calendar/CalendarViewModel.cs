@@ -1093,6 +1093,7 @@ namespace TimekeeperWPF
             CleanUpStates();
             UnZipTaskMaps();
         }
+        #region AllocateTimeFromCheckIns
         private void AllocateTimeFromCheckIns()
         {
             Status = "Allocating Time From CheckIns...";
@@ -1102,19 +1103,19 @@ namespace TimekeeperWPF
                 {
                     //Create CalObjs from CheckIns
                     CalendarTaskObject pC = null;
-                    CalendarCheckInObject pN = null;
+                    CalendarCheckInObject pCI = null;
                     bool inZ = false;
-                    foreach (var N in P.CheckIns)
+                    foreach (var CI in P.CheckIns)
                     {
                         // Refer to Plans.xlsx - CheckIns
-                        switch (N.Kind)
+                        switch (CI.Kind)
                         {
                             case CheckInKind.InclusionZoneStart:
                                 // F
-                                if (pN.Kind == CheckInKind.EventStart && inZ == false)
+                                if (pCI.Kind == CheckInKind.EventStart && inZ == false)
                                 {
                                     // 4
-                                    pC.End = N.DateTime;
+                                    SetUnschCEndF4(pC, CI);
                                 }
                                 inZ = true;
                                 break;
@@ -1123,27 +1124,15 @@ namespace TimekeeperWPF
                                 if (inZ)
                                 {
                                     // B
-                                    switch (pN.Kind)
+                                    switch (pCI.Kind)
                                     {
                                         case CheckInKind.InclusionZoneStart:
                                             // 6
-                                            var C = new CalendarTaskObject
-                                            {
-                                                Start = N.DateTime,
-                                                End = N.DateTime,
-                                                State = CalendarTaskObject.States.Confirmed,
-                                                //ParentMap = N.ParentMap,
-                                                //ParentInclusionZone = N.ParentInclusionZone,
-                                                ParentPerZone = N.ParentPerZone,
-                                                StartLock = true,
-                                                StateLock = true,
-                                            };
-                                            pC = C;
-                                            P.CalTaskObjs.Add(C);
+                                            pC = CreateCalObjB6(P, CI);
                                             break;
                                         case CheckInKind.EventStart:
                                             // 2
-                                            pC.End = N.DateTime;
+                                            SetInZCEndG2(pC, CI);
                                             goto case CheckInKind.InclusionZoneStart;
                                         case CheckInKind.EventEnd:
                                             // 3
@@ -1153,27 +1142,15 @@ namespace TimekeeperWPF
                                 else
                                 {
                                     // D
-                                    switch (pN.Kind)
+                                    switch (pCI.Kind)
                                     {
                                         case CheckInKind.PerZoneStart:
                                             // 8
-                                            var C = new CalendarTaskObject
-                                            {
-                                                Start = N.DateTime,
-                                                End = N.DateTime,
-                                                State = CalendarTaskObject.States.Unscheduled,
-                                                //ParentMap = N.ParentMap,
-                                                //ParentInclusionZone = N.ParentInclusionZone,
-                                                ParentPerZone = N.ParentPerZone,
-                                                StartLock = true,
-                                                StateLock = true,
-                                            };
-                                            pC = C;
-                                            P.CalTaskObjs.Add(C);
+                                            pC = CreateCalObjD8(P, CI);
                                             break;
                                         case CheckInKind.EventStart:
                                             // 4
-                                            pC.End = N.DateTime;
+                                            SetUnschCEndF4(pC, CI);
                                             goto case CheckInKind.PerZoneStart;
                                         case CheckInKind.EventEnd:
                                             // 5
@@ -1186,28 +1163,15 @@ namespace TimekeeperWPF
                                 if (inZ)
                                 {
                                     // C
-                                    switch (pN.Kind)
+                                    switch (pCI.Kind)
                                     {
                                         case CheckInKind.InclusionZoneStart:
                                             // 6
-                                            var C = new CalendarTaskObject
-                                            {
-                                                Start = pN.DateTime,
-                                                End = N.DateTime,
-                                                State = CalendarTaskObject.States.Confirmed,
-                                                //ParentMap = N.ParentMap,
-                                                //ParentInclusionZone = N.ParentInclusionZone,
-                                                ParentPerZone = N.ParentPerZone,
-                                                EndLock = true,
-                                                StateLock = true,
-                                            };
-                                            pC = C;
-                                            P.CalTaskObjs.Add(C);
+                                            pC = CreateCalObjC6(P, pCI, CI);
                                             break;
                                         case CheckInKind.EventStart:
                                             // 2
-                                            pC.End = N.DateTime;
-                                            pC.EndLock = true;
+                                            SetLockedEnd(pC, CI);
                                             break;
                                         case CheckInKind.EventEnd:
                                             // 3
@@ -1217,45 +1181,19 @@ namespace TimekeeperWPF
                                 else
                                 {
                                     // E
-                                    switch (pN.Kind)
+                                    switch (pCI.Kind)
                                     {
                                         case CheckInKind.PerZoneStart:
                                             // 8
-                                            var C = new CalendarTaskObject
-                                            {
-                                                Start = pN.DateTime,
-                                                End = N.DateTime,
-                                                State = CalendarTaskObject.States.Unscheduled,
-                                                //ParentMap = N.ParentMap,
-                                                //ParentInclusionZone = N.ParentInclusionZone,
-                                                ParentPerZone = N.ParentPerZone,
-                                                EndLock = true,
-                                                StateLock = true,
-                                            };
-                                            pC = C;
-                                            P.CalTaskObjs.Add(C);
+                                            pC = CreateCalObjE8(P, pCI, CI);
                                             break;
                                         case CheckInKind.EventStart:
                                             // 4
-                                            pC.End = N.DateTime;
-                                            pC.EndLock = true;
+                                            SetLockedEnd(pC, CI);
                                             break;
                                         case CheckInKind.EventEnd:
                                             // 5
-                                            var C2 = new CalendarTaskObject
-                                            {
-                                                Start = pC.End,
-                                                End = N.DateTime,
-                                                State = CalendarTaskObject.States.Unscheduled,
-                                                //ParentMap = N.ParentMap,
-                                                //ParentInclusionZone = N.ParentInclusionZone,
-                                                ParentPerZone = N.ParentPerZone,
-                                                EndLock = true,
-                                                StateLock = true,
-                                            };
-                                            pC = C2;
-                                            P.CalTaskObjs.Add(C2);
-                                            break;
+                                            goto case CheckInKind.PerZoneStart;
                                         case CheckInKind.InclusionZoneEnd:
                                             // 7
                                             goto case CheckInKind.PerZoneStart;
@@ -1264,34 +1202,157 @@ namespace TimekeeperWPF
                                 break;
                             case CheckInKind.InclusionZoneEnd:
                                 // G
-                                if (pN.Kind == CheckInKind.EventStart && inZ == true)
+                                if (pCI.Kind == CheckInKind.EventStart && inZ == true)
                                 {
                                     // 2
-                                    pC.End = N.DateTime;
+                                    SetInZCEndG2(pC, CI);
                                 }
                                 inZ = false;
                                 break;
                             case CheckInKind.PerZoneEnd:
                                 // H
-                                if (pN.Kind == CheckInKind.EventStart && inZ == false)
+                                if (pCI.Kind == CheckInKind.EventStart && inZ == false)
                                 {
                                     // 4
-                                    pC.End = N.DateTime;
+                                    SetUnschCEndF4(pC, CI);
                                 }
                                 break;
                         }
-                        pN = N;
+                        pCI = CI;
                     }
-                    //Add up all the time
-                    TimeSpan spent = new TimeSpan();
-                    foreach (var C in P.CalTaskObjs)
-                        spent += C.Duration;
-                    //Allocate time
-                    if (P.TimeConsumption != null)
-                        P.TimeConsumption.Remaining -= spent.Ticks;
                 }
             }
         }
+        private static CalendarTaskObject CreateCalObjE8(PerZone P, CalendarCheckInObject pCI, CalendarCheckInObject CI)
+        {
+            DateTime start = pCI.DateTime;
+            if (CI.ParentPerZone.TimeConsumption != null)
+            {
+                var remStart = CI.DateTime - CI.ParentPerZone.TimeConsumption.RemainingAsTimeSpan;
+                start = new DateTime(Max(remStart.Ticks, pCI.DateTime.Ticks));
+                var diff = (CI.DateTime - start).Ticks;
+                if (diff > 0)
+                    CI.ParentPerZone.TimeConsumption.Remaining -= (CI.DateTime - start).Ticks;
+                else
+                    start = CI.DateTime;
+            }
+            var C = new CalendarTaskObject
+            {
+                Start = start,
+                End = CI.DateTime,
+                State = CalendarTaskObject.States.Unscheduled,
+                ParentInclusionZone = CI.ParentInclusionZone,
+                ParentPerZone = CI.ParentPerZone,
+                EndLock = true,
+                StateLock = true,
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+        private static CalendarTaskObject CreateCalObjC6(PerZone P, CalendarCheckInObject pCI, CalendarCheckInObject CI)
+        {
+            DateTime start = pCI.DateTime;
+            if (CI.ParentPerZone.TimeConsumption != null)
+            {
+                var remStart = CI.DateTime - CI.ParentPerZone.TimeConsumption.RemainingAsTimeSpan;
+                start = new DateTime(Max(remStart.Ticks, Max(CI.ParentInclusionZone.Start.Ticks, pCI.DateTime.Ticks)));
+                var diff = (CI.DateTime - start).Ticks;
+                if (diff > 0)
+                    CI.ParentPerZone.TimeConsumption.Remaining -= (CI.DateTime - start).Ticks;
+                else
+                    start = CI.DateTime;
+            }
+            var C = new CalendarTaskObject
+            {
+                Start = start,
+                End = CI.DateTime,
+                State = CalendarTaskObject.States.Confirmed,
+                ParentInclusionZone = CI.ParentInclusionZone,
+                ParentPerZone = CI.ParentPerZone,
+                EndLock = true,
+                StateLock = true,
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+        private static CalendarTaskObject CreateCalObjD8(PerZone P, CalendarCheckInObject CI)
+        {
+            var C = new CalendarTaskObject
+            {
+                Start = CI.DateTime,
+                End = CI.DateTime,
+                State = CalendarTaskObject.States.Unscheduled,
+                ParentInclusionZone = CI.ParentInclusionZone,
+                ParentPerZone = CI.ParentPerZone,
+                StartLock = true,
+                StateLock = true,
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+        private static CalendarTaskObject CreateCalObjB6(PerZone P, CalendarCheckInObject CI)
+        {
+            var C = new CalendarTaskObject
+            {
+                Start = CI.DateTime,
+                End = CI.DateTime,
+                State = CalendarTaskObject.States.Confirmed,
+                ParentInclusionZone = CI.ParentInclusionZone,
+                ParentPerZone = CI.ParentPerZone,
+                StartLock = true,
+                StateLock = true,
+            };
+            P.CalTaskObjs.Add(C);
+            return C;
+        }
+        private static void SetLockedEnd(CalendarTaskObject C, CalendarCheckInObject CI)
+        {
+            C.End = CI.DateTime;
+            C.EndLock = true;
+            if (C.ParentPerZone.TimeConsumption != null)
+                C.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
+        }
+        private static void SetUnschCEndF4(CalendarTaskObject C, CalendarCheckInObject CI)
+        {
+            //Assume that C.Start is locked, and C not in Z
+            if (C.ParentPerZone.TimeConsumption != null)
+            {
+                var remEnd = C.End + C.ParentPerZone.TimeConsumption.RemainingAsTimeSpan;
+                var end = new DateTime(Min(remEnd.Ticks, CI.DateTime.Ticks));
+                var diff = (end - C.End).Ticks;
+                if (end > C.Start)
+                {
+                    C.ParentPerZone.TimeConsumption.Remaining -= diff;
+                    C.End = end;
+                }
+            }
+            else
+            {
+                if (CI.DateTime > C.Start)
+                    C.End = CI.DateTime;
+            }
+        }
+        private static void SetInZCEndG2(CalendarTaskObject C, CalendarCheckInObject CI)
+        {
+            //Assume that C.End is locked, and C in Z
+            if (C.ParentPerZone.TimeConsumption != null)
+            {
+                var remEnd = C.End + C.ParentPerZone.TimeConsumption.RemainingAsTimeSpan;
+                var end = new DateTime(Min(C.ParentInclusionZone.End.Ticks, Min(remEnd.Ticks, CI.DateTime.Ticks)));
+                var diff = (end - C.End).Ticks;
+                if (end > C.Start)
+                {
+                    C.ParentPerZone.TimeConsumption.Remaining -= diff;
+                    C.End = end;
+                }
+            }
+            else
+            {
+                if (CI.DateTime > C.Start)
+                    C.End = CI.DateTime;
+            }
+        }
+        #endregion AllocateTimeFromCheckIns
         #region AllocateTimeFromFilters
         private void AllocateTimeFromFilters()
         {
@@ -1334,8 +1395,14 @@ namespace TimekeeperWPF
                 case "Eager":
                     EagerTimeAllocate(M);
                     break;
-                case "Even":
-                    EvenTimeAllocate(M);
+                case "EvenEager":
+                    EvenEagerTimeAllocate(M);
+                    break;
+                case "EvenCentered":
+                    EvenCenteredTimeAllocate(M);
+                    break;
+                case "EvenApathetic":
+                    EvenApatheticTimeAllocate(M);
                     break;
                 case "Apathetic":
                     ApatheticTimeAllocate(M);
@@ -1351,11 +1418,11 @@ namespace TimekeeperWPF
                 P.InclusionZones.Sort(new InclusionSorterAsc());
                 foreach (var Z in P.InclusionZones)
                 {
-                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
-                    if (hasCalObj) continue;
                     if (P.TimeConsumption.Remaining <= 0) break;
                     if (Z.Duration.Ticks <= 0) break;
-                    if (P.TimeConsumption.RemainingAsTimeSpan < Z.Duration)
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
+                    if (P.TimeConsumption.RemainingAsTimeSpan <= Z.Duration)
                     {
                         //create cal obj the size of the remaining time
                         CalendarTaskObject CalObj = new CalendarTaskObject
@@ -1376,7 +1443,6 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.End,
-                            //ParentMap = M,
                             ParentInclusionZone = Z,
                             ParentPerZone = P,
                         };
@@ -1386,7 +1452,7 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private void EvenTimeAllocate(CalendarTimeTaskMap M)
+        private void EvenEagerTimeAllocate(CalendarTimeTaskMap M)
         {
             foreach (var P in M.PerZones)
             {
@@ -1396,15 +1462,14 @@ namespace TimekeeperWPF
                 //First loop that creates CalendarObjects
                 foreach (var Z in P.InclusionZones)
                 {
-                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
-                    if (hasCalObj) continue;
                     if (P.TimeConsumption.Remaining <= 0) break;
                     if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
                     CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
                         End = Z.Start + TimeTask.MinimumDuration,
-                        //ParentMap = M,
                         ParentInclusionZone = Z,
                         ParentPerZone = P,
                     };
@@ -1430,6 +1495,106 @@ namespace TimekeeperWPF
                 }
             }
         }
+        private void EvenCenteredTimeAllocate(CalendarTimeTaskMap M)
+        {
+            foreach (var P in M.PerZones)
+            {
+                //Fill zones evenly, but centered
+                if (P.InclusionZones.Count == 0) continue;
+                P.InclusionZones.Sort(new InclusionSorterAsc());
+                //First loop that creates CalendarObjects
+                foreach (var Z in P.InclusionZones)
+                {
+                    if (P.TimeConsumption.Remaining <= 0) break;
+                    if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
+                    DateTime MDT = new DateTime(Z.Start.Ticks + Z.Duration.Ticks / 2).RoundDown(TimeTask.MinimumDuration);
+                    CalendarTaskObject CalObj = new CalendarTaskObject
+                    {
+                        Start = MDT,
+                        End = MDT + TimeTask.MinimumDuration,
+                        ParentInclusionZone = Z,
+                        ParentPerZone = P,
+                    };
+                    Z.SeedTaskObj = CalObj;
+                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                    P.CalTaskObjs.Add(CalObj);
+                }
+                //Second loop that adds more time to CalendarObjects
+                bool full = false;
+                while (!full && (P.TimeConsumption.Remaining > 0))
+                {
+                    full = true;
+                    //add a small amount of time to each CalObj until they are full or out of allocated time
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        //Add some time to the right
+                        if (P.TimeConsumption.Remaining <= 0) break;
+                        if (Z.SeedTaskObj == null) continue;
+                        if (Z.SeedTaskObj.End < Z.End)
+                        {
+                            Z.SeedTaskObj.End += TimeTask.MinimumDuration;
+                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                            full = false;
+                        }
+                        full = true;
+
+                        //Add some time to the left
+                        if (P.TimeConsumption.Remaining <= 0) break;
+                        if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration >= Z.Start)
+                        {
+                            Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
+                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                            full = false;
+                        }
+                    }
+                }
+            }
+        }
+        private void EvenApatheticTimeAllocate(CalendarTimeTaskMap M)
+        {
+            foreach (var P in M.PerZones)
+            {
+                //Fill zones evenly, but late
+                if (P.InclusionZones.Count == 0) continue;
+                P.InclusionZones.Sort(new InclusionSorterDesc());
+                //First loop that creates CalendarObjects
+                foreach (var Z in P.InclusionZones)
+                {
+                    if (P.TimeConsumption.Remaining <= 0) break;
+                    if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
+                    CalendarTaskObject CalObj = new CalendarTaskObject
+                    {
+                        Start = Z.End - TimeTask.MinimumDuration,
+                        End = Z.End,
+                        ParentInclusionZone = Z,
+                        ParentPerZone = P,
+                    };
+                    Z.SeedTaskObj = CalObj;
+                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                    P.CalTaskObjs.Add(CalObj);
+                }
+                //Second loop that adds more time to CalendarObjects
+                bool full = false;
+                while (!full && (P.TimeConsumption.Remaining > 0))
+                {
+                    full = true;
+                    //add a small amount of time to each CalObj until they are full or out of allocated time
+                    foreach (var Z in P.InclusionZones)
+                    {
+                        if (P.TimeConsumption.Remaining <= 0) break;
+                        if (Z.SeedTaskObj == null) continue;
+                        if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration < Z.Start) continue;
+                        Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
+                        P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                        full = false;
+                    }
+                }
+            }
+        }
         private void ApatheticTimeAllocate(CalendarTimeTaskMap M)
         {
             foreach (var P in M.PerZones)
@@ -1439,12 +1604,11 @@ namespace TimekeeperWPF
                 P.InclusionZones.Sort(new InclusionSorterDesc());
                 foreach (var Z in P.InclusionZones)
                 {
-                    //Does this zone have a CalObj already?
-                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
-                    if (hasCalObj) continue;
                     if (P.TimeConsumption.Remaining <= 0) break;
                     if (Z.Duration.Ticks <= 0) break;
-                    if (P.TimeConsumption.RemainingAsTimeSpan < Z.Duration)
+                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                    if (hasCalObj) continue;
+                    if (P.TimeConsumption.RemainingAsTimeSpan <= Z.Duration)
                     {
                         //create cal obj the size of the remaining time
                         CalendarTaskObject CalObj = new CalendarTaskObject
@@ -1465,7 +1629,6 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.End,
-                            //ParentMap = M,
                             ParentInclusionZone = Z,
                             ParentPerZone = P,
                         };
@@ -1582,6 +1745,7 @@ namespace TimekeeperWPF
                 outsider.Start = MDT;
                 return new Tuple<CalendarTaskObject, ModMode>(RC, ModMode.Add);
             }
+            //else if there is room outside push insider out
             else
             {
                 //delete insider
@@ -1751,7 +1915,7 @@ namespace TimekeeperWPF
         }
         private PushData GetLeftPushData(CalendarTaskObject C)
         {
-            bool C1HasRoom = true;
+            bool hasRoom = true;
             var LT = C;
             double LP = C.ParentPerZone.ParentMap.TimeTask.Priority;
             TimeSpan LmaxRoom = new TimeSpan();
@@ -1769,7 +1933,7 @@ namespace TimekeeperWPF
                     LT.StartLock ||
                     LT.ParentInclusionZone?.Start >= LT.Start)
                 {
-                    C1HasRoom = false;
+                    hasRoom = false;
                     break;
                 }
                 if (LT.LeftTangent == null)
@@ -1787,7 +1951,7 @@ namespace TimekeeperWPF
             return new PushData
             {
                 Direction = PushData.PushDirection.Left,
-                HasRoom = C1HasRoom,
+                HasRoom = hasRoom,
                 Priority = LP,
                 MaxRoom = LmaxRoom,
             };
@@ -1833,6 +1997,7 @@ namespace TimekeeperWPF
         }
         private void Push(CalendarTaskObject C1, CalendarTaskObject C2, PushData data)
         {
+            C1.ToString();
             TimeSpan overlap = C1.End - C2.Start;
             //Assuming that C1 is on left C2 is on right, either Push C1 left or C2 right
             if (data.Direction == PushData.PushDirection.Left)

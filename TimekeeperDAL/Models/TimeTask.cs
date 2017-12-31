@@ -124,7 +124,7 @@ namespace TimekeeperDAL.EF
         public static readonly List<string> AllocationMethodChoices = new List<string>
         {
             "Eager",
-            "Even",
+            "EvenEager",
             "EvenCentered",
             "EvenApathetic",
             "Apathetic",
