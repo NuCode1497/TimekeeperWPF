@@ -8,11 +8,11 @@ namespace TimekeeperDAL.EF
 {
     public partial class TimeKeeperContext : DbContext, ITimeKeeperContext
     {
-        static readonly DatabaseLogger loggo = new DatabaseLogger("sqllog.txt", true);
+        //static readonly DatabaseLogger loggo = new DatabaseLogger("sqllog.txt", true);
         static TimeKeeperContext()
         {
-            ////print sql queries to the console
-            //DbInterception.Add(new Interceptor());
+            //print sql queries to the console
+            DbInterception.Add(new Interceptor());
 
             ////print sql queries to a file sqllog.txt
             //loggo.StartLogging();
@@ -41,7 +41,7 @@ namespace TimekeeperDAL.EF
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             //I've manually added "cascadeDelete: true" to the foreign keys for allocations and labellings
-            //in the InitialCreate migration, because it doesn't work if I do it like this
+            //in the InitialCreate migration, because it doesn't work if I do it like this idk why
             //modelBuilder.Entity<Labelling>()
             //    .HasRequired(l => l.LabeledEntity)
             //    .WithMany()
@@ -59,6 +59,25 @@ namespace TimekeeperDAL.EF
             //    .WithMany()
             //    .HasForeignKey(f => f.Filterable_Id)
             //    .WillCascadeOnDelete(true);
+
+            //modelBuilder.Entity<CheckIn>()
+            //    .HasRequired(CI => CI.TimeTask)
+            //    .WithMany()
+            //    .WillCascadeOnDelete();
+
+            //Add a blank migration then change it to something like this:
+            //Notice the 5th param is cascade set to true
+            //public override void Up()
+            //{
+            //    DropForeignKey("dbo.CheckIns", "TimeTask_Id", "dbo.TimeTasks");
+            //    AddForeignKey("dbo.CheckIns", "TimeTask_Id", "dbo.TimeTasks", "Id", true);
+            //}
+
+            //public override void Down()
+            //{
+            //    DropForeignKey("dbo.CheckIns", "TimeTask_Id", "dbo.TimeTasks");
+            //    AddForeignKey("dbo.CheckIns", "TimeTask_Id", "dbo.TimeTasks", "Id");
+            //}
         }
     }
 }

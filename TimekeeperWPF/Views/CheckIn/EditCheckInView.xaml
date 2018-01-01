@@ -6,7 +6,7 @@
     <StackPanel>
         <StackPanel x:Name="DateTimePanel" Orientation="Horizontal">
             <Label Content="Date &amp; Time" Width="80"/>
-            <wpftools:DateTimePicker
+            <wpftools:DateTimePicker 
                 x:Name="DateTimeTextBox" Width="300"
                 Value="{Binding Path=DateTime, Mode=TwoWay}" />
         </StackPanel>

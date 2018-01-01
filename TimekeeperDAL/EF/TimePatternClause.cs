@@ -6,6 +6,7 @@ namespace TimekeeperDAL.EF
     [Table("TimePatternClauses")]
     public partial class TimePatternClause
     {
+        [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         [Key]
         [Column(Order = 1)]
         public int Id { get; set; }

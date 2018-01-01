@@ -12,7 +12,7 @@
         <KeyBinding Command="{Binding Path=CurrentView.NewItemCommand}" Gesture="CTRL+N"/>
         <KeyBinding Command="{Binding Path=CurrentView.EditSelectedCommand}" Gesture="CTRL+E"/>
         <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Gesture="Del"/>
-        <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Gesture="CTRL+R"/>
+        <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Gesture="F5"/>
         <KeyBinding Command="{Binding Path=CurrentView.PreviousCommand}" Gesture="Left"/>
         <KeyBinding Command="{Binding Path=CurrentView.NextCommand}" Gesture="Right"/>
         <KeyBinding Command="{Binding Path=CurrentView.ScaleUpCommand}" Gesture="Up"/>

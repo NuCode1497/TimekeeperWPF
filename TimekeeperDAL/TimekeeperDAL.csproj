@@ -135,6 +135,14 @@
     <Compile Include="Migrations\201712290637434_ClauseFK.Designer.cs">
       <DependentUpon>201712290637434_ClauseFK.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201712311443186_CheckInCascade.cs" />
+    <Compile Include="Migrations\201712311443186_CheckInCascade.Designer.cs">
+      <DependentUpon>201712311443186_CheckInCascade.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201801010005223_ClauseFKfix.cs" />
+    <Compile Include="Migrations\201801010005223_ClauseFKfix.Designer.cs">
+      <DependentUpon>201801010005223_ClauseFKfix.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\CheckIn.cs" />
     <Compile Include="Models\Label.cs" />
@@ -234,6 +242,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201712290637434_ClauseFK.resx">
       <DependentUpon>201712290637434_ClauseFK.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201712311443186_CheckInCascade.resx">
+      <DependentUpon>201712311443186_CheckInCascade.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801010005223_ClauseFKfix.resx">
+      <DependentUpon>201801010005223_ClauseFKfix.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

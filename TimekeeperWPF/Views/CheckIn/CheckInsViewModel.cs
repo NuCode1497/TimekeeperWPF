@@ -12,6 +12,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using TimekeeperDAL.EF;
+using TimekeeperDAL.Tools;
 using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
@@ -46,7 +47,7 @@ namespace TimekeeperWPF
         {
             CurrentEditItem = new CheckIn
             {
-                DateTime = DateTime.Now,
+                DateTime = DateTime.Now.RoundDown(new TimeSpan(0,1,0)),
                 Start = true,
                 TimeTask = TimeTasksSource.FirstOrDefault(),
             };

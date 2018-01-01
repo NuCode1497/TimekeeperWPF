@@ -18,6 +18,6 @@ namespace TimekeeperDAL.EF
         [StringLength(150)]
         public string Text { get; set; }
 
-        public TimeTask TimeTask { get; set; }
+        public virtual TimeTask TimeTask { get; set; }
     }
 }

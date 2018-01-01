@@ -290,17 +290,20 @@ namespace TimekeeperWPF
                 if (value is CalendarCheckInObject)
                 {
                     SelectedItemType = CalendarObjectTypes.CheckIn;
-                    CheckInsVM.SelectedItem = ((CalendarCheckInObject)value).CheckIn;
+                    CheckInsVM.SelectedItem = CheckInsVM.Source.Where(CI => 
+                    ((CalendarCheckInObject)value).CheckIn.Id == CI.Id).FirstOrDefault();
                 }
                 else if (value is CalendarNoteObject)
                 {
                     SelectedItemType = CalendarObjectTypes.Note;
-                    NotesVM.SelectedItem = ((CalendarNoteObject)value).Note;
+                    NotesVM.SelectedItem = NotesVM.Source.Where(CI =>
+                    ((CalendarNoteObject)value).Note.Id == CI.Id).FirstOrDefault();
                 }
                 else if (value is CalendarTaskObject)
                 {
                     SelectedItemType = CalendarObjectTypes.Task;
-                    TimeTasksVM.SelectedItem = ((CalendarTaskObject)value).ParentPerZone.ParentMap.TimeTask;
+                    TimeTasksVM.SelectedItem = TimeTasksVM.Source.Where(CI =>
+                    ((CalendarTaskObject)value).ParentPerZone.ParentMap.TimeTask.Id == CI.Id).FirstOrDefault();
                 }
                 _SelectedItem = value;
                 if (SelectedItem == null)
@@ -1155,6 +1158,8 @@ namespace TimekeeperWPF
                                         case CheckInKind.EventEnd:
                                             // 5
                                             goto case CheckInKind.PerZoneStart;
+                                        case CheckInKind.InclusionZoneEnd:
+                                            goto case CheckInKind.PerZoneStart;
                                     }
                                 }
                                 break;
@@ -1529,22 +1534,21 @@ namespace TimekeeperWPF
                     //add a small amount of time to each CalObj until they are full or out of allocated time
                     foreach (var Z in P.InclusionZones)
                     {
+                        //Add some time to the left
+                        if (P.TimeConsumption.Remaining <= 0) break;
+                        if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration >= Z.Start)
+                        {
+                            Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
+                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                            full = false;
+                        }
+
                         //Add some time to the right
                         if (P.TimeConsumption.Remaining <= 0) break;
                         if (Z.SeedTaskObj == null) continue;
                         if (Z.SeedTaskObj.End < Z.End)
                         {
                             Z.SeedTaskObj.End += TimeTask.MinimumDuration;
-                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
-                            full = false;
-                        }
-                        full = true;
-
-                        //Add some time to the left
-                        if (P.TimeConsumption.Remaining <= 0) break;
-                        if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration >= Z.Start)
-                        {
-                            Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
                             P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
                             full = false;
                         }
@@ -1834,7 +1838,7 @@ namespace TimekeeperWPF
                         else //3 4 5
                         {
                             //C2 Shrink R
-                            Shrink(C1, C1, RData);
+                            Shrink(C1, C2, RData);
                         }
                     }
                 }
@@ -1871,25 +1875,22 @@ namespace TimekeeperWPF
                         if (C1.EndLock) //5
                         {
                             //C2 Shrink R
-                            Shrink(C1, C1, RData);
+                            Shrink(C1, C2, RData);
                         }
-                        if (LData.HasRoom) //2
+                        else if (LData.HasRoom) //2
                         {
                             //C1 Push L
                             Push(C1, C2, LData);
                         }
-                        else //3 4
+                        else if (LData.Priority < C1.ParentPerZone.ParentMap.TimeTask.Priority) //3
                         {
-                            if (LData.Priority < C1.ParentPerZone.ParentMap.TimeTask.Priority) //3
-                            {
-                                //C1 Push L
-                                Push(C1, C2, LData);
-                            }
-                            else //4
-                            {
-                                //C1 Shrink L
-                                Shrink(C1, C2, LData);
-                            }
+                            //C1 Push L
+                            Push(C1, C2, LData);
+                        }
+                        else //4
+                        {
+                            //C1 Shrink L
+                            Shrink(C1, C2, LData);
                         }
                     }
                 }
@@ -2210,8 +2211,13 @@ namespace TimekeeperWPF
                     (from M in TaskMaps
                      where M.TimeTask.Dimension == dimension.Key
                      from P in M.PerZones
-                     select P).Min(P =>
-                     P.Start);
+                     select P).Min(P => P.Start);
+                //Find latest Per
+                var end =
+                    (from M in TaskMaps
+                     where M.TimeTask.Dimension == dimension.Key
+                     from P in M.PerZones
+                     select P).Max(P => P.End);
                 DateTime dt = start;
                 CalendarTaskObject prev = null;
                 foreach (var C in dimension)
@@ -2230,6 +2236,18 @@ namespace TimekeeperWPF
                     }
                     dt = C.End;
                     prev = C;
+                }
+                //check for trailing space after last CalObj
+                if (dt < end)
+                {
+                    var Z = new EmptyZone
+                    {
+                        Start = dt,
+                        End = end,
+                        Left = prev,
+                        Right = null
+                    };
+                    spaces.Add(Z);
                 }
                 spaceDimensions.Add(spaces);
             }

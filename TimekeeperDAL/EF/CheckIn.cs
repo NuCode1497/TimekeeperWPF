@@ -15,8 +15,8 @@ namespace TimekeeperDAL.EF
         public DateTime DateTime { get; set; }
         
         public bool Start { get; set; }
-
+        
         [Required]
-        public TimeTask TimeTask { get; set; }
+        public virtual TimeTask TimeTask { get; set; }
     }
 }

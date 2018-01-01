@@ -474,7 +474,7 @@
             </Setter.Value>
         </Setter>
         <Setter Property="Command" Value="{Binding Path=GetDataCommand}"/>
-        <Setter Property="ToolTip" Value="Refresh (Ctrl+R)"/>
+        <Setter Property="ToolTip" Value="Refresh (F5)"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="Gray"/>

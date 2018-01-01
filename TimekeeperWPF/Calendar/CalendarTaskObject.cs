@@ -88,7 +88,7 @@ namespace TimekeeperWPF.Calendar
                 ParentPerZone.ParentMap.TimeTask.TaskType,
                 ParentPerZone.ParentMap.TimeTask,
                 ParentPerZone.ParentMap.TimeTask.Priority,
-                State,
+                State == States.Current ? State + $" ({_State})" : State.ToString(),
                 Duration.ShortGoodString(),
                 StateLock ? "🔒" : "",
                 Start.ToString(),
@@ -155,8 +155,7 @@ namespace TimekeeperWPF.Calendar
         }
         public static readonly DependencyProperty EndProperty =
             DependencyProperty.Register(
-                nameof(End), typeof(DateTime), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(2).AddMinutes(17)));
+                nameof(End), typeof(DateTime), typeof(CalendarTaskObject));
         #endregion End
         #region Start
         public bool StartLock
@@ -174,8 +173,7 @@ namespace TimekeeperWPF.Calendar
         }
         public static readonly DependencyProperty StartProperty =
             DependencyProperty.Register(
-                nameof(Start), typeof(DateTime), typeof(CalendarTaskObject),
-                new FrameworkPropertyMetadata(DateTime.Now.Date.AddHours(1).AddMinutes(33)));
+                nameof(Start), typeof(DateTime), typeof(CalendarTaskObject));
         #endregion Start
         #endregion Zone
         #region ParentMap
