@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TimekeeperDAL.EF;
 using TimekeeperDAL.Tools;
 
-namespace TimekeeperWPF.Calendar
+namespace TimekeeperDAL.Tools
 {
     public class Zone : IZone
     {

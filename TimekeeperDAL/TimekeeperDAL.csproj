@@ -177,6 +177,7 @@
     <Compile Include="Models\TimeTask.cs" />
     <Compile Include="Models\TimePattern.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools\Zone.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

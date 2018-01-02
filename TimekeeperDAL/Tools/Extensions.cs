@@ -122,5 +122,14 @@ namespace TimekeeperDAL.Tools
         public static bool IsWithin(this DateTime dt, IZone Z) { return Z.Start < dt && dt < Z.End; }
         public static bool IsWithin(this CheckIn CI, IZone Z) { return CI.DateTime.IsWithin(Z); }
         public static bool IsWithin(this Note N, IZone Z) { return N.DateTime.IsWithin(Z); }
+        public static Zone GetIntersection(this IZone myZ, IZone Z)
+        {
+            if (!myZ.Intersects(Z)) return null;
+            return new Zone
+            {
+                Start = myZ.Start < Z.Start ? Z.Start : myZ.Start,
+                End = myZ.End < Z.End ? myZ.End : Z.End
+            };
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace TimekeeperWPF.Calendar
+﻿using TimekeeperDAL.Tools;
+
+namespace TimekeeperWPF.Calendar
 {
     public class InclusionZone : Zone
     {
