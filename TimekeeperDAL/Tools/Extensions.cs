@@ -131,5 +131,6 @@ namespace TimekeeperDAL.Tools
                 End = myZ.End < Z.End ? myZ.End : Z.End
             };
         }
+        public static TimeSpan GetOverlap(this IZone myZ, IZone Z) { return myZ.GetIntersection(Z)?.Duration ?? new TimeSpan(); }
     }
 }

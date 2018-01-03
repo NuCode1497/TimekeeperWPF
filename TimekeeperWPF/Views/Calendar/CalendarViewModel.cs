@@ -1655,36 +1655,29 @@ namespace TimekeeperWPF
         private void CollisionsStep1()
         {
             //Step 1 - do only push collisions and split collisions where the insider wins, ignore the rest
-            bool hasCollisions = true;
-            while (hasCollisions)
+            bool hasChanges = true;
+            while (hasChanges)
             {
                 var newC = CollisionsStep1Part2();
                 if (newC != null)
                 {
                     newC.ParentPerZone.CalTaskObjs.Add(newC);
-                    hasCollisions = true;
+                    hasChanges = true;
                 }
-                else
-                {
-                    hasCollisions = false;
-                }
+                else hasChanges = false;
             }
         }
         private CalendarTaskObject CollisionsStep1Part2()
         {
-            //group calobjs by dimension
-            var calObjDimensions =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            foreach (var dimension in calObjDimensions)
+            var dimensions = GetDimensions();
+            foreach (var D in dimensions)
             {
+                var calObjs = GetCalObjsByPriority(D);
                 //Clear tangents
-                foreach (var C1 in dimension)
+                foreach (var C in calObjs)
                 {
-                    C1.LeftTangent = null;
-                    C1.RightTangent = null;
+                    C.LeftTangent = null;
+                    C.RightTangent = null;
                 }
                 //Find collisions
                 bool hasChanges = true;
@@ -1692,30 +1685,22 @@ namespace TimekeeperWPF
                 {
                     //set to true when a CO is changed
                     hasChanges = false;
-                    var intersections =
-                        from C1 in dimension
-                        from C2 in dimension
-                        where C2 != C1
-                        where C1.Intersects(C2)
-                        orderby
-                        C1.ParentPerZone.ParentMap.TimeTask.Priority descending, C1.Start, C1.End,
-                        C2.ParentPerZone.ParentMap.TimeTask.Priority descending, C2.Start, C2.End
-                        select new { C1, C2 };
+                    var intersections = GetIntersections(calObjs);
                     foreach (var i in intersections)
                     {
-                        if (i.C1.IsInside(i.C2))
+                        if (i.Item1.IsInside(i.Item2))
                         {
-                            var newC = InsideCollision(i.C1, i.C2);
+                            var newC = InsideCollision(i.Item1, i.Item2);
                             if (newC != null) return newC;
                         }
-                        else if (i.C2.IsInside(i.C1))
+                        else if (i.Item2.IsInside(i.Item1))
                         {
-                            var newC = InsideCollision(i.C2, i.C1);
+                            var newC = InsideCollision(i.Item2, i.Item1);
                             if (newC != null) return newC;
                         }
                         else
                         {
-                            if (DoPushCollision(i.C1, i.C2))
+                            if (DoPushCollision(i.Item1, i.Item2))
                                 hasChanges = true;
                         }
                     }
@@ -1723,56 +1708,49 @@ namespace TimekeeperWPF
             }
             return null;
         }
+        private static List<Tuple<CalendarTaskObject, CalendarTaskObject>> GetIntersections(List<CalendarTaskObject> calObjs)
+        {
+            //this method should be much faster than LINQ and avoids duplicates
+            var intersections = new List<Tuple<CalendarTaskObject, CalendarTaskObject>>();
+            for (int a = 0; a < calObjs.Count; a++)
+                for (int b = a + 1; b < calObjs.Count; b++)
+                    if (calObjs[a].Intersects(calObjs[b]))
+                        intersections.Add(new Tuple<CalendarTaskObject, CalendarTaskObject>(calObjs[a], calObjs[b]));
+            return intersections;
+        }
         private void CollisionsStep2()
         {
             //Step 2 - split remaining insider collisions where insider loses
-            bool hasCollisions = true;
-            while (hasCollisions)
+            bool hasChanges = true;
+            while (hasChanges)
             {
+                hasChanges = false;
                 var newC = CollisionsStep2Part2();
                 if (newC != null)
                 {
                     newC.ParentPerZone.CalTaskObjs.Add(newC);
-                    hasCollisions = true;
-                }
-                else
-                {
-                    hasCollisions = false;
+                    hasChanges = true;
                 }
             }
         }
         private CalendarTaskObject CollisionsStep2Part2()
         {
-            //group calobjs by dimension
-            var calObjDimensions =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                orderby C.ParentPerZone.ParentMap.TimeTask.Priority descending, C.Start, C.End
-                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            foreach (var dimension in calObjDimensions)
+            var dimensions = GetDimensions();
+            foreach (var D in dimensions)
             {
-                foreach (var C1 in dimension)
+                var calObjs = GetCalObjsByPriority(D);
+                var intersections = GetIntersections(calObjs);
+                foreach (var i in intersections)
                 {
-                    //get any intersecting CalObjs
-                    var intersections =
-                        from C2 in dimension
-                        where C2 != C1
-                        where C1.Intersects(C2)
-                        orderby C2.ParentPerZone.ParentMap.TimeTask.Priority descending, C2.Start, C2.End
-                        select C2;
-                    foreach (var C2 in intersections)
+                    if (i.Item1.IsInside(i.Item2))
                     {
-                        if (C1.IsInside(C2))
-                        {
-                            var newC = SplitOutsider(C1, C2);
-                            if (newC != null) return newC;
-                        }
-                        else if (C2.IsInside(C1))
-                        {
-                            var newC = SplitOutsider(C2, C1);
-                            if (newC != null) return newC;
-                        }
+                        var newC = SplitOutsider(i.Item1, i.Item2);
+                        if (newC != null) return newC;
+                    }
+                    else if (i.Item2.IsInside(i.Item1))
+                    {
+                        var newC = SplitOutsider(i.Item2, i.Item1);
+                        if (newC != null) return newC;
                     }
                 }
             }
@@ -1781,33 +1759,21 @@ namespace TimekeeperWPF
         private void CollisionsStep3()
         {
             //Step 3 - redistribute
-            var calObjDimensions =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            foreach (var dimension in calObjDimensions)
+            var dimensions = GetDimensions();
+            foreach (var D in dimensions)
             {
-                var intersections =
-                    from C1 in dimension
-                    from C2 in dimension
-                    where C2 != C1
-                    where C1.Intersects(C2)
-                    orderby
-                    C1.ParentPerZone.ParentMap.TimeTask.Priority descending, C1.Start, C1.End,
-                    C2.ParentPerZone.ParentMap.TimeTask.Priority descending, C2.Start, C2.End
-                    select new { C1, C2 };
+                var calObjs = GetCalObjsByPriority(D);
+                var intersections = GetIntersections(calObjs);
                 foreach (var i in intersections)
                 {
-                    var collision = DetermineCollision(i.C1, i.C2);
-
+                    var collision = DetermineCollision(i.Item1, i.Item2);
                     bool hasChanges = true;
                     while (hasChanges)
                     {
                         hasChanges = false;
                         if (collision.Overlap.Ticks <= 0) goto NextIntersection;
                         //Looking at loser
-                        if (CollisionsStep3Part2(dimension, collision, collision.Loser))
+                        if (CollisionsStep3Part2(D, collision, collision.Loser))
                             hasChanges = true;
                     }
                     hasChanges = true;
@@ -1816,22 +1782,23 @@ namespace TimekeeperWPF
                         hasChanges = false;
                         if (collision.Overlap.Ticks <= 0) goto NextIntersection;
                         //Looking at winner
-                        if (CollisionsStep3Part2(dimension, collision, collision.Winner))
+                        if (CollisionsStep3Part2(D, collision, collision.Winner))
                             hasChanges = true;
                     }
                     NextIntersection:;
                 }
             }
         }
-        private bool CollisionsStep3Part2(IGrouping<int, CalendarTaskObject> dimension, Collision collision, CalendarTaskObject C)
+        private bool CollisionsStep3Part2(int dimension, Collision collision, CalendarTaskObject C)
         {
-            var spaces = FindSpaces(dimension);
+            var spaces = GetEmptySpaces(dimension);
             foreach (var S in spaces)
             {
                 foreach (var Z in C.ParentPerZone.InclusionZones)
                 {
                     if (!S.Intersects(Z)) continue;
-                    var shrink = new TimeSpan(Min(S.GetIntersection(Z).Duration.Ticks, collision.Overlap.Ticks));
+                    var SZOverlap = S.GetOverlap(Z);
+                    var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
                     if (shrink.Ticks <= 0) continue;
                     //shrink the loser in the correct direction
                     if (C == collision.Left)
@@ -1851,51 +1818,22 @@ namespace TimekeeperWPF
         private void CollisionsStep4()
         {
             //Step 4 - if any collisions still exist, these will be shrinks that cant be redistributed
-            bool hasCollisions = true;
-            while (hasCollisions)
+            var dimensions = GetDimensions();
+            foreach (var D in dimensions)
             {
-                var newC = CollisionsStep4Part2();
-                if (newC != null)
-                {
-                    newC.ParentPerZone.CalTaskObjs.Add(newC);
-                    hasCollisions = true;
-                }
-                else
-                {
-                    hasCollisions = false;
-                }
-            }
-        }
-        private CalendarTaskObject CollisionsStep4Part2()
-        {
-            var calObjDimensions =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            foreach (var dimension in calObjDimensions)
-            {
+                var calObjs = GetCalObjsByPriority(D);
                 bool hasChanges = true;
                 while (hasChanges)
                 {
                     hasChanges = false;
-                    var intersections =
-                        from C1 in dimension
-                        from C2 in dimension
-                        where C2 != C1
-                        where C1.Intersects(C2)
-                        orderby
-                        C1.ParentPerZone.ParentMap.TimeTask.Priority descending, C1.Start, C1.End,
-                        C2.ParentPerZone.ParentMap.TimeTask.Priority descending, C2.Start, C2.End
-                        select new { C1, C2 };
+                    var intersections = GetIntersections(calObjs);
                     foreach (var i in intersections)
                     {
-                        if (DoShrinkCollision(i.C1, i.C2))
+                        if (DoShrinkCollision(i.Item1, i.Item2))
                             hasChanges = true;
                     }
                 }
             }
-            return null;
         }
         private static CalendarTaskObject InsideCollision(CalendarTaskObject insider, CalendarTaskObject outsider)
         {
@@ -1921,10 +1859,23 @@ namespace TimekeeperWPF
             //Left Right Intersection Collisions C1 ∩ C2
             CalendarTaskObject L;
             CalendarTaskObject R;
-            if (C1.Start <= C2.Start)
+            if (C1.Start < C2.Start)
             {
                 L = C1;
                 R = C2;
+            }
+            else if (C1.Start == C2.Start)
+            {
+                if (C1.End <= C2.End)
+                {
+                    L = C1;
+                    R = C2;
+                }
+                else
+                {
+                    L = C2;
+                    R = C1;
+                }
             }
             else
             {
@@ -2082,7 +2033,7 @@ namespace TimekeeperWPF
             public PushData RData;
             public CalendarTaskObject Left;
             public CalendarTaskObject Right;
-            public TimeSpan Overlap => Left.End - Right.Start;
+            public TimeSpan Overlap => Left.GetOverlap(Right);
             public CalendarTaskObject Loser
             {
                 get
@@ -2217,83 +2168,73 @@ namespace TimekeeperWPF
         }
         private static bool DoPushCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
-            bool hasChanges = false;
             var collision = DetermineCollision(C1, C2);
             if (collision != null)
             {
-                hasChanges = true;
                 switch (collision.Result)
                 {
                     case Collision.CollisionResult.PushLeft:
-                        Push(collision);
-                        break;
                     case Collision.CollisionResult.PushRight:
                         Push(collision);
-                        break;
+                        return true;
                 }
             }
-            return hasChanges;
+            return false;
         }
         private static bool DoShrinkCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
-            bool hasChanges = false;
             var collision = DetermineCollision(C1, C2);
             if (collision != null)
             {
-                hasChanges = true;
                 switch (collision.Result)
                 {
                     case Collision.CollisionResult.ShrinkLeft:
-                        Shrink(collision);
-                        break;
                     case Collision.CollisionResult.ShrinkRight:
                         Shrink(collision);
-                        break;
+                        return true;
                 }
             }
-            return hasChanges;
+            return false;
         }
-        private static void Push(Collision data)
+        private static void Push(Collision C)
         {
-            TimeSpan overlap = data.Left.End - data.Right.Start;
-            switch (data.Result)
+            switch (C.Result)
             {
                 case Collision.CollisionResult.PushLeft:
-                    TimeSpan Lroom = data.Left.Start - data.Left.ParentInclusionZone.Start;
-                    TimeSpan Lpush = new TimeSpan(Min(overlap.Ticks, Min(data.LData.MaxRoom.Ticks, Lroom.Ticks)));
-                    data.Left.Start -= Lpush;
-                    data.Left.End -= Lpush;
+                    TimeSpan Lroom = C.Left.Start - C.Left.ParentInclusionZone.Start;
+                    TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.LData.MaxRoom.Ticks, Lroom.Ticks)));
+                    C.Left.Start -= Lpush;
+                    C.Left.End -= Lpush;
                     break;
                 case Collision.CollisionResult.PushRight:
-                    TimeSpan Rroom = data.Right.ParentInclusionZone.End - data.Right.End;
-                    TimeSpan Rpush = new TimeSpan(Min(overlap.Ticks, Min(data.RData.MaxRoom.Ticks, Rroom.Ticks)));
-                    data.Right.Start += Rpush;
-                    data.Right.End += Rpush;
+                    TimeSpan Rroom = C.Right.ParentInclusionZone.End - C.Right.End;
+                    TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.RData.MaxRoom.Ticks, Rroom.Ticks)));
+                    C.Right.Start += Rpush;
+                    C.Right.End += Rpush;
                     break;
                 default:
                     return;
             }
-            data.Left.RightTangent = data.Right;
-            data.Right.LeftTangent = data.Left;
+            C.Left.RightTangent = C.Right;
+            C.Right.LeftTangent = C.Left;
         }
-        private static void Shrink(Collision data)
+        private static void Shrink(Collision C)
         {
-            TimeSpan overlap = data.Left.End - data.Right.Start;
-            switch (data.Result)
+            switch (C.Result)
             {
                 case Collision.CollisionResult.ShrinkLeft:
-                    TimeSpan Lpush = new TimeSpan(Min(overlap.Ticks, data.Left.Duration.Ticks));
-                    data.Left.End -= Lpush;
+                    TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, C.Left.Duration.Ticks));
+                    C.Left.End -= Lpush;
                     break;
                 case Collision.CollisionResult.ShrinkRight:
-                    TimeSpan Rpush = new TimeSpan(Min(overlap.Ticks, data.Right.Duration.Ticks));
-                    data.Right.Start += Rpush;
+                    TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, C.Right.Duration.Ticks));
+                    C.Right.Start += Rpush;
                     break;
                 default:
                     return;
             }
-            data.Left.RightTangent = data.Right;
-            data.Right.LeftTangent = data.Left;
+            C.Left.RightTangent = C.Right;
+            C.Right.LeftTangent = C.Left;
         }
         #endregion Collisions
         #region AllocateEmptySpace
@@ -2309,17 +2250,18 @@ namespace TimekeeperWPF
             while (hasChanges)
             {
                 hasChanges = false;
-                var spaceDimensions = GetEmptySpacesDimensions();
-                foreach (var dimension in spaceDimensions)
+                var dimensions = GetDimensions();
+                foreach (var D in dimensions)
                 {
-                    foreach (var space in dimension)
+                    var spaces = GetEmptySpaces(D);
+                    foreach (var S in spaces)
                     {
                         var zones =
                             from M in TaskMaps
-                            where M.TimeTask.Dimension == dimension.Key
+                            where M.TimeTask.Dimension == D
                             from P in M.PerZones
                             from Z in P.InclusionZones
-                            where Z.Intersects(space)
+                            where Z.Intersects(S)
                             select Z;
                         var insuffZones =
                             from Z in zones
@@ -2329,7 +2271,7 @@ namespace TimekeeperWPF
                         var insuffZone = insuffZones.FirstOrDefault();
                         if (insuffZone != null)
                         {
-                            FillEmptyWithInsuffZ(space, insuffZone);
+                            FillEmptyWithInsuffZ(S, insuffZone);
                             hasChanges = true;
                         }
                         else
@@ -2344,7 +2286,7 @@ namespace TimekeeperWPF
                             var fillZone = fillZones.FirstOrDefault();
                             if (fillZone != null)
                             {
-                                FillEmptyWithFiller(space, fillZone);
+                                FillEmptyWithFiller(S, fillZone);
                                 hasChanges = true;
                             }
                         }
@@ -2448,43 +2390,25 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private IEnumerable<IGrouping<int, EmptyZone>> GetEmptySpacesDimensions()
-        {
-            //group COs by dimension
-            var calObjDimensions =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                orderby C.Start
-                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            var spaceDimensions = new HashSet<Grouping<int, EmptyZone>>();
-            foreach (var dimension in calObjDimensions)
-            {
-                var spaces = new Grouping<int, EmptyZone>();
-                spaces.Key = dimension.Key;
-                spaces.AddRange(FindSpaces(dimension));
-                spaceDimensions.Add(spaces);
-            }
-            return spaceDimensions;
-        }
-        private List<EmptyZone> FindSpaces(IGrouping<int, CalendarTaskObject> dimension)
+        private List<EmptyZone> GetEmptySpaces(int dimension)
         {
             var spaces = new List<EmptyZone>();
+            var calObjs = GetCalObjsByStart(dimension);
             //Find earliest Per
             var start =
                 (from M in TaskMaps
-                 where M.TimeTask.Dimension == dimension.Key
+                 where M.TimeTask.Dimension == dimension
                  from P in M.PerZones
                  select P).Min(P => P.Start);
             //Find latest Per
             var end =
                 (from M in TaskMaps
-                 where M.TimeTask.Dimension == dimension.Key
+                 where M.TimeTask.Dimension == dimension
                  from P in M.PerZones
                  select P).Max(P => P.End);
             DateTime dt = start;
             CalendarTaskObject prev = null;
-            foreach (var C in dimension)
+            foreach (var C in calObjs)
             {
                 if (dt < C.Start)
                 {
@@ -2498,8 +2422,11 @@ namespace TimekeeperWPF
                     };
                     spaces.Add(Z);
                 }
-                dt = C.End;
-                prev = C;
+                if (dt < C.End)
+                {
+                    dt = C.End;
+                    prev = C;
+                }
             }
             //check for trailing space after last CalObj
             if (dt < end)
@@ -2520,13 +2447,68 @@ namespace TimekeeperWPF
         private void CleanUpStates()
         {
             Status = "Cleaning Up...";
+            MergeDumbSplits();
+            FixMisalignments();
+            FixFlags();
+            FlagConflicts();
+        }
+        private void MergeDumbSplits()
+        {
             foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
                 {
-                    FixMisalignments(P);
+                    bool hasChanges = true;
+                    while (hasChanges)
+                    {
+                        var kill = MergeDumbSplitsPart2(P);
+                        if (kill != null)
+                        {
+                            kill.ParentPerZone.CalTaskObjs.Remove(kill);
+                            hasChanges = true;
+                        }
+                        else hasChanges = false;
+                    }
+                }
+            }
+        }
+        private static CalendarTaskObject MergeDumbSplitsPart2(PerZone P)
+        {
+            foreach (var C1 in P.CalTaskObjs)
+            {
+                foreach (var C2 in P.CalTaskObjs)
+                {
+                    if (C1 == C2) continue;
+                    if (C1.ParentInclusionZone == C2.ParentInclusionZone &&
+                        C1.End == C2.Start &&
+                        !C1.EndLock &&
+                        !C2.StartLock)
+                    {
+                        //Merge the split
+                        C1.End = C2.End;
+                        C1.EndLock = C2.EndLock;
+                        C1.RightTangent = C2.RightTangent;
+                        return C2;
+                    }
+                }
+            }
+            return null;
+        }
+        private void FixFlags()
+        {
+            foreach (var M in TaskMaps)
+            {
+                foreach (var P in M.PerZones)
+                {
+                    var cancels = new HashSet<CalendarTaskObject>();
                     foreach (var C in P.CalTaskObjs)
                     {
+                        //Flag Cancels
+                        if (C.Start == C.End)
+                        {
+                            cancels.Add(C);
+                            continue;
+                        }
                         foreach (var Z in P.InclusionZones)
                         {
                             //Fix Wrong States for CalObjs over a zone
@@ -2544,81 +2526,78 @@ namespace TimekeeperWPF
                         if (C.ParentInclusionZone == null &&
                             C.State != CalendarTaskObject.States.Unscheduled)
                             C.State = CalendarTaskObject.States.Unscheduled;
-                        //Flag Cancels
-                        if (C.Start == C.End)
-                            C.State = CalendarTaskObject.States.Cancel;
                     }
+                    //Delete Cancels
+                    foreach (var C in cancels)
+                        P.CalTaskObjs.Remove(C);
                     //Flag Insufficients
                     if (P.TimeConsumption?.Remaining > 0)
                         foreach (var C in P.CalTaskObjs)
                             C.State = CalendarTaskObject.States.Insufficient;
                 }
             }
-            FlagConflicts();
         }
-        private static void FixMisalignments(PerZone P)
+        private void FixMisalignments()
         {
-            HashSet<CalendarTaskObject> newTaskObjs = new HashSet<CalendarTaskObject>();
-            bool hasChanges = true;
-            while (hasChanges)
+            foreach (var M in TaskMaps)
             {
-                hasChanges = false;
-                foreach (var C in P.CalTaskObjs)
+                foreach (var P in M.PerZones)
                 {
-                    foreach (var Z in P.InclusionZones)
+                    HashSet<CalendarTaskObject> newTaskObjs = new HashSet<CalendarTaskObject>();
+                    bool hasChanges = true;
+                    while (hasChanges)
                     {
-                        //Fix Misalignments (this probably will never happen)
-                        if (C.Intersects(Z) && (!C.IsInside(Z) || C.ParentInclusionZone != Z))
+                        hasChanges = false;
+                        foreach (var C in P.CalTaskObjs)
                         {
-                            if (C.Start < Z.Start)
+                            foreach (var Z in P.InclusionZones)
                             {
-                                var split = new CalendarTaskObject();
-                                split.Mimic(C);
-                                split.End = Z.Start;
-                                C.Start = Z.Start;
-                                newTaskObjs.Add(split);
+                                //Fix Misalignments (this probably will never happen)
+                                if (C.Intersects(Z) && (!C.IsWithin(Z) || C.ParentInclusionZone != Z))
+                                {
+                                    if (C.Start < Z.Start)
+                                    {
+                                        var split = new CalendarTaskObject();
+                                        split.Mimic(C);
+                                        split.End = Z.Start;
+                                        C.Start = Z.Start;
+                                        newTaskObjs.Add(split);
+                                    }
+                                    if (C.End > Z.End)
+                                    {
+                                        var split = new CalendarTaskObject();
+                                        split.Mimic(C);
+                                        split.Start = Z.End;
+                                        C.End = Z.End;
+                                        newTaskObjs.Add(split);
+                                    }
+                                    C.ParentInclusionZone = Z;
+                                }
                             }
-                            if (C.End > Z.End)
-                            {
-                                var split = new CalendarTaskObject();
-                                split.Mimic(C);
-                                split.Start = Z.End;
-                                C.End = Z.End;
-                                newTaskObjs.Add(split);
-                            }
-                            C.ParentInclusionZone = Z;
+                        }
+                        if (newTaskObjs.Count > 0)
+                        {
+                            foreach (var C in newTaskObjs)
+                                P.CalTaskObjs.Add(C);
+                            newTaskObjs.Clear();
+                            hasChanges = true;
                         }
                     }
-                }
-                if (newTaskObjs.Count > 0)
-                {
-                    foreach (var C in newTaskObjs)
-                        P.CalTaskObjs.Add(C);
-                    newTaskObjs.Clear();
-                    hasChanges = true;
                 }
             }
         }
         private void FlagConflicts()
         {
             //If there are still collisions, mark them as Conflict. 
-            var calObjDimensions =
-                from M in TaskMaps
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                group C by C.ParentPerZone.ParentMap.TimeTask.Dimension;
-            foreach (var dimension in calObjDimensions)
+            var dimensions = GetDimensions();
+            foreach (var D in dimensions)
             {
-                foreach (var C1 in dimension)
+                var calObjs = GetCalObjsByStart(D);
+                var intersections = GetIntersections(calObjs);
+                foreach (var i in intersections)
                 {
-                    foreach (var C2 in dimension)
-                    {
-                        if (C1 != C2 && C1.Intersects(C2))
-                        {
-                            C1.State = CalendarTaskObject.States.Conflict;
-                            C2.State = CalendarTaskObject.States.Conflict;
-                        }
-                    }
+                    i.Item1.State = CalendarTaskObject.States.Conflict;
+                    i.Item2.State = CalendarTaskObject.States.Conflict;
                 }
             }
         }
@@ -2643,6 +2622,32 @@ namespace TimekeeperWPF
             OnPropertyChanged(nameof(CalTaskObjsView));
         }
         #endregion MapTaskObjects
+        private IEnumerable<int> GetDimensions()
+        {
+            return (from M in TaskMaps
+                    select M.TimeTask.Dimension).Distinct();
+        }
+        private List<CalendarTaskObject> GetCalObjsByPriority(int dimension)
+        {
+            //group calobjs by dimension
+            return new List<CalendarTaskObject>(
+                from M in TaskMaps
+                where M.TimeTask.Dimension == dimension
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                orderby C.ParentPerZone.ParentMap.TimeTask.Priority descending, C.Start, C.End
+                select C);
+        }
+        private List<CalendarTaskObject> GetCalObjsByStart(int dimension)
+        {
+            return new List<CalendarTaskObject>(
+                from M in TaskMaps
+                where M.TimeTask.Dimension == dimension
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                orderby C.Start, C.End
+                select C);
+        }
         protected virtual void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj) { }
         #endregion TaskMaps
         #region IDisposable Support
