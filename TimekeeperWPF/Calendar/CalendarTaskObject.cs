@@ -127,6 +127,7 @@ namespace TimekeeperWPF.Calendar
                 ParentInclusionZone?.End.ToShortTimeString());
             return s;
         }
+        internal bool Step1ShrinkFlag = false;
         #region Zone
         public CalendarTaskObject LeftTangent { get; set; }
         public CalendarTaskObject RightTangent { get; set; }
@@ -338,8 +339,9 @@ namespace TimekeeperWPF.Calendar
             Start = CalObj.Start;
             StartLock = CalObj.StartLock;
             LeftTangent = CalObj.LeftTangent;
+            State = CalObj.State;
+            StateLock = CalObj.StateLock;
             ToolTip = CalObj.ToolTip;
-            //ParentMap = CalObj.ParentMap;
             ParentPerZone = CalObj.ParentPerZone;
             ParentInclusionZone = CalObj.ParentInclusionZone;
             IsMimicking = false;

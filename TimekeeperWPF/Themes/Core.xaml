@@ -457,7 +457,7 @@
             </Setter.Value>
         </Setter>
         <Setter Property="Command" Value="{Binding Path=DeleteSelectedCommand}"/>
-        <Setter Property="ToolTip" Value="Delete (Ctrl+D)"/>
+        <Setter Property="ToolTip" Value="Delete (Del)"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="Gray"/>

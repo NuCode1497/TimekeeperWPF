@@ -11,12 +11,12 @@
     <Window.InputBindings>
         <KeyBinding Command="{Binding Path=CurrentView.NewItemCommand}" Gesture="CTRL+N"/>
         <KeyBinding Command="{Binding Path=CurrentView.EditSelectedCommand}" Gesture="CTRL+E"/>
-        <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Gesture="Del"/>
-        <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Gesture="F5"/>
-        <KeyBinding Command="{Binding Path=CurrentView.PreviousCommand}" Gesture="Left"/>
-        <KeyBinding Command="{Binding Path=CurrentView.NextCommand}" Gesture="Right"/>
-        <KeyBinding Command="{Binding Path=CurrentView.ScaleUpCommand}" Gesture="Up"/>
-        <KeyBinding Command="{Binding Path=CurrentView.ScaleDownCommand}" Gesture="Down"/>
+        <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Key="Delete"/>
+        <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Key="F5"/>
+        <KeyBinding Command="{Binding Path=CurrentView.PreviousCommand}" Key="Left"/>
+        <KeyBinding Command="{Binding Path=CurrentView.NextCommand}" Key="Right"/>
+        <KeyBinding Command="{Binding Path=CurrentView.ScaleUpCommand}" Key="Up"/>
+        <KeyBinding Command="{Binding Path=CurrentView.ScaleDownCommand}" Key="Down"/>
     </Window.InputBindings>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -27,7 +27,8 @@
                 <MenuItem.ItemContainerStyle>
                     <Style TargetType="MenuItem">
                         <Setter Property="Header" Value="{Binding Path=Name}"/>
-                        <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type DockPanel}}, Path=DataContext.NavigateViewCommand}"/>
+                        <Setter Property="Command" Value="{Binding RelativeSource={
+                            RelativeSource AncestorType={x:Type DockPanel}}, Path=DataContext.NavigateViewCommand}"/>
                         <Setter Property="CommandParameter" Value="{Binding}"/>
                     </Style>
                 </MenuItem.ItemContainerStyle>

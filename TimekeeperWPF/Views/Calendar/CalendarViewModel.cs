@@ -1076,7 +1076,18 @@ namespace TimekeeperWPF
         #region MapTaskObjects
         private void MapTaskObjects()
         {
+            ClearAllocations();
+            AllocateTimeFromCheckIns();
+            AllocateTimeFromFilters();
+            CalculateCollisions();
+            AllocateEmptySpace();
+            CleanUpStates();
+            UnZipTaskMaps();
+        }
+        private void ClearAllocations()
+        {
             foreach (var M in TaskMaps)
+            {
                 foreach (var P in M.PerZones)
                 {
                     P.CalTaskObjs = new HashSet<CalendarTaskObject>();
@@ -1089,12 +1100,7 @@ namespace TimekeeperWPF
                         };
                     }
                 }
-            AllocateTimeFromCheckIns();
-            AllocateTimeFromFilters();
-            CalculateCollisions();
-            AllocateEmptySpace();
-            CleanUpStates();
-            UnZipTaskMaps();
+            }
         }
         #region AllocateTimeFromCheckIns
         private void AllocateTimeFromCheckIns()
@@ -1536,6 +1542,7 @@ namespace TimekeeperWPF
                     {
                         //Add some time to the left
                         if (P.TimeConsumption.Remaining <= 0) break;
+                        if (Z.SeedTaskObj == null) continue;
                         if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration >= Z.Start)
                         {
                             Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
@@ -1676,6 +1683,7 @@ namespace TimekeeperWPF
                 //Clear tangents
                 foreach (var C in calObjs)
                 {
+                    C.Step1ShrinkFlag = false;
                     C.LeftTangent = null;
                     C.RightTangent = null;
                 }
@@ -1688,6 +1696,8 @@ namespace TimekeeperWPF
                     var intersections = GetIntersections(calObjs);
                     foreach (var i in intersections)
                     {
+                        if (i.Item1.Step1ShrinkFlag || i.Item2.Step1ShrinkFlag)
+                            continue;
                         if (i.Item1.IsInside(i.Item2))
                         {
                             var newC = InsideCollision(i.Item1, i.Item2);
@@ -1698,25 +1708,49 @@ namespace TimekeeperWPF
                             var newC = InsideCollision(i.Item2, i.Item1);
                             if (newC != null) return newC;
                         }
-                        else
+                        else if (Step1Push(i.Item1, i.Item2))
                         {
-                            if (DoPushCollision(i.Item1, i.Item2))
-                                hasChanges = true;
+                            hasChanges = true;
+                            break;
                         }
                     }
                 }
             }
             return null;
         }
-        private static List<Tuple<CalendarTaskObject, CalendarTaskObject>> GetIntersections(List<CalendarTaskObject> calObjs)
+        private static bool Step1Push(CalendarTaskObject C1, CalendarTaskObject C2)
         {
-            //this method should be much faster than LINQ and avoids duplicates
-            var intersections = new List<Tuple<CalendarTaskObject, CalendarTaskObject>>();
-            for (int a = 0; a < calObjs.Count; a++)
-                for (int b = a + 1; b < calObjs.Count; b++)
-                    if (calObjs[a].Intersects(calObjs[b]))
-                        intersections.Add(new Tuple<CalendarTaskObject, CalendarTaskObject>(calObjs[a], calObjs[b]));
-            return intersections;
+            //returns true when the collision successfully pushes, false otherwise
+            var C = DetermineCollision(C1, C2);
+            if (C != null)
+            {
+                switch (C.Result)
+                {
+                    case Collision.CollisionResult.PushLeft:
+                        TimeSpan Lroom = C.Left.Start - C.Left.ParentInclusionZone.Start;
+                        TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.LData.MaxRoom.Ticks, Lroom.Ticks)));
+                        C.Left.Start -= Lpush;
+                        C.Left.End -= Lpush;
+                        C.Left.RightTangent = C.Right;
+                        C.Right.LeftTangent = C.Left;
+                        return true;
+                    case Collision.CollisionResult.ShrinkLeft:
+                        C.Left.Step1ShrinkFlag = true;
+                        return false;
+                    case Collision.CollisionResult.PushRight:
+                        TimeSpan Rroom = C.Right.ParentInclusionZone.End - C.Right.End;
+                        TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.RData.MaxRoom.Ticks, Rroom.Ticks)));
+                        C.Right.Start += Rpush;
+                        C.Right.End += Rpush;
+                        C.Left.RightTangent = C.Right;
+                        C.Right.LeftTangent = C.Left;
+                        return true;
+                    case Collision.CollisionResult.ShrinkRight:
+                        C.Right.Step1ShrinkFlag = true;
+                        return false;
+                }
+            }
+            return false;
         }
         private void CollisionsStep2()
         {
@@ -1829,11 +1863,36 @@ namespace TimekeeperWPF
                     var intersections = GetIntersections(calObjs);
                     foreach (var i in intersections)
                     {
-                        if (DoShrinkCollision(i.Item1, i.Item2))
+                        if (Step4Shrink(i.Item1, i.Item2))
+                        {
                             hasChanges = true;
+                            break;
+                        }
                     }
                 }
             }
+        }
+        private static bool Step4Shrink(CalendarTaskObject C1, CalendarTaskObject C2)
+        {
+            //returns true when the collision successfully shrinks, false otherwise
+            var C = DetermineCollision(C1, C2);
+            if (C != null)
+            {
+                switch (C.Result)
+                {
+                    case Collision.CollisionResult.PushLeft:
+                    case Collision.CollisionResult.ShrinkLeft:
+                        TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, C.Left.Duration.Ticks));
+                        C.Left.End -= Lpush;
+                        break;
+                    case Collision.CollisionResult.PushRight:
+                    case Collision.CollisionResult.ShrinkRight:
+                        TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, C.Right.Duration.Ticks));
+                        C.Right.Start += Rpush;
+                        break;
+                }
+            }
+            return false;
         }
         private static CalendarTaskObject InsideCollision(CalendarTaskObject insider, CalendarTaskObject outsider)
         {
@@ -1846,11 +1905,19 @@ namespace TimekeeperWPF
         private static CalendarTaskObject SplitOutsider(CalendarTaskObject insider, CalendarTaskObject outsider)
         {
             DateTime MDT = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
-            var RC = new CalendarTaskObject();
-            RC.Mimic(outsider);
-            RC.End = MDT;
-            outsider.Start = MDT;
-            return RC;
+            var Left = new CalendarTaskObject();
+            var Right = outsider;
+            Left.Mimic(outsider);
+            Left.EndLock = false;
+            Left.End = MDT;
+            Right.Start = MDT;
+            Right.StartLock = false;
+            if (outsider.State == CalendarTaskObject.States.Confirmed)
+            {
+                if (!Left.StartLock) Left.State = CalendarTaskObject.States.Unconfirmed;
+                if (!Right.EndLock) Right.State = CalendarTaskObject.States.Unconfirmed;
+            }
+            return Left;
         }
         private static Collision DetermineCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
@@ -1903,6 +1970,7 @@ namespace TimekeeperWPF
                 {
                     //C1 Push L
                     collision.Result = Collision.CollisionResult.PushLeft;
+                    collision.cell = "H2";
                 }
                 else //3 4
                 {
@@ -1910,11 +1978,13 @@ namespace TimekeeperWPF
                     {
                         //C1 Push L
                         collision.Result = Collision.CollisionResult.PushLeft;
+                        collision.cell = "H3";
                     }
                     else //4
                     {
                         //C1 Shrink L
                         collision.Result = Collision.CollisionResult.ShrinkLeft;
+                        collision.cell = "H4";
                     }
                 }
             }
@@ -1924,6 +1994,7 @@ namespace TimekeeperWPF
                 {
                     //C2 Push R
                     collision.Result = Collision.CollisionResult.PushRight;
+                    collision.cell = "B2345";
                 }
                 else //C
                 {
@@ -1931,11 +2002,13 @@ namespace TimekeeperWPF
                     {
                         //C1 Push L
                         collision.Result = Collision.CollisionResult.PushLeft;
+                        collision.cell = "C2";
                     }
                     else //3 4 5
                     {
                         //C2 Push R
                         collision.Result = Collision.CollisionResult.PushRight;
+                        collision.cell = "C345";
                     }
                 }
             }
@@ -1949,11 +2022,13 @@ namespace TimekeeperWPF
                         {
                             //C1 Push L
                             collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "D2";
                         }
                         else //3 4 5
                         {
                             //C2 Push R
                             collision.Result = Collision.CollisionResult.PushRight;
+                            collision.cell = "D345";
                         }
                     }
                     else //E
@@ -1962,11 +2037,13 @@ namespace TimekeeperWPF
                         {
                             //C1 Push L
                             collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "E2";
                         }
                         else //3 4 5
                         {
                             //C2 Shrink R
                             collision.Result = Collision.CollisionResult.ShrinkRight;
+                            collision.cell = "E345";
                         }
                     }
                 }
@@ -1978,11 +2055,13 @@ namespace TimekeeperWPF
                         {
                             //C2 Push R
                             collision.Result = Collision.CollisionResult.PushRight;
+                            collision.cell = "F5";
                         }
                         if (LData.HasRoom) //2
                         {
                             //C1 Push L
                             collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "F2";
                         }
                         else //3 4
                         {
@@ -1990,11 +2069,13 @@ namespace TimekeeperWPF
                             {
                                 //C1 Push L
                                 collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "F3";
                             }
                             else //4
                             {
                                 //C1 Shrink L
                                 collision.Result = Collision.CollisionResult.ShrinkLeft;
+                                collision.cell = "F4";
                             }
                         }
                     }
@@ -2004,21 +2085,25 @@ namespace TimekeeperWPF
                         {
                             //C2 Shrink R
                             collision.Result = Collision.CollisionResult.ShrinkRight;
+                            collision.cell = "G5";
                         }
                         else if (LData.HasRoom) //2
                         {
                             //C1 Push L
                             collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "G2";
                         }
                         else if (LData.Priority < L.ParentPerZone.ParentMap.TimeTask.Priority) //3
                         {
                             //C1 Push L
                             collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "G3";
                         }
                         else //4
                         {
                             //C1 Shrink L
                             collision.Result = Collision.CollisionResult.ShrinkLeft;
+                            collision.cell = "G4";
                         }
                     }
                 }
@@ -2029,6 +2114,7 @@ namespace TimekeeperWPF
         {
             public enum CollisionResult { PushLeft, ShrinkLeft, PushRight, ShrinkRight }
             public CollisionResult Result;
+            public string cell = "";
             public PushData LData;
             public PushData RData;
             public CalendarTaskObject Left;
@@ -2166,75 +2252,15 @@ namespace TimekeeperWPF
                 MaxRoom = RmaxRoom,
             };
         }
-        private static bool DoPushCollision(CalendarTaskObject C1, CalendarTaskObject C2)
+        private static List<Tuple<CalendarTaskObject, CalendarTaskObject>> GetIntersections(List<CalendarTaskObject> calObjs)
         {
-            var collision = DetermineCollision(C1, C2);
-            if (collision != null)
-            {
-                switch (collision.Result)
-                {
-                    case Collision.CollisionResult.PushLeft:
-                    case Collision.CollisionResult.PushRight:
-                        Push(collision);
-                        return true;
-                }
-            }
-            return false;
-        }
-        private static bool DoShrinkCollision(CalendarTaskObject C1, CalendarTaskObject C2)
-        {
-            var collision = DetermineCollision(C1, C2);
-            if (collision != null)
-            {
-                switch (collision.Result)
-                {
-                    case Collision.CollisionResult.ShrinkLeft:
-                    case Collision.CollisionResult.ShrinkRight:
-                        Shrink(collision);
-                        return true;
-                }
-            }
-            return false;
-        }
-        private static void Push(Collision C)
-        {
-            switch (C.Result)
-            {
-                case Collision.CollisionResult.PushLeft:
-                    TimeSpan Lroom = C.Left.Start - C.Left.ParentInclusionZone.Start;
-                    TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.LData.MaxRoom.Ticks, Lroom.Ticks)));
-                    C.Left.Start -= Lpush;
-                    C.Left.End -= Lpush;
-                    break;
-                case Collision.CollisionResult.PushRight:
-                    TimeSpan Rroom = C.Right.ParentInclusionZone.End - C.Right.End;
-                    TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.RData.MaxRoom.Ticks, Rroom.Ticks)));
-                    C.Right.Start += Rpush;
-                    C.Right.End += Rpush;
-                    break;
-                default:
-                    return;
-            }
-            C.Left.RightTangent = C.Right;
-            C.Right.LeftTangent = C.Left;
-        }
-        private static void Shrink(Collision C)
-        {
-            switch (C.Result)
-            {
-                case Collision.CollisionResult.ShrinkLeft:
-                    TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, C.Left.Duration.Ticks));
-                    C.Left.End -= Lpush;
-                    break;
-                case Collision.CollisionResult.ShrinkRight:
-                    TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, C.Right.Duration.Ticks));
-                    C.Right.Start += Rpush;
-                    break;
-                default:
-                    return;
-            }
-            C.Left.RightTangent = C.Right;
-            C.Right.LeftTangent = C.Left;
+            //this method should be much faster than LINQ and avoids duplicates
+            var intersections = new List<Tuple<CalendarTaskObject, CalendarTaskObject>>();
+            for (int a = 0; a < calObjs.Count; a++)
+                for (int b = a + 1; b < calObjs.Count; b++)
+                    if (calObjs[a].Intersects(calObjs[b]))
+                        intersections.Add(new Tuple<CalendarTaskObject, CalendarTaskObject>(calObjs[a], calObjs[b]));
+            return intersections;
         }
         #endregion Collisions
         #region AllocateEmptySpace
@@ -2449,7 +2475,9 @@ namespace TimekeeperWPF
             Status = "Cleaning Up...";
             MergeDumbSplits();
             FixMisalignments();
-            FixFlags();
+            RemoveCancels();
+            FlagAutoConfirms();
+            FlagInsufficients();
             FlagConflicts();
         }
         private void MergeDumbSplits()
@@ -2494,7 +2522,38 @@ namespace TimekeeperWPF
             }
             return null;
         }
-        private void FixFlags()
+        private void FlagInsufficients()
+        {
+            foreach (var M in TaskMaps)
+            {
+                foreach (var P in M.PerZones)
+                {
+                    //Flag Insufficients
+                    if (P.TimeConsumption?.Remaining > 0)
+                        foreach (var C in P.CalTaskObjs)
+                            C.State = CalendarTaskObject.States.Insufficient;
+                }
+            }
+        }
+        private void FlagAutoConfirms()
+        {
+            foreach (var M in TaskMaps)
+            {
+                if (!M.TimeTask.AutoCheckIn) continue;
+                foreach (var P in M.PerZones)
+                {
+                    foreach (var C in P.CalTaskObjs)
+                    {
+                        if (!C.StartLock && !C.EndLock &&
+                            C.ParentInclusionZone != null)
+                        {
+                            C.State = CalendarTaskObject.States.AutoConfirm;
+                        }
+                    }
+                }
+            }
+        }
+        private void RemoveCancels()
         {
             foreach (var M in TaskMaps)
             {
@@ -2509,31 +2568,10 @@ namespace TimekeeperWPF
                             cancels.Add(C);
                             continue;
                         }
-                        foreach (var Z in P.InclusionZones)
-                        {
-                            //Fix Wrong States for CalObjs over a zone
-                            if (C.State == CalendarTaskObject.States.Unscheduled)
-                            {
-                                if (C.StartLock || C.EndLock)
-                                    C.State = CalendarTaskObject.States.Confirmed;
-                                else if (C.ParentPerZone.ParentMap.TimeTask.AutoCheckIn)
-                                    C.State = CalendarTaskObject.States.AutoConfirm;
-                                else
-                                    C.State = CalendarTaskObject.States.Unconfirmed;
-                            }
-                        }
-                        //Fix Wrong States for CalObjs not over a zone
-                        if (C.ParentInclusionZone == null &&
-                            C.State != CalendarTaskObject.States.Unscheduled)
-                            C.State = CalendarTaskObject.States.Unscheduled;
                     }
                     //Delete Cancels
                     foreach (var C in cancels)
                         P.CalTaskObjs.Remove(C);
-                    //Flag Insufficients
-                    if (P.TimeConsumption?.Remaining > 0)
-                        foreach (var C in P.CalTaskObjs)
-                            C.State = CalendarTaskObject.States.Insufficient;
                 }
             }
         }

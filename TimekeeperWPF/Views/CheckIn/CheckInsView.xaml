@@ -20,6 +20,9 @@
                   IsEnabled="{Binding Path=IsEnabled}"
                   ItemsSource="{Binding Path=View}"
                   SelectedItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+                <DataGrid.InputBindings>
+                    <KeyBinding Command="{Binding Path=DeleteSelectedCommand}" Key="Delete"/>
+                </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
                     <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"

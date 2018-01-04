@@ -14,11 +14,14 @@
             </Grid.RowDefinitions>
             <ContentControl Template="{StaticResource TableViewControlsTemplate}"/>
             <DataGrid 
-            x:Name="DG" Grid.Row="1"
-            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-            IsEnabled="{Binding Path=IsEnabled}"
-            ItemsSource="{Binding Path=View}"
-            CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+                x:Name="DG" Grid.Row="1"
+                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                IsEnabled="{Binding Path=IsEnabled}"
+                ItemsSource="{Binding Path=View}"
+                CurrentItem="{Binding Path=SelectedItem, Mode=TwoWay}">
+                <DataGrid.InputBindings>
+                    <KeyBinding Command="{Binding Path=DeleteSelectedCommand}" Key="Delete"/>
+                </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=Name}" Header="Name"/>
                     <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"/>
