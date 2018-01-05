@@ -730,7 +730,9 @@ namespace TimekeeperWPF
                         await BuildNewTaskMap(T);
                         Status = CalendarObjectTypes.Task + " Modified";
                     }
+                    //update for checkIn editor
                     await CheckInsVM.LoadDataAsync();
+                    CreateCheckInObjects();
                     break;
             }
             EndEdit();
@@ -744,11 +746,7 @@ namespace TimekeeperWPF
                 case CalendarObjectTypes.CheckIn:
                     success = await CheckInsVM.DeleteSelected();
                     if (!success) break;
-                    var CCIO = SelectedItem as CalendarCheckInObject;
-                    CCIO?.ParentPerZone.CheckIns.Remove(CCIO);
-                    MapTaskObjects();
-                    CalCIObjsView.Remove(CCIO);
-                    OnPropertyChanged(nameof(CalCIObjsView));
+                    await GetDataAsync();
                     Status = CalendarObjectTypes.CheckIn + " Deleted";
                     break;
                 case CalendarObjectTypes.Note:
@@ -762,11 +760,8 @@ namespace TimekeeperWPF
                 case CalendarObjectTypes.Task:
                     success = await TimeTasksVM.DeleteSelected();
                     if (!success) break;
-                    var T = SelectedItem as CalendarTaskObject;
-                    TaskMaps.Remove(T.ParentPerZone.ParentMap);
-                    await BuildTaskMaps();
+                    await GetDataAsync();
                     Status = CalendarObjectTypes.Task + " Deleted";
-                    await CheckInsVM.LoadDataAsync();
                     break;
             }
             SelectedItem = null;
@@ -793,10 +788,13 @@ namespace TimekeeperWPF
             var mappedEventCheckIns =
                 from CIO in mappedEventCheckInObjects
                 select CIO.CheckIn;
-            var checkIns = CheckInsVM.Source
-                .Where(CI => CI.IsWithin(this))
-                .Except(mappedEventCheckIns);
-            foreach (var CI in checkIns)
+            var visibleCheckIns =
+                from CI in CheckInsVM.Source
+                from CIm in mappedEventCheckIns
+                where CI.Id != CIm.Id
+                where CI.IsWithin(this)
+                select CI;
+            foreach (var CI in visibleCheckIns)
                 AddNewCheckInObject(new CalendarCheckInObject
                 {
                     CheckIn = CI,
@@ -1391,7 +1389,6 @@ namespace TimekeeperWPF
                     {
                         Start = Z.Start,
                         End = Z.End,
-                        //ParentMap = M,
                         ParentInclusionZone = Z,
                         ParentPerZone = P,
                     };
@@ -1440,7 +1437,6 @@ namespace TimekeeperWPF
                         {
                             Start = Z.Start,
                             End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
-                            //ParentMap = M,
                             ParentInclusionZone = Z,
                             ParentPerZone = P,
                         };
@@ -1718,6 +1714,61 @@ namespace TimekeeperWPF
             }
             return null;
         }
+        private static CalendarTaskObject InsideCollision(CalendarTaskObject insider, CalendarTaskObject outsider)
+        {
+            //Refer to Plans.xlsx - Collisions
+            if (insider.StartLock || insider.EndLock ||
+                insider.ParentPerZone.ParentMap.TimeTask.Priority > outsider.ParentPerZone.ParentMap.TimeTask.Priority)
+            {
+                if (outsider.State == CalendarTaskObject.States.Unscheduled)
+                {
+                    if (outsider.EndLock)
+                    {
+                        if (outsider.StartLock)
+                        {
+                            return SplitOutsider(insider, outsider);
+                        }
+                        else
+                        {
+                            //shrink left
+                            var diff = insider.End - outsider.Start;
+                            outsider.Start = insider.End;
+                            if (outsider.ParentPerZone.TimeConsumption != null)
+                                outsider.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                            return null;
+                        }
+                    }
+                    else if (outsider.StartLock)
+                    {
+                        //shrink right
+                        var diff = outsider.End - insider.Start;
+                        outsider.End = insider.Start;
+                        if (outsider.ParentPerZone.TimeConsumption != null)
+                            outsider.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                        return null;
+                    }
+                }
+                else return SplitOutsider(insider, outsider);
+            }
+            return null;
+        }
+        private static CalendarTaskObject SplitOutsider(CalendarTaskObject insider, CalendarTaskObject outsider)
+        {
+            DateTime MDT = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
+            var Left = new CalendarTaskObject();
+            var Right = outsider;
+            Left.Mimic(outsider);
+            Left.EndLock = false;
+            Left.End = MDT;
+            Right.Start = MDT;
+            Right.StartLock = false;
+            if (outsider.State == CalendarTaskObject.States.Confirmed)
+            {
+                if (!Left.StartLock) Left.State = CalendarTaskObject.States.Unconfirmed;
+                if (!Right.EndLock) Right.State = CalendarTaskObject.States.Unconfirmed;
+            }
+            return Left;
+        }
         private static bool Step1Push(CalendarTaskObject C1, CalendarTaskObject C2)
         {
             //returns true when the collision successfully pushes, false otherwise
@@ -1735,7 +1786,17 @@ namespace TimekeeperWPF
                         C.Right.LeftTangent = C.Left;
                         return true;
                     case Collision.CollisionResult.ShrinkLeft:
-                        C.Left.Step1ShrinkFlag = true;
+                        if (C.Left.State == CalendarTaskObject.States.Unscheduled)
+                        {
+                            var diff = C.Left.End - C.Right.Start;
+                            C.Left.End = C.Right.Start;
+                            if (C.Left.ParentPerZone.TimeConsumption != null)
+                                C.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                        }
+                        else
+                        {
+                            C.Left.Step1ShrinkFlag = true;
+                        }
                         return false;
                     case Collision.CollisionResult.PushRight:
                         TimeSpan Rroom = C.Right.ParentInclusionZone.End - C.Right.End;
@@ -1746,7 +1807,17 @@ namespace TimekeeperWPF
                         C.Right.LeftTangent = C.Left;
                         return true;
                     case Collision.CollisionResult.ShrinkRight:
-                        C.Right.Step1ShrinkFlag = true;
+                        if (C2.State == CalendarTaskObject.States.Unscheduled)
+                        {
+                            var diff = C.Left.End - C.Right.Start;
+                            C.Right.Start = C.Left.End;
+                            if (C.Right.ParentPerZone.TimeConsumption != null)
+                                C.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                        }
+                        else
+                        {
+                            C.Right.Step1ShrinkFlag = true;
+                        }
                         return false;
                 }
             }
@@ -1801,6 +1872,7 @@ namespace TimekeeperWPF
                 foreach (var i in intersections)
                 {
                     var collision = DetermineCollision(i.Item1, i.Item2);
+                    if (collision == null) continue;
                     bool hasChanges = true;
                     while (hasChanges)
                     {
@@ -1893,31 +1965,6 @@ namespace TimekeeperWPF
                 }
             }
             return false;
-        }
-        private static CalendarTaskObject InsideCollision(CalendarTaskObject insider, CalendarTaskObject outsider)
-        {
-            //Refer to Plans.xlsx - Collisions
-            if (insider.StartLock || insider.EndLock ||
-                insider.ParentPerZone.ParentMap.TimeTask.Priority > outsider.ParentPerZone.ParentMap.TimeTask.Priority)
-                return SplitOutsider(insider, outsider);
-            return null;
-        }
-        private static CalendarTaskObject SplitOutsider(CalendarTaskObject insider, CalendarTaskObject outsider)
-        {
-            DateTime MDT = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
-            var Left = new CalendarTaskObject();
-            var Right = outsider;
-            Left.Mimic(outsider);
-            Left.EndLock = false;
-            Left.End = MDT;
-            Right.Start = MDT;
-            Right.StartLock = false;
-            if (outsider.State == CalendarTaskObject.States.Confirmed)
-            {
-                if (!Left.StartLock) Left.State = CalendarTaskObject.States.Unconfirmed;
-                if (!Right.EndLock) Right.State = CalendarTaskObject.States.Unconfirmed;
-            }
-            return Left;
         }
         private static Collision DetermineCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
@@ -2659,7 +2706,7 @@ namespace TimekeeperWPF
             }
             OnPropertyChanged(nameof(CalTaskObjsView));
         }
-        #endregion MapTaskObjects
+        protected virtual void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj) { }
         private IEnumerable<int> GetDimensions()
         {
             return (from M in TaskMaps
@@ -2686,7 +2733,7 @@ namespace TimekeeperWPF
                 orderby C.Start, C.End
                 select C);
         }
-        protected virtual void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj) { }
+        #endregion MapTaskObjects
         #endregion TaskMaps
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls

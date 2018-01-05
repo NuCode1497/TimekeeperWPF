@@ -291,34 +291,46 @@ namespace TimekeeperWPF
             UpdateAllocationsView();
 
             FiltersCollection = new CollectionViewSource();
-            FiltersCollection.Source = new ObservableCollection<TimeTaskFilter>(CurrentEditItem.Filters);
-            OnPropertyChanged(nameof(FiltersView));
-            foreach (var f in FiltersSource)
+            FiltersCollection.Source = new ObservableCollection<TimeTaskFilter>();
+            //Doing this will allow us to simultaneously edit all pre-existing filters
+            foreach (var F in CurrentEditItem.Filters)
             {
-                var t = f.FilterTypeName;
+                FiltersSource.Add(new TimeTaskFilter
+                {
+                    Filterable_Id = F.Filterable_Id,
+                    TimeTask_Id = F.TimeTask_Id,
+                    TimeTask = F.TimeTask,
+                    Filterable = F.Filterable,
+                    Include = F.Include,
+                });
+            }
+            OnPropertyChanged(nameof(FiltersView));
+            foreach (var F in FiltersSource)
+            {
+                var t = F.FilterTypeName;
                 switch (t)
                 {
                     case nameof(Label):
-                        f.TypeChoice = "Label";
+                        F.TypeChoice = "Label";
                         break;
                     case nameof(Note):
-                        f.TypeChoice = "Note";
+                        F.TypeChoice = "Note";
                         break;
                     case nameof(TimePattern):
-                        f.TypeChoice = "Pattern";
+                        F.TypeChoice = "Pattern";
                         break;
                     case nameof(Resource):
-                        f.TypeChoice = "Resource";
+                        F.TypeChoice = "Resource";
                         break;
                     case nameof(TimeTask):
-                        f.TypeChoice = "Task";
+                        F.TypeChoice = "Task";
                         break;
                     case nameof(TaskType):
-                        f.TypeChoice = "Task Type";
+                        F.TypeChoice = "Task Type";
                         break;
                 }
-                f.OnPropertyChanged(nameof(f.TypeChoice));
-                f.OnPropertyChanged(nameof(f.Filterable));
+                F.OnPropertyChanged(nameof(F.TypeChoice));
+                F.OnPropertyChanged(nameof(F.Filterable));
             }
         }
         protected override void EndEdit()
@@ -347,7 +359,6 @@ namespace TimekeeperWPF
                 Include = true,
                 TypeChoice = "Pattern"
             });
-            ((TimeTaskFilter)FiltersView.CurrentAddItem).Include = true;
             FiltersView.CommitNew();
             OnPropertyChanged(nameof(FiltersView));
         }

@@ -37,8 +37,8 @@
             <Trigger Property="TaskTypeName" Value="Play">
                 <Setter Property="Background" Value="{StaticResource CalendarObject.Type.Play}"/>
             </Trigger>
-            <Trigger Property="State" Value="Autocompleted">
-                <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Autocompleted}"/>
+            <Trigger Property="State" Value="AutoCompleted">
+                <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.AutoCompleted}"/>
             </Trigger>
             <Trigger Property="State" Value="AutoConfirm">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.AutoConfirm}"/>

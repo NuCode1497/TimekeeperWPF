@@ -39,8 +39,8 @@ MMM d</clr:String>
     <SolidColorBrush x:Key="CalendarObject.Type.Play" Color="SeaGreen"/>
     <SolidColorBrush x:Key="CalendarObject.Type.Sleep" Color="MediumPurple"/>
     <SolidColorBrush x:Key="CalendarObject.Type.Work" Color="Blue"/>
-    <SolidColorBrush x:Key="CalendarObject.State.AutoCompleted" Color="MediumAquamarine"/>
-    <SolidColorBrush x:Key="CalendarObject.State.AutoConfirm" Color="Aquamarine"/>
+    <SolidColorBrush x:Key="CalendarObject.State.AutoCompleted" Color="Teal"/>
+    <SolidColorBrush x:Key="CalendarObject.State.AutoConfirm" Color="Cyan"/>
     <SolidColorBrush x:Key="CalendarObject.State.CheckIn" Color="DodgerBlue"/>
     <SolidColorBrush x:Key="CalendarObject.State.Completed" Color="ForestGreen"/>
     <SolidColorBrush x:Key="CalendarObject.State.Confirmed" Color="SpringGreen"/>

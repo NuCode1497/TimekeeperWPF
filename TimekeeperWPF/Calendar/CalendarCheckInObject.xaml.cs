@@ -19,7 +19,7 @@ namespace TimekeeperWPF.Calendar
         }
         public override string ToString()
         {
-            return Kind + "\n" + CheckIn;
+            return Kind + " \n" + CheckIn;
         }
         public CheckIn CheckIn { get; set; }
         public CheckInKind Kind { get; set; }

@@ -90,7 +90,7 @@ namespace TimekeeperWPF.Calendar
                 ParentPerZone.ParentMap.TimeTask.Priority,
                 State == States.Current ? State + $" ({_State})" : State.ToString(),
                 Duration.ShortGoodString(),
-                StateLock ? "🔒" : "",
+                StartLock ? "🔒" : "",
                 Start.ToString(),
                 EndLock ? "🔒" : "",
                 End.ToString(),
