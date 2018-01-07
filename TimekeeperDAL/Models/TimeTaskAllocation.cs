@@ -95,22 +95,22 @@ namespace TimekeeperDAL.EF
                 switch (Resource?.Name)
                 {
                     case "Minute":
-                        allocatedTime = new TimeSpan(0, (int)Amount, 0);
+                        allocatedTime = TimeSpan.FromMinutes(Amount);
                         break;
                     case "Hour":
-                        allocatedTime = new TimeSpan((int)Amount, 0, 0);
+                        allocatedTime = TimeSpan.FromHours(Amount);
                         break;
                     case "Day":
-                        allocatedTime = new TimeSpan((int)Amount, 0, 0, 0);
+                        allocatedTime = TimeSpan.FromDays(Amount);
                         break;
                     case "Week":
-                        allocatedTime = new TimeSpan((int)Amount * 7, 0, 0, 0);
+                        allocatedTime = TimeSpan.FromDays(Amount * 7.0d);
                         break;
                     case "Month":
-                        allocatedTime = new TimeSpan((int)(Amount * 30.437), 0, 0, 0);
+                        allocatedTime = TimeSpan.FromDays(Amount * 30.437d);
                         break;
                     case "Year":
-                        allocatedTime = new TimeSpan((int)(Amount * 365.2425), 0, 0, 0);
+                        allocatedTime = TimeSpan.FromDays(Amount * 365.2425);
                         break;
                 }
                 return allocatedTime;

@@ -1650,65 +1650,76 @@ namespace TimekeeperWPF
         private void CalculateCollisions()
         {
             Status = "Calculating Collisions...";
-            CollisionsStep1();
-            CollisionsStep2();
-            CollisionsStep3();
-            CollisionsStep4();
+            var dimensions = GetDimensions();
+            foreach (var D in dimensions)
+            {
+                var calObjs = GetCalObjsUnOrdered(D);
+                foreach (var C in calObjs)
+                {
+                    C.CanReDist = true;
+                }
+                bool hasReDists = true;
+                while(hasReDists)
+                {
+                    hasReDists = false;
+                    CollisionsStep1(D);
+                    CollisionsStep2(D);
+                    if (CollisionsStep3(D))
+                        hasReDists = true;
+                }
+                CollisionsStep4(D);
+            }
         }
-        private void CollisionsStep1()
+        private void CollisionsStep1(int D)
         {
             //Step 1 - do only push collisions and split collisions where the insider wins, ignore the rest
             bool hasChanges = true;
             while (hasChanges)
             {
-                var newC = CollisionsStep1Part2();
+                var newC = CollisionsStep1Part2(D);
                 if (newC != null)
                 {
+
                     newC.ParentPerZone.CalTaskObjs.Add(newC);
                     hasChanges = true;
                 }
                 else hasChanges = false;
             }
         }
-        private CalendarTaskObject CollisionsStep1Part2()
+        private CalendarTaskObject CollisionsStep1Part2(int D)
         {
-            var dimensions = GetDimensions();
-            foreach (var D in dimensions)
+            var calObjs = GetCalObjsByPriority(D);
+            //Clear tangents
+            foreach (var C in calObjs)
             {
-                var calObjs = GetCalObjsByPriority(D);
-                //Clear tangents
-                foreach (var C in calObjs)
+                C.Step1IgnoreFlag = false;
+                C.LeftTangent = null;
+                C.RightTangent = null;
+            }
+            //Find collisions
+            bool hasChanges = true;
+            while (hasChanges)
+            {
+                hasChanges = false;
+                var intersections = GetIntersections(calObjs);
+                foreach (var i in intersections)
                 {
-                    C.Step1ShrinkFlag = false;
-                    C.LeftTangent = null;
-                    C.RightTangent = null;
-                }
-                //Find collisions
-                bool hasChanges = true;
-                while (hasChanges)
-                {
-                    //set to true when a CO is changed
-                    hasChanges = false;
-                    var intersections = GetIntersections(calObjs);
-                    foreach (var i in intersections)
+                    if (i.Item1.Step1IgnoreFlag || i.Item2.Step1IgnoreFlag)
+                        continue;
+                    if (i.Item1.IsInside(i.Item2))
                     {
-                        if (i.Item1.Step1ShrinkFlag || i.Item2.Step1ShrinkFlag)
-                            continue;
-                        if (i.Item1.IsInside(i.Item2))
-                        {
-                            var newC = InsideCollision(i.Item1, i.Item2);
-                            if (newC != null) return newC;
-                        }
-                        else if (i.Item2.IsInside(i.Item1))
-                        {
-                            var newC = InsideCollision(i.Item2, i.Item1);
-                            if (newC != null) return newC;
-                        }
-                        else if (Step1Push(i.Item1, i.Item2))
-                        {
-                            hasChanges = true;
-                            break;
-                        }
+                        var newC = InsideCollision(i.Item1, i.Item2);
+                        if (newC != null) return newC;
+                    }
+                    else if (i.Item2.IsInside(i.Item1))
+                    {
+                        var newC = InsideCollision(i.Item2, i.Item1);
+                        if (newC != null) return newC;
+                    }
+                    else if (Step1Push(i.Item1, i.Item2))
+                    {
+                        hasChanges = true;
+                        break;
                     }
                 }
             }
@@ -1786,6 +1797,7 @@ namespace TimekeeperWPF
                         C.Right.LeftTangent = C.Left;
                         return true;
                     case Collision.CollisionResult.ShrinkLeft:
+                    case Collision.CollisionResult.ReDistLeft:
                         if (C.Left.State == CalendarTaskObject.States.Unscheduled)
                         {
                             var diff = C.Left.End - C.Right.Start;
@@ -1795,7 +1807,7 @@ namespace TimekeeperWPF
                         }
                         else
                         {
-                            C.Left.Step1ShrinkFlag = true;
+                            C.Left.Step1IgnoreFlag = true;
                         }
                         return false;
                     case Collision.CollisionResult.PushRight:
@@ -1807,6 +1819,7 @@ namespace TimekeeperWPF
                         C.Right.LeftTangent = C.Left;
                         return true;
                     case Collision.CollisionResult.ShrinkRight:
+                    case Collision.CollisionResult.ReDistRight:
                         if (C2.State == CalendarTaskObject.States.Unscheduled)
                         {
                             var diff = C.Left.End - C.Right.Start;
@@ -1816,21 +1829,21 @@ namespace TimekeeperWPF
                         }
                         else
                         {
-                            C.Right.Step1ShrinkFlag = true;
+                            C.Right.Step1IgnoreFlag = true;
                         }
                         return false;
                 }
             }
             return false;
         }
-        private void CollisionsStep2()
+        private void CollisionsStep2(int D)
         {
             //Step 2 - split remaining insider collisions where insider loses
             bool hasChanges = true;
             while (hasChanges)
             {
                 hasChanges = false;
-                var newC = CollisionsStep2Part2();
+                var newC = CollisionsStep2Part2(D);
                 if (newC != null)
                 {
                     newC.ParentPerZone.CalTaskObjs.Add(newC);
@@ -1838,66 +1851,71 @@ namespace TimekeeperWPF
                 }
             }
         }
-        private CalendarTaskObject CollisionsStep2Part2()
+        private CalendarTaskObject CollisionsStep2Part2(int D)
         {
-            var dimensions = GetDimensions();
-            foreach (var D in dimensions)
+            var calObjs = GetCalObjsByPriority(D);
+            var intersections = GetIntersections(calObjs);
+            foreach (var i in intersections)
             {
-                var calObjs = GetCalObjsByPriority(D);
-                var intersections = GetIntersections(calObjs);
-                foreach (var i in intersections)
+                if (i.Item1.IsInside(i.Item2))
                 {
-                    if (i.Item1.IsInside(i.Item2))
-                    {
-                        var newC = SplitOutsider(i.Item1, i.Item2);
-                        if (newC != null) return newC;
-                    }
-                    else if (i.Item2.IsInside(i.Item1))
-                    {
-                        var newC = SplitOutsider(i.Item2, i.Item1);
-                        if (newC != null) return newC;
-                    }
+                    var newC = SplitOutsider(i.Item1, i.Item2);
+                    if (newC != null) return newC;
+                }
+                else if (i.Item2.IsInside(i.Item1))
+                {
+                    var newC = SplitOutsider(i.Item2, i.Item1);
+                    if (newC != null) return newC;
                 }
             }
             return null;
         }
-        private void CollisionsStep3()
+        private bool CollisionsStep3(int D)
         {
             //Step 3 - redistribute
-            var dimensions = GetDimensions();
-            foreach (var D in dimensions)
+            //returns true if any redistributions occured
+            bool hasReDists = false;
+            var calObjs = GetCalObjsByPriority(D);
+            var intersections = GetIntersections(calObjs);
+            foreach (var i in intersections)
             {
-                var calObjs = GetCalObjsByPriority(D);
-                var intersections = GetIntersections(calObjs);
-                foreach (var i in intersections)
+                var collision = DetermineCollision(i.Item1, i.Item2);
+                if (collision == null) continue;
+                if (collision.Loser.CanReDist)
                 {
-                    var collision = DetermineCollision(i.Item1, i.Item2);
-                    if (collision == null) continue;
                     bool hasChanges = true;
                     while (hasChanges)
                     {
                         hasChanges = false;
-                        if (collision.Overlap.Ticks <= 0) goto NextIntersection;
-                        //Looking at loser
+                        if (collision.Overlap.Ticks <= 0) break;
                         if (CollisionsStep3Part2(D, collision, collision.Loser))
+                        {
                             hasChanges = true;
+                            hasReDists = true;
+                        }
                     }
-                    hasChanges = true;
+                }
+                if (collision.Winner.CanReDist)
+                {
+                    bool hasChanges = true;
                     while (hasChanges)
                     {
                         hasChanges = false;
-                        if (collision.Overlap.Ticks <= 0) goto NextIntersection;
-                        //Looking at winner
+                        if (collision.Overlap.Ticks <= 0) break;
                         if (CollisionsStep3Part2(D, collision, collision.Winner))
+                        {
                             hasChanges = true;
+                            hasReDists = true;
+                        }
                     }
-                    NextIntersection:;
                 }
             }
+            return hasReDists;
         }
-        private bool CollisionsStep3Part2(int dimension, Collision collision, CalendarTaskObject C)
+        private bool CollisionsStep3Part2(int D, Collision collision, CalendarTaskObject C)
         {
-            var spaces = GetEmptySpaces(dimension);
+            //returns true when there is a redistribution
+            var spaces = GetEmptySpaces(D);
             foreach (var S in spaces)
             {
                 foreach (var Z in C.ParentPerZone.InclusionZones)
@@ -1906,7 +1924,7 @@ namespace TimekeeperWPF
                     var SZOverlap = S.GetOverlap(Z);
                     var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
                     if (shrink.Ticks <= 0) continue;
-                    //shrink the loser in the correct direction
+                    //shrink in the correct direction
                     if (C == collision.Left)
                         C.End -= shrink;
                     else
@@ -1919,27 +1937,25 @@ namespace TimekeeperWPF
                     return true;
                 }
             }
+            //we have exhausted all possibilities for redistributing C
+            C.CanReDist = false;
             return false;
         }
-        private void CollisionsStep4()
+        private void CollisionsStep4(int D)
         {
             //Step 4 - if any collisions still exist, these will be shrinks that cant be redistributed
-            var dimensions = GetDimensions();
-            foreach (var D in dimensions)
+            var calObjs = GetCalObjsByPriority(D);
+            bool hasChanges = true;
+            while (hasChanges)
             {
-                var calObjs = GetCalObjsByPriority(D);
-                bool hasChanges = true;
-                while (hasChanges)
+                hasChanges = false;
+                var intersections = GetIntersections(calObjs);
+                foreach (var i in intersections)
                 {
-                    hasChanges = false;
-                    var intersections = GetIntersections(calObjs);
-                    foreach (var i in intersections)
+                    if (Step4Shrink(i.Item1, i.Item2))
                     {
-                        if (Step4Shrink(i.Item1, i.Item2))
-                        {
-                            hasChanges = true;
-                            break;
-                        }
+                        hasChanges = true;
+                        break;
                     }
                 }
             }
@@ -1954,11 +1970,13 @@ namespace TimekeeperWPF
                 {
                     case Collision.CollisionResult.PushLeft:
                     case Collision.CollisionResult.ShrinkLeft:
+                    case Collision.CollisionResult.ReDistLeft:
                         TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, C.Left.Duration.Ticks));
                         C.Left.End -= Lpush;
                         break;
                     case Collision.CollisionResult.PushRight:
                     case Collision.CollisionResult.ShrinkRight:
+                    case Collision.CollisionResult.ReDistRight:
                         TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, C.Right.Duration.Ticks));
                         C.Right.Start += Rpush;
                         break;
@@ -2005,152 +2023,344 @@ namespace TimekeeperWPF
                 Left = L,
                 Right = R,
             };
-            //Refer to Plans.xlsx - Collisions2
-            if (R.StartLock) //H
+            //Refer to Plans.xlsx - Redistributions
+            if (R.StartLock) //L
             {
-                if (L.EndLock) //5
+                if (L.EndLock) //7
                 {
                     //conflict
                     return null;
                 }
                 else if (LData.HasRoom) //2
                 {
-                    //C1 Push L
+                    //PushLeft
                     collision.Result = Collision.CollisionResult.PushLeft;
-                    collision.cell = "H2";
+                    collision.cell = "L2";
                 }
-                else //3 4
+                else if (LData.CanReDist) //3 4
                 {
-                    if (LData.Priority < L.ParentPerZone.ParentMap.TimeTask.Priority) //3
+                    if (LData.Priority < L.Priority) //3
                     {
-                        //C1 Push L
+                        //PushLeft
                         collision.Result = Collision.CollisionResult.PushLeft;
-                        collision.cell = "H3";
+                        collision.cell = "L3";
                     }
                     else //4
                     {
-                        //C1 Shrink L
-                        collision.Result = Collision.CollisionResult.ShrinkLeft;
-                        collision.cell = "H4";
+                        //ReDistLeft
+                        collision.Result = Collision.CollisionResult.ReDistLeft;
+                        collision.cell = "L4";
                     }
+                }
+                else if (LData.Priority < L.Priority) //5
+                {
+                    //PushLeft
+                    collision.Result = Collision.CollisionResult.PushLeft;
+                    collision.cell = "L5";
+                }
+                else //6
+                {
+                    //ReDistLeft
+                    collision.Result = Collision.CollisionResult.ShrinkLeft;
+                    collision.cell = "L6";
                 }
             }
             else if (RData.HasRoom) //B C
             {
-                if (LData.Priority >= RData.Priority) //B 2 3 4 5
+                if (LData.Priority >= RData.Priority) //B
                 {
-                    //C2 Push R
-                    collision.Result = Collision.CollisionResult.PushRight;
-                    collision.cell = "B2345";
+                    //PushLeft
+                    collision.Result = Collision.CollisionResult.PushLeft;
+                    collision.cell = "B";
                 }
                 else //C
                 {
                     if (LData.HasRoom) //2
                     {
-                        //C1 Push L
+                        //PushLeft
                         collision.Result = Collision.CollisionResult.PushLeft;
                         collision.cell = "C2";
                     }
-                    else //3 4 5
+                    else //34567
                     {
-                        //C2 Push R
+                        //PushRight
                         collision.Result = Collision.CollisionResult.PushRight;
-                        collision.cell = "C345";
+                        collision.cell = "C34567";
                     }
                 }
             }
-            else //D E F G
+            else if (RData.CanReDist) //D E F G
             {
                 if (LData.Priority >= RData.Priority) //D E
                 {
-                    if (R.ParentPerZone.ParentMap.TimeTask.Priority > RData.Priority) //D
+                    if (R.Priority > RData.Priority) //D
                     {
                         if (LData.HasRoom) //2
                         {
-                            //C1 Push L
+                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "D2";
                         }
-                        else //3 4 5
+                        else //34567
                         {
-                            //C2 Push R
+                            //PushRight
                             collision.Result = Collision.CollisionResult.PushRight;
-                            collision.cell = "D345";
+                            collision.cell = "D34567";
                         }
                     }
                     else //E
                     {
                         if (LData.HasRoom) //2
                         {
-                            //C1 Push L
+                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "E2";
                         }
-                        else //3 4 5
+                        else //34567
                         {
-                            //C2 Shrink R
-                            collision.Result = Collision.CollisionResult.ShrinkRight;
-                            collision.cell = "E345";
+                            //ReDistRight
+                            collision.Result = Collision.CollisionResult.ReDistRight;
+                            collision.cell = "E34567";
                         }
                     }
                 }
                 else //F G
                 {
-                    if (R.ParentPerZone.ParentMap.TimeTask.Priority > RData.Priority) //F
+                    if (R.Priority > RData.Priority) //F
                     {
-                        if (L.EndLock) //5
-                        {
-                            //C2 Push R
-                            collision.Result = Collision.CollisionResult.PushRight;
-                            collision.cell = "F5";
-                        }
                         if (LData.HasRoom) //2
                         {
-                            //C1 Push L
+                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "F2";
                         }
-                        else //3 4
+                        else //3 4 567
                         {
-                            if (LData.Priority < L.ParentPerZone.ParentMap.TimeTask.Priority) //3
+                            if (LData.CanReDist) //3 4
                             {
-                                //C1 Push L
-                                collision.Result = Collision.CollisionResult.PushLeft;
-                                collision.cell = "F3";
+                                if (LData.Priority < L.Priority) //3
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "F3";
+                                }
+                                else //4
+                                {
+                                    //ReDistLeft
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "F4";
+                                }
                             }
-                            else //4
+                            else //567
                             {
-                                //C1 Shrink L
-                                collision.Result = Collision.CollisionResult.ShrinkLeft;
-                                collision.cell = "F4";
+                                //PushRight
+                                collision.Result = Collision.CollisionResult.PushRight;
+                                collision.cell = "F567";
                             }
                         }
                     }
                     else //G
                     {
-                        if (L.EndLock) //5
+                        if (LData.HasRoom) //2
                         {
-                            //C2 Shrink R
-                            collision.Result = Collision.CollisionResult.ShrinkRight;
-                            collision.cell = "G5";
-                        }
-                        else if (LData.HasRoom) //2
-                        {
-                            //C1 Push L
+                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "G2";
                         }
-                        else if (LData.Priority < L.ParentPerZone.ParentMap.TimeTask.Priority) //3
+                        else //3 4 567
                         {
-                            //C1 Push L
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "G3";
+                            if (LData.CanReDist)
+                            {
+                                if (LData.Priority < L.Priority) //3
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "G3";
+                                }
+                                else //4
+                                {
+                                    //ReDistLeft
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "G4";
+                                }
+                            }
+                            else //567
+                            {
+                                //ReDistRight
+                                collision.Result = Collision.CollisionResult.ReDistRight;
+                                collision.cell = "G567";
+                            }
                         }
-                        else //4
+                    }
+                }
+            }
+            else //H I J K
+            {
+                if (LData.Priority >= RData.Priority) //H I
+                {
+                    if (R.Priority > RData.Priority) //H
+                    {
+                        if (LData.HasRoom) //2
                         {
-                            //C1 Shrink L
-                            collision.Result = Collision.CollisionResult.ShrinkLeft;
-                            collision.cell = "G4";
+                            //PushLeft
+                            collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "D2";
+                        }
+                        else //3 4 567
+                        {
+                            if (LData.CanReDist) //3 4
+                            {
+                                if (LData.Priority < L.Priority) //3
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "H3";
+                                }
+                                else //4
+                                {
+                                    //ReDistLeft
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "H4";
+                                }
+                            }
+                            else //567
+                            {
+                                //PushRight
+                                collision.Result = Collision.CollisionResult.PushRight;
+                                collision.cell = "H567";
+                            }
+                        }
+                    }
+                    else //I
+                    {
+                        if (LData.HasRoom) //2
+                        {
+                            //PushLeft
+                            collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "I2";
+                        }
+                        else //3 4 567
+                        {
+                            if (LData.CanReDist) //3 4
+                            {
+                                if (LData.Priority < L.Priority) //3
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "I3";
+                                }
+                                else //4
+                                {
+                                    //ReDistLeft
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "I4";
+                                }
+                            }
+                            else //567
+                            {
+                                //PushRight
+                                collision.Result = Collision.CollisionResult.ShrinkRight;
+                                collision.cell = "I567";
+                            }
+                        }
+                    }
+                }
+                else //J K
+                {
+                    if (R.Priority > RData.Priority) //J
+                    {
+                        if (L.EndLock) //7
+                        {
+                            //PushRight
+                            collision.Result = Collision.CollisionResult.PushRight;
+                            collision.cell = "J7";
+                        }
+                        else if (LData.HasRoom) //2
+                        {
+                            //PushLeft
+                            collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "J2";
+                        }
+                        else //3 4 5 6 
+                        {
+                            if (LData.CanReDist) //3 4
+                            {
+                                if (LData.Priority < L.Priority) //3
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "J3";
+                                }
+                                else //4
+                                {
+                                    //ReDistLeft
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "J4";
+                                }
+                            }
+                            else //5 6
+                            {
+                                if (LData.Priority < L.Priority) //5
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "J5";
+                                }
+                                else //6
+                                {
+                                    //ShrinkLeft
+                                    collision.Result = Collision.CollisionResult.ShrinkLeft;
+                                    collision.cell = "J6";
+                                }
+                            }
+                        }
+                    }
+                    else //K
+                    {
+                        if (L.EndLock) //7
+                        {
+                            //ShrinkRight
+                            collision.Result = Collision.CollisionResult.ShrinkRight;
+                            collision.cell = "K7";
+                        }
+                        else if (LData.HasRoom) //2
+                        {
+                            //PushLeft
+                            collision.Result = Collision.CollisionResult.PushLeft;
+                            collision.cell = "K2";
+                        }
+                        else //3 4 5 6
+                        {
+                            if (LData.CanReDist)
+                            {
+                                if (LData.Priority < L.Priority) //3
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "K3";
+                                }
+                                else //4
+                                {
+                                    //ReDistLeft
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "K4";
+                                }
+                            }
+                            else //5 6
+                            {
+                                if (LData.Priority < L.Priority)
+                                {
+                                    //PushLeft
+                                    collision.Result = Collision.CollisionResult.PushLeft;
+                                    collision.cell = "K5";
+                                }
+                                else
+                                {
+                                    //ShrinkLeft
+                                    collision.Result = Collision.CollisionResult.ShrinkLeft;
+                                    collision.cell = "K6";
+                                }
+                            }
                         }
                     }
                 }
@@ -2159,7 +2369,7 @@ namespace TimekeeperWPF
         }
         private class Collision
         {
-            public enum CollisionResult { PushLeft, ShrinkLeft, PushRight, ShrinkRight }
+            public enum CollisionResult { PushLeft, ShrinkLeft, ReDistLeft, PushRight, ShrinkRight, ReDistRight }
             public CollisionResult Result;
             public string cell = "";
             public PushData LData;
@@ -2175,9 +2385,11 @@ namespace TimekeeperWPF
                     {
                         case CollisionResult.PushLeft:
                         case CollisionResult.ShrinkLeft:
+                        case CollisionResult.ReDistLeft:
                             return Left;
                         case CollisionResult.PushRight:
                         case CollisionResult.ShrinkRight:
+                        case CollisionResult.ReDistRight:
                         default:
                             return Right;
                     }
@@ -2191,9 +2403,11 @@ namespace TimekeeperWPF
                     {
                         case CollisionResult.PushLeft:
                         case CollisionResult.ShrinkLeft:
+                        case CollisionResult.ReDistLeft:
                             return Right;
                         case CollisionResult.PushRight:
                         case CollisionResult.ShrinkRight:
+                        case CollisionResult.ReDistRight:
                         default:
                             return Left;
                     }
@@ -2205,6 +2419,7 @@ namespace TimekeeperWPF
             public enum PushDirection { Left, Right }
             public PushDirection Direction;
             public bool HasRoom;
+            public bool CanReDist;
             public double Priority;
             public TimeSpan MaxRoom;
             public override string ToString()
@@ -2221,30 +2436,53 @@ namespace TimekeeperWPF
         {
             bool hasRoom = true;
             var LT = C;
+            bool canReDist = C.CanReDist;
             double LP = C.ParentPerZone.ParentMap.TimeTask.Priority;
             TimeSpan LmaxRoom = new TimeSpan();
             while (true)
             {
-                //If C1.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >=LT.S or LT.LT.E🔒. 
-                //LP = C.P where C is the LT with the lowest priority from C1 to LC.
-                if (LT.ParentPerZone.ParentMap.TimeTask.Priority < LP)
+                //If C.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >= LT.S or LT.LT.E🔒. 
+                //LP = WC.P where WC is the LT with the lowest priority from C to LC.
+                //LmaxRoom is the amount of room WC has to be pushed
+                //Also if any LT CanReDist, then WC must also have CanReDist
+                if (canReDist)
                 {
-                    LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    LmaxRoom = LT.ParentPerZone.ParentMap.TimeTask.Duration;
+                    if (LT.CanReDist)
+                    {
+                        if (LT.ParentPerZone.ParentMap.TimeTask.Priority < LP)
+                        {
+                            LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
+                            LmaxRoom = LT.Start - (LT.ParentInclusionZone?.Start ?? LT.ParentPerZone.Start);
+                        }
+                    }
                 }
-                //LT.HasRoom = F when LT.E🔒 or LT.S🔒 or LT.Z.S >= LT.S or LT.LT.HasRoom=F
+                else
+                {
+                    if (LT.CanReDist)
+                    {
+                        canReDist = true;
+                    }
+                    if (LT.ParentPerZone.ParentMap.TimeTask.Priority < LP)
+                    {
+                        LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
+                        LmaxRoom = LT.Start - (LT.ParentInclusionZone?.Start ?? LT.ParentPerZone.Start);
+                    }
+                }
                 if (LT.EndLock ||
                     LT.StartLock ||
+                    (LT.LeftTangent?.EndLock ?? false) ||
                     LT.ParentInclusionZone?.Start >= LT.Start)
                 {
+                    //HasRoom = F when LT.LT.E🔒 or LT.E🔒 or LT.S🔒 or LT.Z.S >= LT.S or LT.LT.HasRoom=F
                     hasRoom = false;
                     break;
                 }
+                else 
                 if (LT.LeftTangent == null)
                 {
-                    //If C1.HasRoom == T, LC is the LT where LT.LT == null. LP = LC.P.
+                    //HasRoom == T when LC is the LT where LT.LT == null. LP = LC.P. WC = LC.
                     LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    LmaxRoom = LT.Start - LT.ParentInclusionZone?.Start ?? TimeSpan.FromDays(1);
+                    LmaxRoom = LT.Start - (LT.ParentInclusionZone?.Start ?? LT.ParentPerZone.Start);
                     break;
                 }
                 else
@@ -2258,32 +2496,59 @@ namespace TimekeeperWPF
                 HasRoom = hasRoom,
                 Priority = LP,
                 MaxRoom = LmaxRoom,
+                CanReDist = canReDist,
             };
         }
         private static PushData GetRightPushData(CalendarTaskObject C)
         {
-            bool C2HasRoom = true;
+            bool hasRoom = true;
             var RT = C;
+            bool canReDist = C.CanReDist;
             double RP = C.ParentPerZone.ParentMap.TimeTask.Priority;
             TimeSpan RmaxRoom = new TimeSpan();
             while (true)
             {
+                if (canReDist)
+                {
+                    if (RT.CanReDist)
+                    {
+                        if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
+                        {
+                            RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
+                            RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
+                        }
+                    }
+                }
+                else
+                {
+                    if (RT.CanReDist)
+                    {
+                        canReDist = true;
+                    }
+                    if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
+                    {
+                        RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
+                        RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
+                    }
+                }
                 if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
                 {
                     RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    RmaxRoom = RT.ParentPerZone.ParentMap.TimeTask.Duration;
+                    RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
                 }
                 if (RT.EndLock ||
                     RT.StartLock ||
+                    (RT.RightTangent?.StartLock ?? false) ||
                     RT.ParentInclusionZone?.End <= RT.End)
                 {
-                    C2HasRoom = false;
+                    hasRoom = false;
                     break;
                 }
+                else 
                 if (RT.RightTangent == null)
                 {
                     RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    RmaxRoom = RT.ParentInclusionZone?.End - RT.End ?? TimeSpan.FromDays(1);
+                    RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
                     break;
                 }
                 else
@@ -2294,9 +2559,10 @@ namespace TimekeeperWPF
             return new PushData
             {
                 Direction = PushData.PushDirection.Right,
-                HasRoom = C2HasRoom,
+                HasRoom = hasRoom,
                 Priority = RP,
                 MaxRoom = RmaxRoom,
+                CanReDist = canReDist,
             };
         }
         private static List<Tuple<CalendarTaskObject, CalendarTaskObject>> GetIntersections(List<CalendarTaskObject> calObjs)
@@ -2712,9 +2978,17 @@ namespace TimekeeperWPF
             return (from M in TaskMaps
                     select M.TimeTask.Dimension).Distinct();
         }
+        private HashSet<CalendarTaskObject> GetCalObjsUnOrdered(int dimension)
+        {
+            return new HashSet<CalendarTaskObject>(
+                from M in TaskMaps
+                where M.TimeTask.Dimension == dimension
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                select C);
+        }
         private List<CalendarTaskObject> GetCalObjsByPriority(int dimension)
         {
-            //group calobjs by dimension
             return new List<CalendarTaskObject>(
                 from M in TaskMaps
                 where M.TimeTask.Dimension == dimension
