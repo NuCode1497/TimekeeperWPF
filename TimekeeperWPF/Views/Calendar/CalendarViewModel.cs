@@ -1688,7 +1688,7 @@ namespace TimekeeperWPF
         }
         private CalendarTaskObject CollisionsStep1Part2(int D)
         {
-            var calObjs = GetCalObjsByPriority(D);
+            var calObjs = GetCalObjs(D);
             //Clear tangents
             foreach (var C in calObjs)
             {
@@ -1853,7 +1853,7 @@ namespace TimekeeperWPF
         }
         private CalendarTaskObject CollisionsStep2Part2(int D)
         {
-            var calObjs = GetCalObjsByPriority(D);
+            var calObjs = GetCalObjs(D);
             var intersections = GetIntersections(calObjs);
             foreach (var i in intersections)
             {
@@ -1875,7 +1875,7 @@ namespace TimekeeperWPF
             //Step 3 - redistribute
             //returns true if any redistributions were attempted
             bool hasReDists = false;
-            var calObjs = GetCalObjsByPriority(D);
+            var calObjs = GetCalObjs(D);
             var intersections = GetIntersections(calObjs);
             foreach (var i in intersections)
             {
@@ -1978,7 +1978,7 @@ namespace TimekeeperWPF
         private void CollisionsStep4(int D)
         {
             //Step 4 - if any collisions still exist, these will be shrinks that cant be redistributed
-            var calObjs = GetCalObjsByPriority(D);
+            var calObjs = GetCalObjs(D);
             bool hasChanges = true;
             while (hasChanges)
             {
@@ -2474,7 +2474,7 @@ namespace TimekeeperWPF
                 string s = String.Format("{0} {1} WC[{2}] {3}",
                     Direction,
                     HasRoom ? "" : "🔒",
-                    WeakestC.Name,
+                    WeakestC.ParentPerZone.ParentMap.TimeTask.Name,
                     CanReDist ? "CanReDist" : "");
                 return s;
             }
@@ -2582,7 +2582,6 @@ namespace TimekeeperWPF
         }
         private static List<Tuple<CalendarTaskObject, CalendarTaskObject>> GetIntersections(List<CalendarTaskObject> calObjs)
         {
-            //this method should be much faster than LINQ and avoids duplicates
             var intersections = new List<Tuple<CalendarTaskObject, CalendarTaskObject>>();
             for (int a = 0; a < calObjs.Count; a++)
                 for (int b = a + 1; b < calObjs.Count; b++)
@@ -2747,7 +2746,7 @@ namespace TimekeeperWPF
         private List<EmptyZone> GetEmptySpaces(int dimension)
         {
             var spaces = new List<EmptyZone>();
-            var calObjs = GetCalObjsByStart(dimension);
+            var calObjs = GetCalObjs(dimension);
             //Find earliest Per
             var start =
                 (from M in TaskMaps
@@ -2958,7 +2957,7 @@ namespace TimekeeperWPF
             var dimensions = GetDimensions();
             foreach (var D in dimensions)
             {
-                var calObjs = GetCalObjsByStart(D);
+                var calObjs = GetCalObjs(D);
                 var intersections = GetIntersections(calObjs);
                 foreach (var i in intersections)
                 {
@@ -3002,24 +3001,17 @@ namespace TimekeeperWPF
                 from C in P.CalTaskObjs
                 select C);
         }
-        private List<CalendarTaskObject> GetCalObjsByPriority(int dimension)
+        private List<CalendarTaskObject> GetCalObjs(int dimension)
         {
             return new List<CalendarTaskObject>(
                 from M in TaskMaps
                 where M.TimeTask.Dimension == dimension
                 from P in M.PerZones
                 from C in P.CalTaskObjs
-                orderby C.Priority descending, C.Start, C.End
-                select C);
-        }
-        private List<CalendarTaskObject> GetCalObjsByStart(int dimension)
-        {
-            return new List<CalendarTaskObject>(
-                from M in TaskMaps
-                where M.TimeTask.Dimension == dimension
-                from P in M.PerZones
-                from C in P.CalTaskObjs
-                orderby C.Start, C.End
+                orderby C.Start, C.End, 
+                (C.ParentInclusionZone?.Start ?? C.End),
+                (C.ParentInclusionZone?.End ?? C.End),
+                C.Priority descending
                 select C);
         }
         #endregion MapTaskObjects

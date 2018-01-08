@@ -27,19 +27,19 @@
                     <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"/>
                     <DataGridTextColumn Binding="{Binding Path=End}" Header="End"/>
                     <DataGridTextColumn Binding="{Binding Path=TaskType.Name}" Header="Type" />
-                    <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
-                    <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
-                    <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
-                    <DataGridTextColumn Binding="{Binding Path=FiltersToString}" Header="Filters"
-                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
                     <DataGridTextColumn Binding="{Binding Path=Priority}" Header="Priority"/>
                     <DataGridTextColumn Binding="{Binding Path=Dimension}" Header="Dimension"/>
                     <DataGridTextColumn Binding="{Binding Path=AutoCheckIn}" Header="AutoCheckIn"/>
                     <DataGridTextColumn Binding="{Binding Path=CanFill}" Header="CanFill"/>
                     <DataGridTextColumn Binding="{Binding Path=AllocationMethod}" Header="AllocationMethod"/>
+                    <DataGridTextColumn Binding="{Binding Path=AllocationsToString}" Header="Allocations"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                    <DataGridTextColumn Binding="{Binding Path=FiltersToString}" Header="Filters"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                    <DataGridTextColumn Binding="{Binding Path=LabelsToString}" Header="Labels"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
+                    <DataGridTextColumn Binding="{Binding Path=Description}" Header="Description"
+                                    ElementStyle="{StaticResource DGLongTextStyle}"/>
                 </DataGrid.Columns>
             </DataGrid>
             <ContentControl 
