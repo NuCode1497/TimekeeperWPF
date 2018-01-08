@@ -1729,7 +1729,7 @@ namespace TimekeeperWPF
         {
             //Refer to Plans.xlsx - Collisions
             if (insider.StartLock || insider.EndLock ||
-                insider.ParentPerZone.ParentMap.TimeTask.Priority > outsider.ParentPerZone.ParentMap.TimeTask.Priority)
+                insider.Priority > outsider.Priority)
             {
                 if (outsider.State == CalendarTaskObject.States.Unscheduled)
                 {
@@ -1790,7 +1790,7 @@ namespace TimekeeperWPF
                 {
                     case Collision.CollisionResult.PushLeft:
                         TimeSpan Lroom = C.Left.Start - C.Left.ParentInclusionZone.Start;
-                        TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.LData.MaxRoom.Ticks, Lroom.Ticks)));
+                        TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, Lroom.Ticks));
                         C.Left.Start -= Lpush;
                         C.Left.End -= Lpush;
                         C.Left.RightTangent = C.Right;
@@ -1812,7 +1812,7 @@ namespace TimekeeperWPF
                         return false;
                     case Collision.CollisionResult.PushRight:
                         TimeSpan Rroom = C.Right.ParentInclusionZone.End - C.Right.End;
-                        TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, Min(C.RData.MaxRoom.Ticks, Rroom.Ticks)));
+                        TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, Rroom.Ticks));
                         C.Right.Start += Rpush;
                         C.Right.End += Rpush;
                         C.Left.RightTangent = C.Right;
@@ -1883,62 +1883,96 @@ namespace TimekeeperWPF
                 if (collision == null) continue;
                 if (collision.Loser.CanReDist)
                 {
-                    hasReDists = true;
                     bool hasChanges = true;
-                    while (hasChanges)
+                    switch (collision.Result)
                     {
-                        hasChanges = false;
-                        if (collision.Overlap.Ticks <= 0) break;
-                        if (CollisionsStep3Part2(D, collision, collision.Loser))
-                        {
-                            hasChanges = true;
-                        }
-                    }
-                }
-                if (collision.Winner.CanReDist)
-                {
-                    hasReDists = true;
-                    bool hasChanges = true;
-                    while (hasChanges)
-                    {
-                        hasChanges = false;
-                        if (collision.Overlap.Ticks <= 0) break;
-                        if (CollisionsStep3Part2(D, collision, collision.Winner))
-                        {
-                            hasChanges = true;
-                        }
+                        case Collision.CollisionResult.PushLeft:
+                            hasReDists = true;
+                            break;
+                        case Collision.CollisionResult.ReDistLeft:
+                            hasReDists = true;
+                            while (hasChanges)
+                            {
+                                hasChanges = false;
+                                if (collision.Overlap.Ticks <= 0) break;
+                                if (Step3ReDistLeft(D, collision))
+                                {
+                                    hasChanges = true;
+                                }
+                            }
+                            break;
+                        case Collision.CollisionResult.PushRight:
+                            hasReDists = true;
+                            break;
+                        case Collision.CollisionResult.ReDistRight:
+                            hasReDists = true;
+                            while (hasChanges)
+                            {
+                                hasChanges = false;
+                                if (collision.Overlap.Ticks <= 0) break;
+                                if (Step3ReDistRight(D, collision))
+                                {
+                                    hasChanges = true;
+                                }
+                            }
+                            break;
                     }
                 }
             }
             return hasReDists;
         }
-        private bool CollisionsStep3Part2(int D, Collision collision, CalendarTaskObject C)
+        private bool Step3ReDistLeft(int D, Collision collision)
         {
             //returns true when there is a redistribution
             var spaces = GetEmptySpaces(D);
             foreach (var S in spaces)
             {
-                foreach (var Z in C.ParentPerZone.InclusionZones)
+                foreach (var Z in collision.Loser.ParentPerZone.InclusionZones)
                 {
                     if (!S.Intersects(Z)) continue;
                     var SZOverlap = S.GetOverlap(Z);
                     var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
                     if (shrink.Ticks <= 0) continue;
-                    //shrink in the correct direction
-                    if (C == collision.Left)
-                        C.End -= shrink;
-                    else
-                        C.Start += shrink;
+                    //can't redistribute through a lock
+                    if (collision.Loser.EndLock) return false;
+                    collision.Loser.End -= shrink;
                     //update the allocation
-                    C.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
+                    collision.Loser.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
                     //allocate the empty space
                     FillEmptyWithInsuffZ(S, Z);
                     //break out of the loops to update the spaces collection
                     return true;
                 }
             }
-            //we have exhausted all possibilities for redistributing C
-            C.CanReDist = false;
+            //we have exhausted all possibilities for redistributing 
+            collision.Loser.CanReDist = false;
+            return false;
+        }
+        private bool Step3ReDistRight(int D, Collision collision)
+        {
+            //returns true when there is a redistribution
+            var spaces = GetEmptySpaces(D);
+            foreach (var S in spaces)
+            {
+                foreach (var Z in collision.Loser.ParentPerZone.InclusionZones)
+                {
+                    if (!S.Intersects(Z)) continue;
+                    var SZOverlap = S.GetOverlap(Z);
+                    var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
+                    if (shrink.Ticks <= 0) continue;
+                    //can't redistribute through a lock
+                    if (collision.Loser.StartLock) return false;
+                    collision.Loser.Start += shrink;
+                    //update the allocation
+                    collision.Loser.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
+                    //allocate the empty space
+                    FillEmptyWithInsuffZ(S, Z);
+                    //break out of the loops to update the spaces collection
+                    return true;
+                }
+            }
+            //we have exhausted all possibilities for redistributing 
+            collision.Loser.CanReDist = false;
             return false;
         }
         private void CollisionsStep4(int D)
@@ -1969,14 +2003,28 @@ namespace TimekeeperWPF
                 switch (C.Result)
                 {
                     case Collision.CollisionResult.PushLeft:
-                    case Collision.CollisionResult.ShrinkLeft:
                     case Collision.CollisionResult.ReDistLeft:
+                        ExceptionViewer LEV = new ExceptionViewer(
+                            "There's a logical problem with collisions.", 
+                            new Exception($"Collisions Step4 was given a {C.Result} collision.\n" +
+                            $"Left[{C.Left}] Right[{C.Right}]\n" +
+                            $"Cell: {C.cell}"));
+                        LEV.ShowDialog();
+                        break;
+                    case Collision.CollisionResult.ShrinkLeft:
                         TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, C.Left.Duration.Ticks));
                         C.Left.End -= Lpush;
                         break;
                     case Collision.CollisionResult.PushRight:
-                    case Collision.CollisionResult.ShrinkRight:
                     case Collision.CollisionResult.ReDistRight:
+                        ExceptionViewer REV = new ExceptionViewer(
+                            "There's a logical problem with collisions.",
+                            new Exception($"Collisions Step4 was given a {C.Result} collision.\n" +
+                            $"Left[{C.Left}] Right[{C.Right}]\n" +
+                            $"Cell: {C.cell}"));
+                        REV.ShowDialog();
+                        break;
+                    case Collision.CollisionResult.ShrinkRight:
                         TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, C.Right.Duration.Ticks));
                         C.Right.Start += Rpush;
                         break;
@@ -2039,7 +2087,7 @@ namespace TimekeeperWPF
                 }
                 else if (LData.CanReDist) //3 4
                 {
-                    if (LData.Priority < L.Priority) //3
+                    if (L != LData.WeakestC) //3
                     {
                         //PushLeft
                         collision.Result = Collision.CollisionResult.PushLeft;
@@ -2052,7 +2100,7 @@ namespace TimekeeperWPF
                         collision.cell = "L4";
                     }
                 }
-                else if (LData.Priority < L.Priority) //5
+                else if (L != LData.WeakestC) //5
                 {
                     //PushLeft
                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2067,7 +2115,7 @@ namespace TimekeeperWPF
             }
             else if (RData.HasRoom) //B C
             {
-                if (LData.Priority >= RData.Priority) //B
+                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //B
                 {
                     //PushRight
                     collision.Result = Collision.CollisionResult.PushRight;
@@ -2091,9 +2139,9 @@ namespace TimekeeperWPF
             }
             else if (RData.CanReDist) //D E F G
             {
-                if (LData.Priority >= RData.Priority) //D E
+                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //D E
                 {
-                    if (R.Priority > RData.Priority) //D
+                    if (R != RData.WeakestC) //D
                     {
                         if (LData.HasRoom) //2
                         {
@@ -2126,7 +2174,7 @@ namespace TimekeeperWPF
                 }
                 else //F G
                 {
-                    if (R.Priority > RData.Priority) //F
+                    if (R != RData.WeakestC) //F
                     {
                         if (LData.HasRoom) //2
                         {
@@ -2138,7 +2186,7 @@ namespace TimekeeperWPF
                         {
                             if (LData.CanReDist) //3 4
                             {
-                                if (LData.Priority < L.Priority) //3
+                                if (L != LData.WeakestC) //3
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2171,7 +2219,7 @@ namespace TimekeeperWPF
                         {
                             if (LData.CanReDist)
                             {
-                                if (LData.Priority < L.Priority) //3
+                                if (L != LData.WeakestC) //3
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2196,9 +2244,9 @@ namespace TimekeeperWPF
             }
             else //H I J K
             {
-                if (LData.Priority >= RData.Priority) //H I
+                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //H I
                 {
-                    if (R.Priority > RData.Priority) //H
+                    if (R != RData.WeakestC) //H
                     {
                         if (LData.HasRoom) //2
                         {
@@ -2210,7 +2258,7 @@ namespace TimekeeperWPF
                         {
                             if (LData.CanReDist) //3 4
                             {
-                                if (LData.Priority < L.Priority) //3
+                                if (L != LData.WeakestC) //3
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2243,7 +2291,7 @@ namespace TimekeeperWPF
                         {
                             if (LData.CanReDist) //3 4
                             {
-                                if (LData.Priority < L.Priority) //3
+                                if (L != LData.WeakestC) //3
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2267,7 +2315,7 @@ namespace TimekeeperWPF
                 }
                 else //J K
                 {
-                    if (R.Priority > RData.Priority) //J
+                    if (R != RData.WeakestC) //J
                     {
                         if (L.EndLock) //7
                         {
@@ -2285,7 +2333,7 @@ namespace TimekeeperWPF
                         {
                             if (LData.CanReDist) //3 4
                             {
-                                if (LData.Priority < L.Priority) //3
+                                if (L != LData.WeakestC) //3
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2300,7 +2348,7 @@ namespace TimekeeperWPF
                             }
                             else //5 6
                             {
-                                if (LData.Priority < L.Priority) //5
+                                if (L != LData.WeakestC) //5
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2333,7 +2381,7 @@ namespace TimekeeperWPF
                         {
                             if (LData.CanReDist)
                             {
-                                if (LData.Priority < L.Priority) //3
+                                if (L != LData.WeakestC) //3
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2348,7 +2396,7 @@ namespace TimekeeperWPF
                             }
                             else //5 6
                             {
-                                if (LData.Priority < L.Priority)
+                                if (L != LData.WeakestC)
                                 {
                                     //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
@@ -2420,15 +2468,13 @@ namespace TimekeeperWPF
             public PushDirection Direction;
             public bool HasRoom;
             public bool CanReDist;
-            public double Priority;
-            public TimeSpan MaxRoom;
+            public CalendarTaskObject WeakestC;
             public override string ToString()
             {
-                string s = String.Format("{0} {1} P[{2}] {3} {4}",
+                string s = String.Format("{0} {1} WC[{2}] {3}",
                     Direction,
                     HasRoom ? "" : "🔒",
-                    Priority,
-                    MaxRoom.ShortGoodString(),
+                    WeakestC.Name,
                     CanReDist ? "CanReDist" : "");
                 return s;
             }
@@ -2436,10 +2482,12 @@ namespace TimekeeperWPF
         private static PushData GetLeftPushData(CalendarTaskObject C)
         {
             bool hasRoom = true;
-            var LT = C;
+            //The current Left Tangent we're looking at
+            var LT = C; 
+            //Weakest CalObj on the left side
+            var WC = C; 
+            //If at least one CalObj on the left side CanReDist
             bool canReDist = C.CanReDist;
-            double LP = C.ParentPerZone.ParentMap.TimeTask.Priority;
-            TimeSpan LmaxRoom = new TimeSpan();
             while (true)
             {
                 //If C.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >= LT.S or LT.LT.E🔒. 
@@ -2448,26 +2496,14 @@ namespace TimekeeperWPF
                 //Also if any LT CanReDist, then WC must also have CanReDist
                 if (canReDist)
                 {
-                    if (LT.CanReDist)
-                    {
-                        if (LT.ParentPerZone.ParentMap.TimeTask.Priority < LP)
-                        {
-                            LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
-                            LmaxRoom = LT.Start - (LT.ParentInclusionZone?.Start ?? LT.ParentPerZone.Start);
-                        }
-                    }
+                    if (LT.CanReDist &&
+                        LT.Priority < WC.Priority)
+                        WC = LT;
                 }
                 else
                 {
-                    if (LT.CanReDist)
-                    {
-                        canReDist = true;
-                    }
-                    if (LT.ParentPerZone.ParentMap.TimeTask.Priority < LP)
-                    {
-                        LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
-                        LmaxRoom = LT.Start - (LT.ParentInclusionZone?.Start ?? LT.ParentPerZone.Start);
-                    }
+                    if (LT.CanReDist) canReDist = true;
+                    WC = LT;
                 }
                 if (LT.EndLock ||
                     LT.StartLock ||
@@ -2482,8 +2518,7 @@ namespace TimekeeperWPF
                 if (LT.LeftTangent == null)
                 {
                     //HasRoom == T when LC is the LT where LT.LT == null. LP = LC.P. WC = LC.
-                    LP = LT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    LmaxRoom = LT.Start - (LT.ParentInclusionZone?.Start ?? LT.ParentPerZone.Start);
+                    WC = LT;
                     break;
                 }
                 else
@@ -2495,8 +2530,7 @@ namespace TimekeeperWPF
             {
                 Direction = PushData.PushDirection.Left,
                 HasRoom = hasRoom,
-                Priority = LP,
-                MaxRoom = LmaxRoom,
+                WeakestC = WC,
                 CanReDist = canReDist,
             };
         }
@@ -2504,38 +2538,20 @@ namespace TimekeeperWPF
         {
             bool hasRoom = true;
             var RT = C;
+            var WC = C;
             bool canReDist = C.CanReDist;
-            double RP = C.ParentPerZone.ParentMap.TimeTask.Priority;
-            TimeSpan RmaxRoom = new TimeSpan();
             while (true)
             {
                 if (canReDist)
                 {
-                    if (RT.CanReDist)
-                    {
-                        if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
-                        {
-                            RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
-                            RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
-                        }
-                    }
+                    if (RT.CanReDist &&
+                        RT.Priority < WC.Priority)
+                        WC = RT;
                 }
                 else
                 {
-                    if (RT.CanReDist)
-                    {
-                        canReDist = true;
-                    }
-                    if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
-                    {
-                        RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
-                        RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
-                    }
-                }
-                if (RT.ParentPerZone.ParentMap.TimeTask.Priority < RP)
-                {
-                    RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
+                    if (RT.CanReDist) canReDist = true;
+                    WC = RT;
                 }
                 if (RT.EndLock ||
                     RT.StartLock ||
@@ -2548,8 +2564,7 @@ namespace TimekeeperWPF
                 else 
                 if (RT.RightTangent == null)
                 {
-                    RP = RT.ParentPerZone.ParentMap.TimeTask.Priority;
-                    RmaxRoom = (RT.ParentInclusionZone?.End ?? RT.ParentPerZone.End) - RT.End;
+                    WC = RT;
                     break;
                 }
                 else
@@ -2561,8 +2576,7 @@ namespace TimekeeperWPF
             {
                 Direction = PushData.PushDirection.Right,
                 HasRoom = hasRoom,
-                Priority = RP,
-                MaxRoom = RmaxRoom,
+                WeakestC = WC,
                 CanReDist = canReDist,
             };
         }
@@ -2606,7 +2620,7 @@ namespace TimekeeperWPF
                         var insuffZones =
                             from Z in zones
                             where Z.ParentPerZone.TimeConsumption?.Remaining > 0
-                            orderby Z.ParentPerZone.ParentMap.TimeTask.Priority descending
+                            orderby Z.Priority descending
                             select Z;
                         var insuffZone = insuffZones.FirstOrDefault();
                         if (insuffZone != null)
@@ -2621,7 +2635,7 @@ namespace TimekeeperWPF
                             var fillZones =
                                 from Z in zones
                                 where Z.ParentPerZone.ParentMap.TimeTask.CanFill
-                                orderby Z.ParentPerZone.ParentMap.TimeTask.Priority descending
+                                orderby Z.Priority descending
                                 select Z;
                             var fillZone = fillZones.FirstOrDefault();
                             if (fillZone != null)
@@ -2995,7 +3009,7 @@ namespace TimekeeperWPF
                 where M.TimeTask.Dimension == dimension
                 from P in M.PerZones
                 from C in P.CalTaskObjs
-                orderby C.ParentPerZone.ParentMap.TimeTask.Priority descending, C.Start, C.End
+                orderby C.Priority descending, C.Start, C.End
                 select C);
         }
         private List<CalendarTaskObject> GetCalObjsByStart(int dimension)

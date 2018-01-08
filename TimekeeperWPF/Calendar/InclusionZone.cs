@@ -6,5 +6,6 @@ namespace TimekeeperWPF.Calendar
     {
         public PerZone ParentPerZone { get; set; }
         public CalendarTaskObject SeedTaskObj { get; set; }
+        public double Priority => ParentPerZone.ParentMap.TimeTask.Priority;
     }
 }
