@@ -1873,7 +1873,7 @@ namespace TimekeeperWPF
         private bool CollisionsStep3(int D)
         {
             //Step 3 - redistribute
-            //returns true if any redistributions occured
+            //returns true if any redistributions were attempted
             bool hasReDists = false;
             var calObjs = GetCalObjsByPriority(D);
             var intersections = GetIntersections(calObjs);
@@ -1883,6 +1883,7 @@ namespace TimekeeperWPF
                 if (collision == null) continue;
                 if (collision.Loser.CanReDist)
                 {
+                    hasReDists = true;
                     bool hasChanges = true;
                     while (hasChanges)
                     {
@@ -1891,12 +1892,12 @@ namespace TimekeeperWPF
                         if (CollisionsStep3Part2(D, collision, collision.Loser))
                         {
                             hasChanges = true;
-                            hasReDists = true;
                         }
                     }
                 }
                 if (collision.Winner.CanReDist)
                 {
+                    hasReDists = true;
                     bool hasChanges = true;
                     while (hasChanges)
                     {
@@ -1905,7 +1906,6 @@ namespace TimekeeperWPF
                         if (CollisionsStep3Part2(D, collision, collision.Winner))
                         {
                             hasChanges = true;
-                            hasReDists = true;
                         }
                     }
                 }
@@ -2069,8 +2069,8 @@ namespace TimekeeperWPF
             {
                 if (LData.Priority >= RData.Priority) //B
                 {
-                    //PushLeft
-                    collision.Result = Collision.CollisionResult.PushLeft;
+                    //PushRight
+                    collision.Result = Collision.CollisionResult.PushRight;
                     collision.cell = "B";
                 }
                 else //C
@@ -2424,11 +2424,12 @@ namespace TimekeeperWPF
             public TimeSpan MaxRoom;
             public override string ToString()
             {
-                string s = String.Format("{0} {1} P[{2}] {3}",
+                string s = String.Format("{0} {1} P[{2}] {3} {4}",
                     Direction,
                     HasRoom ? "" : "🔒",
                     Priority,
-                    MaxRoom.ShortGoodString());
+                    MaxRoom.ShortGoodString(),
+                    CanReDist ? "CanReDist" : "");
                 return s;
             }
         }

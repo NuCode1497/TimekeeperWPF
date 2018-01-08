@@ -130,7 +130,6 @@ namespace TimekeeperWPF.Calendar
         internal bool Step1IgnoreFlag = false;
         internal bool CanReDist = true;
         public double Priority => ParentPerZone.ParentMap.TimeTask.Priority;
-        public 
         #region Zone
         public CalendarTaskObject LeftTangent { get; set; }
         public CalendarTaskObject RightTangent { get; set; }
