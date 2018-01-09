@@ -243,7 +243,7 @@ namespace TimekeeperWPF.Tools
 
                 AddLines(inlines, propVal as string);
             }
-            else
+            else if (propVal != null)
             {
                 inlines.Add(new Run(propVal.ToString()));
             }

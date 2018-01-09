@@ -1688,11 +1688,10 @@ namespace TimekeeperWPF
         }
         private CalendarTaskObject CollisionsStep1Part2(int D)
         {
-            var calObjs = GetCalObjs(D);
+            var calObjs = GetCalObjsByStart(D);
             //Clear tangents
             foreach (var C in calObjs)
             {
-                C.Step1IgnoreFlag = false;
                 C.LeftTangent = null;
                 C.RightTangent = null;
             }
@@ -1704,8 +1703,7 @@ namespace TimekeeperWPF
                 var intersections = GetIntersections(calObjs);
                 foreach (var i in intersections)
                 {
-                    if (i.Item1.Step1IgnoreFlag || i.Item2.Step1IgnoreFlag)
-                        continue;
+                    //if we get an inside collision, perform a split, break out, add the new item, and start over
                     if (i.Item1.IsInside(i.Item2))
                     {
                         var newC = InsideCollision(i.Item1, i.Item2);
@@ -1716,6 +1714,7 @@ namespace TimekeeperWPF
                         var newC = InsideCollision(i.Item2, i.Item1);
                         if (newC != null) return newC;
                     }
+                    //if we get a push, we need to look for more intersections possibly caused by the push
                     else if (Step1Push(i.Item1, i.Item2))
                     {
                         hasChanges = true;
@@ -1805,10 +1804,6 @@ namespace TimekeeperWPF
                             if (C.Left.ParentPerZone.TimeConsumption != null)
                                 C.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
                         }
-                        else
-                        {
-                            C.Left.Step1IgnoreFlag = true;
-                        }
                         return false;
                     case Collision.CollisionResult.PushRight:
                         TimeSpan Rroom = C.Right.ParentInclusionZone.End - C.Right.End;
@@ -1826,10 +1821,6 @@ namespace TimekeeperWPF
                             C.Right.Start = C.Left.End;
                             if (C.Right.ParentPerZone.TimeConsumption != null)
                                 C.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
-                        }
-                        else
-                        {
-                            C.Right.Step1IgnoreFlag = true;
                         }
                         return false;
                 }
@@ -1853,7 +1844,7 @@ namespace TimekeeperWPF
         }
         private CalendarTaskObject CollisionsStep2Part2(int D)
         {
-            var calObjs = GetCalObjs(D);
+            var calObjs = GetCalObjsByStart(D);
             var intersections = GetIntersections(calObjs);
             foreach (var i in intersections)
             {
@@ -1875,22 +1866,22 @@ namespace TimekeeperWPF
             //Step 3 - redistribute
             //returns true if any redistributions were attempted
             bool hasReDists = false;
-            var calObjs = GetCalObjs(D);
+            var calObjs = GetCalObjsByStart(D);
             var intersections = GetIntersections(calObjs);
             foreach (var i in intersections)
             {
                 var collision = DetermineCollision(i.Item1, i.Item2);
                 if (collision == null) continue;
-                if (collision.Loser.CanReDist)
+                switch (collision.Result)
                 {
-                    bool hasChanges = true;
-                    switch (collision.Result)
-                    {
-                        case Collision.CollisionResult.PushLeft:
-                            hasReDists = true;
-                            break;
-                        case Collision.CollisionResult.ReDistLeft:
-                            hasReDists = true;
+                    case Collision.CollisionResult.PushLeft:
+                        hasReDists = true;
+                        break;
+                    case Collision.CollisionResult.ReDistLeft:
+                        hasReDists = true;
+                        if (collision.Loser.CanReDist)
+                        {
+                            bool hasChanges = true;
                             while (hasChanges)
                             {
                                 hasChanges = false;
@@ -1900,12 +1891,16 @@ namespace TimekeeperWPF
                                     hasChanges = true;
                                 }
                             }
-                            break;
-                        case Collision.CollisionResult.PushRight:
-                            hasReDists = true;
-                            break;
-                        case Collision.CollisionResult.ReDistRight:
-                            hasReDists = true;
+                        }
+                        break;
+                    case Collision.CollisionResult.PushRight:
+                        hasReDists = true;
+                        break;
+                    case Collision.CollisionResult.ReDistRight:
+                        hasReDists = true;
+                        if (collision.Loser.CanReDist)
+                        {
+                            bool hasChanges = true;
                             while (hasChanges)
                             {
                                 hasChanges = false;
@@ -1915,8 +1910,8 @@ namespace TimekeeperWPF
                                     hasChanges = true;
                                 }
                             }
-                            break;
-                    }
+                        }
+                        break;
                 }
             }
             return hasReDists;
@@ -1978,7 +1973,7 @@ namespace TimekeeperWPF
         private void CollisionsStep4(int D)
         {
             //Step 4 - if any collisions still exist, these will be shrinks that cant be redistributed
-            var calObjs = GetCalObjs(D);
+            var calObjs = GetCalObjsByStart(D);
             bool hasChanges = true;
             while (hasChanges)
             {
@@ -1997,36 +1992,36 @@ namespace TimekeeperWPF
         private static bool Step4Shrink(CalendarTaskObject C1, CalendarTaskObject C2)
         {
             //returns true when the collision successfully shrinks, false otherwise
-            var C = DetermineCollision(C1, C2);
-            if (C != null)
+            var collision = DetermineCollision(C1, C2);
+            if (collision != null)
             {
-                switch (C.Result)
+                switch (collision.Result)
                 {
                     case Collision.CollisionResult.PushLeft:
                     case Collision.CollisionResult.ReDistLeft:
                         ExceptionViewer LEV = new ExceptionViewer(
                             "There's a logical problem with collisions.", 
-                            new Exception($"Collisions Step4 was given a {C.Result} collision.\n" +
-                            $"Left[{C.Left}] Right[{C.Right}]\n" +
-                            $"Cell: {C.cell}"));
+                            new Exception($"Collisions Step4 was given a {collision.Result} collision.\n" +
+                            $"Left[{collision.Left}]\nRight[{collision.Right}]\n" +
+                            $"Cell: {collision.cell}"));
                         LEV.ShowDialog();
                         break;
                     case Collision.CollisionResult.ShrinkLeft:
-                        TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, C.Left.Duration.Ticks));
-                        C.Left.End -= Lpush;
+                        TimeSpan Lpush = new TimeSpan(Min(collision.Overlap.Ticks, collision.Left.Duration.Ticks));
+                        collision.Left.End -= Lpush;
                         break;
                     case Collision.CollisionResult.PushRight:
                     case Collision.CollisionResult.ReDistRight:
                         ExceptionViewer REV = new ExceptionViewer(
                             "There's a logical problem with collisions.",
-                            new Exception($"Collisions Step4 was given a {C.Result} collision.\n" +
-                            $"Left[{C.Left}] Right[{C.Right}]\n" +
-                            $"Cell: {C.cell}"));
+                            new Exception($"Collisions Step4 was given a {collision.Result} collision.\n" +
+                            $"Left[{collision.Left}]\nRight[{collision.Right}]\n" +
+                            $"Cell: {collision.cell}"));
                         REV.ShowDialog();
                         break;
                     case Collision.CollisionResult.ShrinkRight:
-                        TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, C.Right.Duration.Ticks));
-                        C.Right.Start += Rpush;
+                        TimeSpan Rpush = new TimeSpan(Min(collision.Overlap.Ticks, collision.Right.Duration.Ticks));
+                        collision.Right.Start += Rpush;
                         break;
                 }
             }
@@ -2252,7 +2247,7 @@ namespace TimekeeperWPF
                         {
                             //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "D2";
+                            collision.cell = "H2";
                         }
                         else //3 4 567
                         {
@@ -2502,8 +2497,15 @@ namespace TimekeeperWPF
                 }
                 else
                 {
-                    if (LT.CanReDist) canReDist = true;
-                    WC = LT;
+                    if (LT.CanReDist)
+                    {
+                        canReDist = true;
+                        WC = LT;
+                    }
+                    else if (LT.Priority < WC.Priority)
+                    {
+                        WC = LT;
+                    }
                 }
                 if (LT.EndLock ||
                     LT.StartLock ||
@@ -2550,8 +2552,15 @@ namespace TimekeeperWPF
                 }
                 else
                 {
-                    if (RT.CanReDist) canReDist = true;
-                    WC = RT;
+                    if (RT.CanReDist)
+                    {
+                        canReDist = true;
+                        WC = RT;
+                    }
+                    else if (RT.Priority < WC.Priority)
+                    {
+                        WC = RT;
+                    }
                 }
                 if (RT.EndLock ||
                     RT.StartLock ||
@@ -2746,7 +2755,7 @@ namespace TimekeeperWPF
         private List<EmptyZone> GetEmptySpaces(int dimension)
         {
             var spaces = new List<EmptyZone>();
-            var calObjs = GetCalObjs(dimension);
+            var calObjs = GetCalObjsByStart(dimension);
             //Find earliest Per
             var start =
                 (from M in TaskMaps
@@ -2957,7 +2966,7 @@ namespace TimekeeperWPF
             var dimensions = GetDimensions();
             foreach (var D in dimensions)
             {
-                var calObjs = GetCalObjs(D);
+                var calObjs = GetCalObjsByStart(D);
                 var intersections = GetIntersections(calObjs);
                 foreach (var i in intersections)
                 {
@@ -3001,7 +3010,7 @@ namespace TimekeeperWPF
                 from C in P.CalTaskObjs
                 select C);
         }
-        private List<CalendarTaskObject> GetCalObjs(int dimension)
+        private List<CalendarTaskObject> GetCalObjsByStart(int dimension)
         {
             return new List<CalendarTaskObject>(
                 from M in TaskMaps
