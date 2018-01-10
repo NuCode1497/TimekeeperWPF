@@ -1711,25 +1711,23 @@ namespace TimekeeperWPF
                         }
                         else
                         {
-                            //shrink left
-                            var diff = insider.End - outsider.Start;
-                            outsider.Start = insider.End;
-                            outsider.LeftTangent = insider;
-                            insider.RightTangent = outsider;
-                            if (outsider.ParentPerZone.TimeConsumption != null)
-                                outsider.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                            var collision = new Collision
+                            {
+                                Left = insider,
+                                Right = outsider,
+                            };
+                            ShrinkRight(collision, insider.End - outsider.Start);
                             return null;
                         }
                     }
                     else if (outsider.StartLock)
                     {
-                        //shrink right
-                        var diff = outsider.End - insider.Start;
-                        outsider.End = insider.Start;
-                        outsider.RightTangent = insider;
-                        insider.LeftTangent = outsider;
-                        if (outsider.ParentPerZone.TimeConsumption != null)
-                            outsider.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                        var collision = new Collision
+                        {
+                            Left = outsider,
+                            Right = insider,
+                        };
+                        ShrinkLeft(collision, outsider.End - insider.Start);
                         return null;
                     }
                 }
@@ -1768,6 +1766,10 @@ namespace TimekeeperWPF
                     TimeSpan Lpush = new TimeSpan(Min(collision.Overlap.Ticks, Lroom.Ticks));
                     collision.Left.Start -= Lpush;
                     collision.Left.End -= Lpush;
+                    if (collision.Right.LeftTangent != null)
+                        collision.Right.LeftTangent.RightTangent = null;
+                    if (collision.Left.RightTangent != null)
+                        collision.Left.RightTangent.LeftTangent = null;
                     if (collision.Left.LeftTangent != null)
                         collision.Left.LeftTangent.RightTangent = null;
                     collision.Left.LeftTangent = null;
@@ -1777,25 +1779,17 @@ namespace TimekeeperWPF
                 case Collision.CollisionResult.ShrinkLeft:
                 case Collision.CollisionResult.ReDistLeft:
                     if (collision.Left.State == CalendarTaskObject.States.Unscheduled)
-                    {
-                        var shrink = collision.Left.End - collision.Right.Start;
-                        collision.Left.End  = collision.Right.Start;
-                        if (collision.Left.ParentPerZone.TimeConsumption != null)
-                            collision.Left.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
-                        if (collision.Left.Start == collision.Left.End)
-                            collision.Left.ParentPerZone.CalTaskObjs.Remove(collision.Left);
-                        else
-                        {
-                            collision.Left.RightTangent = collision.Right;
-                            collision.Right.LeftTangent = collision.Left;
-                        }
-                    }
+                        ShrinkLeft(collision, collision.Left.End - collision.Right.Start);
                     break;
                 case Collision.CollisionResult.PushRight:
                     TimeSpan Rroom = collision.Right.ParentInclusionZone.End - collision.Right.End;
                     TimeSpan Rpush = new TimeSpan(Min(collision.Overlap.Ticks, Rroom.Ticks));
                     collision.Right.Start += Rpush;
                     collision.Right.End += Rpush;
+                    if (collision.Right.LeftTangent != null)
+                        collision.Right.LeftTangent.RightTangent = null;
+                    if (collision.Left.RightTangent != null)
+                        collision.Left.RightTangent.LeftTangent = null;
                     if (collision.Right.RightTangent != null)
                         collision.Right.RightTangent.LeftTangent = null;
                     collision.Right.RightTangent = null;
@@ -1805,19 +1799,7 @@ namespace TimekeeperWPF
                 case Collision.CollisionResult.ShrinkRight:
                 case Collision.CollisionResult.ReDistRight:
                     if (C2.State == CalendarTaskObject.States.Unscheduled)
-                    {
-                        var diff = collision.Left.End - collision.Right.Start;
-                        collision.Right.Start = collision.Left.End;
-                        if (collision.Right.ParentPerZone.TimeConsumption != null)
-                            collision.Right.ParentPerZone.TimeConsumption.Remaining += diff.Ticks;
-                        if (collision.Right.Start == collision.Right.End)
-                            collision.Right.ParentPerZone.CalTaskObjs.Remove(collision.Right);
-                        else
-                        {
-                            collision.Right.LeftTangent = collision.Left;
-                            collision.Left.RightTangent = collision.Right;
-                        }
-                    }
+                        ShrinkRight(collision, collision.Left.End - collision.Right.Start);
                     break;
             }
             return false;
@@ -1923,20 +1905,7 @@ namespace TimekeeperWPF
                     var SZOverlap = S.GetOverlap(Z);
                     var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
                     if (shrink.Ticks <= 0) continue;
-                    //can't redistribute through a lock
-                    if (collision.Left.EndLock) return false;
-                    collision.Left.End -= shrink;
-                    //update the allocation
-                    if (collision.Left.ParentPerZone.TimeConsumption != null)
-                        collision.Left.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
-                    if (collision.Left.Start == collision.Left.End)
-                        collision.Left.ParentPerZone.CalTaskObjs.Remove(collision.Left);
-                    else if (shrink == collision.Overlap)
-                    {
-                        collision.Right.LeftTangent = collision.Left;
-                        collision.Left.RightTangent = collision.Right;
-                    }
-                    //allocate the empty space
+                    ShrinkLeft(collision, shrink);
                     FillEmptyWithInsuffZ(S, Z);
                     //break out of the loops to update the spaces collection
                     return true;
@@ -1958,20 +1927,7 @@ namespace TimekeeperWPF
                     var SZOverlap = S.GetOverlap(Z);
                     var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
                     if (shrink.Ticks <= 0) continue;
-                    //can't redistribute through a lock
-                    if (collision.Loser.StartLock) return false;
-                    collision.Loser.Start += shrink;
-                    //update the allocation
-                    if (collision.Right.ParentPerZone.TimeConsumption != null)
-                        collision.Loser.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
-                    if (collision.Right.Start == collision.Right.End)
-                        collision.Right.ParentPerZone.CalTaskObjs.Remove(collision.Right);
-                    else if (shrink == collision.Overlap)
-                    {
-                        collision.Right.LeftTangent = collision.Left;
-                        collision.Left.RightTangent = collision.Right;
-                    }
-                    //allocate the empty space
+                    ShrinkRight(collision, shrink);
                     FillEmptyWithInsuffZ(S, Z);
                     //break out of the loops to update the spaces collection
                     return true;
@@ -1980,6 +1936,48 @@ namespace TimekeeperWPF
             //we have exhausted all possibilities for redistributing 
             collision.Loser.CanReDist = false;
             return false;
+        }
+        private static void ShrinkLeft(Collision collision, TimeSpan shrink)
+        {
+            collision.Left.End -= shrink;
+            if (collision.Left.ParentPerZone.TimeConsumption != null)
+                collision.Left.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
+            if (collision.Left.RightTangent != null)
+                collision.Left.RightTangent.LeftTangent = null;
+            if (collision.Left.Start == collision.Left.End)
+            {
+                if (collision.Left.LeftTangent != null)
+                    collision.Left.LeftTangent.RightTangent = null;
+                collision.Left.ParentPerZone.CalTaskObjs.Remove(collision.Left);
+            }
+            else if (shrink == collision.Overlap)
+            {
+                if (collision.Right.LeftTangent != null)
+                    collision.Right.LeftTangent.RightTangent = null;
+                collision.Right.LeftTangent = collision.Left;
+                collision.Left.RightTangent = collision.Right;
+            }
+        }
+        private static void ShrinkRight(Collision collision, TimeSpan shrink)
+        {
+            collision.Right.Start += shrink;
+            if (collision.Right.ParentPerZone.TimeConsumption != null)
+                collision.Right.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
+            if (collision.Right.LeftTangent != null)
+                collision.Right.LeftTangent.RightTangent = null;
+            if (collision.Right.Start == collision.Right.End)
+            {
+                if (collision.Right.RightTangent != null)
+                    collision.Right.RightTangent.LeftTangent = null;
+                collision.Right.ParentPerZone.CalTaskObjs.Remove(collision.Right);
+            }
+            else if (shrink == collision.Overlap)
+            {
+                if (collision.Left.RightTangent != null)
+                    collision.Left.RightTangent.LeftTangent = null;
+                collision.Right.LeftTangent = collision.Left;
+                collision.Left.RightTangent = collision.Right;
+            }
         }
         private void CollisionsStep4(int D)
         {
@@ -2010,33 +2008,30 @@ namespace TimekeeperWPF
                 {
                     case Collision.CollisionResult.PushLeft:
                     case Collision.CollisionResult.ReDistLeft:
-                        ExceptionViewer LEV = new ExceptionViewer(
-                            "There's a logical problem with collisions.", 
-                            new Exception($"Collisions Step4 was given a {collision.Result} collision.\n" +
-                            $"Left[{collision.Left}]\nRight[{collision.Right}]\n" +
-                            $"Cell: {collision.cell}"));
-                        LEV.ShowDialog();
+                        Step4Error(collision);
                         break;
                     case Collision.CollisionResult.ShrinkLeft:
-                        TimeSpan Lpush = new TimeSpan(Min(collision.Overlap.Ticks, collision.Left.Duration.Ticks));
-                        collision.Left.End -= Lpush;
+                        ShrinkLeft(collision, new TimeSpan(Min(collision.Overlap.Ticks, collision.Left.Duration.Ticks)));
                         break;
                     case Collision.CollisionResult.PushRight:
                     case Collision.CollisionResult.ReDistRight:
-                        ExceptionViewer REV = new ExceptionViewer(
-                            "There's a logical problem with collisions.",
-                            new Exception($"Collisions Step4 was given a {collision.Result} collision.\n" +
-                            $"Left[{collision.Left}]\nRight[{collision.Right}]\n" +
-                            $"Cell: {collision.cell}"));
-                        REV.ShowDialog();
+                        Step4Error(collision);
                         break;
                     case Collision.CollisionResult.ShrinkRight:
-                        TimeSpan Rpush = new TimeSpan(Min(collision.Overlap.Ticks, collision.Right.Duration.Ticks));
-                        collision.Right.Start += Rpush;
+                        ShrinkRight(collision, new TimeSpan(Min(collision.Overlap.Ticks, collision.Right.Duration.Ticks)));
                         break;
                 }
             }
             return false;
+        }
+        private static void Step4Error(Collision collision)
+        {
+            ExceptionViewer LEV = new ExceptionViewer(
+                "There's a logical problem with collisions.",
+                new Exception($"Collisions Step4 was given a {collision.Result} collision.\n" +
+                $"Left[{collision.Left}]\nRight[{collision.Right}]\n" +
+                $"Cell: {collision.cell}"));
+            LEV.ShowDialog();
         }
         private static Collision DetermineCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
