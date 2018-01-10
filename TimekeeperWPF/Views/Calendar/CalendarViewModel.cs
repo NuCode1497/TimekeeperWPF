@@ -869,9 +869,10 @@ namespace TimekeeperWPF
         {
             //This function is more intensive than others, it will be called once on load.
             //Create Maps with all PerZones; we will reduce this set later.
+            var maps = new HashSet<CalendarTimeTaskMap>();
             foreach (var T in RelevantTasks)
             {
-                await T.BuildPerZonesAsync();
+                await T.BuildPerZonesAsync(Start, End);
                 var M = new CalendarTimeTaskMap
                 {
                     TimeTask = T,
@@ -887,14 +888,10 @@ namespace TimekeeperWPF
                     };
                     M.PerZones.Add(per);
                 }
-                TaskMaps.Add(M);
+                maps.Add(M);
             }
-            var dimensionMaps =
-                from M in TaskMaps
-                where M.TimeTask.Dimension == dimension
-                select M;
-            var RelevantPerZones = FindPerSet(dimensionMaps, new HashSet<PerZone>(), Start, End);
-            foreach (var M in dimensionMaps)
+            var RelevantPerZones = FindPerSet(maps, new HashSet<PerZone>(), Start, End);
+            foreach (var M in maps)
             {
                 //Reduce the PerZone set.
                 M.PerZones = new HashSet<PerZone>(M.PerZones.Intersect(RelevantPerZones));
@@ -920,6 +917,8 @@ namespace TimekeeperWPF
                     }
                 }
             }
+            foreach (var M in maps)
+                TaskMaps.Add(M);
         }
         private IEnumerable<TimeTask> FindTaskSet(IEnumerable<TimeTask> tasks, IEnumerable<TimeTask> accumulatedFinds, DateTime start, DateTime end)
         {
@@ -1368,53 +1367,25 @@ namespace TimekeeperWPF
             Status = "Allocating Time From Filters...";
             foreach (var M in TaskMaps)
             {
-                if (M.TimeTask.TimeAllocation == null)
-                    AllocateAllTime(M);
-                else
-                    AllocationMethod(M);
-            }
-        }
-        private void AllocateAllTime(CalendarTimeTaskMap M)
-        {
-            // If no time allocation is set, we create one CalendarObject per inclusion zone
-            // with each Start/End set to the bounds of the inclusion zone.
-            foreach (var P in M.PerZones)
-            {
-                foreach (var Z in P.InclusionZones)
+                if (M.TimeTask.TimeAllocation == null) continue;
+                switch (M.TimeTask.AllocationMethod)
                 {
-                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
-                    if (hasCalObj) continue;
-                    //create cal object that matches zone
-                    CalendarTaskObject CalObj = new CalendarTaskObject
-                    {
-                        Start = Z.Start,
-                        End = Z.End,
-                        ParentInclusionZone = Z,
-                        ParentPerZone = P,
-                    };
-                    P.CalTaskObjs.Add(CalObj);
+                    case "Eager":
+                        EagerTimeAllocate(M);
+                        break;
+                    case "EvenEager":
+                        EvenEagerTimeAllocate(M);
+                        break;
+                    case "EvenCentered":
+                        EvenCenteredTimeAllocate(M);
+                        break;
+                    case "EvenApathetic":
+                        EvenApatheticTimeAllocate(M);
+                        break;
+                    case "Apathetic":
+                        ApatheticTimeAllocate(M);
+                        break;
                 }
-            }
-        }
-        private void AllocationMethod(CalendarTimeTaskMap M)
-        {
-            switch (M.TimeTask.AllocationMethod)
-            {
-                case "Eager":
-                    EagerTimeAllocate(M);
-                    break;
-                case "EvenEager":
-                    EvenEagerTimeAllocate(M);
-                    break;
-                case "EvenCentered":
-                    EvenCenteredTimeAllocate(M);
-                    break;
-                case "EvenApathetic":
-                    EvenApatheticTimeAllocate(M);
-                    break;
-                case "Apathetic":
-                    ApatheticTimeAllocate(M);
-                    break;
             }
         }
         private void EagerTimeAllocate(CalendarTimeTaskMap M)
@@ -1792,6 +1763,7 @@ namespace TimekeeperWPF
                         TimeSpan Lpush = new TimeSpan(Min(C.Overlap.Ticks, Lroom.Ticks));
                         C.Left.Start -= Lpush;
                         C.Left.End -= Lpush;
+                        C.Left.LeftTangent = null;
                         C.Left.RightTangent = C.Right;
                         C.Right.LeftTangent = C.Left;
                         return true;
@@ -1810,6 +1782,7 @@ namespace TimekeeperWPF
                         TimeSpan Rpush = new TimeSpan(Min(C.Overlap.Ticks, Rroom.Ticks));
                         C.Right.Start += Rpush;
                         C.Right.End += Rpush;
+                        C.Right.RightTangent = null;
                         C.Left.RightTangent = C.Right;
                         C.Right.LeftTangent = C.Left;
                         return true;

@@ -227,11 +227,11 @@ namespace TimekeeperDAL.EF
                 InclusionZones.Add(zoneStart, end);
             }
         }
-        public async Task BuildPerZonesAsync()
+        public async Task BuildPerZonesAsync(DateTime start, DateTime end)
         {
-            await Task.Run(() => BuildPerZones());
+            await Task.Run(() => BuildPerZones(start, end));
         }
-        public void BuildPerZones()
+        public void BuildPerZones(DateTime start, DateTime end)
         {
             PerZones = new Dictionary<DateTime, DateTime>();
             //Find the time allocation if it exists
@@ -239,7 +239,7 @@ namespace TimekeeperDAL.EF
             if (TimeAllocation == null || TimeAllocation.Per == null)
             {
                 //if per is not defined, we will create a per zone the size of the task
-                PerZones.Add(Start, End);
+                PerZones.Add(start, end);
             }
             else switch (TimeAllocation?.Per?.Name)
             {
