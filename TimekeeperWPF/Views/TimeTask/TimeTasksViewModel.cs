@@ -273,7 +273,8 @@ namespace TimekeeperWPF
                 AllocationMethod = "EvenEager",
                 Dimension = 1,
                 Priority = 100,
-                CanFill = false
+                CanFill = false,
+                CanReDist = true,
             };
             View.AddNewItem(CurrentEditItem);
             BeginEdit();

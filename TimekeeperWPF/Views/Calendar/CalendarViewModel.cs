@@ -1627,7 +1627,10 @@ namespace TimekeeperWPF
                 var calObjs = GetCalObjsUnOrdered(D);
                 foreach (var C in calObjs)
                 {
-                    C.CanReDist = true;
+                    C.Step1IgnoreFlag = false;
+                    C.CanReDistFlag = C.CanReDist;
+                    C.LeftTangent = null;
+                    C.RightTangent = null;
                 }
                 bool hasReDists = true;
                 while(hasReDists)
@@ -1644,13 +1647,17 @@ namespace TimekeeperWPF
         private void CollisionsStep1(int D)
         {
             //Step 1 - do only push collisions and split collisions where the insider wins, ignore the rest
+            var calObjs = GetCalObjsUnOrdered(D);
+            foreach (var C in calObjs)
+            {
+                C.Step1IgnoreFlag = false;
+            }
             bool hasChanges = true;
             while (hasChanges)
             {
                 var newC = CollisionsStep1Part2(D);
                 if (newC != null)
                 {
-
                     newC.ParentPerZone.CalTaskObjs.Add(newC);
                     hasChanges = true;
                 }
@@ -1659,34 +1666,22 @@ namespace TimekeeperWPF
         }
         private CalendarTaskObject CollisionsStep1Part2(int D)
         {
-            var calObjs = GetCalObjsByStart(D);
-            //Clear tangents
-            foreach (var C in calObjs)
-            {
-                C.LeftTangent = null;
-                C.RightTangent = null;
-            }
-            //Find collisions
             bool hasChanges = true;
             while (hasChanges)
             {
                 hasChanges = false;
-                var intersections = GetIntersections(calObjs);
+                var intersections = GetIntersections(GetCalObjsByStart(D));
                 foreach (var i in intersections)
                 {
-                    //if we get an inside collision, perform a split, break out, add the new item, and start over
-                    if (i.Item1.IsInside(i.Item2))
+                    if (i.Item1.Step1IgnoreFlag || i.Item2.Step1IgnoreFlag)
                     {
-                        var newC = InsideCollision(i.Item1, i.Item2);
-                        if (newC != null) return newC;
+                        i.Item1.Step1IgnoreFlag = true;
+                        i.Item2.Step1IgnoreFlag = true;
+                        continue;
                     }
-                    else if (i.Item2.IsInside(i.Item1))
-                    {
-                        var newC = InsideCollision(i.Item2, i.Item1);
-                        if (newC != null) return newC;
-                    }
-                    //if we get a push, we need to look for more intersections possibly caused by the push
-                    else if (Step1Push(i.Item1, i.Item2))
+                    var newC = InsideCollision(i.Item1, i.Item2);
+                    if (newC != null) return newC;
+                    if (Step1Push(i.Item1, i.Item2))
                     {
                         hasChanges = true;
                         break;
@@ -1695,43 +1690,26 @@ namespace TimekeeperWPF
             }
             return null;
         }
-        private static CalendarTaskObject InsideCollision(CalendarTaskObject insider, CalendarTaskObject outsider)
+        private static CalendarTaskObject InsideCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
+            CalendarTaskObject insider;
+            CalendarTaskObject outsider;
+            if (C1.IsInside(C2))
+            {
+                insider = C1;
+                outsider = C2;
+            }
+            else if (C2.IsInside(C1))
+            {
+                insider = C2;
+                outsider = C1;
+            }
+            else return null;
             //Refer to Plans.xlsx - Collisions
             if (insider.StartLock || insider.EndLock ||
                 insider.Priority > outsider.Priority)
             {
-                if (outsider.State == CalendarTaskObject.States.Unscheduled)
-                {
-                    if (outsider.EndLock)
-                    {
-                        if (outsider.StartLock)
-                        {
-                            return SplitOutsider(insider, outsider);
-                        }
-                        else
-                        {
-                            var collision = new Collision
-                            {
-                                Left = insider,
-                                Right = outsider,
-                            };
-                            ShrinkRight(collision, insider.End - outsider.Start);
-                            return null;
-                        }
-                    }
-                    else if (outsider.StartLock)
-                    {
-                        var collision = new Collision
-                        {
-                            Left = outsider,
-                            Right = insider,
-                        };
-                        ShrinkLeft(collision, outsider.End - insider.Start);
-                        return null;
-                    }
-                }
-                else return SplitOutsider(insider, outsider);
+                SplitOutsider(insider, outsider);
             }
             return null;
         }
@@ -1764,42 +1742,22 @@ namespace TimekeeperWPF
                 case Collision.CollisionResult.PushLeft:
                     TimeSpan Lroom = collision.Left.Start - collision.Left.ParentInclusionZone.Start;
                     TimeSpan Lpush = new TimeSpan(Min(collision.Overlap.Ticks, Lroom.Ticks));
-                    collision.Left.Start -= Lpush;
-                    collision.Left.End -= Lpush;
-                    if (collision.Right.LeftTangent != null)
-                        collision.Right.LeftTangent.RightTangent = null;
-                    if (collision.Left.RightTangent != null)
-                        collision.Left.RightTangent.LeftTangent = null;
-                    if (collision.Left.LeftTangent != null)
-                        collision.Left.LeftTangent.RightTangent = null;
-                    collision.Left.LeftTangent = null;
-                    collision.Left.RightTangent = collision.Right;
-                    collision.Right.LeftTangent = collision.Left;
+                    PushLeft(collision, Lpush);
                     return true;
                 case Collision.CollisionResult.ShrinkLeft:
+                    break;
                 case Collision.CollisionResult.ReDistLeft:
-                    if (collision.Left.State == CalendarTaskObject.States.Unscheduled)
-                        ShrinkLeft(collision, collision.Left.End - collision.Right.Start);
+                    collision.Left.Step1IgnoreFlag = true;
                     break;
                 case Collision.CollisionResult.PushRight:
                     TimeSpan Rroom = collision.Right.ParentInclusionZone.End - collision.Right.End;
                     TimeSpan Rpush = new TimeSpan(Min(collision.Overlap.Ticks, Rroom.Ticks));
-                    collision.Right.Start += Rpush;
-                    collision.Right.End += Rpush;
-                    if (collision.Right.LeftTangent != null)
-                        collision.Right.LeftTangent.RightTangent = null;
-                    if (collision.Left.RightTangent != null)
-                        collision.Left.RightTangent.LeftTangent = null;
-                    if (collision.Right.RightTangent != null)
-                        collision.Right.RightTangent.LeftTangent = null;
-                    collision.Right.RightTangent = null;
-                    collision.Right.LeftTangent = collision.Left;
-                    collision.Left.RightTangent = collision.Right;
+                    PushRight(collision, Rpush);
                     return true;
                 case Collision.CollisionResult.ShrinkRight:
+                    break;
                 case Collision.CollisionResult.ReDistRight:
-                    if (C2.State == CalendarTaskObject.States.Unscheduled)
-                        ShrinkRight(collision, collision.Left.End - collision.Right.Start);
+                    collision.Right.Step1IgnoreFlag = true;
                     break;
             }
             return false;
@@ -1856,14 +1814,14 @@ namespace TimekeeperWPF
                         break;
                     case Collision.CollisionResult.ReDistLeft:
                         hasReDists = true;
-                        if (collision.Loser.CanReDist)
+                        if (collision.Loser.CanReDistFlag)
                         {
                             bool hasChanges = true;
                             while (hasChanges)
                             {
                                 hasChanges = false;
                                 if (collision.Overlap.Ticks <= 0) break;
-                                if (Step3ReDistLeft(D, collision))
+                                if (ReDistLeft(D, collision))
                                 {
                                     hasChanges = true;
                                 }
@@ -1875,14 +1833,14 @@ namespace TimekeeperWPF
                         break;
                     case Collision.CollisionResult.ReDistRight:
                         hasReDists = true;
-                        if (collision.Loser.CanReDist)
+                        if (collision.Loser.CanReDistFlag)
                         {
                             bool hasChanges = true;
                             while (hasChanges)
                             {
                                 hasChanges = false;
                                 if (collision.Overlap.Ticks <= 0) break;
-                                if (Step3ReDistRight(D, collision))
+                                if (ReDistRight(D, collision))
                                 {
                                     hasChanges = true;
                                 }
@@ -1893,7 +1851,7 @@ namespace TimekeeperWPF
             }
             return hasReDists;
         }
-        private bool Step3ReDistLeft(int D, Collision collision)
+        private bool ReDistLeft(int D, Collision collision)
         {
             //returns true when there is a redistribution
             var spaces = GetEmptySpaces(D);
@@ -1912,10 +1870,10 @@ namespace TimekeeperWPF
                 }
             }
             //we have exhausted all possibilities for redistributing 
-            collision.Left.CanReDist = false;
+            collision.Left.CanReDistFlag = false;
             return false;
         }
-        private bool Step3ReDistRight(int D, Collision collision)
+        private bool ReDistRight(int D, Collision collision)
         {
             //returns true when there is a redistribution
             var spaces = GetEmptySpaces(D);
@@ -1934,8 +1892,36 @@ namespace TimekeeperWPF
                 }
             }
             //we have exhausted all possibilities for redistributing 
-            collision.Loser.CanReDist = false;
+            collision.Loser.CanReDistFlag = false;
             return false;
+        }
+        private static void PushLeft(Collision collision, TimeSpan Lpush)
+        {
+            collision.Left.Start -= Lpush;
+            collision.Left.End -= Lpush;
+            if (collision.Right.LeftTangent != null)
+                collision.Right.LeftTangent.RightTangent = null;
+            if (collision.Left.RightTangent != null)
+                collision.Left.RightTangent.LeftTangent = null;
+            if (collision.Left.LeftTangent != null)
+                collision.Left.LeftTangent.RightTangent = null;
+            collision.Left.LeftTangent = null;
+            collision.Left.RightTangent = collision.Right;
+            collision.Right.LeftTangent = collision.Left;
+        }
+        private static void PushRight(Collision collision, TimeSpan Rpush)
+        {
+            collision.Right.Start += Rpush;
+            collision.Right.End += Rpush;
+            if (collision.Right.LeftTangent != null)
+                collision.Right.LeftTangent.RightTangent = null;
+            if (collision.Left.RightTangent != null)
+                collision.Left.RightTangent.LeftTangent = null;
+            if (collision.Right.RightTangent != null)
+                collision.Right.RightTangent.LeftTangent = null;
+            collision.Right.RightTangent = null;
+            collision.Right.LeftTangent = collision.Left;
+            collision.Left.RightTangent = collision.Right;
         }
         private static void ShrinkLeft(Collision collision, TimeSpan shrink)
         {
@@ -2116,14 +2102,9 @@ namespace TimekeeperWPF
             //Refer to Plans.xlsx - Redistributions
             if (R.StartLock) //L
             {
-                if (L.EndLock) //7
+                if (L.EndLock) return null;
+                if (LData.HasRoom) //2
                 {
-                    //conflict
-                    return null;
-                }
-                else if (LData.HasRoom) //2
-                {
-                    //PushLeft
                     collision.Result = Collision.CollisionResult.PushLeft;
                     collision.cell = "L2";
                 }
@@ -2131,26 +2112,22 @@ namespace TimekeeperWPF
                 {
                     if (L != LData.WeakestC) //3
                     {
-                        //PushLeft
                         collision.Result = Collision.CollisionResult.PushLeft;
                         collision.cell = "L3";
                     }
                     else //4
                     {
-                        //ReDistLeft
                         collision.Result = Collision.CollisionResult.ReDistLeft;
                         collision.cell = "L4";
                     }
                 }
                 else if (L != LData.WeakestC) //5
                 {
-                    //PushLeft
                     collision.Result = Collision.CollisionResult.PushLeft;
                     collision.cell = "L5";
                 }
                 else //6
                 {
-                    //ReDistLeft
                     collision.Result = Collision.CollisionResult.ShrinkLeft;
                     collision.cell = "L6";
                 }
@@ -2159,7 +2136,6 @@ namespace TimekeeperWPF
             {
                 if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //B
                 {
-                    //PushRight
                     collision.Result = Collision.CollisionResult.PushRight;
                     collision.cell = "B";
                 }
@@ -2167,13 +2143,11 @@ namespace TimekeeperWPF
                 {
                     if (LData.HasRoom) //2
                     {
-                        //PushLeft
                         collision.Result = Collision.CollisionResult.PushLeft;
                         collision.cell = "C2";
                     }
                     else //34567
                     {
-                        //PushRight
                         collision.Result = Collision.CollisionResult.PushRight;
                         collision.cell = "C34567";
                     }
@@ -2187,13 +2161,11 @@ namespace TimekeeperWPF
                     {
                         if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "D2";
                         }
                         else //34567
                         {
-                            //PushRight
                             collision.Result = Collision.CollisionResult.PushRight;
                             collision.cell = "D34567";
                         }
@@ -2202,13 +2174,11 @@ namespace TimekeeperWPF
                     {
                         if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "E2";
                         }
                         else //34567
                         {
-                            //ReDistRight
                             collision.Result = Collision.CollisionResult.ReDistRight;
                             collision.cell = "E34567";
                         }
@@ -2220,32 +2190,33 @@ namespace TimekeeperWPF
                     {
                         if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "F2";
                         }
-                        else //3 4 567
+                        else //3 4 56 7
                         {
-                            if (LData.CanReDist) //3 4
+                            if (L.EndLock)
+                            {
+                                collision.Result = Collision.CollisionResult.PushRight;
+                                collision.cell = "F7";
+                            }
+                            else if (LData.CanReDist) //3 4
                             {
                                 if (L != LData.WeakestC) //3
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "F3";
                                 }
                                 else //4
                                 {
-                                    //ReDistLeft
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "F4";
                                 }
                             }
-                            else //567
+                            else //56
                             {
-                                //PushRight
                                 collision.Result = Collision.CollisionResult.PushRight;
-                                collision.cell = "F567";
+                                collision.cell = "F56";
                             }
                         }
                     }
@@ -2253,32 +2224,33 @@ namespace TimekeeperWPF
                     {
                         if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "G2";
                         }
-                        else //3 4 567
+                        else //3 4 56 7
                         {
-                            if (LData.CanReDist)
+                            if (L.EndLock)
+                            {
+                                collision.Result = Collision.CollisionResult.ReDistRight;
+                                collision.cell = "G7";
+                            }
+                            else if (LData.CanReDist)
                             {
                                 if (L != LData.WeakestC) //3
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "G3";
                                 }
                                 else //4
                                 {
-                                    //ReDistLeft
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "G4";
                                 }
                             }
-                            else //567
+                            else //56
                             {
-                                //ReDistRight
                                 collision.Result = Collision.CollisionResult.ReDistRight;
-                                collision.cell = "G567";
+                                collision.cell = "G56";
                             }
                         }
                     }
@@ -2292,40 +2264,46 @@ namespace TimekeeperWPF
                     {
                         if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "H2";
                         }
-                        else //3 4 567
+                        else //3 4 56 7
                         {
-                            if (LData.CanReDist) //3 4
+                            if (L.EndLock)
+                            {
+                                collision.Result = Collision.CollisionResult.PushRight;
+                                collision.cell = "H7";
+                            }
+                            else if (LData.CanReDist) //3 4
                             {
                                 if (L != LData.WeakestC) //3
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "H3";
                                 }
                                 else //4
                                 {
-                                    //ReDistLeft
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "H4";
                                 }
                             }
-                            else //567
+                            else //56
                             {
                                 //PushRight
                                 collision.Result = Collision.CollisionResult.PushRight;
-                                collision.cell = "H567";
+                                collision.cell = "H56";
                             }
                         }
                     }
                     else //I
                     {
-                        if (LData.HasRoom) //2
+                        if (L.EndLock)
                         {
-                            //PushLeft
+                            collision.Result = Collision.CollisionResult.ShrinkRight;
+                            collision.cell = "I7";
+                        }
+                        else if (LData.HasRoom) //2
+                        {
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "I2";
                         }
@@ -2335,22 +2313,19 @@ namespace TimekeeperWPF
                             {
                                 if (L != LData.WeakestC) //3
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "I3";
                                 }
                                 else //4
                                 {
-                                    //ReDistLeft
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "I4";
                                 }
                             }
-                            else //567
+                            else //56
                             {
-                                //PushRight
                                 collision.Result = Collision.CollisionResult.ShrinkRight;
-                                collision.cell = "I567";
+                                collision.cell = "I56";
                             }
                         }
                     }
@@ -2361,13 +2336,11 @@ namespace TimekeeperWPF
                     {
                         if (L.EndLock) //7
                         {
-                            //PushRight
                             collision.Result = Collision.CollisionResult.PushRight;
                             collision.cell = "J7";
                         }
                         else if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "J2";
                         }
@@ -2377,13 +2350,11 @@ namespace TimekeeperWPF
                             {
                                 if (L != LData.WeakestC) //3
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "J3";
                                 }
                                 else //4
                                 {
-                                    //ReDistLeft
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "J4";
                                 }
@@ -2392,13 +2363,11 @@ namespace TimekeeperWPF
                             {
                                 if (L != LData.WeakestC) //5
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "J5";
                                 }
                                 else //6
                                 {
-                                    //ShrinkLeft
                                     collision.Result = Collision.CollisionResult.ShrinkLeft;
                                     collision.cell = "J6";
                                 }
@@ -2409,13 +2378,11 @@ namespace TimekeeperWPF
                     {
                         if (L.EndLock) //7
                         {
-                            //ShrinkRight
                             collision.Result = Collision.CollisionResult.ShrinkRight;
                             collision.cell = "K7";
                         }
                         else if (LData.HasRoom) //2
                         {
-                            //PushLeft
                             collision.Result = Collision.CollisionResult.PushLeft;
                             collision.cell = "K2";
                         }
@@ -2425,13 +2392,11 @@ namespace TimekeeperWPF
                             {
                                 if (L != LData.WeakestC) //3
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "K3";
                                 }
                                 else //4
                                 {
-                                    //ReDistLeft
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "K4";
                                 }
@@ -2440,13 +2405,11 @@ namespace TimekeeperWPF
                             {
                                 if (L != LData.WeakestC)
                                 {
-                                    //PushLeft
                                     collision.Result = Collision.CollisionResult.PushLeft;
                                     collision.cell = "K5";
                                 }
                                 else
                                 {
-                                    //ShrinkLeft
                                     collision.Result = Collision.CollisionResult.ShrinkLeft;
                                     collision.cell = "K6";
                                 }
@@ -2529,7 +2492,7 @@ namespace TimekeeperWPF
             //Weakest CalObj on the left side
             var WC = C; 
             //If at least one CalObj on the left side CanReDist
-            bool canReDist = C.CanReDist;
+            bool canReDist = C.CanReDistFlag;
             while (true)
             {
                 //If C.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >= LT.S or LT.LT.E🔒. 
@@ -2538,13 +2501,13 @@ namespace TimekeeperWPF
                 //Also if any LT CanReDist, then WC must also have CanReDist
                 if (canReDist)
                 {
-                    if (LT.CanReDist &&
+                    if (LT.CanReDistFlag &&
                         LT.Priority < WC.Priority)
                         WC = LT;
                 }
                 else
                 {
-                    if (LT.CanReDist)
+                    if (LT.CanReDistFlag)
                     {
                         canReDist = true;
                         WC = LT;
@@ -2588,18 +2551,18 @@ namespace TimekeeperWPF
             bool hasRoom = true;
             var RT = C;
             var WC = C;
-            bool canReDist = C.CanReDist;
+            bool canReDist = C.CanReDistFlag;
             while (true)
             {
                 if (canReDist)
                 {
-                    if (RT.CanReDist &&
+                    if (RT.CanReDistFlag &&
                         RT.Priority < WC.Priority)
                         WC = RT;
                 }
                 else
                 {
-                    if (RT.CanReDist)
+                    if (RT.CanReDistFlag)
                     {
                         canReDist = true;
                         WC = RT;

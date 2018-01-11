@@ -127,8 +127,12 @@ namespace TimekeeperWPF.Calendar
                 ParentInclusionZone?.End.ToShortTimeString());
             return s;
         }
-        internal bool CanReDist = true;
-        public double Priority => ParentPerZone.ParentMap.TimeTask.Priority;
+        internal bool CanReDistFlag = true;
+        internal bool Step1IgnoreFlag = false;
+        public TimeTask TimeTask => ParentPerZone.ParentMap.TimeTask;
+        public double Priority => TimeTask.Priority;
+        public bool CanReDist => TimeTask.CanReDist;
+        public bool CanFill => TimeTask.CanFill;
         #region Zone
         public CalendarTaskObject LeftTangent { get; set; }
         public CalendarTaskObject RightTangent { get; set; }

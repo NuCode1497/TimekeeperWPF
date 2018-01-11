@@ -63,6 +63,7 @@
             <StackPanel Margin="5">
                 <CheckBox Content="Auto CheckIn" IsChecked="{Binding Path=AutoCheckIn}"/>
                 <CheckBox Content="Can Fill" IsChecked="{Binding Path=CanFill}"/>
+                <CheckBox Content="Can Redistribute" IsChecked="{Binding Path=CanReDist}"/>
             </StackPanel>
         </StackPanel>
         <StackPanel x:Name="SelectorViewsPanel" DataContext="{Binding Path=DataContext, 
