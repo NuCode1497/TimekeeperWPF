@@ -1636,6 +1636,9 @@ namespace TimekeeperWPF
                 while(hasReDists)
                 {
                     hasReDists = false;
+                    var Cs = GetCalObjsUnOrdered(D);
+                    foreach (var C in Cs)
+                        C.Step1IgnoreFlag = false;
                     CollisionsStep1(D);
                     CollisionsStep2(D);
                     if (CollisionsStep3(D))
@@ -1647,30 +1650,12 @@ namespace TimekeeperWPF
         private void CollisionsStep1(int D)
         {
             //Step 1 - do only push collisions and split collisions where the insider wins, ignore the rest
-            var calObjs = GetCalObjsUnOrdered(D);
-            foreach (var C in calObjs)
-            {
-                C.Step1IgnoreFlag = false;
-            }
-            bool hasChanges = true;
-            while (hasChanges)
-            {
-                var newC = CollisionsStep1Part2(D);
-                if (newC != null)
-                {
-                    newC.ParentPerZone.CalTaskObjs.Add(newC);
-                    hasChanges = true;
-                }
-                else hasChanges = false;
-            }
-        }
-        private CalendarTaskObject CollisionsStep1Part2(int D)
-        {
             bool hasChanges = true;
             while (hasChanges)
             {
                 hasChanges = false;
-                var intersections = GetIntersections(GetCalObjsByStart(D));
+                var calObjs = GetCalObjsByStart(D);
+                var intersections = GetIntersections(calObjs);
                 foreach (var i in intersections)
                 {
                     if (i.Item1.Step1IgnoreFlag || i.Item2.Step1IgnoreFlag)
@@ -1680,7 +1665,12 @@ namespace TimekeeperWPF
                         continue;
                     }
                     var newC = InsideCollision(i.Item1, i.Item2);
-                    if (newC != null) return newC;
+                    if (newC != null)
+                    {
+                        newC.ParentPerZone.CalTaskObjs.Add(newC);
+                        hasChanges = true;
+                        break;
+                    }
                     if (Step1Push(i.Item1, i.Item2))
                     {
                         hasChanges = true;
@@ -1688,7 +1678,6 @@ namespace TimekeeperWPF
                     }
                 }
             }
-            return null;
         }
         private static CalendarTaskObject InsideCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
@@ -1709,7 +1698,7 @@ namespace TimekeeperWPF
             if (insider.StartLock || insider.EndLock ||
                 insider.Priority > outsider.Priority)
             {
-                SplitOutsider(insider, outsider);
+                return SplitOutsider(insider, outsider);
             }
             return null;
         }
@@ -1769,32 +1758,32 @@ namespace TimekeeperWPF
             while (hasChanges)
             {
                 hasChanges = false;
-                var newC = CollisionsStep2Part2(D);
-                if (newC != null)
+                var calObjs = GetCalObjsByStart(D);
+                var intersections = GetIntersections(calObjs);
+                foreach (var i in intersections)
                 {
-                    newC.ParentPerZone.CalTaskObjs.Add(newC);
-                    hasChanges = true;
+                    CalendarTaskObject insider;
+                    CalendarTaskObject outsider;
+                    if (i.Item1.IsInside(i.Item2))
+                    {
+                        insider = i.Item1;
+                        outsider = i.Item2;
+                    }
+                    else if (i.Item2.IsInside(i.Item1))
+                    {
+                        insider = i.Item2;
+                        outsider = i.Item1;
+                    }
+                    else continue;
+                    var newC = SplitOutsider(insider, outsider);
+                    if (newC != null)
+                    {
+                        newC.ParentPerZone.CalTaskObjs.Add(newC);
+                        hasChanges = true;
+                        break;
+                    }
                 }
             }
-        }
-        private CalendarTaskObject CollisionsStep2Part2(int D)
-        {
-            var calObjs = GetCalObjsByStart(D);
-            var intersections = GetIntersections(calObjs);
-            foreach (var i in intersections)
-            {
-                if (i.Item1.IsInside(i.Item2))
-                {
-                    var newC = SplitOutsider(i.Item1, i.Item2);
-                    if (newC != null) return newC;
-                }
-                else if (i.Item2.IsInside(i.Item1))
-                {
-                    var newC = SplitOutsider(i.Item2, i.Item1);
-                    if (newC != null) return newC;
-                }
-            }
-            return null;
         }
         private bool CollisionsStep3(int D)
         {
@@ -1814,7 +1803,7 @@ namespace TimekeeperWPF
                         break;
                     case Collision.CollisionResult.ReDistLeft:
                         hasReDists = true;
-                        if (collision.Loser.CanReDistFlag)
+                        if (collision.Left.CanReDistFlag)
                         {
                             bool hasChanges = true;
                             while (hasChanges)
@@ -1833,7 +1822,7 @@ namespace TimekeeperWPF
                         break;
                     case Collision.CollisionResult.ReDistRight:
                         hasReDists = true;
-                        if (collision.Loser.CanReDistFlag)
+                        if (collision.Right.CanReDistFlag)
                         {
                             bool hasChanges = true;
                             while (hasChanges)
@@ -1869,6 +1858,28 @@ namespace TimekeeperWPF
                     return true;
                 }
             }
+            var lesserCalObjs = GetCalObjsLesserThan(collision.Left);
+            lesserCalObjs.RemoveAll(C => C.Intersects(collision.Left));
+            foreach (var C in lesserCalObjs)
+            {
+                if (C.StartLock || C.EndLock) continue;
+                foreach (var Z in collision.Left.ParentPerZone.InclusionZones)
+                {
+                    if (!C.Intersects(Z)) continue;
+                    var CZOverlap = C.GetOverlap(Z);
+                    var shrink = new TimeSpan(Min(CZOverlap.Ticks, collision.Overlap.Ticks));
+                    if (shrink.Ticks <= 0) continue;
+                    ShrinkLeft(collision, shrink);
+                    var S = new EmptyZone
+                    {
+                        Start = C.Start,
+                        End = C.End,
+                        LeftTangent = C.LeftTangent,
+                        RightTangent = C.RightTangent
+                    };
+                    FillEmptyWithInsuffZ(S, Z);
+                }
+            }
             //we have exhausted all possibilities for redistributing 
             collision.Left.CanReDistFlag = false;
             return false;
@@ -1889,6 +1900,28 @@ namespace TimekeeperWPF
                     FillEmptyWithInsuffZ(S, Z);
                     //break out of the loops to update the spaces collection
                     return true;
+                }
+            }
+            var lesserCalObjs = GetCalObjsLesserThan(collision.Right);
+            lesserCalObjs.RemoveAll(C => C.Intersects(collision.Right));
+            foreach (var C in lesserCalObjs)
+            {
+                if (C.StartLock || C.EndLock) continue;
+                foreach (var Z in collision.Right.ParentPerZone.InclusionZones)
+                {
+                    if (!C.Intersects(Z)) continue;
+                    var CZOverlap = C.GetOverlap(Z);
+                    var shrink = new TimeSpan(Min(CZOverlap.Ticks, collision.Overlap.Ticks));
+                    if (shrink.Ticks <= 0) continue;
+                    ShrinkRight(collision, shrink);
+                    var S = new EmptyZone
+                    {
+                        Start = C.Start,
+                        End = C.End,
+                        LeftTangent = C.LeftTangent,
+                        RightTangent = C.RightTangent
+                    };
+                    FillEmptyWithInsuffZ(S, Z);
                 }
             }
             //we have exhausted all possibilities for redistributing 
@@ -2671,31 +2704,39 @@ namespace TimekeeperWPF
             //Check if the CalObjs on the left or right of the space can be used to fill
             //otherwise, create a new CalObj to fill
             if (Z.Start <= S.Start &&
-                S.Left?.ParentInclusionZone == Z &&
-                !S.Left.EndLock)
+                S.LeftTangent?.ParentInclusionZone == Z &&
+                !S.LeftTangent.EndLock)
             {
                 var newEnd = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
-                S.Left.End.Ticks + (long)Max(S.Left.ParentPerZone.TimeConsumption.Remaining, 0))));
-                var diff = newEnd - S.Left.End;
-                S.Left.End = newEnd;
-                S.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                S.LeftTangent.End.Ticks + (long)Max(S.LeftTangent.ParentPerZone.TimeConsumption?.Remaining ?? 0, 0))));
+                var diff = newEnd - S.LeftTangent.End;
+                S.LeftTangent.End = newEnd;
+                if (S.LeftTangent.ParentPerZone.TimeConsumption != null)
+                    S.LeftTangent.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                if (S.LeftTangent.RightTangent != null)
+                    S.LeftTangent.RightTangent.LeftTangent = null;
+                S.LeftTangent.RightTangent = null;
             }
             else
             if (Z.End >= S.End &&
-                S.Right?.ParentInclusionZone == Z &&
-                !S.Right.StartLock)
+                S.RightTangent?.ParentInclusionZone == Z &&
+                !S.RightTangent.StartLock)
             {
                 var newStart = new DateTime(Max(Z.Start.Ticks, Max(S.Start.Ticks,
-                S.Right.Start.Ticks - (long)Max(S.Right.ParentPerZone.TimeConsumption.Remaining, 0))));
-                var diff = S.Right.Start - newStart;
-                S.Right.Start = newStart;
-                S.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                S.RightTangent.Start.Ticks - (long)Max(S.RightTangent.ParentPerZone.TimeConsumption?.Remaining ?? 0, 0))));
+                var diff = S.RightTangent.Start - newStart;
+                S.RightTangent.Start = newStart;
+                if (S.RightTangent.ParentPerZone.TimeConsumption != null)
+                    S.RightTangent.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                if (S.RightTangent.LeftTangent != null)
+                    S.RightTangent.LeftTangent.RightTangent = null;
+                S.RightTangent.LeftTangent = null;
             }
             else
             {
                 var start = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
                 var end = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
-                    start.Ticks + (long)Max(Z.ParentPerZone.TimeConsumption.Remaining, 0))));
+                    start.Ticks + (long)Max(Z.ParentPerZone.TimeConsumption?.Remaining ?? 0, 0))));
                 var C = new CalendarTaskObject
                 {
                     Start = start,
@@ -2704,7 +2745,8 @@ namespace TimekeeperWPF
                     ParentInclusionZone = Z,
                 };
                 Z.ParentPerZone.CalTaskObjs.Add(C);
-                Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
+                if (Z.ParentPerZone.TimeConsumption != null)
+                    Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
             }
         }
         private static void FillEmptyWithFiller(EmptyZone S, InclusionZone Z)
@@ -2712,25 +2754,25 @@ namespace TimekeeperWPF
             //Check if the CalObjs on the left or right of the space can be used to fill
             //otherwise, create a new CalObj to fill
             if (Z.Start <= S.Start &&
-                S.Left?.ParentInclusionZone == Z &&
-                !S.Left.EndLock)
+                S.LeftTangent?.ParentInclusionZone == Z &&
+                !S.LeftTangent.EndLock)
             {
                 var newEnd = new DateTime(Min(Z.End.Ticks, S.End.Ticks));
-                var diff = newEnd - S.Left.End;
-                S.Left.End = newEnd;
-                if (S.Left.ParentPerZone.TimeConsumption != null)
-                    S.Left.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                var diff = newEnd - S.LeftTangent.End;
+                S.LeftTangent.End = newEnd;
+                if (S.LeftTangent.ParentPerZone.TimeConsumption != null)
+                    S.LeftTangent.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
             }
             else
             if (Z.End >= S.End &&
-                S.Right?.ParentInclusionZone == Z &&
-                !S.Right.StartLock)
+                S.RightTangent?.ParentInclusionZone == Z &&
+                !S.RightTangent.StartLock)
             {
                 var newStart = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
-                var diff = S.Right.Start - newStart;
-                S.Right.Start = newStart;
-                if (S.Right.ParentPerZone.TimeConsumption != null)
-                    S.Right.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
+                var diff = S.RightTangent.Start - newStart;
+                S.RightTangent.Start = newStart;
+                if (S.RightTangent.ParentPerZone.TimeConsumption != null)
+                    S.RightTangent.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
             }
             else
             {
@@ -2789,8 +2831,8 @@ namespace TimekeeperWPF
                     {
                         Start = dt,
                         End = C.Start,
-                        Left = prev,
-                        Right = C,
+                        LeftTangent = prev,
+                        RightTangent = C,
                     };
                     spaces.Add(Z);
                 }
@@ -2807,8 +2849,8 @@ namespace TimekeeperWPF
                 {
                     Start = dt,
                     End = end,
-                    Left = prev,
-                    Right = null
+                    LeftTangent = prev,
+                    RightTangent = null
                 };
                 spaces.Add(Z);
             }
@@ -3031,6 +3073,17 @@ namespace TimekeeperWPF
                 (C.ParentInclusionZone?.Start ?? C.End),
                 (C.ParentInclusionZone?.End ?? C.End),
                 C.Priority descending
+                select C);
+        }
+        private List<CalendarTaskObject> GetCalObjsLesserThan(CalendarTaskObject calObj)
+        {
+            return new List<CalendarTaskObject>(
+                from M in TaskMaps
+                where M.TimeTask.Dimension == calObj.TimeTask.Dimension
+                from P in M.PerZones
+                from C in P.CalTaskObjs
+                where C.Priority < calObj.Priority
+                orderby C.Priority, C.Start
                 select C);
         }
         #endregion MapTaskObjects

@@ -9,7 +9,7 @@ namespace TimekeeperWPF.Calendar
 {
     public class EmptyZone : Zone
     {
-        public CalendarTaskObject Left { get; set; }
-        public CalendarTaskObject Right { get; set; }
+        public CalendarTaskObject LeftTangent { get; set; }
+        public CalendarTaskObject RightTangent { get; set; }
     }
 }
