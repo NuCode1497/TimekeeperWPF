@@ -145,6 +145,13 @@ namespace TimekeeperWPF.Calendar
             if (Duration.Minutes > 0) s += Duration.Minutes + " minutes ";
             return s;
         }
+        internal bool HasIntersections(IEnumerable<CalendarTaskObject> calObjs)
+        {
+            foreach (var C in calObjs)
+                if (C != this && C.Intersects(this))
+                    return true;
+            return false;
+        }
         #region End
         public bool EndLock
         {
@@ -346,7 +353,6 @@ namespace TimekeeperWPF.Calendar
             LeftTangent = CalObj.LeftTangent;
             State = CalObj.State;
             StateLock = CalObj.StateLock;
-            ToolTip = CalObj.ToolTip;
             ParentPerZone = CalObj.ParentPerZone;
             ParentInclusionZone = CalObj.ParentInclusionZone;
             IsMimicking = false;

@@ -1647,7 +1647,9 @@ namespace TimekeeperWPF
             //Step 1 - push and split collisions
             var Cs = GetCalObjsUnOrdered(D);
             foreach (var C in Cs)
+            {
                 C.Step1IgnoreFlag = false;
+            }
             bool hasChanges = true;
             while (hasChanges)
             {
@@ -1758,23 +1760,50 @@ namespace TimekeeperWPF
         }
         private void Redistribute(Collision collision, Action<Collision, TimeSpan> ShrinkFunc)
         {
+            bool hasEmptySpaces = true;
+            bool hasLesserObjs = true;
+            //hasLesserObjs = false; //debug
             bool hasChanges = true;
             while (hasChanges)
             {
                 hasChanges = false;
                 if (collision.Overlap.Ticks <= 0) break;
-                var spaces = GetEmptySpaces(collision.Loser.TimeTask.Dimension);
-                if (ReDistPart2(collision, spaces, ShrinkFunc))
+                
+                //Fill empty spaces
+                if (hasEmptySpaces)
                 {
-                    hasChanges = true;
-                    continue;
+                    var spaces = GetEmptySpaces(collision.Loser.TimeTask.Dimension);
+                    if (ReDistPart2(collision, spaces, ShrinkFunc))
+                    {
+                        hasChanges = true;
+                        continue;
+                    }
+                    else
+                    {
+                        hasEmptySpaces = false;
+                    }
                 }
-                var spaces2 = GetSpacesLessThan(collision.Loser);
-                if (ReDistPart2(collision, spaces2, ShrinkFunc))
+
+                //Replace lesser objects
+                if (hasLesserObjs)
                 {
-                    hasChanges = true;
-                    continue;
+                    var allCalObjs = GetCalObjsByStart(collision.Loser.TimeTask.Dimension);
+                    var lesserCalObjs = new List<CalendarTaskObject>(
+                        from C in allCalObjs
+                        where C.Priority < collision.Loser.Priority
+                        orderby C.Start
+                        select C);
+                    if (ReDistPart3(collision, lesserCalObjs, ShrinkFunc))
+                    {
+                        hasChanges = true;
+                        continue;
+                    }
+                    else
+                    {
+                        hasLesserObjs = false;
+                    }
                 }
+
                 //we have exhausted all possibilities for redistributing 
                 collision.Loser.CanReDistFlag = false;
             }
@@ -1798,33 +1827,127 @@ namespace TimekeeperWPF
             }
             return false;
         }
-        private static void PushLeft(Collision collision, TimeSpan Lpush)
+        private bool ReDistPart3(Collision collision, List<CalendarTaskObject> lesserObjs, Action<Collision, TimeSpan> ShrinkFunc)
         {
-            collision.Left.Start -= Lpush;
-            collision.Left.End -= Lpush;
-            if (collision.Right.LeftTangent != null)
-                collision.Right.LeftTangent.RightTangent = null;
-            if (collision.Left.RightTangent != null)
-                collision.Left.RightTangent.LeftTangent = null;
+            foreach (var C in lesserObjs)
+            {
+                if (C.Intersects(collision.Loser))
+                {
+                    var CLOverlap = C.GetOverlap(collision.Loser);
+                    var shrink = new TimeSpan(Min(CLOverlap.Ticks, collision.Overlap.Ticks));
+                    if (shrink.Ticks <= 0) continue;
+                    if (C.Start < collision.Loser.Start)
+                    {
+                        Collision reDistCol = new Collision
+                        {
+                            Left = C,
+                            Right = collision.Loser
+                        };
+                        if (collision.Winner != C)
+                            ExpandLeft(collision.Loser, shrink);
+                        ShrinkLeft(reDistCol, shrink);
+                    }
+                    else
+                    {
+                        Collision reDistCol = new Collision
+                        {
+                            Left = collision.Loser,
+                            Right = C
+                        };
+                        if (collision.Winner != C)
+                            ExpandRight(collision.Loser, shrink);
+                        ShrinkRight(reDistCol, shrink);
+                    }
+                    return true;
+                }
+                foreach (var Z in collision.Loser.ParentPerZone.InclusionZones)
+                {
+                    if (!C.Intersects(Z)) continue;
+                    var CZOverlap = C.GetOverlap(Z);
+                    var shrink = new TimeSpan(Min(CZOverlap.Ticks, collision.Overlap.Ticks));
+                    if (shrink.Ticks <= 0) continue;
+                    ShrinkFunc(collision, shrink);
+                    if (C.LeftTangent.TimeTask.Id == collision.Loser.TimeTask.Id)
+                    {
+                        Collision reDistCol = new Collision
+                        {
+                            Left = C.LeftTangent,
+                            Right = C,
+                        };
+                        ExpandRight(C.LeftTangent, shrink);
+                        ShrinkRight(reDistCol, shrink);
+                    }
+                    else if (C.RightTangent.TimeTask.Id == collision.Loser.TimeTask.Id)
+                    {
+                        Collision reDistCol = new Collision
+                        {
+                            Left = C,
+                            Right = C.RightTangent,
+                        };
+                        ExpandLeft(C.RightTangent, shrink);
+                        ShrinkLeft(reDistCol, shrink);
+                    }
+                    else
+                    {
+                        CalendarTaskObject reDistObj = new CalendarTaskObject
+                        {
+                            Start = C.Start,
+                            End = C.Start + shrink,
+                            ParentInclusionZone = collision.Loser.ParentInclusionZone,
+                            ParentPerZone = collision.Loser.ParentPerZone,
+                            CanReDistFlag = false,
+                        };
+                        reDistObj.LeftTangent = C.LeftTangent;
+                        if (C.LeftTangent != null)
+                            C.LeftTangent.RightTangent = reDistObj;
+                        C.LeftTangent = null;
+                        Collision reDistCol = new Collision
+                        {
+                            Left = reDistObj,
+                            Right = C
+                        };
+                        ShrinkRight(reDistCol, shrink);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+        private static void PushLeft(Collision collision, TimeSpan push)
+        {
+            collision.Left.Start -= push;
+            collision.Left.End -= push;
             if (collision.Left.LeftTangent != null)
                 collision.Left.LeftTangent.RightTangent = null;
             collision.Left.LeftTangent = null;
-            collision.Left.RightTangent = collision.Right;
-            collision.Right.LeftTangent = collision.Left;
-        }
-        private static void PushRight(Collision collision, TimeSpan Rpush)
-        {
-            collision.Right.Start += Rpush;
-            collision.Right.End += Rpush;
-            if (collision.Right.LeftTangent != null)
-                collision.Right.LeftTangent.RightTangent = null;
             if (collision.Left.RightTangent != null)
                 collision.Left.RightTangent.LeftTangent = null;
+            collision.Left.RightTangent = null;
+            if (collision.Left.End == collision.Right.Start)
+            {
+                if (collision.Right.LeftTangent != null)
+                    collision.Right.LeftTangent.RightTangent = null;
+                collision.Left.RightTangent = collision.Right;
+                collision.Right.LeftTangent = collision.Left;
+            }
+        }
+        private static void PushRight(Collision collision, TimeSpan push)
+        {
+            collision.Right.Start += push;
+            collision.Right.End += push;
             if (collision.Right.RightTangent != null)
                 collision.Right.RightTangent.LeftTangent = null;
             collision.Right.RightTangent = null;
-            collision.Right.LeftTangent = collision.Left;
-            collision.Left.RightTangent = collision.Right;
+            if (collision.Right.LeftTangent != null)
+                collision.Right.LeftTangent.RightTangent = null;
+            collision.Right.LeftTangent = null;
+            if (collision.Left.End == collision.Right.Start)
+            {
+                if (collision.Left.RightTangent != null)
+                    collision.Left.RightTangent.LeftTangent = null;
+                collision.Right.LeftTangent = collision.Left;
+                collision.Left.RightTangent = collision.Right;
+            }
         }
         private static void ShrinkLeft(Collision collision, TimeSpan shrink)
         {
@@ -1833,18 +1956,21 @@ namespace TimekeeperWPF
                 collision.Left.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
             if (collision.Left.RightTangent != null)
                 collision.Left.RightTangent.LeftTangent = null;
-            if (collision.Left.Start == collision.Left.End)
-            {
-                if (collision.Left.LeftTangent != null)
-                    collision.Left.LeftTangent.RightTangent = null;
-                collision.Left.ParentPerZone.CalTaskObjs.Remove(collision.Left);
-            }
-            else if (shrink == collision.Overlap)
+            collision.Left.RightTangent = null;
+            if (collision.Left.End == collision.Right.Start)
             {
                 if (collision.Right.LeftTangent != null)
                     collision.Right.LeftTangent.RightTangent = null;
                 collision.Right.LeftTangent = collision.Left;
                 collision.Left.RightTangent = collision.Right;
+            }
+            if (collision.Left.Start == collision.Left.End)
+            {
+                if (collision.Left.LeftTangent != null)
+                    collision.Left.LeftTangent.RightTangent = null;
+                if (collision.Left.RightTangent != null)
+                    collision.Left.RightTangent.LeftTangent = null;
+                collision.Left.ParentPerZone.CalTaskObjs.Remove(collision.Left);
             }
         }
         private static void ShrinkRight(Collision collision, TimeSpan shrink)
@@ -1854,19 +1980,38 @@ namespace TimekeeperWPF
                 collision.Right.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
             if (collision.Right.LeftTangent != null)
                 collision.Right.LeftTangent.RightTangent = null;
-            if (collision.Right.Start == collision.Right.End)
-            {
-                if (collision.Right.RightTangent != null)
-                    collision.Right.RightTangent.LeftTangent = null;
-                collision.Right.ParentPerZone.CalTaskObjs.Remove(collision.Right);
-            }
-            else if (shrink == collision.Overlap)
+            collision.Right.LeftTangent = null;
+            if (collision.Left.End == collision.Right.Start)
             {
                 if (collision.Left.RightTangent != null)
                     collision.Left.RightTangent.LeftTangent = null;
                 collision.Right.LeftTangent = collision.Left;
                 collision.Left.RightTangent = collision.Right;
             }
+            if (collision.Right.Start == collision.Right.End)
+            {
+                if (collision.Right.RightTangent != null)
+                    collision.Right.RightTangent.LeftTangent = null;
+                if (collision.Right.LeftTangent != null)
+                    collision.Right.LeftTangent.RightTangent = null;
+                collision.Right.ParentPerZone.CalTaskObjs.Remove(collision.Right);
+            }
+        }
+        private static void ExpandLeft(CalendarTaskObject C, TimeSpan expand)
+        {
+            C.Start -= expand;
+            C.ParentPerZone.TimeConsumption.Remaining -= expand.Ticks;
+            if (C.LeftTangent != null)
+                C.LeftTangent.RightTangent = null;
+            C.LeftTangent = null;
+        }
+        private static void ExpandRight(CalendarTaskObject C, TimeSpan expand)
+        {
+            C.End += expand;
+            C.ParentPerZone.TimeConsumption.Remaining -= expand.Ticks;
+            if (C.RightTangent != null)
+                C.RightTangent.LeftTangent = null;
+            C.RightTangent = null;
         }
         private static Collision DetermineCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
@@ -1875,69 +2020,136 @@ namespace TimekeeperWPF
             //Left Right Intersection Collisions C1 ∩ C2
             CalendarTaskObject L;
             CalendarTaskObject R;
-            if (C1.Start < C2.Start)
+            //Refer to Plans.xlsx - Collisions2
+            if (C2.LeftTangent != null) //B D
             {
-                L = C1;
-                R = C2;
-            }
-            else if (C1.Start == C2.Start)
-            {
-                //Refer to Plans.xlsx - Collisions2
-                if (C2.LeftTangent != null) //B D
+                if (C2.RightTangent != null) //B
                 {
-                    if (C2.RightTangent != null) //B
+                    if (C1.LeftTangent != null) //8 10
                     {
-                        if (C1.LeftTangent == null && C1.RightTangent != null) //9
+                        if (C1.RightTangent != null) //8
                         {
-                            R = C1;
-                            L = C2;
+                            if (C1.Start <= C2.Start)
+                            {
+                                L = C1;
+                                R = C2;
+                            }
+                            else
+                            {
+                                L = C2;
+                                R = C1;
+                            }
                         }
-                        else //8 10 11
+                        else //10
                         {
                             L = C1;
                             R = C2;
                         }
                     }
-                    else //D
+                    else //9 11
                     {
-                        if (C1.LeftTangent != null && C1.RightTangent == null) //10
+                        if (C1.RightTangent != null) //9
+                        {
+                            L = C2;
+                            R = C1;
+                        }
+                        else //11
                         {
                             L = C1;
                             R = C2;
-                        }
-                        else //8 9 11
-                        {
-                            R = C1;
-                            L = C2;
                         }
                     }
                 }
-                else //C E
+                else //D
                 {
-                    if (C2.RightTangent != null) //C 8 9 10 11
+                    if (C1.LeftTangent != null && C1.RightTangent == null) //10
+                    {
+                        if (C1.Start <= C2.Start)
+                        {
+                            L = C1;
+                            R = C2;
+                        }
+                        else
+                        {
+                            L = C2;
+                            R = C1;
+                        }
+                    }
+                    else //8 9 11
+                    {
+                        L = C2;
+                        R = C1;
+                    }
+                }
+            }
+            else //C E
+            {
+                if (C2.RightTangent != null) //C
+                {
+                    if (C1.LeftTangent == null && C1.RightTangent != null) //9
+                    {
+                        if (C1.Start <= C2.Start)
+                        {
+                            L = C1;
+                            R = C2;
+                        }
+                        else
+                        {
+                            L = C2;
+                            R = C1;
+                        }
+                    }
+                    else //8 10 11
                     {
                         L = C1;
                         R = C2;
                     }
-                    else //E
+                }
+                else //E
+                {
+                    if (C1.LeftTangent != null) //8 10
                     {
-                        if (C1.LeftTangent == null && C1.RightTangent != null) //9
+                        if (C1.RightTangent != null) //8
                         {
-                            R = C1;
-                            L = C2;
+                            if (C1.Start <= C2.Start)
+                            {
+                                L = C1;
+                                R = C2;
+                            }
+                            else
+                            {
+                                L = C2;
+                                R = C1;
+                            }
                         }
-                        else // 8 10 11
+                        else //10
                         {
                             L = C1;
                             R = C2;
                         }
                     }
+                    else //9 11
+                    {
+                        if (C1.RightTangent != null) //9
+                        {
+                            L = C2;
+                            R = C1;
+                        }
+                        else //11
+                        {
+                            if (C1.Start <= C2.Start)
+                            {
+                                L = C1;
+                                R = C2;
+                            }
+                            else
+                            {
+                                L = C2;
+                                R = C1;
+                            }
+                        }
+                    }
                 }
-            }
-            else //C1.Start > C2.Start
-            {
-                L = C2;
-                R = C1;
             }
             var LData = GetLeftPushData(L);
             var RData = GetRightPushData(R);
@@ -2457,85 +2669,6 @@ namespace TimekeeperWPF
                         intersections.Add(new Tuple<CalendarTaskObject, CalendarTaskObject>(calObjs[a], calObjs[b]));
             return intersections;
         }
-        private List<EmptyZone> GetSpacesLessThan(CalendarTaskObject calObj)
-        {
-            //This is like GetEmptySpaces(), but it ignores objects with priority lower than calObj
-            var spaces = new List<EmptyZone>();
-            var allCalObjs = GetCalObjsByStart(calObj.TimeTask.Dimension);
-            var relevantCalObjs = new List<CalendarTaskObject>();
-            foreach (var M in TaskMaps)
-            {
-                if (M.TimeTask.Dimension != calObj.TimeTask.Dimension) continue;
-                foreach (var P in M.PerZones)
-                {
-                    if (!P.Intersects(calObj)) continue;
-                    foreach (var C in P.CalTaskObjs)
-                    {
-                        if (C.Priority >= calObj.Priority)
-                        {
-                            relevantCalObjs.Add(C);
-                            continue;
-                        }
-                        //if C has an intersection, add it
-                        for (int a = 0; a < allCalObjs.Count; a++)
-                        {
-                            if (C.Intersects(allCalObjs[a]))
-                            {
-                                relevantCalObjs.Add(C);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            //Find earliest Per
-            var start =
-                (from M in TaskMaps
-                 where M.TimeTask.Dimension == calObj.TimeTask.Dimension
-                 from P in M.PerZones
-                 select P).Min(P => P.Start);
-            //Find latest Per
-            var end =
-                (from M in TaskMaps
-                 where M.TimeTask.Dimension == calObj.TimeTask.Dimension
-                 from P in M.PerZones
-                 select P).Max(P => P.End);
-            DateTime dt = start;
-            CalendarTaskObject prev = null;
-            foreach (var C in relevantCalObjs)
-            {
-                if (dt < C.Start)
-                {
-                    //found an empty space
-                    var Z = new EmptyZone
-                    {
-                        Start = dt,
-                        End = C.Start,
-                        LeftTangent = prev,
-                        RightTangent = C,
-                    };
-                    spaces.Add(Z);
-                }
-                if (dt < C.End)
-                {
-                    dt = C.End;
-                    prev = C;
-                }
-            }
-            //check for trailing space after last CalObj
-            if (dt < end)
-            {
-                var Z = new EmptyZone
-                {
-                    Start = dt,
-                    End = end,
-                    LeftTangent = prev,
-                    RightTangent = null
-                };
-                spaces.Add(Z);
-            }
-            return spaces;
-        }
         #endregion Collisions
         #region AllocateEmptySpace
         private void AllocateEmptySpace()
@@ -2603,14 +2736,9 @@ namespace TimekeeperWPF
                 !S.LeftTangent.EndLock)
             {
                 var newEnd = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
-                S.LeftTangent.End.Ticks + (long)Max(S.LeftTangent.ParentPerZone.TimeConsumption?.Remaining ?? 0, 0))));
+                S.LeftTangent.End.Ticks + (long)Max(S.LeftTangent.ParentPerZone.TimeConsumption.Remaining, 0))));
                 var diff = newEnd - S.LeftTangent.End;
-                S.LeftTangent.End = newEnd;
-                if (S.LeftTangent.ParentPerZone.TimeConsumption != null)
-                    S.LeftTangent.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
-                if (S.LeftTangent.RightTangent != null)
-                    S.LeftTangent.RightTangent.LeftTangent = null;
-                S.LeftTangent.RightTangent = null;
+                ExpandRight(S.LeftTangent, diff);
             }
             else
             if (Z.End >= S.End &&
@@ -2618,30 +2746,25 @@ namespace TimekeeperWPF
                 !S.RightTangent.StartLock)
             {
                 var newStart = new DateTime(Max(Z.Start.Ticks, Max(S.Start.Ticks,
-                S.RightTangent.Start.Ticks - (long)Max(S.RightTangent.ParentPerZone.TimeConsumption?.Remaining ?? 0, 0))));
+                S.RightTangent.Start.Ticks - (long)Max(S.RightTangent.ParentPerZone.TimeConsumption.Remaining, 0))));
                 var diff = S.RightTangent.Start - newStart;
-                S.RightTangent.Start = newStart;
-                if (S.RightTangent.ParentPerZone.TimeConsumption != null)
-                    S.RightTangent.ParentPerZone.TimeConsumption.Remaining -= diff.Ticks;
-                if (S.RightTangent.LeftTangent != null)
-                    S.RightTangent.LeftTangent.RightTangent = null;
-                S.RightTangent.LeftTangent = null;
+                ExpandLeft(S.RightTangent, diff);
             }
             else
             {
                 var start = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
                 var end = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
-                    start.Ticks + (long)Max(Z.ParentPerZone.TimeConsumption?.Remaining ?? 0, 0))));
+                    start.Ticks + (long)Max(Z.ParentPerZone.TimeConsumption.Remaining, 0))));
                 var C = new CalendarTaskObject
                 {
                     Start = start,
                     End = end,
                     ParentPerZone = Z.ParentPerZone,
                     ParentInclusionZone = Z,
+                    CanReDistFlag = false,
                 };
                 Z.ParentPerZone.CalTaskObjs.Add(C);
-                if (Z.ParentPerZone.TimeConsumption != null)
-                    Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
+                Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
             }
         }
         private static void FillEmptyWithFiller(EmptyZone S, InclusionZone Z)

@@ -13,6 +13,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7F1FF7A1-1D09-4EF4-8839-49D9891F00F5}"
 	ProjectSection(SolutionItems) = preProject
 		Plans.xlsx = Plans.xlsx
+		tangents.pdn = tangents.pdn
 		TimekeeperWPF.pptx = TimekeeperWPF.pptx
 	EndProjectSection
 EndProject
