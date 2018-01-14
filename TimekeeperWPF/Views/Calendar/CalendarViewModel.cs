@@ -1032,7 +1032,7 @@ namespace TimekeeperWPF
                         //find and map relevant event CIs in this InclusionZone
                         foreach (var CI in eventCheckIns)
                         {
-                            if (!CI.IsInside(Z)) continue;
+                            if (!CI.CheckIn.IsWithin(Z)) continue;
                             CI.ParentInclusionZone = Z;
                         }
                         //map zone ends as CheckIns
@@ -1665,8 +1665,8 @@ namespace TimekeeperWPF
                         continue;
                     }
                     CalendarTaskObject newC = null;
-                    if (i.Item1.IsInside(i.Item2)) newC = SplitOutsider(i.Item1, i.Item2);
-                    else if (i.Item2.IsInside(i.Item1)) newC = SplitOutsider(i.Item2, i.Item1);
+                    if (i.Item1.IsInside(i.Item2)) newC = InsideCollision(i.Item1, i.Item2, ref hasChanges);
+                    else if (i.Item2.IsInside(i.Item1)) newC = InsideCollision(i.Item2, i.Item1, ref hasChanges);
                     if (newC != null)
                     {
                         newC.ParentPerZone.CalTaskObjs.Add(newC);
@@ -1681,6 +1681,52 @@ namespace TimekeeperWPF
                 }
             }
         }
+        private static CalendarTaskObject InsideCollision(CalendarTaskObject insider, CalendarTaskObject outsider, ref bool hasChanges)
+        {
+            if (insider.ParentInclusionZone != null)
+            {
+                var diff = insider.ParentInclusionZone.End - outsider.End;
+                if (diff >= insider.Duration)
+                {
+                    //there is room on the outside on the right for insider
+                    insider.End = outsider.End + insider.Duration;
+                    insider.Start = outsider.End;
+                    if (insider.LeftTangent != null)
+                        insider.LeftTangent.RightTangent = null;
+                    insider.LeftTangent = outsider;
+                    if (insider.RightTangent != null)
+                        insider.RightTangent.LeftTangent = null;
+                    insider.RightTangent = null;
+                    if (outsider.RightTangent != null)
+                        outsider.RightTangent.LeftTangent = null;
+                    outsider.RightTangent = insider;
+                    hasChanges = true;
+                    return null;
+                }
+                else
+                {
+                    //there is room on the outside on the left for insider
+                    diff = outsider.Start - insider.ParentInclusionZone.Start;
+                    if (diff >= insider.Duration)
+                    {
+                        insider.Start = outsider.Start - insider.Duration;
+                        insider.End = outsider.Start;
+                        if (insider.LeftTangent != null)
+                            insider.LeftTangent.RightTangent = null;
+                        insider.LeftTangent = null;
+                        if (insider.RightTangent != null)
+                            insider.RightTangent.LeftTangent = null;
+                        insider.RightTangent = outsider;
+                        if (outsider.LeftTangent != null)
+                            outsider.LeftTangent.RightTangent = null;
+                        outsider.LeftTangent = insider;
+                        hasChanges = true;
+                        return null;
+                    }
+                }
+            }
+            return SplitOutsider(insider, outsider);
+        }
         private static CalendarTaskObject SplitOutsider(CalendarTaskObject insider, CalendarTaskObject outsider)
         {
             DateTime MDT = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
@@ -1691,8 +1737,6 @@ namespace TimekeeperWPF
             Left.End = MDT;
             Right.Start = MDT;
             Right.StartLock = false;
-            Left.RightTangent = Right;
-            Right.LeftTangent = Left;
             if (outsider.State == CalendarTaskObject.States.Confirmed)
             {
                 if (!Left.StartLock) Left.State = CalendarTaskObject.States.Unconfirmed;
@@ -1867,7 +1911,7 @@ namespace TimekeeperWPF
                     var shrink = new TimeSpan(Min(CZOverlap.Ticks, collision.Overlap.Ticks));
                     if (shrink.Ticks <= 0) continue;
                     ShrinkFunc(collision, shrink);
-                    if (C.LeftTangent.TimeTask.Id == collision.Loser.TimeTask.Id)
+                    if (C.LeftTangent?.TimeTask.Id == collision.Loser.TimeTask.Id)
                     {
                         Collision reDistCol = new Collision
                         {
@@ -1877,7 +1921,7 @@ namespace TimekeeperWPF
                         ExpandRight(C.LeftTangent, shrink);
                         ShrinkRight(reDistCol, shrink);
                     }
-                    else if (C.RightTangent.TimeTask.Id == collision.Loser.TimeTask.Id)
+                    else if (C.RightTangent?.TimeTask.Id == collision.Loser.TimeTask.Id)
                     {
                         Collision reDistCol = new Collision
                         {
@@ -2996,7 +3040,6 @@ namespace TimekeeperWPF
                         {
                             foreach (var Z in P.InclusionZones)
                             {
-                                //Fix Misalignments (this probably will never happen)
                                 if (C.Intersects(Z) && (!C.IsWithin(Z) || C.ParentInclusionZone != Z))
                                 {
                                     if (C.Start < Z.Start)

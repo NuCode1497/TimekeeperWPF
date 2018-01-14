@@ -49,6 +49,14 @@ namespace TimekeeperDAL.EF
                         hasError = ValidateTimeSelection(hasError);
                         errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
                         break;
+                    case nameof(InstanceMinimum):
+                        if (InstanceMinimum <= 0)
+                        {
+                            AddError(nameof(InstanceMinimum), "InstanceMinimum must be positive");
+                            hasError = true;
+                        }
+                        errors = GetErrorsFromAnnotations(nameof(InstanceMinimum), InstanceMinimum);
+                        break;
                 }
                 if (errors != null && errors.Length != 0)
                 {

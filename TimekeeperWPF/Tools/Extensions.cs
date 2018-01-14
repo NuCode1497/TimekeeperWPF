@@ -20,8 +20,5 @@ namespace TimekeeperWPF.Tools
             T found = parent as T;
             return found ?? parent.FindAncestor<T>();
         }
-
-        public static bool IsInside(this CalendarCheckInObject CIO, IZone Z) { return CIO.DateTime.IsWithin(Z); }
-        public static bool IsInside(this CalendarNoteObject NO, IZone Z) { return NO.DateTime.IsWithin(Z); }
     }
 }

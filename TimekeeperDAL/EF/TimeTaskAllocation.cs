@@ -6,8 +6,11 @@ namespace TimekeeperDAL.EF
     [Table("TimeTaskAllocations")]
     public partial class TimeTaskAllocation
     {
-        [Required]
         public double Amount { get; set; }
+
+        public bool Limited { get; set; }
+
+        public double InstanceMinimum { get; set; }
 
         [Key]
         [Column(Order = 1)]

@@ -35,6 +35,8 @@ namespace TimekeeperDAL.EF
 
         public bool CanReDist { get; set; }
         
+        public bool CanSplit { get; set; }
+        
         [Required]
         public string AllocationMethod { get; set; }
 
