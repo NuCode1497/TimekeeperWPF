@@ -48,6 +48,7 @@ MMM d</clr:String>
     <SolidColorBrush x:Key="CalendarObject.State.Current" Color="Azure"/>
     <SolidColorBrush x:Key="CalendarObject.State.Cancel" Color="Pink"/>
     <SolidColorBrush x:Key="CalendarObject.State.Insufficient" Color="Orange"/>
+    <SolidColorBrush x:Key="CalendarObject.State.OverTime" Color="OrangeRed"/>
     <SolidColorBrush x:Key="CalendarObject.State.Unconfirmed" Color="SkyBlue"/>
     <SolidColorBrush x:Key="CalendarObject.State.Unscheduled" Color="Chartreuse"/>
     <RadialGradientBrush x:Key="TinyButton.Delete.Background.Static">

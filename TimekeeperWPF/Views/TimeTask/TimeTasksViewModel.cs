@@ -15,15 +15,8 @@ namespace TimekeeperWPF
     public class TimeTasksViewModel : TypedLabeledEntitiesViewModel<TimeTask>
     {
         #region Fields
-        private bool _HasSelectedResource = false;
-        private bool _TogglePer = false;
-        private bool _IsAddingNewAllocation = false;
-        private Resource _SelectedResource;
-        private TimeTaskAllocation _CurrentEditAllocation;
         private ICommand _DeleteAllocationCommand;
         private ICommand _AddNewAllocationCommand;
-        private ICommand _CancelAllocationCommand;
-        private ICommand _CommitAllocationCommand;
         private ICommand _DeleteFilterCommand;
         private ICommand _AddNewFilterCommand;
         #endregion
@@ -87,128 +80,28 @@ namespace TimekeeperWPF
             FilterTaskTypesCollection?.Source as ObservableCollection<TaskType>;
         public ListCollectionView FilterTaskTypesView =>
             FilterTaskTypesCollection?.View as ListCollectionView;
-
-        public Resource SelectedResource
-        {
-            get { return _SelectedResource; }
-            set
-            {
-                //Must not be adding new allocation
-                if (IsAddingNewAllocation)
-                {
-                    //prevent change and cause two way bindings to reselect this
-                    OnPropertyChanged();
-                    return;
-                }
-                //Resource must not be itself and must be in ResourcesSource
-                if ((value == _SelectedResource) || (value != null && (!ResourcesSource?.Contains(value) ?? false))) return;
-                _SelectedResource = value;
-                if (_SelectedResource == null)
-                {
-                    HasSelectedResource = false;
-                }
-                else
-                {
-                    HasSelectedResource = true;
-                }
-                OnPropertyChanged();
-            }
-        }
-        public bool TogglePer
-        {
-            get { return _TogglePer; }
-            set
-            {
-                _TogglePer = value;
-                OnPropertyChanged();
-                CurrentEditAllocation.OnPropertyChanged(nameof(TimeTaskAllocation.Per));
-                CurrentEditAllocation.OnPropertyChanged(nameof(TimeTaskAllocation.Amount));
-            }
-        }
-        public TimeTaskAllocation CurrentEditAllocation
-        {
-            get { return _CurrentEditAllocation; }
-            protected set
-            {
-                //Must not be adding new allocation
-                if (IsAddingNewAllocation)
-                {
-                    //prevent change and cause two way bindings to reselect this
-                    OnPropertyChanged();
-                    return;
-                }
-                if (value == _CurrentEditAllocation) return;
-                _CurrentEditAllocation = value;
-                OnPropertyChanged();
-            }
-        }
-        #endregion
-        #region Conditions
-        public bool HasSelectedResource
-        {
-            get { return _HasSelectedResource; }
-            protected set
-            {
-                _HasSelectedResource = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasNotSelectedResource));
-            }
-        }
-        public bool IsAddingNewAllocation
-        {
-            get { return _IsAddingNewAllocation; }
-            set
-            {
-                _IsAddingNewAllocation = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(IsNotAddingNewAllocation));
-            }
-        }
-        public bool HasNotSelectedResource => !HasSelectedResource;
-        public bool IsNotAddingNewAllocation => !IsAddingNewAllocation;
         #endregion
         #region Commands
         public ICommand DeleteAllocationCommand => _DeleteAllocationCommand
             ?? (_DeleteAllocationCommand = new RelayCommand(ap => 
-            DeleteAllocation(ap as TimeTaskAllocation), pp => CanDeleteAllocation(pp)));
+            DeleteAllocation(ap as TimeTaskAllocation), pp => pp is TimeTaskAllocation));
         public ICommand AddNewAllocationCommand => _AddNewAllocationCommand
             ?? (_AddNewAllocationCommand = new RelayCommand(ap => 
-            AddNewAllocation(), pp => CanAddNewAllocation));
-        public ICommand CancelAllocationCommand => _CancelAllocationCommand
-            ?? (_CancelAllocationCommand = new RelayCommand(ap => 
-            CancelAllocation(), pp => CanCancelAllocation));
-        public ICommand CommitAllocationCommand => _CommitAllocationCommand
-            ?? (_CommitAllocationCommand = new RelayCommand(ap => 
-            CommitAllocation(), pp => CanCommitAllocation));
+            AddNewAllocation(), pp => true));
         public ICommand DeleteFilterCommand => _DeleteFilterCommand
             ?? (_DeleteFilterCommand = new RelayCommand(ap => 
             DeleteFilter(ap as TimeTaskFilter), pp => pp is TimeTaskFilter));
         public ICommand AddNewFilterCommand => _AddNewFilterCommand
-            ?? (_AddNewFilterCommand = new RelayCommand(ap => AddNewFilter(), pp => true));
+            ?? (_AddNewFilterCommand = new RelayCommand(ap => 
+            AddNewFilter(), pp => true));
         #endregion
         #region Predicates
         protected override bool CanCommit => 
-            base.CanCommit && IsNotAddingNewAllocation &&
+            base.CanCommit && 
+            !AllocationsHaveErrors &&
             !FiltersHaveErrors;
         protected override bool CanSave => false;
-        private bool CanAddNewAllocation =>
-            IsEditingItemOrAddingNew &&
-            IsNotAddingNewAllocation &&
-            HasSelectedResource && 
-            !IsResourceAllocated(SelectedResource);
-        private bool CanCancelAllocation =>
-            IsEditingItemOrAddingNew && 
-            IsAddingNewAllocation;
-        private bool CanCommitAllocation =>
-            IsEditingItemOrAddingNew &&
-            IsAddingNewAllocation &&
-            (CurrentEditAllocation.Per != SelectedResource) &&
-            !CurrentEditAllocation.HasErrors && 
-            (TogglePer ? CurrentEditAllocation.Per != null : true);
-        private bool CanDeleteAllocation(object pp) =>
-            IsEditingItemOrAddingNew &&
-            IsNotAddingNewAllocation &&
-            pp is TimeTaskAllocation;
+        private bool AllocationsHaveErrors => AllocationsSource?.Count(A => A.HasErrors) > 0;
         private bool FiltersHaveErrors => FiltersSource?.Count(F => F.HasErrors) > 0;
         #endregion
         #region Actions
@@ -275,6 +168,7 @@ namespace TimekeeperWPF
                 Priority = 100,
                 CanFill = false,
                 CanReDist = true,
+                CanSplit = true,
             };
             View.AddNewItem(CurrentEditItem);
             BeginEdit();
@@ -288,8 +182,26 @@ namespace TimekeeperWPF
         private void BeginEdit()
         {
             AllocationsCollection = new CollectionViewSource();
-            AllocationsCollection.Source = new ObservableCollection<TimeTaskAllocation>(CurrentEditItem.Allocations);
-            UpdateAllocationsView();
+            AllocationsCollection.Source = new ObservableCollection<TimeTaskAllocation>();
+            //Doing this will allow us to simultaneouly edit all pre-existing allocations
+            foreach (var A in CurrentEditItem.Allocations)
+            {
+                var newA = new TimeTaskAllocation
+                {
+                    Amount = A.Amount,
+                    InstanceMinimum = A.InstanceMinimum,
+                    Limited = A.Limited,
+                    Per = A.Per,
+                    PerId = A.PerId,
+                    Resource = A.Resource,
+                    Resource_Id = A.Resource_Id,
+                    TimeTask = A.TimeTask,
+                    TimeTask_Id = A.TimeTask_Id,
+                };
+                newA.TogglePer = newA.Per == null ? false : true;
+                AllocationsSource.Add(newA);
+            }
+            OnPropertyChanged(nameof(AllocationsView));
 
             FiltersCollection = new CollectionViewSource();
             FiltersCollection.Source = new ObservableCollection<TimeTaskFilter>();
@@ -337,18 +249,15 @@ namespace TimekeeperWPF
         protected override void EndEdit()
         {
             if (ResourcesView != null) ResourcesView.Filter = null;
-            EndEditAllocation();
             AllocationsCollection = null;
             FiltersCollection = null;
             base.EndEdit();
         }
-        internal override void Cancel()
-        {
-            CancelAllocation();
-            base.Cancel();
-        }
         internal override async Task<bool> Commit()
         {
+            foreach (var A in AllocationsSource)
+                if (!A.TogglePer)
+                    A.Per = null;
             CurrentEditItem.Allocations = new HashSet<TimeTaskAllocation>(AllocationsSource);
             CurrentEditItem.Filters = new HashSet<TimeTaskFilter>(FiltersSource);
             return await base.Commit();
@@ -369,71 +278,28 @@ namespace TimekeeperWPF
         }
         private void AddNewAllocation()
         {
-            CurrentEditAllocation = new TimeTaskAllocation()
+            AllocationsView.AddNewItem(new TimeTaskAllocation
             {
-                Amount = 0,
-                Resource = SelectedResource,
+                Amount = 1,
+                InstanceMinimum = 0,
+                Limited = false,
                 TimeTask = CurrentEditItem
-            };
-            TogglePer = false;
-            IsAddingNewAllocation = true;
-            UpdatePersView();
+            });
         }
-        private void EndEditAllocation()
+        private void DeleteAllocation(TimeTaskAllocation allocation)
         {
-            IsAddingNewAllocation = false;
-            CurrentEditAllocation = null;
-        }
-        private void CancelAllocation()
-        {
-            if (IsAddingNewAllocation) EndEditAllocation();
-        }
-        private void CommitAllocation()
-        {
-            if (IsAddingNewAllocation)
-            {
-                if (!TogglePer) CurrentEditAllocation.Per = null;
-                AllocationsView.AddNewItem(CurrentEditAllocation);
-                AllocationsView.CommitNew();
-                EndEditAllocation();
-                UpdateAllocationsView();
-            }
-        }
-        private void DeleteAllocation(TimeTaskAllocation ap)
-        {
-            AllocationsView.Remove(ap);
+            AllocationsView.Remove(allocation);
             UpdateAllocationsView();
         }
         private void UpdateAllocationsView()
         {
             //filter out allocated resources
             bool timeAllocationExists = AllocationsSource.Count(A => A.Resource.IsTimeResource) > 0;
-            ResourcesView.Filter = R => 
+            ResourcesView.Filter = R =>
                 (timeAllocationExists ? !((Resource)R).IsTimeResource : true) &&
-                !IsResourceAllocated((Resource)R);
+                AllocationsSource?.Count(A => A.Resource == R) <= 0;
             OnPropertyChanged(nameof(ResourcesView));
             OnPropertyChanged(nameof(AllocationsView));
-        }
-        private void UpdatePersView()
-        {
-            //filter out resource pers that won't work based on SelectedResource
-            if (SelectedResource.IsTimeResource)
-            {
-                PersView.Filter = R =>
-                    ((Resource)R).IsTimeResource &&
-                    ((Resource)R).AsTimeSpan() > SelectedResource.AsTimeSpan();
-            }
-            else
-            {
-                PersView.Filter = R => R != SelectedResource;
-            }
-            OnPropertyChanged(nameof(PersView));
-        }
-        private bool IsResourceAllocated(Resource R)
-        {
-            //count number of allocations of resource R
-            //if count is > 0 then yes resource is allocated return true
-            return (AllocationsSource?.Count(A => A.Resource == R) > 0);
         }
         #endregion
     }

@@ -2,83 +2,22 @@
     x:Class="TimekeeperWPF.AllocationSelectorView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
-    xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
     xmlns:local="clr-namespace:TimekeeperWPF">
-    <GroupBox Header="Resource Allocations">
+    <GroupBox>
+        <GroupBox.Header>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Allocations "/>
+                <Button ToolTip="Add New Allocation"
+                        Style="{StaticResource TinyButtonAddStyle}"
+                        Command="{Binding Path=AddNewAllocationCommand}"/>
+            </StackPanel>
+        </GroupBox.Header>
         <StackPanel>
-            <StackPanel Name="AllocationEditorPanel" Orientation="Horizontal">
-                <StackPanel 
-                    Orientation="Horizontal" VerticalAlignment="Center"
-                    Visibility="{Binding Path=IsNotAddingNewAllocation,
-                    Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ComboBox
-                        Name="ResourcesCbo" DisplayMemberPath="Name" MinWidth="100"
-                        IsEnabled="{Binding Path=IsNotAddingNewAllocation}"
-                        SelectedItem="{Binding Path=SelectedResource}"
-                        ItemsSource="{Binding Path=ResourcesView}" />
-                    <Button Style="{StaticResource TinyButtonAddStyle}"
-                            Command="{Binding Path=AddNewAllocationCommand}" />
-                </StackPanel>
-            </StackPanel>
-            <StackPanel 
-                Orientation="Horizontal" x:Name="NewAllocGroupBox"
-                IsVisibleChanged="NewAllocGroupBox_IsVisibleChanged"
-                Visibility="{Binding Path=IsAddingNewAllocation, 
-                Converter={StaticResource BooleanToVisibilityConverter}}">
-                <wpftools:DecimalUpDown 
-                    MinWidth="100" x:Name="NewAllocTextBox"
-                    Value="{Binding Path=CurrentEditAllocation.Amount, 
-                    Converter={tools:InvalidatingConverter},
-                    Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
-                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
-                    VerticalAlignment="Center"/>
-                <TextBlock
-                    Text="{Binding Path=SelectedResource.Name, 
-                    Converter={tools:PluralizingConverter},
-                    FallbackValue='Resource'}" 
-                    Margin="4,0" VerticalAlignment="Center"/>
-                <ToggleButton 
-                    Content=" Per " 
-                    IsChecked="{Binding Path=TogglePer, Mode=TwoWay}"/>
-                <ComboBox 
-                    Name="PersCbo" DisplayMemberPath="Name"
-                    IsSynchronizedWithCurrentItem="False" MinWidth="100"
-                    SelectedItem="{Binding Path=CurrentEditAllocation.Per, Mode=TwoWay,
-                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"
-                    ItemsSource="{Binding Path=PersView}">
-                    <ComboBox.Style>
-                        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Setter Property="IsEnabled" Value="False"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Path=TogglePer}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                    <Setter Property="IsEnabled" Value="True"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ComboBox.Style>
-                </ComboBox>
-                <Button Name="CommitButton" IsTabStop="False" Margin="2"
-                    Style="{StaticResource TinyButtonCommitStyle}" 
-                    Command="{Binding Path=CommitAllocationCommand}"/>
-                <Button Name="CancelButton" IsTabStop="False" Margin="2"
-                    Style="{StaticResource TinyButtonDeleteStyle}" 
-                    Command="{Binding Path=CancelAllocationCommand}"/>
-            </StackPanel>
-            <ItemsControl Name="AllocationListIC" IsTabStop="False" 
+            <ItemsControl Name="AllocationListIC" IsTabStop="False"
                           ItemsSource="{Binding Path=AllocationsView}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" Name="AllocationListPnl"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:EntityTagView
-                            Text="{Binding}"
-                            RemoveButtonVisibility="Visible"
+                        <local:AllocationView
                             RemoveCommand="{Binding ElementName=AllocationListIC,
                             Path=DataContext.DeleteAllocationCommand}"/>
                     </DataTemplate>

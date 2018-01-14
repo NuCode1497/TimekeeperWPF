@@ -25,16 +25,5 @@ namespace TimekeeperWPF
         {
             InitializeComponent();
         }
-
-        private void NewAllocGroupBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (NewAllocGroupBox.Visibility == Visibility.Visible)
-            {
-                Dispatcher.BeginInvoke((Action)delegate
-                {
-                    NewAllocTextBox.Focus();
-                }, DispatcherPriority.Render);
-            }
-        }
     }
 }

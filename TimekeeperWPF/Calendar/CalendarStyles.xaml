@@ -67,6 +67,10 @@
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Insufficient}"/>
                 <Setter Property="BorderThickness" Value="10"/>
             </Trigger>
+            <Trigger Property="State" Value="OverTime">
+                <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.OverTime}"/>
+                <Setter Property="BorderThickness" Value="10"/>
+            </Trigger>
             <Trigger Property="State" Value="Unconfirmed">
                 <Setter Property="BorderBrush" Value="{StaticResource CalendarObject.State.Unconfirmed}"/>
             </Trigger>

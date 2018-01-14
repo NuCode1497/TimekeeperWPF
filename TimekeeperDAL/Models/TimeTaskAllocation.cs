@@ -25,6 +25,9 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
+        public bool TogglePer { get; set; }
+
+        [NotMapped]
         public override string this[string columnName]
         {
             get
@@ -50,9 +53,9 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
                         break;
                     case nameof(InstanceMinimum):
-                        if (InstanceMinimum <= 0)
+                        if (InstanceMinimum < 0)
                         {
-                            AddError(nameof(InstanceMinimum), "InstanceMinimum must be positive");
+                            AddError(nameof(InstanceMinimum), "InstanceMinimum must be positive or 0");
                             hasError = true;
                         }
                         errors = GetErrorsFromAnnotations(nameof(InstanceMinimum), InstanceMinimum);
@@ -122,6 +125,36 @@ namespace TimekeeperDAL.EF
                         break;
                 }
                 return allocatedTime;
+            }
+        }
+
+        public TimeSpan InstanceMinimumAsTimeSpan
+        {
+            get
+            {
+                TimeSpan minTime = new TimeSpan();
+                switch (Resource?.Name)
+                {
+                    case "Minute":
+                        minTime = TimeSpan.FromMinutes(InstanceMinimum);
+                        break;
+                    case "Hour":
+                        minTime = TimeSpan.FromHours(InstanceMinimum);
+                        break;
+                    case "Day":
+                        minTime = TimeSpan.FromDays(InstanceMinimum);
+                        break;
+                    case "Week":
+                        minTime = TimeSpan.FromDays(InstanceMinimum * 7.0d);
+                        break;
+                    case "Month":
+                        minTime = TimeSpan.FromDays(InstanceMinimum * 30.437d);
+                        break;
+                    case "Year":
+                        minTime = TimeSpan.FromDays(InstanceMinimum * 365.2425);
+                        break;
+                }
+                return minTime;
             }
         }
     }

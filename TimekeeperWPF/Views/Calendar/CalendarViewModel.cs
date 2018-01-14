@@ -1725,7 +1725,9 @@ namespace TimekeeperWPF
                     }
                 }
             }
-            return SplitOutsider(insider, outsider);
+            if (outsider.TimeTask.CanSplit)
+                return SplitOutsider(insider, outsider);
+            return null;
         }
         private static CalendarTaskObject SplitOutsider(CalendarTaskObject insider, CalendarTaskObject outsider)
         {
@@ -2598,30 +2600,85 @@ namespace TimekeeperWPF
             var WC = C; 
             //If at least one CalObj on the left side CanReDist
             bool canReDist = C.CanReDistFlag;
+            //Prefer a WC that is Limited
+            bool isLimited = C.TimeTask.TimeAllocation?.Limited ?? false;
             while (true)
             {
                 //If C.HasRoom == F, LC is the nearest LT where LT.S🔒 or LT.Z.S >= LT.S or LT.LT.E🔒. 
                 //LP = WC.P where WC is the LT with the lowest priority from C to LC.
                 //LmaxRoom is the amount of room WC has to be pushed
                 //Also if any LT CanReDist, then WC must also have CanReDist
-                if (canReDist)
+                //Also if any LT is Limited, the WC must also be Limited
+                //Prefer WC that is redistributable over Limited
+                //See Plans.xlsx - Redistributions
+                if (LT.CanReDist) //B C D E
                 {
-                    if (LT.CanReDistFlag &&
-                        LT.Priority < WC.Priority)
-                        WC = LT;
+                    canReDist = true;
+                    if (C.TimeTask.TimeAllocation?.Limited ?? false) //B C
+                    {
+                        isLimited = true;
+                        if (LT.Priority < WC.Priority) //B
+                        {
+                            WC = LT;
+                        }
+                        else //C
+                        {
+                            if (!canReDist || !isLimited) //11 12 13
+                            {
+                                WC = LT;
+                            }
+                        }
+                    }
+                    else //D E
+                    {
+                        if (LT.Priority < WC.Priority) //D
+                        {
+                            if (!canReDist || !isLimited) //11 12 13
+                            {
+                                WC = LT;
+                            }
+                        }
+                        else //E
+                        {
+                            if (!canReDist) //12 13
+                            {
+                                WC = LT;
+                            }
+                        }
+                    }
                 }
-                else
+                else //F G H I
                 {
-                    if (LT.CanReDistFlag)
+                    if (C.TimeTask.TimeAllocation?.Limited ?? false) //F G
                     {
-                        canReDist = true;
-                        WC = LT;
+                        isLimited = true;
+                        if (LT.Priority < WC.Priority) //F
+                        {
+                            if (!canReDist) //12 13
+                            {
+                                WC = LT;
+                            }
+                        }
+                        else //G
+                        {
+                            if (!canReDist && !isLimited) //13
+                            {
+                                WC = LT;
+                            }
+                        }
                     }
-                    else if (LT.Priority < WC.Priority)
+                    else //H I
                     {
-                        WC = LT;
+                        if (LT.Priority < WC.Priority) //H
+                        {
+                            if (!canReDist && !isLimited) //13
+                            {
+                                WC = LT;
+                            }
+                        }
                     }
                 }
+
                 if (LT.EndLock ||
                     LT.StartLock ||
                     (LT.LeftTangent?.EndLock ?? false) ||
@@ -2979,9 +3036,21 @@ namespace TimekeeperWPF
                 foreach (var P in M.PerZones)
                 {
                     //Flag Insufficients
-                    if (P.TimeConsumption?.Remaining > 0)
-                        foreach (var C in P.CalTaskObjs)
-                            C.State = CalendarTaskObject.States.Insufficient;
+                    if (P.TimeConsumption != null)
+                    {
+                        if (P.ParentMap.TimeTask.TimeAllocation.Limited)
+                        {
+                            if (P.TimeConsumption.Remaining < 0)
+                                foreach (var C in P.CalTaskObjs)
+                                    C.State = CalendarTaskObject.States.OverTime;
+                        }
+                        else
+                        {
+                            if (P.TimeConsumption.Remaining > 0)
+                                foreach (var C in P.CalTaskObjs)
+                                    C.State = CalendarTaskObject.States.Insufficient;
+                        }
+                    }
                 }
             }
         }

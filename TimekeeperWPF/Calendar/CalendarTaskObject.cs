@@ -294,6 +294,7 @@ namespace TimekeeperWPF.Calendar
             Current,        //Azure
             Cancel,         //Pink
             Insufficient,   //Orange
+            OverTime,       //DarkOrange
             Unconfirmed,    //SkyBlue
             Unscheduled,    //Chartreuse
         }

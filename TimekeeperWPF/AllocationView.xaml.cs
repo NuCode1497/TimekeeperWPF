@@ -24,5 +24,13 @@ namespace TimekeeperWPF
         {
             InitializeComponent();
         }
+        public ICommand RemoveCommand
+        {
+            get { return (ICommand)GetValue(RemoveCommandProperty); }
+            set { SetValue(RemoveCommandProperty, value); }
+        }
+        public static DependencyProperty RemoveCommandProperty =
+            DependencyProperty.Register(
+                nameof(RemoveCommand), typeof(ICommand), typeof(AllocationView));
     }
 }
