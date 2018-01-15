@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using TimekeeperDAL.EF;
 using TimekeeperDAL.Tools;
+using static System.Math;
 
 namespace TimekeeperWPF.Calendar
 {

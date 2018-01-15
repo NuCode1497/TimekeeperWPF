@@ -8,5 +8,6 @@ namespace TimekeeperWPF.Calendar
         public CalendarTaskObject SeedTaskObj { get; set; }
         public double Priority => ParentPerZone.ParentMap.TimeTask.Priority;
         public bool Cancelled { get; set; }
+        internal bool EvCenAllocFlag = false;
     }
 }

@@ -47,10 +47,23 @@ namespace TimekeeperDAL.Tools
             return new DateTime(dt.Ticks + delta, dt.Kind);
         }
 
+        public static TimeSpan RoundUp(this TimeSpan ts, TimeSpan d)
+        {
+            var modTicks = ts.Ticks % d.Ticks;
+            var delta = modTicks != 0 ? d.Ticks - modTicks : 0;
+            return new TimeSpan(ts.Ticks + delta);
+        }
+
         public static DateTime RoundDown(this DateTime dt, TimeSpan d)
         {
             var delta = dt.Ticks % d.Ticks;
             return new DateTime(dt.Ticks - delta, dt.Kind);
+        }
+
+        public static TimeSpan RoundDown(this TimeSpan ts, TimeSpan d)
+        {
+            var delta = ts.Ticks % d.Ticks;
+            return new TimeSpan(ts.Ticks - delta);
         }
 
         public static DateTime RoundToNearest(this DateTime dt, TimeSpan d)
@@ -62,6 +75,15 @@ namespace TimekeeperDAL.Tools
             return new DateTime(dt.Ticks + offset - delta, dt.Kind);
         }
 
+        public static TimeSpan RoundToNearest(this TimeSpan ts, TimeSpan d)
+        {
+            var delta = ts.Ticks % d.Ticks;
+            bool roundUp = delta > d.Ticks / 2;
+            var offset = roundUp ? d.Ticks : 0;
+
+            return new TimeSpan(ts.Ticks + offset - delta);
+        }
+
         //https://stackoverflow.com/questions/2499479/how-to-round-off-hours-based-on-minuteshours0-if-min30-hours1-otherwise
         public static DateTime RoundToHour(this DateTime dt)
         {
@@ -70,6 +92,7 @@ namespace TimekeeperDAL.Tools
         }
 
         public static double Within(this double d, double min, double max) { return Math.Max(min, Math.Min(d, max)); }
+        public static long Within(this long d, double min, double max) { return (long)Math.Max(min, Math.Min(d, max)); }
         public static DateTime WeekStart(this DateTime dt) { return dt.Date.AddDays(-(int)dt.DayOfWeek).Date; }
         public static DateTime MonthStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind); }
         public static DateTime YearStart(this DateTime dt) { return new DateTime(dt.Year, 1, 1, 0, 0, 0, dt.Kind); }

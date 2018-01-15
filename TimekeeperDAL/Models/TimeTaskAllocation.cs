@@ -58,6 +58,11 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(InstanceMinimum), "InstanceMinimum must be positive or 0");
                             hasError = true;
                         }
+                        else if (InstanceMinimum != 0 && InstanceMinimumAsTimeSpan < TimeTask.MinimumDuration)
+                        {
+                            AddError(nameof(InstanceMinimum), $"InstanceMinimum must be >= {TimeTask.MinimumDuration.ToString()}");
+                            hasError = true;
+                        }
                         errors = GetErrorsFromAnnotations(nameof(InstanceMinimum), InstanceMinimum);
                         break;
                 }

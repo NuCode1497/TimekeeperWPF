@@ -1395,38 +1395,28 @@ namespace TimekeeperWPF
                 // Fill the earliest zones first
                 if (P.InclusionZones.Count == 0) continue;
                 P.InclusionZones.Sort(new InclusionSorterAsc());
+                var minAlloc = new TimeSpan(Max(
+                    TimeTask.MinimumDuration.Ticks,
+                    M.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
                 foreach (var Z in P.InclusionZones)
                 {
-                    if (P.TimeConsumption.Remaining <= 0) break;
-                    if (Z.Duration.Ticks <= 0) break;
+                    if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                    if (Z.Duration < minAlloc) continue;
                     bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
                     if (hasCalObj) continue;
-                    if (P.TimeConsumption.RemainingAsTimeSpan <= Z.Duration)
+                    var alloc = new TimeSpan((long)Z.Duration.Ticks
+                        .Within(minAlloc.Ticks, P.TimeConsumption.Remaining))
+                        .RoundUp(TimeTask.MinimumDuration);
+                    var calObj = new CalendarTaskObject
                     {
-                        //create cal obj the size of the remaining time
-                        CalendarTaskObject CalObj = new CalendarTaskObject
-                        {
-                            Start = Z.Start,
-                            End = Z.Start + P.TimeConsumption.RemainingAsTimeSpan,
-                            ParentInclusionZone = Z,
-                            ParentPerZone = P,
-                        };
-                        P.CalTaskObjs.Add(CalObj);
-                        P.TimeConsumption.Remaining = 0;
-                    }
-                    else
-                    {
-                        //create cal obj the size of the zone
-                        CalendarTaskObject CalObj = new CalendarTaskObject
-                        {
-                            Start = Z.Start,
-                            End = Z.End,
-                            ParentInclusionZone = Z,
-                            ParentPerZone = P,
-                        };
-                        P.CalTaskObjs.Add(CalObj);
-                        P.TimeConsumption.Remaining -= Z.Duration.Ticks;
-                    }
+                        Start = Z.Start,
+                        End = Z.Start + alloc,
+                        ParentInclusionZone = Z,
+                        ParentPerZone = P,
+                    };
+                    P.CalTaskObjs.Add(calObj);
+                    P.TimeConsumption.Remaining -= calObj.Duration.Ticks;
+                    Z.SeedTaskObj = calObj;
                 }
             }
         }
@@ -1437,39 +1427,51 @@ namespace TimekeeperWPF
                 //Fill zones evenly
                 if (P.InclusionZones.Count == 0) continue;
                 P.InclusionZones.Sort(new InclusionSorterAsc());
+                var minAlloc = new TimeSpan(Max(
+                    TimeTask.MinimumDuration.Ticks,
+                    M.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
                 //First loop that creates CalendarObjects
                 foreach (var Z in P.InclusionZones)
                 {
-                    if (P.TimeConsumption.Remaining <= 0) break;
-                    if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
+                    if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                    if (Z.Duration < minAlloc) continue;
                     bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
                     if (hasCalObj) continue;
-                    CalendarTaskObject CalObj = new CalendarTaskObject
+                    CalendarTaskObject calObj = new CalendarTaskObject
                     {
                         Start = Z.Start,
-                        End = Z.Start + TimeTask.MinimumDuration,
+                        End = Z.Start + minAlloc,
                         ParentInclusionZone = Z,
                         ParentPerZone = P,
                     };
-                    Z.SeedTaskObj = CalObj;
-                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
-                    P.CalTaskObjs.Add(CalObj);
+                    P.CalTaskObjs.Add(calObj);
+                    P.TimeConsumption.Remaining -= minAlloc.Ticks;
+                    Z.SeedTaskObj = calObj;
                 }
                 //Second loop that adds more time to CalendarObjects
+                minAlloc = TimeTask.MinimumDuration;
                 bool full = false;
-                while (!full && (P.TimeConsumption.Remaining > 0))
+                while (!full && P.TimeConsumption.CanAllocate(minAlloc.Ticks))
                 {
                     full = true;
-                    //add a small amount of time to each CalObj until they are full or out of allocated time
+                    //add time to each CalObj until they are full or out of allocated time
                     foreach (var Z in P.InclusionZones)
                     {
-                        if (P.TimeConsumption.Remaining <= 0) break;
+                        if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
                         if (Z.SeedTaskObj == null) continue;
-                        if (Z.SeedTaskObj.End >= Z.End) continue;
-                        Z.SeedTaskObj.End += TimeTask.MinimumDuration;
-                        P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                        if (Z.SeedTaskObj.End + minAlloc >= Z.End) continue;
+                        Z.SeedTaskObj.End = (Z.SeedTaskObj.End + minAlloc);
+                        P.TimeConsumption.Remaining -= minAlloc.Ticks;
                         full = false;
                     }
+                }
+                //align the objs to calendar chunks
+                foreach (var C in P.CalTaskObjs)
+                {
+                    var dur = C.Duration;
+                    C.End = C.End.RoundUp(TimeTask.MinimumDuration);
+                    var diff = C.Duration - dur;
+                    P.TimeConsumption.Remaining -= diff.Ticks;
                 }
             }
         }
@@ -1480,52 +1482,60 @@ namespace TimekeeperWPF
                 //Fill zones evenly, but centered
                 if (P.InclusionZones.Count == 0) continue;
                 P.InclusionZones.Sort(new InclusionSorterAsc());
+                var minAlloc = new TimeSpan(Max(
+                    TimeTask.MinimumDuration.Ticks,
+                    M.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
                 //First loop that creates CalendarObjects
                 foreach (var Z in P.InclusionZones)
                 {
-                    if (P.TimeConsumption.Remaining <= 0) break;
-                    if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
+                    if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                    if (Z.Duration < minAlloc) continue;
                     bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
                     if (hasCalObj) continue;
-                    DateTime MDT = new DateTime(Z.Start.Ticks + Z.Duration.Ticks / 2).RoundDown(TimeTask.MinimumDuration);
+                    DateTime MDT = new DateTime(Z.Start.Ticks + Z.Duration.Ticks / 2).RoundDown(minAlloc);
                     CalendarTaskObject CalObj = new CalendarTaskObject
                     {
                         Start = MDT,
-                        End = MDT + TimeTask.MinimumDuration,
+                        End = MDT + minAlloc,
                         ParentInclusionZone = Z,
                         ParentPerZone = P,
                     };
                     Z.SeedTaskObj = CalObj;
-                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                    P.TimeConsumption.Remaining -= minAlloc.Ticks;
                     P.CalTaskObjs.Add(CalObj);
                 }
                 //Second loop that adds more time to CalendarObjects
+                minAlloc = TimeTask.MinimumDuration;
                 bool full = false;
                 while (!full && (P.TimeConsumption.Remaining > 0))
                 {
                     full = true;
-                    //add a small amount of time to each CalObj until they are full or out of allocated time
+                    foreach (var Z in P.InclusionZones)
+                        Z.EvCenAllocFlag = false;
+                    //add time to each CalObj until they are full or out of allocated time
                     foreach (var Z in P.InclusionZones)
                     {
-                        //Add some time to the left
-                        if (P.TimeConsumption.Remaining <= 0) break;
-                        if (Z.SeedTaskObj == null) continue;
-                        if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration >= Z.Start)
+                        if (Z.EvCenAllocFlag)
                         {
-                            Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
-                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                            //Add some time to the left
+                            if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                            if (Z.SeedTaskObj == null) continue;
+                            if (Z.SeedTaskObj.Start - minAlloc < Z.Start) continue;
+                            Z.SeedTaskObj.Start -= minAlloc;
+                            P.TimeConsumption.Remaining -= minAlloc.Ticks;
                             full = false;
                         }
-
-                        //Add some time to the right
-                        if (P.TimeConsumption.Remaining <= 0) break;
-                        if (Z.SeedTaskObj == null) continue;
-                        if (Z.SeedTaskObj.End < Z.End)
+                        else
                         {
-                            Z.SeedTaskObj.End += TimeTask.MinimumDuration;
-                            P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                            //Add some time to the right
+                            if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                            if (Z.SeedTaskObj == null) continue;
+                            if ((Z.SeedTaskObj.End + minAlloc) >= Z.End) continue;
+                            Z.SeedTaskObj.End += minAlloc;
+                            P.TimeConsumption.Remaining -= minAlloc.Ticks;
                             full = false;
                         }
+                        Z.EvCenAllocFlag = !Z.EvCenAllocFlag;
                     }
                 }
             }
@@ -1537,25 +1547,29 @@ namespace TimekeeperWPF
                 //Fill zones evenly, but late
                 if (P.InclusionZones.Count == 0) continue;
                 P.InclusionZones.Sort(new InclusionSorterDesc());
+                var minAlloc = new TimeSpan(Max(
+                    TimeTask.MinimumDuration.Ticks,
+                    M.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
                 //First loop that creates CalendarObjects
                 foreach (var Z in P.InclusionZones)
                 {
-                    if (P.TimeConsumption.Remaining <= 0) break;
-                    if (Z.Duration.Ticks < TimeTask.MinimumDuration.Ticks) continue;
+                    if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                    if (Z.Duration < minAlloc) continue;
                     bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
                     if (hasCalObj) continue;
                     CalendarTaskObject CalObj = new CalendarTaskObject
                     {
-                        Start = Z.End - TimeTask.MinimumDuration,
+                        Start = Z.End - minAlloc,
                         End = Z.End,
                         ParentInclusionZone = Z,
                         ParentPerZone = P,
                     };
                     Z.SeedTaskObj = CalObj;
-                    P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                    P.TimeConsumption.Remaining -= minAlloc.Ticks;
                     P.CalTaskObjs.Add(CalObj);
                 }
                 //Second loop that adds more time to CalendarObjects
+                minAlloc = TimeTask.MinimumDuration;
                 bool full = false;
                 while (!full && (P.TimeConsumption.Remaining > 0))
                 {
@@ -1563,11 +1577,11 @@ namespace TimekeeperWPF
                     //add a small amount of time to each CalObj until they are full or out of allocated time
                     foreach (var Z in P.InclusionZones)
                     {
-                        if (P.TimeConsumption.Remaining <= 0) break;
+                        if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
                         if (Z.SeedTaskObj == null) continue;
-                        if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration < Z.Start) continue;
-                        Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
-                        P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                        if (Z.SeedTaskObj.Start - minAlloc < Z.Start) continue;
+                        Z.SeedTaskObj.Start -= minAlloc;
+                        P.TimeConsumption.Remaining -= minAlloc.Ticks;
                         full = false;
                     }
                 }
@@ -1580,39 +1594,28 @@ namespace TimekeeperWPF
                 // Fill the latest zones first
                 if (P.InclusionZones.Count == 0) return;
                 P.InclusionZones.Sort(new InclusionSorterDesc());
+                var minAlloc = new TimeSpan(Max(
+                    TimeTask.MinimumDuration.Ticks,
+                    M.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
                 foreach (var Z in P.InclusionZones)
                 {
-                    if (P.TimeConsumption.Remaining <= 0) break;
-                    if (Z.Duration.Ticks <= 0) break;
+                    if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                    if (Z.Duration < minAlloc) continue;
                     bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
                     if (hasCalObj) continue;
-                    if (P.TimeConsumption.RemainingAsTimeSpan <= Z.Duration)
+                    var alloc = new TimeSpan((long)Z.Duration.Ticks
+                        .Within(minAlloc.Ticks, P.TimeConsumption.Remaining))
+                        .RoundUp(TimeTask.MinimumDuration);
+                    var calObj = new CalendarTaskObject
                     {
-                        //create cal obj the size of the remaining time
-                        CalendarTaskObject CalObj = new CalendarTaskObject
-                        {
-                            Start = Z.End - P.TimeConsumption.RemainingAsTimeSpan,
-                            End = Z.End,
-                            //ParentMap = M,
-                            ParentInclusionZone = Z,
-                            ParentPerZone = P,
-                        };
-                        P.CalTaskObjs.Add(CalObj);
-                        P.TimeConsumption.Remaining = 0;
-                    }
-                    else
-                    {
-                        //create cal obj the size of the zone
-                        CalendarTaskObject CalObj = new CalendarTaskObject
-                        {
-                            Start = Z.Start,
-                            End = Z.End,
-                            ParentInclusionZone = Z,
-                            ParentPerZone = P,
-                        };
-                        P.CalTaskObjs.Add(CalObj);
-                        P.TimeConsumption.Remaining -= Z.Duration.Ticks;
-                    }
+                        Start = Z.Start - alloc,
+                        End = Z.Start,
+                        ParentInclusionZone = Z,
+                        ParentPerZone = P,
+                    };
+                    P.CalTaskObjs.Add(calObj);
+                    P.TimeConsumption.Remaining -= calObj.Duration.Ticks;
+                    Z.SeedTaskObj = calObj;
                 }
             }
         }
@@ -1731,13 +1734,20 @@ namespace TimekeeperWPF
         }
         private static CalendarTaskObject SplitOutsider(CalendarTaskObject insider, CalendarTaskObject outsider)
         {
-            DateTime MDT = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
+            //Make sure there is room on each side of the split for outsider.InstanceMinimum
+            var minAlloc = new TimeSpan(Max(
+                TimeTask.MinimumDuration.Ticks,
+                outsider.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
+            if (minAlloc + minAlloc < outsider.Duration) return null;
+            var MDTi = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
+            var split = new DateTime(MDTi.Ticks.Within((outsider.Start + minAlloc).Ticks, (outsider.End - minAlloc).Ticks));
+            if (split < insider.Start || split > insider.End) return null;
             var Left = new CalendarTaskObject();
             var Right = outsider;
             Left.Mimic(outsider);
             Left.EndLock = false;
-            Left.End = MDT;
-            Right.Start = MDT;
+            Left.End = split;
+            Right.Start = split;
             Right.StartLock = false;
             if (outsider.State == CalendarTaskObject.States.Confirmed)
             {
@@ -1759,7 +1769,10 @@ namespace TimekeeperWPF
                     PushLeft(collision, Lpush);
                     return true;
                 case Collision.CollisionResult.ShrinkLeft:
-                    ShrinkLeft(collision, new TimeSpan(Min(collision.Overlap.Ticks, collision.Left.Duration.Ticks)));
+                    TimeSpan shrinkL = new TimeSpan(Min(collision.Overlap.Ticks, collision.Left.Duration.Ticks));
+                    if (collision.Left.Duration - shrinkL < collision.Left.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan)
+                        shrinkL = collision.Left.Duration;
+                    ShrinkLeft(collision, shrinkL);
                     return true;
                 case Collision.CollisionResult.ReDistLeft:
                     collision.Left.Step1IgnoreFlag = true;
@@ -1770,7 +1783,10 @@ namespace TimekeeperWPF
                     PushRight(collision, Rpush);
                     return true;
                 case Collision.CollisionResult.ShrinkRight:
-                    ShrinkRight(collision, new TimeSpan(Min(collision.Overlap.Ticks, collision.Right.Duration.Ticks)));
+                    TimeSpan shrinkR = new TimeSpan(Min(collision.Overlap.Ticks, collision.Right.Duration.Ticks));
+                    if (collision.Right.Duration - shrinkR < collision.Right.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan)
+                        shrinkR = collision.Right.Duration;
+                    ShrinkRight(collision, shrinkR);
                     return true;
                 case Collision.CollisionResult.ReDistRight:
                     collision.Right.Step1IgnoreFlag = true;
@@ -1856,7 +1872,8 @@ namespace TimekeeperWPF
         }
         private bool ReDistPart2(Collision collision, List<EmptyZone> spaces, Action<Collision, TimeSpan> ShrinkFunc)
         {
-            //returns true when there is a redistribution
+            //returns true when there is a redistribution to an empty space
+            var minAlloc = collision.Loser.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan;
             foreach (var S in spaces)
             {
                 foreach (var Z in collision.Loser.ParentPerZone.InclusionZones)
@@ -1864,9 +1881,30 @@ namespace TimekeeperWPF
                     if (!S.Intersects(Z)) continue;
                     var SZOverlap = S.GetOverlap(Z);
                     var shrink = new TimeSpan(Min(SZOverlap.Ticks, collision.Overlap.Ticks));
+                    //if redistribution would cause the object to shrink below InstanceMinimum, 
+                    //try to redistribute up to that point,
+                    //then try to redistribute the rest of it,
+                    //else dont redistribute here at all
+                    if (collision.Loser.Duration == minAlloc)
+                        shrink = collision.Loser.Duration;
+                    else if (collision.Loser.Duration - shrink < minAlloc)
+                        shrink = collision.Loser.Duration - minAlloc;
+                    if (shrink > SZOverlap) continue;
                     if (shrink.Ticks <= 0) continue;
-                    ShrinkFunc(collision, shrink);
-                    FillEmptyWithInsuffZ(S, Z);
+                    //try to fill the empty zone
+                    collision.Loser.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
+                    if (!FillEmptyWithInsuffZ(S, Z))
+                    {
+                        //undo and shrink
+                        collision.Loser.ParentPerZone.TimeConsumption.Remaining -= shrink.Ticks;
+                        ShrinkFunc(collision, shrink);
+                    }
+                    else
+                    {
+                        //if for some reason it fails to fill the empty zone, undo and continue
+                        collision.Loser.ParentPerZone.TimeConsumption.Remaining -= shrink.Ticks;
+                        continue;
+                    }
                     //break out of the loops to update the spaces collection
                     return true;
                 }
@@ -1875,13 +1913,18 @@ namespace TimekeeperWPF
         }
         private bool ReDistPart3(Collision collision, List<CalendarTaskObject> lesserObjs, Action<Collision, TimeSpan> ShrinkFunc)
         {
+            //returns true when a lesser object is overwritten by a redistribution
+            var minAlloc = collision.Loser.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan;
             foreach (var C in lesserObjs)
             {
+                //check if the lesserObj to be overwritten is actually intersecting the object to be redistributed
+                //if it is, then shrink the lesserObj instead of redistributing
                 if (C.Intersects(collision.Loser))
                 {
                     var CLOverlap = C.GetOverlap(collision.Loser);
                     var shrink = new TimeSpan(Min(CLOverlap.Ticks, collision.Overlap.Ticks));
-                    if (shrink.Ticks <= 0) continue;
+                    if (C.Duration - shrink < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan)
+                        shrink = C.Duration;
                     if (C.Start < collision.Loser.Start)
                     {
                         Collision reDistCol = new Collision
@@ -1889,8 +1932,6 @@ namespace TimekeeperWPF
                             Left = C,
                             Right = collision.Loser
                         };
-                        if (collision.Winner != C)
-                            ExpandLeft(collision.Loser, shrink);
                         ShrinkLeft(reDistCol, shrink);
                     }
                     else
@@ -1900,28 +1941,42 @@ namespace TimekeeperWPF
                             Left = collision.Loser,
                             Right = C
                         };
-                        if (collision.Winner != C)
-                            ExpandRight(collision.Loser, shrink);
                         ShrinkRight(reDistCol, shrink);
                     }
                     return true;
                 }
+                //find any lesser objects that intersect an inclusion zone of the object to be redistributed
+                //if it is, then redistribute by overwriting the lesser object
                 foreach (var Z in collision.Loser.ParentPerZone.InclusionZones)
                 {
                     if (!C.Intersects(Z)) continue;
                     var CZOverlap = C.GetOverlap(Z);
                     var shrink = new TimeSpan(Min(CZOverlap.Ticks, collision.Overlap.Ticks));
+                    //if redistribution would cause the object to shrink below InstanceMinimum, 
+                    //try to redistribute up to that point,
+                    //then try to redistribute the rest of it,
+                    //else dont redistribute here at all
+                    if (collision.Loser.Duration == minAlloc)
+                        shrink = collision.Loser.Duration;
+                    else if (collision.Loser.Duration - shrink < minAlloc)
+                        shrink = collision.Loser.Duration - minAlloc;
+                    if (shrink > CZOverlap) continue;
                     if (shrink.Ticks <= 0) continue;
-                    ShrinkFunc(collision, shrink);
+                    //overwrite C
                     if (C.LeftTangent?.TimeTask.Id == collision.Loser.TimeTask.Id)
                     {
+                        //The redistributing object has a sibling object to the left of lesser object C
+                        //lets expand the sibling object into C
                         Collision reDistCol = new Collision
                         {
                             Left = C.LeftTangent,
                             Right = C,
                         };
                         ExpandRight(C.LeftTangent, shrink);
-                        ShrinkRight(reDistCol, shrink);
+                        //shrink C, respecting InstanceMinimum
+                        ShrinkRight(reDistCol,
+                            C.Duration - shrink < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan ?
+                            C.Duration : shrink);
                     }
                     else if (C.RightTangent?.TimeTask.Id == collision.Loser.TimeTask.Id)
                     {
@@ -1931,10 +1986,15 @@ namespace TimekeeperWPF
                             Right = C.RightTangent,
                         };
                         ExpandLeft(C.RightTangent, shrink);
-                        ShrinkLeft(reDistCol, shrink);
+                        ShrinkLeft(reDistCol,
+                            C.Duration - shrink < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan ?
+                            C.Duration : shrink);
                     }
                     else
                     {
+                        //no usable tangents, overwrite C by creating a new instance
+                        //new object must respect InstanceMinimum
+                        if (shrink < minAlloc) continue;
                         CalendarTaskObject reDistObj = new CalendarTaskObject
                         {
                             Start = C.Start,
@@ -1952,8 +2012,11 @@ namespace TimekeeperWPF
                             Left = reDistObj,
                             Right = C
                         };
-                        ShrinkRight(reDistCol, shrink);
+                        ShrinkRight(reDistCol,
+                            C.Duration - shrink < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan ?
+                            C.Duration : shrink);
                     }
+                    ShrinkFunc(collision, shrink);
                     return true;
                 }
             }
@@ -2611,74 +2674,7 @@ namespace TimekeeperWPF
                 //Also if any LT is Limited, the WC must also be Limited
                 //Prefer WC that is redistributable over Limited
                 //See Plans.xlsx - Redistributions
-                if (LT.CanReDist) //B C D E
-                {
-                    canReDist = true;
-                    if (C.TimeTask.TimeAllocation?.Limited ?? false) //B C
-                    {
-                        isLimited = true;
-                        if (LT.Priority < WC.Priority) //B
-                        {
-                            WC = LT;
-                        }
-                        else //C
-                        {
-                            if (!canReDist || !isLimited) //11 12 13
-                            {
-                                WC = LT;
-                            }
-                        }
-                    }
-                    else //D E
-                    {
-                        if (LT.Priority < WC.Priority) //D
-                        {
-                            if (!canReDist || !isLimited) //11 12 13
-                            {
-                                WC = LT;
-                            }
-                        }
-                        else //E
-                        {
-                            if (!canReDist) //12 13
-                            {
-                                WC = LT;
-                            }
-                        }
-                    }
-                }
-                else //F G H I
-                {
-                    if (C.TimeTask.TimeAllocation?.Limited ?? false) //F G
-                    {
-                        isLimited = true;
-                        if (LT.Priority < WC.Priority) //F
-                        {
-                            if (!canReDist) //12 13
-                            {
-                                WC = LT;
-                            }
-                        }
-                        else //G
-                        {
-                            if (!canReDist && !isLimited) //13
-                            {
-                                WC = LT;
-                            }
-                        }
-                    }
-                    else //H I
-                    {
-                        if (LT.Priority < WC.Priority) //H
-                        {
-                            if (!canReDist && !isLimited) //13
-                            {
-                                WC = LT;
-                            }
-                        }
-                    }
-                }
-
+                PushDataPart2(C, LT, ref WC, ref canReDist, ref isLimited);
                 if (LT.EndLock ||
                     LT.StartLock ||
                     (LT.LeftTangent?.EndLock ?? false) ||
@@ -2688,7 +2684,7 @@ namespace TimekeeperWPF
                     hasRoom = false;
                     break;
                 }
-                else 
+                else
                 if (LT.LeftTangent == null)
                 {
                     //HasRoom == T when LC is the LT where LT.LT == null. LP = LC.P. WC = LC.
@@ -2714,26 +2710,10 @@ namespace TimekeeperWPF
             var RT = C;
             var WC = C;
             bool canReDist = C.CanReDistFlag;
+            bool isLimited = C.TimeTask.TimeAllocation?.Limited ?? false;
             while (true)
             {
-                if (canReDist)
-                {
-                    if (RT.CanReDistFlag &&
-                        RT.Priority < WC.Priority)
-                        WC = RT;
-                }
-                else
-                {
-                    if (RT.CanReDistFlag)
-                    {
-                        canReDist = true;
-                        WC = RT;
-                    }
-                    else if (RT.Priority < WC.Priority)
-                    {
-                        WC = RT;
-                    }
-                }
+                PushDataPart2(C, RT, ref WC, ref canReDist, ref isLimited);
                 if (RT.EndLock ||
                     RT.StartLock ||
                     (RT.RightTangent?.StartLock ?? false) ||
@@ -2760,6 +2740,76 @@ namespace TimekeeperWPF
                 WeakestC = WC,
                 CanReDist = canReDist,
             };
+        }
+        private static void PushDataPart2(CalendarTaskObject C, CalendarTaskObject T, ref CalendarTaskObject WC, ref bool canReDist, ref bool isLimited)
+        {
+            if (T.CanReDist) //B C D E
+            {
+                canReDist = true;
+                if (C.TimeTask.TimeAllocation?.Limited ?? false) //B C
+                {
+                    isLimited = true;
+                    if (T.Priority < WC.Priority) //B
+                    {
+                        WC = T;
+                    }
+                    else //C
+                    {
+                        if (!canReDist || !isLimited) //11 12 13
+                        {
+                            WC = T;
+                        }
+                    }
+                }
+                else //D E
+                {
+                    if (T.Priority < WC.Priority) //D
+                    {
+                        if (!canReDist || !isLimited) //11 12 13
+                        {
+                            WC = T;
+                        }
+                    }
+                    else //E
+                    {
+                        if (!canReDist) //12 13
+                        {
+                            WC = T;
+                        }
+                    }
+                }
+            }
+            else //F G H I
+            {
+                if (C.TimeTask.TimeAllocation?.Limited ?? false) //F G
+                {
+                    isLimited = true;
+                    if (T.Priority < WC.Priority) //F
+                    {
+                        if (!canReDist) //12 13
+                        {
+                            WC = T;
+                        }
+                    }
+                    else //G
+                    {
+                        if (!canReDist && !isLimited) //13
+                        {
+                            WC = T;
+                        }
+                    }
+                }
+                else //H I
+                {
+                    if (T.Priority < WC.Priority) //H
+                    {
+                        if (!canReDist && !isLimited) //13
+                        {
+                            WC = T;
+                        }
+                    }
+                }
+            }
         }
         private static List<Tuple<CalendarTaskObject, CalendarTaskObject>> GetIntersections(List<CalendarTaskObject> calObjs)
         {
@@ -2805,8 +2855,8 @@ namespace TimekeeperWPF
                         var insuffZone = insuffZones.FirstOrDefault();
                         if (insuffZone != null)
                         {
-                            FillEmptyWithInsuffZ(S, insuffZone);
-                            hasChanges = true;
+                            if (FillEmptyWithInsuffZ(S, insuffZone))
+                                hasChanges = true;
                         }
                         else
                         {
@@ -2820,15 +2870,15 @@ namespace TimekeeperWPF
                             var fillZone = fillZones.FirstOrDefault();
                             if (fillZone != null)
                             {
-                                FillEmptyWithFiller(S, fillZone);
-                                hasChanges = true;
+                                if (FillEmptyWithFiller(S, fillZone))
+                                    hasChanges = true;
                             }
                         }
                     }
                 }
             }
         }
-        private static void FillEmptyWithInsuffZ(EmptyZone S, InclusionZone Z)
+        private static bool FillEmptyWithInsuffZ(EmptyZone S, InclusionZone Z)
         {
             //Check if the CalObjs on the left or right of the space can be used to fill
             //otherwise, create a new CalObj to fill
@@ -2853,9 +2903,11 @@ namespace TimekeeperWPF
             }
             else
             {
+                var minAlloc = new TimeSpan((long)Max(
+                    Z.ParentPerZone.TimeConsumption.Remaining, 
+                    Z.ParentPerZone.ParentMap.TimeTask.TimeAllocation.InstanceMinimum));
                 var start = new DateTime(Max(Z.Start.Ticks, S.Start.Ticks));
-                var end = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks,
-                    start.Ticks + (long)Max(Z.ParentPerZone.TimeConsumption.Remaining, 0))));
+                var end = new DateTime(Min(Z.End.Ticks, Min(S.End.Ticks, start.Ticks + minAlloc.Ticks)));
                 var C = new CalendarTaskObject
                 {
                     Start = start,
@@ -2864,11 +2916,13 @@ namespace TimekeeperWPF
                     ParentInclusionZone = Z,
                     CanReDistFlag = false,
                 };
+                if (C.Duration < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan) return false;
                 Z.ParentPerZone.CalTaskObjs.Add(C);
                 Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
             }
+            return true;
         }
-        private static void FillEmptyWithFiller(EmptyZone S, InclusionZone Z)
+        private static bool FillEmptyWithFiller(EmptyZone S, InclusionZone Z)
         {
             //Check if the CalObjs on the left or right of the space can be used to fill
             //otherwise, create a new CalObj to fill
@@ -2904,10 +2958,12 @@ namespace TimekeeperWPF
                     ParentPerZone = Z.ParentPerZone,
                     ParentInclusionZone = Z,
                 };
+                if (C.Duration < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan) return false;
                 Z.ParentPerZone.CalTaskObjs.Add(C);
                 if (Z.ParentPerZone.TimeConsumption != null)
                     Z.ParentPerZone.TimeConsumption.Remaining -= C.Duration.Ticks;
             }
+            return true;
         }
         private void CalculateTimeConsumptions()
         {
