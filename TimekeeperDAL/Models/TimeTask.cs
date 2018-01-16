@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Math;
 
 namespace TimekeeperDAL.EF
 {
@@ -239,7 +240,9 @@ namespace TimekeeperDAL.EF
             if (TimeAllocation == null || TimeAllocation.Per == null)
             {
                 //if per is not defined, we will create a per zone the size of the task
-                PerZones.Add(start, end);
+                var S = new DateTime(Max(start.Ticks, Start.Ticks));
+                var E = new DateTime(Min(end.Ticks, End.Ticks));
+                PerZones.Add(S, E);
             }
             else switch (TimeAllocation?.Per?.Name)
             {

@@ -1236,8 +1236,9 @@ namespace TimekeeperWPF
             DateTime start = pCI.DateTime;
             if (CI.ParentPerZone.TimeConsumption != null)
             {
-                var remStart = CI.DateTime - CI.ParentPerZone.TimeConsumption.RemainingAsTimeSpan;
-                start = new DateTime(Max(remStart.Ticks, pCI.DateTime.Ticks));
+                //var remStart = CI.DateTime - CI.ParentPerZone.TimeConsumption.RemainingAsTimeSpan;
+                //start = new DateTime(Max(remStart.Ticks, pCI.DateTime.Ticks));
+                start = pCI.DateTime;
                 var diff = (CI.DateTime - start).Ticks;
                 if (diff > 0)
                     CI.ParentPerZone.TimeConsumption.Remaining -= (CI.DateTime - start).Ticks;
@@ -1651,6 +1652,7 @@ namespace TimekeeperWPF
             var Cs = GetCalObjsUnOrdered(D);
             foreach (var C in Cs)
             {
+                if (C.Start == C.End) C.ParentPerZone.CalTaskObjs.Remove(C);
                 C.Step1IgnoreFlag = false;
             }
             bool hasChanges = true;
@@ -1691,39 +1693,39 @@ namespace TimekeeperWPF
                 var diff = insider.ParentInclusionZone.End - outsider.End;
                 if (diff >= insider.Duration)
                 {
-                    //there is room on the outside on the right for insider
-                    insider.End = outsider.End + insider.Duration;
-                    insider.Start = outsider.End;
-                    if (insider.LeftTangent != null)
-                        insider.LeftTangent.RightTangent = null;
-                    insider.LeftTangent = outsider;
-                    if (insider.RightTangent != null)
-                        insider.RightTangent.LeftTangent = null;
-                    insider.RightTangent = null;
-                    if (outsider.RightTangent != null)
-                        outsider.RightTangent.LeftTangent = null;
-                    outsider.RightTangent = insider;
-                    hasChanges = true;
+                    ////there is room on the outside on the right for insider
+                    //insider.End = outsider.End + insider.Duration;
+                    //insider.Start = outsider.End;
+                    //if (insider.LeftTangent != null)
+                    //    insider.LeftTangent.RightTangent = null;
+                    //insider.LeftTangent = outsider;
+                    //if (insider.RightTangent != null)
+                    //    insider.RightTangent.LeftTangent = null;
+                    //insider.RightTangent = null;
+                    //if (outsider.RightTangent != null)
+                    //    outsider.RightTangent.LeftTangent = null;
+                    //outsider.RightTangent = insider;
+                    //hasChanges = true;
                     return null;
                 }
                 else
                 {
-                    //there is room on the outside on the left for insider
                     diff = outsider.Start - insider.ParentInclusionZone.Start;
                     if (diff >= insider.Duration)
                     {
-                        insider.Start = outsider.Start - insider.Duration;
-                        insider.End = outsider.Start;
-                        if (insider.LeftTangent != null)
-                            insider.LeftTangent.RightTangent = null;
-                        insider.LeftTangent = null;
-                        if (insider.RightTangent != null)
-                            insider.RightTangent.LeftTangent = null;
-                        insider.RightTangent = outsider;
-                        if (outsider.LeftTangent != null)
-                            outsider.LeftTangent.RightTangent = null;
-                        outsider.LeftTangent = insider;
-                        hasChanges = true;
+                        ////there is room on the outside on the left for insider
+                        //insider.Start = outsider.Start - insider.Duration;
+                        //insider.End = outsider.Start;
+                        //if (insider.LeftTangent != null)
+                        //    insider.LeftTangent.RightTangent = null;
+                        //insider.LeftTangent = null;
+                        //if (insider.RightTangent != null)
+                        //    insider.RightTangent.LeftTangent = null;
+                        //insider.RightTangent = outsider;
+                        //if (outsider.LeftTangent != null)
+                        //    outsider.LeftTangent.RightTangent = null;
+                        //outsider.LeftTangent = insider;
+                        //hasChanges = true;
                         return null;
                     }
                 }
@@ -1738,7 +1740,7 @@ namespace TimekeeperWPF
             var minAlloc = new TimeSpan(Max(
                 TimeTask.MinimumDuration.Ticks,
                 outsider.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
-            if (minAlloc + minAlloc < outsider.Duration) return null;
+            if (minAlloc + minAlloc > outsider.Duration) return null;
             var MDTi = insider.Start + new TimeSpan(insider.Duration.Ticks / 2);
             var split = new DateTime(MDTi.Ticks.Within((outsider.Start + minAlloc).Ticks, (outsider.End - minAlloc).Ticks));
             if (split < insider.Start || split > insider.End) return null;
@@ -1765,7 +1767,8 @@ namespace TimekeeperWPF
             {
                 case Collision.CollisionResult.PushLeft:
                     TimeSpan Lroom = collision.Left.Start - collision.Left.ParentInclusionZone.Start;
-                    TimeSpan Lpush = new TimeSpan(Min(collision.Overlap.Ticks, Lroom.Ticks));
+                    TimeSpan LmaxPush = collision.Left.Start > collision.Right.Start ? collision.Left.End - collision.Right.Start : collision.Overlap;
+                    TimeSpan Lpush = new TimeSpan(Min(LmaxPush.Ticks, Lroom.Ticks));
                     PushLeft(collision, Lpush);
                     return true;
                 case Collision.CollisionResult.ShrinkLeft:
@@ -1779,7 +1782,8 @@ namespace TimekeeperWPF
                     break;
                 case Collision.CollisionResult.PushRight:
                     TimeSpan Rroom = collision.Right.ParentInclusionZone.End - collision.Right.End;
-                    TimeSpan Rpush = new TimeSpan(Min(collision.Overlap.Ticks, Rroom.Ticks));
+                    TimeSpan RmaxPush = collision.Right.End < collision.Left.End ? collision.Left.End - collision.Right.Start : collision.Overlap;
+                    TimeSpan Rpush = new TimeSpan(Min(RmaxPush.Ticks, Rroom.Ticks));
                     PushRight(collision, Rpush);
                     return true;
                 case Collision.CollisionResult.ShrinkRight:
