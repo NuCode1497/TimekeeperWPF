@@ -2031,6 +2031,8 @@ namespace TimekeeperWPF
             //Left Right Intersection Collisions C1 ∩ C2
             CalendarTaskObject L;
             CalendarTaskObject R;
+            var C1CoM = C1.Start + new TimeSpan((long)(C1.Duration.Ticks / 2d));
+            var C2CoM = C2.Start + new TimeSpan((long)(C2.Duration.Ticks / 2d));
             //Refer to Plans.xlsx - Collisions2
             if (C2.LeftTangent != null) //B D
             {
@@ -2040,7 +2042,7 @@ namespace TimekeeperWPF
                     {
                         if (C1.RightTangent != null) //8
                         {
-                            if (C1.Start <= C2.Start)
+                            if (C1CoM <= C2CoM)
                             {
                                 L = C1;
                                 R = C2;
@@ -2075,7 +2077,7 @@ namespace TimekeeperWPF
                 {
                     if (C1.LeftTangent != null && C1.RightTangent == null) //10
                     {
-                        if (C1.Start <= C2.Start)
+                        if (C1CoM <= C2CoM)
                         {
                             L = C1;
                             R = C2;
@@ -2099,7 +2101,7 @@ namespace TimekeeperWPF
                 {
                     if (C1.LeftTangent == null && C1.RightTangent != null) //9
                     {
-                        if (C1.Start <= C2.Start)
+                        if (C1CoM <= C2CoM)
                         {
                             L = C1;
                             R = C2;
@@ -2122,7 +2124,7 @@ namespace TimekeeperWPF
                     {
                         if (C1.RightTangent != null) //8
                         {
-                            if (C1.Start <= C2.Start)
+                            if (C1CoM <= C2CoM)
                             {
                                 L = C1;
                                 R = C2;
@@ -2148,7 +2150,7 @@ namespace TimekeeperWPF
                         }
                         else //11
                         {
-                            if (C1.Start <= C2.Start)
+                            if (C1CoM <= C2CoM)
                             {
                                 L = C1;
                                 R = C2;
@@ -2943,8 +2945,8 @@ namespace TimekeeperWPF
         private void CleanUpStates()
         {
             Status = "Cleaning Up...";
-            MergeDumbSplits();
             FixMisalignments();
+            MergeDumbSplits();
             RemoveCancels();
             FlagAutoConfirms();
             FlagInsufficients();
@@ -3014,7 +3016,14 @@ namespace TimekeeperWPF
                                         var split = new CalendarTaskObject();
                                         split.Mimic(C);
                                         split.End = Z.Start;
+                                        split.EndLock = false;
                                         C.Start = Z.Start;
+                                        C.StartLock = false;
+                                        if (C.EndLock)
+                                            C.State = CalendarTaskObject.States.Confirmed;
+                                        else
+                                            C.State = CalendarTaskObject.States.Unconfirmed;
+                                        split.State = CalendarTaskObject.States.Unscheduled;
                                         newTaskObjs.Add(split);
                                     }
                                     if (C.End > Z.End)
@@ -3022,7 +3031,14 @@ namespace TimekeeperWPF
                                         var split = new CalendarTaskObject();
                                         split.Mimic(C);
                                         split.Start = Z.End;
+                                        split.StartLock = false;
                                         C.End = Z.End;
+                                        C.EndLock = false;
+                                        if (C.StartLock)
+                                            C.State = CalendarTaskObject.States.Confirmed;
+                                        else
+                                            C.State = CalendarTaskObject.States.Unconfirmed;
+                                        split.State = CalendarTaskObject.States.Unscheduled;
                                         newTaskObjs.Add(split);
                                     }
                                     C.ParentInclusionZone = Z;
