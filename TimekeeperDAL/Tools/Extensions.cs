@@ -83,16 +83,10 @@ namespace TimekeeperDAL.Tools
 
             return new TimeSpan(ts.Ticks + offset - delta);
         }
-
-        //https://stackoverflow.com/questions/2499479/how-to-round-off-hours-based-on-minuteshours0-if-min30-hours1-otherwise
-        public static DateTime RoundToHour(this DateTime dt)
-        {
-            long ticks = dt.Ticks + 18000000000;
-            return new DateTime(ticks - ticks % 36000000000, dt.Kind);
-        }
-
+        
         public static double Within(this double d, double min, double max) { return Math.Max(min, Math.Min(d, max)); }
         public static long Within(this long d, double min, double max) { return (long)Math.Max(min, Math.Min(d, max)); }
+
         public static DateTime WeekStart(this DateTime dt) { return dt.Date.AddDays(-(int)dt.DayOfWeek).Date; }
         public static DateTime MonthStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind); }
         public static DateTime YearStart(this DateTime dt) { return new DateTime(dt.Year, 1, 1, 0, 0, 0, dt.Kind); }

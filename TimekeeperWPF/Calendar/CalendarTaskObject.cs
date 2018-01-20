@@ -126,6 +126,13 @@ namespace TimekeeperWPF.Calendar
                 End.ToShortTimeString(),
                 ParentInclusionZone?.Start.ToShortTimeString(),
                 ParentInclusionZone?.End.ToShortTimeString());
+            if (ParentPerZone.TimeConsumption != null)
+            {
+                s += String.Format(" Alloc: {0} {2} Rem: {1}",
+                ParentPerZone.TimeConsumption.Allocation.AmountAsTimeSpan.ShortGoodString(),
+                ParentPerZone.TimeConsumption.RemainingAsTimeSpan.ShortGoodString(),
+                ParentPerZone.ParentMap.TimeTask.AllocationMethod);
+            }
             return s;
         }
         internal bool ReDistFlag = true;
