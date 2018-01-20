@@ -1716,74 +1716,6 @@ namespace TimekeeperWPF
             }
             return false;
         }
-        private static void CascadeIgnoreLeft(Collision collision)
-        {
-            var LT = collision.Left;
-            LT.Step1IgnoreFlag = true;
-            while (LT != collision.LData.WeakestC)
-            {
-                LT.Step1IgnoreFlag = true;
-                LT = LT.LeftTangent;
-            }
-        }
-        private static void CascadeIgnoreRight(Collision collision)
-        {
-            var RT = collision.Right;
-            RT.Step1IgnoreFlag = true;
-            while (RT != collision.RData.WeakestC)
-            {
-                RT.Step1IgnoreFlag = true;
-                RT = RT.RightTangent;
-            }
-        }
-        private static void CascadeShrinkLeft(Collision collision)
-        {
-            //cascade push then shrink WC
-            TimeSpan shrinkWCL = new TimeSpan(Min(collision.Overlap.Ticks, collision.LData.WeakestC.Duration.Ticks));
-            var LT = collision.Left;
-            var pLT = collision.Right;
-            while (LT != collision.LData.WeakestC)
-            {
-                var col = new Collision
-                {
-                    Left = LT,
-                    Right = pLT,
-                };
-                PushLeft(col, shrinkWCL);
-                pLT = LT;
-                LT = LT.LeftTangent;
-            }
-            var lastCol = new Collision
-            {
-                Left = LT,
-                Right = pLT,
-            };
-            ShrinkLeft(lastCol, shrinkWCL);
-        }
-        private static void CascadeShrinkRight(Collision collision)
-        {
-            //cascade push then shrink WC
-            TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
-            var RT = collision.Right;
-            var pRT = collision.Left;
-            while (RT != collision.RData.WeakestC)
-            {
-                var col = new Collision
-                {
-                    Left = pRT,
-                    Right = RT,
-                };
-                PushRight(col, shrinkWCR);
-                pRT = RT;
-                RT = RT.RightTangent;
-            }
-            var lastCol = new Collision
-            {
-                Left = pRT,
-                Right = RT,
-            };
-            ShrinkRight(lastCol, shrinkWCR);
-        }
         private bool CollisionsStep2(int D)
         {
             //Step 2 - Redistributions
@@ -1802,13 +1734,13 @@ namespace TimekeeperWPF
                         Redistribute(collision, ShrinkLeft);
                         break;
                     case Collision.CollisionResult.ReDistLeftWC:
-                        //TODO
+                        CascadeReDistLeft(collision);
                         break;
                     case Collision.CollisionResult.ReDistRight:
                         Redistribute(collision, ShrinkRight);
                         break;
                     case Collision.CollisionResult.ReDistRightWC:
-                        //TODO
+                        CascadeReDistRight(collision);
                         break;
                 }
             }
@@ -2116,6 +2048,97 @@ namespace TimekeeperWPF
             if (C.RightTangent != null)
                 C.RightTangent.LeftTangent = null;
             C.RightTangent = null;
+        }
+        private static void CascadeIgnoreLeft(Collision collision)
+        {
+            var LT = collision.Left;
+            LT.Step1IgnoreFlag = true;
+            while (LT != collision.LData.WeakestC)
+            {
+                LT.Step1IgnoreFlag = true;
+                LT = LT.LeftTangent;
+            }
+        }
+        private static void CascadeIgnoreRight(Collision collision)
+        {
+            var RT = collision.Right;
+            RT.Step1IgnoreFlag = true;
+            while (RT != collision.RData.WeakestC)
+            {
+                RT.Step1IgnoreFlag = true;
+                RT = RT.RightTangent;
+            }
+        }
+        private static void CascadeShrinkLeft(Collision collision)
+        {
+            //cascade push then shrink WC
+            TimeSpan shrinkWCL = new TimeSpan(Min(collision.Overlap.Ticks, collision.LData.WeakestC.Duration.Ticks));
+            Collision lastCol = CascadePushLeft(collision, shrinkWCL);
+            ShrinkLeft(lastCol, shrinkWCL);
+        }
+        private static void CascadeShrinkRight(Collision collision)
+        {
+            //cascade push then shrink WC
+            TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
+            Collision lastCol = CascadePushRight(collision, shrinkWCR);
+            ShrinkRight(lastCol, shrinkWCR);
+        }
+        private void CascadeReDistLeft(Collision collision)
+        {
+            //cascade push then redist WC
+            TimeSpan shrinkWCL = new TimeSpan(Min(collision.Overlap.Ticks, collision.LData.WeakestC.Duration.Ticks));
+            Collision lastCol = CascadePushLeft(collision, shrinkWCL);
+            Redistribute(lastCol, ShrinkLeft);
+        }
+        private void CascadeReDistRight(Collision collision)
+        {
+            TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
+            Collision lastCol = CascadePushRight(collision, shrinkWCR);
+            Redistribute(lastCol, ShrinkRight);
+        }
+        private static Collision CascadePushLeft(Collision collision, TimeSpan push)
+        {
+            var LT = collision.Left;
+            var pLT = collision.Right;
+            while (LT != collision.LData.WeakestC)
+            {
+                var col = new Collision
+                {
+                    Left = LT,
+                    Right = pLT,
+                };
+                pLT = LT;
+                LT = LT.LeftTangent;
+                PushLeft(col, push);
+            }
+            var lastCol = new Collision
+            {
+                Left = LT,
+                Right = pLT,
+            };
+            return lastCol;
+        }
+        private static Collision CascadePushRight(Collision collision, TimeSpan push)
+        {
+            var RT = collision.Right;
+            var pRT = collision.Left;
+            while (RT != collision.RData.WeakestC)
+            {
+                var col = new Collision
+                {
+                    Left = pRT,
+                    Right = RT,
+                };
+                pRT = RT;
+                RT = RT.RightTangent;
+                PushRight(col, push);
+            }
+            var lastCol = new Collision
+            {
+                Left = pRT,
+                Right = RT,
+            };
+            return lastCol;
         }
         private static Collision DetermineCollision(CalendarTaskObject C1, CalendarTaskObject C2)
         {
