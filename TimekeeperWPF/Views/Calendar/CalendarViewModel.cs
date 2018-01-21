@@ -1779,7 +1779,7 @@ namespace TimekeeperWPF
                     var lesserCalObjs = new List<CalendarTaskObject>(
                         from C in allCalObjs
                         where C.Priority < collision.Loser.Priority
-                        orderby C.Start
+                        orderby C.Priority
                         select C);
                     if (ReDistPart3(collision, lesserCalObjs, ShrinkFunc))
                     {
@@ -1856,7 +1856,8 @@ namespace TimekeeperWPF
                         Collision reDistCol = new Collision
                         {
                             Left = C,
-                            Right = collision.Loser
+                            Right = collision.Loser,
+                            Result = Collision.CollisionResult.ShrinkLeft,
                         };
                         ShrinkLeft(reDistCol, shrink);
                     }
@@ -1865,7 +1866,8 @@ namespace TimekeeperWPF
                         Collision reDistCol = new Collision
                         {
                             Left = collision.Loser,
-                            Right = C
+                            Right = C,
+                            Result = Collision.CollisionResult.ShrinkRight,
                         };
                         ShrinkRight(reDistCol, shrink);
                     }
@@ -1897,6 +1899,7 @@ namespace TimekeeperWPF
                         {
                             Left = C.LeftTangent,
                             Right = C,
+                            Result = Collision.CollisionResult.ShrinkRight,
                         };
                         ExpandRight(C.LeftTangent, shrink);
                         //shrink C, respecting InstanceMinimum
@@ -1910,6 +1913,7 @@ namespace TimekeeperWPF
                         {
                             Left = C,
                             Right = C.RightTangent,
+                            Result = Collision.CollisionResult.ShrinkLeft,
                         };
                         ExpandLeft(C.RightTangent, shrink);
                         ShrinkLeft(reDistCol,
@@ -1929,6 +1933,8 @@ namespace TimekeeperWPF
                             ParentPerZone = collision.Loser.ParentPerZone,
                             ReDistFlag = false,
                         };
+                        if (reDistObj.ParentPerZone.TimeConsumption != null)
+                            reDistObj.ParentPerZone.TimeConsumption.Remaining -= shrink.Ticks;
                         reDistObj.ParentPerZone.CalTaskObjs.Add(reDistObj);
                         reDistObj.LeftTangent = C.LeftTangent;
                         if (C.LeftTangent != null)
@@ -1937,7 +1943,8 @@ namespace TimekeeperWPF
                         Collision reDistCol = new Collision
                         {
                             Left = reDistObj,
-                            Right = C
+                            Right = C,
+                            Result = Collision.CollisionResult.ShrinkRight,
                         };
                         ShrinkRight(reDistCol,
                             C.Duration - shrink < C.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan ?
@@ -2072,29 +2079,67 @@ namespace TimekeeperWPF
         private static void CascadeShrinkLeft(Collision collision)
         {
             //cascade push then shrink WC
-            TimeSpan shrinkWCL = new TimeSpan(Min(collision.Overlap.Ticks, collision.LData.WeakestC.Duration.Ticks));
+            TimeSpan shrinkWCL = FindSmallestLeftPushAmount(collision);
             Collision lastCol = CascadePushLeft(collision, shrinkWCL);
+            lastCol.Result = Collision.CollisionResult.ShrinkLeft;
             ShrinkLeft(lastCol, shrinkWCL);
         }
         private static void CascadeShrinkRight(Collision collision)
         {
-            //cascade push then shrink WC
-            TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
+            TimeSpan shrinkWCR = FindSmallestRightPushAmount(collision);
             Collision lastCol = CascadePushRight(collision, shrinkWCR);
+            lastCol.Result = Collision.CollisionResult.ShrinkRight;
             ShrinkRight(lastCol, shrinkWCR);
         }
         private void CascadeReDistLeft(Collision collision)
         {
             //cascade push then redist WC
-            TimeSpan shrinkWCL = new TimeSpan(Min(collision.Overlap.Ticks, collision.LData.WeakestC.Duration.Ticks));
+            TimeSpan shrinkWCL = FindSmallestLeftPushAmount(collision);
             Collision lastCol = CascadePushLeft(collision, shrinkWCL);
+            lastCol.Result = Collision.CollisionResult.ReDistLeft;
             Redistribute(lastCol, ShrinkLeft);
         }
         private void CascadeReDistRight(Collision collision)
         {
-            TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
+            TimeSpan shrinkWCR = FindSmallestRightPushAmount(collision);
             Collision lastCol = CascadePushRight(collision, shrinkWCR);
+            lastCol.Result = Collision.CollisionResult.ReDistRight;
             Redistribute(lastCol, ShrinkRight);
+        }
+        private static TimeSpan FindSmallestLeftPushAmount(Collision collision)
+        {
+            //find the smallest amount that can be pushed in the chain of LTs up to WC
+            //Cannot go below the size of WC
+            TimeSpan shrinkWCL = new TimeSpan(Min(collision.Overlap.Ticks, collision.LData.WeakestC.Duration.Ticks));
+            var LT = collision.Left;
+            while (LT != collision.LData.WeakestC)
+            {
+                if (LT.ParentInclusionZone != null)
+                {
+                    //Cannot push anything in the chain out of its zone
+                    var room = LT.Start - LT.ParentInclusionZone.Start;
+                    if (shrinkWCL > room)
+                        shrinkWCL = room;
+                }
+                LT = LT.LeftTangent;
+            }
+            return shrinkWCL;
+        }
+        private static TimeSpan FindSmallestRightPushAmount(Collision collision)
+        {
+            TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
+            var RT = collision.Right;
+            while (RT != collision.RData.WeakestC)
+            {
+                if (RT.ParentInclusionZone != null)
+                {
+                    var room = RT.ParentInclusionZone.End - RT.End;
+                    if (shrinkWCR > room)
+                        shrinkWCR = room;
+                }
+                RT = RT.RightTangent;
+            } 
+            return shrinkWCR;
         }
         private static Collision CascadePushLeft(Collision collision, TimeSpan push)
         {
@@ -2696,7 +2741,7 @@ namespace TimekeeperWPF
                 PushRight, ShrinkRight, ReDistRight, ReDistRightWC, ShrinkRightWC,
             }
             public CollisionResult Result;
-            public string cell = "";
+            public string cell = "manual collision";
             public PushData LData;
             public PushData RData;
             public CalendarTaskObject Left;
