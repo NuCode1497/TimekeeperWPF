@@ -61,6 +61,8 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(Start), "Start must come before End");
                             hasError = true;
                         }
+                        if (!hasError) ClearErrors(nameof(Start));
+                        if (!hasError) ClearErrors(nameof(End));
                         errors = GetErrorsFromAnnotations(nameof(Start), Start);
                         break;
                     case nameof(End):
@@ -69,6 +71,8 @@ namespace TimekeeperDAL.EF
                             AddError(nameof(End), "Start must come before End");
                             hasError = true;
                         }
+                        if (!hasError) ClearErrors(nameof(Start));
+                        if (!hasError) ClearErrors(nameof(End));
                         errors = GetErrorsFromAnnotations(nameof(End), End);
                         break;
                     case nameof(Description):

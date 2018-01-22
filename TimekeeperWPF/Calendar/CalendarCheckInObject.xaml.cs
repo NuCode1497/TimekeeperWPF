@@ -9,7 +9,7 @@ namespace TimekeeperWPF.Calendar
     //The order here is important for proper sorting
     public enum CheckInKind
     {
-        PerZoneStart, InclusionZoneStart, EventStart, EventEnd, InclusionZoneEnd, PerZoneEnd
+        PerZoneStart, InclusionZoneStart, Cancel, EventStart, EventEnd, InclusionZoneEnd, PerZoneEnd,
     }
     public partial class CalendarCheckInObject : UserControl
     {
@@ -21,6 +21,7 @@ namespace TimekeeperWPF.Calendar
         {
             return Kind + " \n" + CheckIn;
         }
+        public CheckIn _CheckIn;
         public CheckIn CheckIn { get; set; }
         public CheckInKind Kind { get; set; }
         public DateTime DateTime => CheckIn.DateTime;

@@ -2,6 +2,7 @@
     x:Class="TimekeeperWPF.EditCheckInView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dal="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
     xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit">
     <StackPanel>
         <StackPanel x:Name="DateTimePanel" Orientation="Horizontal">
@@ -12,12 +13,15 @@
         </StackPanel>
         <StackPanel x:Name="StartEndPanel" Orientation="Horizontal">
             <Label Content="Check In" Width="80"/>
-            <RadioButton 
-                Margin="10,2" Content="Start" GroupName="TextGroup" VerticalAlignment="Center"
-                IsChecked="{Binding Path=Start}"/>
-            <RadioButton 
-                Margin="10,2" Content="End" GroupName="TextGroup" VerticalAlignment="Center"
-                IsChecked="{Binding Mode=OneWay, Path=End}"/>
+            <ListView Margin="5"
+                ItemsSource="{x:Static dal:CheckIn.CheckInChoices}" 
+                SelectedItem="{Binding Path=Text, Mode=TwoWay}">
+                <ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemWidth="45" Width="200"/>
+                    </ItemsPanelTemplate>
+                </ListView.ItemsPanel>
+            </ListView>
         </StackPanel>
         <StackPanel x:Name="TaskPanel" Orientation="Horizontal">
             <Label Content="Task" Width="80"/>

@@ -25,7 +25,7 @@
                 </DataGrid.InputBindings>
                 <DataGrid.Columns>
                     <DataGridTextColumn Binding="{Binding Path=DateTime}" Header="Date &amp; Time" />
-                    <DataGridTextColumn Binding="{Binding Path=Start}" Header="Start"
+                    <DataGridTextColumn Binding="{Binding Path=Text}" Header="Text"
                                         ElementStyle="{StaticResource DGLongTextStyle}"/>
                     <DataGridTextColumn Binding="{Binding Path=TimeTask}" Header="TimeTask"/>
                 </DataGrid.Columns>

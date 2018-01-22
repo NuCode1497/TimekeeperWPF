@@ -783,7 +783,7 @@ namespace TimekeeperWPF
                 from M in TaskMaps
                 from P in M.PerZones
                 from CIO in P.CheckIns
-                where CIO.Kind == CheckInKind.EventEnd || CIO.Kind == CheckInKind.EventStart
+                where CIO.Kind == CheckInKind.EventEnd || CIO.Kind == CheckInKind.EventStart || CIO.Kind == CheckInKind.Cancel
                 select CIO;
             var mappedEventCheckIns =
                 from CIO in mappedEventCheckInObjects
@@ -795,11 +795,24 @@ namespace TimekeeperWPF
                 where CI.IsWithin(this)
                 select CI;
             foreach (var CI in visibleCheckIns)
-                AddNewCheckInObject(new CalendarCheckInObject
+            {
+                var CCI = new CalendarCheckInObject { CheckIn = CI };
+                switch (CI.Text)
                 {
-                    CheckIn = CI,
-                    Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
-                });
+                    case "Start":
+                        CCI.Kind = CheckInKind.EventStart;
+                        break;
+                    case "End":
+                        CCI.Kind = CheckInKind.EventEnd;
+                        break;
+                    case "Cancel":
+                        CCI.Kind = CheckInKind.Cancel;
+                        break;
+                    default:
+                        break;
+                }
+                AddNewCheckInObject(CCI);
+            }
             foreach (var CIO in mappedEventCheckInObjects)
                 AddNewCheckInObject(CIO);
             OnPropertyChanged(nameof(CalCIObjsView));
@@ -962,9 +975,22 @@ namespace TimekeeperWPF
                     var CCI = new CalendarCheckInObject
                     {
                         CheckIn = CI,
-                        Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
                         ParentPerZone = P,
                     };
+                    switch (CI.Text)
+                    {
+                        case "Start":
+                            CCI.Kind = CheckInKind.EventStart;
+                            break;
+                        case "End":
+                            CCI.Kind = CheckInKind.EventEnd;
+                            break;
+                        case "Cancel":
+                            CCI.Kind = CheckInKind.Cancel;
+                            break;
+                        default:
+                            break;
+                    }
                     //add
                     P.CheckIns.Add(CCI);
                     //sort
@@ -997,19 +1023,33 @@ namespace TimekeeperWPF
                     foreach (var CI in CheckInsVM.Source)
                     {
                         if (CI.TimeTask.Id != M.TimeTask.Id || !CI.IsWithin(P)) continue;
-                        eventCheckIns.Add(new CalendarCheckInObject
+                        var CCI = new CalendarCheckInObject
                         {
                             CheckIn = CI,
-                            Kind = CI.Start ? CheckInKind.EventStart : CheckInKind.EventEnd,
                             ParentPerZone = P,
-                        });
+                        };
+                        switch (CI.Text)
+                        {
+                            case "Start":
+                                CCI.Kind = CheckInKind.EventStart;
+                                break;
+                            case "End":
+                                CCI.Kind = CheckInKind.EventEnd;
+                                break;
+                            case "Cancel":
+                                CCI.Kind = CheckInKind.Cancel;
+                                break;
+                            default:
+                                break;
+                        }
+                        eventCheckIns.Add(CCI);
                     }
                     //map zone ends as CheckIns
                     perCheckIns.Add(new CalendarCheckInObject
                     {
                         CheckIn = new CheckIn
                         {
-                            Start = true,
+                            Text = "Start",
                             DateTime = P.Start,
                             TimeTask = P.ParentMap.TimeTask,
                         },
@@ -1020,7 +1060,7 @@ namespace TimekeeperWPF
                     {
                         CheckIn = new CheckIn
                         {
-                            Start = false,
+                            Text = "End",
                             DateTime = P.End,
                             TimeTask = P.ParentMap.TimeTask,
                         },
@@ -1040,7 +1080,7 @@ namespace TimekeeperWPF
                         {
                             CheckIn = new CheckIn
                             {
-                                Start = true,
+                                Text = "Start",
                                 DateTime = Z.Start,
                                 TimeTask = P.ParentMap.TimeTask,
                             },
@@ -1052,7 +1092,7 @@ namespace TimekeeperWPF
                         {
                             CheckIn = new CheckIn
                             {
-                                Start = false,
+                                Text = "End",
                                 DateTime = Z.End,
                                 TimeTask = P.ParentMap.TimeTask,
                             },
@@ -1110,24 +1150,31 @@ namespace TimekeeperWPF
                     //Create CalObjs from CheckIns
                     CalendarTaskObject pC = null;
                     CalendarCheckInObject pCI = null;
-                    bool inZ = false;
+                    InclusionZone Z = null;
                     foreach (var CI in P.CheckIns)
                     {
                         // Refer to Plans.xlsx - CheckIns
                         switch (CI.Kind)
                         {
+                            case CheckInKind.Cancel:
+                                if (Z != null)
+                                {
+                                    P.InclusionZones.Remove(Z);
+                                    Z.Cancelled = true;
+                                }
+                                break;
                             case CheckInKind.InclusionZoneStart:
                                 // F
-                                if (pCI.Kind == CheckInKind.EventStart && inZ == false)
+                                if (pCI.Kind == CheckInKind.EventStart && Z == null)
                                 {
                                     // 4
                                     SetEnd(pC, CI);
                                 }
-                                inZ = true;
+                                Z = CI.ParentInclusionZone;
                                 break;
                             case CheckInKind.EventStart:
                                 // B D
-                                if (inZ)
+                                if (Z != null)
                                 {
                                     // B
                                     switch (pCI.Kind)
@@ -1168,7 +1215,7 @@ namespace TimekeeperWPF
                                 break;
                             case CheckInKind.EventEnd:
                                 // C E
-                                if (inZ)
+                                if (Z != null)
                                 {
                                     // C
                                     switch (pCI.Kind)
@@ -1210,16 +1257,16 @@ namespace TimekeeperWPF
                                 break;
                             case CheckInKind.InclusionZoneEnd:
                                 // G
-                                if (pCI.Kind == CheckInKind.EventStart && inZ == true)
+                                if (pCI.Kind == CheckInKind.EventStart && Z != null)
                                 {
                                     // 2
                                     SetEnd(pC, CI);
                                 }
-                                inZ = false;
+                                Z = null;
                                 break;
                             case CheckInKind.PerZoneEnd:
                                 // H
-                                if (pCI.Kind == CheckInKind.EventStart && inZ == false)
+                                if (pCI.Kind == CheckInKind.EventStart && Z == null)
                                 {
                                     // 4
                                     SetEnd(pC, CI);
@@ -1663,11 +1710,7 @@ namespace TimekeeperWPF
             {
                 case Collision.CollisionResult.PushLeft:
                     TimeSpan Lroom = collision.Left.Start - collision.Left.ParentInclusionZone.Start;
-                    //if this is an inside collision, push to the outside
-                    TimeSpan LmaxPush = 
-                        collision.Left.Start > collision.Right.Start ? 
-                        collision.Left.End - collision.Right.Start : 
-                        collision.Overlap;
+                    TimeSpan LmaxPush = collision.Left.End - collision.Right.Start;
                     TimeSpan Lpush = new TimeSpan(Min(LmaxPush.Ticks, Lroom.Ticks));
                     PushLeft(collision, Lpush);
                     return true;
@@ -1684,10 +1727,7 @@ namespace TimekeeperWPF
                     break;
                 case Collision.CollisionResult.PushRight:
                     TimeSpan Rroom = collision.Right.ParentInclusionZone.End - collision.Right.End;
-                    TimeSpan RmaxPush = 
-                        collision.Right.End < collision.Left.End ? 
-                        collision.Left.End - collision.Right.Start : 
-                        collision.Overlap;
+                    TimeSpan RmaxPush = collision.Left.End - collision.Right.Start;
                     TimeSpan Rpush = new TimeSpan(Min(RmaxPush.Ticks, Rroom.Ticks));
                     PushRight(collision, Rpush);
                     return true;
@@ -1825,9 +1865,8 @@ namespace TimekeeperWPF
                     if (shrink.Ticks <= 0) continue;
                     //try to fill the empty zone
                     collision.Loser.ParentPerZone.TimeConsumption.Remaining += shrink.Ticks;
-                    if (!FillEmptyWithInsuffZ(S, Z))
+                    if (FillEmptyWithInsuffZ(S, Z))
                     {
-                        //undo and shrink
                         collision.Loser.ParentPerZone.TimeConsumption.Remaining -= shrink.Ticks;
                         ShrinkFunc(collision, shrink);
                     }
@@ -1849,6 +1888,8 @@ namespace TimekeeperWPF
             var minAlloc = collision.Loser.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan;
             foreach (var C in lesserObjs)
             {
+                //cannot redistribute to objects with locks
+                if (C.StartLock || C.EndLock) continue;
                 //check if the lesserObj to be overwritten is actually intersecting the object to be redistributed
                 //if it is, then shrink the lesserObj instead of redistributing
                 if (C.Intersects(collision.Loser))
@@ -3144,6 +3185,7 @@ namespace TimekeeperWPF
                         var insuffZones =
                             from Z in zones
                             where Z.ParentPerZone.TimeConsumption?.Remaining > 0
+                            where Z.ParentPerZone.TimeConsumption?.Allocation.Limited == false
                             orderby Z.Priority descending
                             select Z;
                         var insuffZone = insuffZones.FirstOrDefault();
@@ -3174,6 +3216,7 @@ namespace TimekeeperWPF
         }
         private static bool FillEmptyWithInsuffZ(EmptyZone S, InclusionZone Z)
         {
+            //returns true when a change is made that fills empty space
             //Check if the CalObjs on the left or right of the space can be used to fill
             //otherwise, create a new CalObj to fill
             if (Z.Start <= S.Start &&
@@ -3427,6 +3470,16 @@ namespace TimekeeperWPF
                                         newTaskObjs.Add(split);
                                     }
                                     C.ParentInclusionZone = Z;
+                                }
+                                if (C.ParentInclusionZone != null)
+                                {
+                                    if (!C.IsWithin(C.ParentInclusionZone))
+                                    {
+                                        C.ParentInclusionZone = null;
+                                        C.State = CalendarTaskObject.States.Unscheduled;
+                                    }
+                                    if (C.ParentInclusionZone.Cancelled)
+                                        C.State = CalendarTaskObject.States.Unscheduled;
                                 }
                             }
                         }

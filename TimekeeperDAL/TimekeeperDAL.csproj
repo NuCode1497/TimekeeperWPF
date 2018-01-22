@@ -155,6 +155,10 @@
     <Compile Include="Migrations\201801210422220_Offset.Designer.cs">
       <DependentUpon>201801210422220_Offset.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201801220627288_CheckInCancel.cs" />
+    <Compile Include="Migrations\201801220627288_CheckInCancel.Designer.cs">
+      <DependentUpon>201801220627288_CheckInCancel.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\CheckIn.cs" />
     <Compile Include="Models\Label.cs" />
@@ -270,6 +274,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801210422220_Offset.resx">
       <DependentUpon>201801210422220_Offset.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201801220627288_CheckInCancel.resx">
+      <DependentUpon>201801220627288_CheckInCancel.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

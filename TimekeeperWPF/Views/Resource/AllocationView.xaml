@@ -9,8 +9,7 @@
     <StackPanel>
         <StackPanel Orientation="Horizontal">
             <ToggleButton Name="LimitToggle" Width="50"
-                IsChecked="{Binding Path=Limit, 
-                ValidatesOnDataErrors=True, ValidatesOnExceptions=True}">
+                IsChecked="{Binding Path=Limited, Mode=TwoWay}">
                 <ToggleButton.Style>
                     <Style TargetType="ToggleButton" 
                        BasedOn="{StaticResource {x:Type ToggleButton}}">

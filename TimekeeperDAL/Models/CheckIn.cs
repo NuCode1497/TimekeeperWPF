@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using TimekeeperDAL.Tools;
 
@@ -8,11 +9,8 @@ namespace TimekeeperDAL.EF
     {
         public override string ToString()
         {
-            return (Start ? "Start" : "End") + " - " + TimeTask + "\n" + DateTime.ToString();
+            return Text + " - " + TimeTask + "\n" + DateTime.ToString();
         }
-
-        [NotMapped]
-        public bool End => !Start;
 
         [NotMapped]
         public override string this[string columnName]
@@ -39,5 +37,13 @@ namespace TimekeeperDAL.EF
                 return string.Empty;
             }
         }
+
+        [NotMapped]
+        public static readonly List<string> CheckInChoices = new List<string>()
+        {
+            "Start",
+            "End",
+            "Cancel",
+        };
     }
 }

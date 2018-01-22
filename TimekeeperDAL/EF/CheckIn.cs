@@ -14,8 +14,9 @@ namespace TimekeeperDAL.EF
         [Column(TypeName = "datetime2")]
         public DateTime DateTime { get; set; }
         
-        public bool Start { get; set; }
-        
+        [Required]
+        public string Text { get; set; }
+
         [Required]
         public virtual TimeTask TimeTask { get; set; }
     }

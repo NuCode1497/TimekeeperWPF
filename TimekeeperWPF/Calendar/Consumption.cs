@@ -15,7 +15,7 @@ namespace TimekeeperWPF.Calendar
         public bool CanAllocate(double alloc)
         {
             return (!Allocation.Limited && Remaining > 0)
-                || (Allocation.Limited && Remaining - alloc > 0);
+                || (Allocation.Limited && Remaining - alloc >= 0);
         }
     }
 }
