@@ -106,7 +106,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AllocationView.xaml.cs">
+    <Compile Include="Views\Resource\AllocationView.xaml.cs">
       <DependentUpon>AllocationView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Calendar\CalendarCheckInObject.xaml.cs">
@@ -252,7 +252,7 @@
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Week\WeekViewModel.cs" />
-    <Page Include="AllocationView.xaml">
+    <Page Include="Views\Resource\AllocationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

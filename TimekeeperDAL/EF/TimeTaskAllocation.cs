@@ -8,6 +8,8 @@ namespace TimekeeperDAL.EF
     {
         public double Amount { get; set; }
 
+        public double PerOffset { get; set; }
+
         public bool Limited { get; set; }
 
         public double InstanceMinimum { get; set; }

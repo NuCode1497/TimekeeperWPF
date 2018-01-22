@@ -103,64 +103,36 @@ namespace TimekeeperDAL.EF
         /// <summary>
         /// A rough estimate of the duration of the time allocation. e.g. Month = Amount * 30.437
         /// </summary>
-        public TimeSpan AmountAsTimeSpan
-        {
-            get
-            {
-                TimeSpan allocatedTime = new TimeSpan();
-                switch (Resource?.Name)
-                {
-                    case "Minute":
-                        allocatedTime = TimeSpan.FromMinutes(Amount);
-                        break;
-                    case "Hour":
-                        allocatedTime = TimeSpan.FromHours(Amount);
-                        break;
-                    case "Day":
-                        allocatedTime = TimeSpan.FromDays(Amount);
-                        break;
-                    case "Week":
-                        allocatedTime = TimeSpan.FromDays(Amount * 7.0d);
-                        break;
-                    case "Month":
-                        allocatedTime = TimeSpan.FromDays(Amount * 30.437d);
-                        break;
-                    case "Year":
-                        allocatedTime = TimeSpan.FromDays(Amount * 365.2425);
-                        break;
-                }
-                return allocatedTime;
-            }
-        }
+        public TimeSpan AmountAsTimeSpan => ResourceDoubleToTimeSpan(Amount);
+        public TimeSpan PerOffsetAsTimeSpan => ResourceDoubleToTimeSpan(PerOffset);
+        public TimeSpan InstanceMinimumAsTimeSpan => ResourceDoubleToTimeSpan(InstanceMinimum);
 
-        public TimeSpan InstanceMinimumAsTimeSpan
+        private TimeSpan ResourceDoubleToTimeSpan(double amount)
         {
-            get
+            TimeSpan allocatedTime = new TimeSpan();
+            switch (Resource?.Name)
             {
-                TimeSpan minTime = new TimeSpan();
-                switch (Resource?.Name)
-                {
-                    case "Minute":
-                        minTime = TimeSpan.FromMinutes(InstanceMinimum);
-                        break;
-                    case "Hour":
-                        minTime = TimeSpan.FromHours(InstanceMinimum);
-                        break;
-                    case "Day":
-                        minTime = TimeSpan.FromDays(InstanceMinimum);
-                        break;
-                    case "Week":
-                        minTime = TimeSpan.FromDays(InstanceMinimum * 7.0d);
-                        break;
-                    case "Month":
-                        minTime = TimeSpan.FromDays(InstanceMinimum * 30.437d);
-                        break;
-                    case "Year":
-                        minTime = TimeSpan.FromDays(InstanceMinimum * 365.2425);
-                        break;
-                }
-                return minTime;
+                case "Minute":
+                    allocatedTime = TimeSpan.FromMinutes(amount);
+                    break;
+                case "Hour":
+                    allocatedTime = TimeSpan.FromHours(amount);
+                    break;
+                case "Day":
+                    allocatedTime = TimeSpan.FromDays(amount);
+                    break;
+                case "Week":
+                    allocatedTime = TimeSpan.FromDays(amount * 7.0d);
+                    break;
+                case "Month":
+                    allocatedTime = TimeSpan.FromDays(amount * 30.437d);
+                    break;
+                case "Year":
+                    allocatedTime = TimeSpan.FromDays(amount * 365.2425);
+                    break;
             }
+
+            return allocatedTime;
         }
     }
 }

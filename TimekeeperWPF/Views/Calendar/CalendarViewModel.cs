@@ -1682,12 +1682,6 @@ namespace TimekeeperWPF
                 case Collision.CollisionResult.ReDistLeft:
                     collision.Left.Step1IgnoreFlag = true;
                     break;
-                case Collision.CollisionResult.ReDistLeftWC:
-                    CascadeIgnoreLeft(collision);
-                    break;
-                case Collision.CollisionResult.ShrinkLeftWC:
-                    CascadeShrinkLeft(collision);
-                    return true;
                 case Collision.CollisionResult.PushRight:
                     TimeSpan Rroom = collision.Right.ParentInclusionZone.End - collision.Right.End;
                     TimeSpan RmaxPush = 
@@ -1707,12 +1701,24 @@ namespace TimekeeperWPF
                 case Collision.CollisionResult.ReDistRight:
                     collision.Right.Step1IgnoreFlag = true;
                     break;
-                case Collision.CollisionResult.ReDistRightWC:
-                    CascadeIgnoreRight(collision);
+                case Collision.CollisionResult.PushLeftWC:
+                    CascadePushLeft(collision);
+                    return true;
+                case Collision.CollisionResult.ShrinkLeftWC:
+                    CascadeShrinkLeft(collision);
+                    return true;
+                case Collision.CollisionResult.ReDistLeftWC:
+                    CascadeIgnoreLeft(collision);
                     break;
+                case Collision.CollisionResult.PushRightWC:
+                    CascadePushRight(collision);
+                    return true;
                 case Collision.CollisionResult.ShrinkRightWC:
                     CascadeShrinkRight(collision);
                     return true;
+                case Collision.CollisionResult.ReDistRightWC:
+                    CascadeIgnoreRight(collision);
+                    break;
             }
             return false;
         }
@@ -2076,37 +2082,55 @@ namespace TimekeeperWPF
                 RT = RT.RightTangent;
             }
         }
+        private static void CascadePushLeft(Collision collision)
+        {
+            //cascade push then push WC
+            TimeSpan pushWCL = FindSmallestLeftCascadeAmount(collision);
+            Collision lastCol = CascadeLeft(collision, pushWCL);
+            lastCol.Result = Collision.CollisionResult.PushLeft;
+            PushLeft(lastCol, pushWCL);
+        }
+        private static void CascadePushRight(Collision collision)
+        {
+            //cascade push then push WC
+            TimeSpan pushWCR = FindSmallestRightCascadeAmount(collision);
+            Collision lastCol = CascadeRight(collision, pushWCR);
+            lastCol.Result = Collision.CollisionResult.PushRight;
+            PushRight(lastCol, pushWCR);
+        }
         private static void CascadeShrinkLeft(Collision collision)
         {
             //cascade push then shrink WC
-            TimeSpan shrinkWCL = FindSmallestLeftPushAmount(collision);
-            Collision lastCol = CascadePushLeft(collision, shrinkWCL);
+            TimeSpan shrinkWCL = FindSmallestLeftCascadeAmount(collision);
+            Collision lastCol = CascadeLeft(collision, shrinkWCL);
             lastCol.Result = Collision.CollisionResult.ShrinkLeft;
             ShrinkLeft(lastCol, shrinkWCL);
         }
         private static void CascadeShrinkRight(Collision collision)
         {
-            TimeSpan shrinkWCR = FindSmallestRightPushAmount(collision);
-            Collision lastCol = CascadePushRight(collision, shrinkWCR);
+            //cascade push then shrink WC
+            TimeSpan shrinkWCR = FindSmallestRightCascadeAmount(collision);
+            Collision lastCol = CascadeRight(collision, shrinkWCR);
             lastCol.Result = Collision.CollisionResult.ShrinkRight;
             ShrinkRight(lastCol, shrinkWCR);
         }
         private void CascadeReDistLeft(Collision collision)
         {
             //cascade push then redist WC
-            TimeSpan shrinkWCL = FindSmallestLeftPushAmount(collision);
-            Collision lastCol = CascadePushLeft(collision, shrinkWCL);
+            TimeSpan shrinkWCL = FindSmallestLeftCascadeAmount(collision);
+            Collision lastCol = CascadeLeft(collision, shrinkWCL);
             lastCol.Result = Collision.CollisionResult.ReDistLeft;
             Redistribute(lastCol, ShrinkLeft);
         }
         private void CascadeReDistRight(Collision collision)
         {
-            TimeSpan shrinkWCR = FindSmallestRightPushAmount(collision);
-            Collision lastCol = CascadePushRight(collision, shrinkWCR);
+            //cascade push then redist WC
+            TimeSpan shrinkWCR = FindSmallestRightCascadeAmount(collision);
+            Collision lastCol = CascadeRight(collision, shrinkWCR);
             lastCol.Result = Collision.CollisionResult.ReDistRight;
             Redistribute(lastCol, ShrinkRight);
         }
-        private static TimeSpan FindSmallestLeftPushAmount(Collision collision)
+        private static TimeSpan FindSmallestLeftCascadeAmount(Collision collision)
         {
             //find the smallest amount that can be pushed in the chain of LTs up to WC
             //Cannot go below the size of WC
@@ -2125,7 +2149,7 @@ namespace TimekeeperWPF
             }
             return shrinkWCL;
         }
-        private static TimeSpan FindSmallestRightPushAmount(Collision collision)
+        private static TimeSpan FindSmallestRightCascadeAmount(Collision collision)
         {
             TimeSpan shrinkWCR = new TimeSpan(Min(collision.Overlap.Ticks, collision.RData.WeakestC.Duration.Ticks));
             var RT = collision.Right;
@@ -2141,7 +2165,7 @@ namespace TimekeeperWPF
             } 
             return shrinkWCR;
         }
-        private static Collision CascadePushLeft(Collision collision, TimeSpan push)
+        private static Collision CascadeLeft(Collision collision, TimeSpan push)
         {
             var LT = collision.Left;
             var pLT = collision.Right;
@@ -2163,7 +2187,7 @@ namespace TimekeeperWPF
             };
             return lastCol;
         }
-        private static Collision CascadePushRight(Collision collision, TimeSpan push)
+        private static Collision CascadeRight(Collision collision, TimeSpan push)
         {
             var RT = collision.Right;
             var pRT = collision.Left;
@@ -2206,317 +2230,429 @@ namespace TimekeeperWPF
                 Right = R,
             };
             //Refer to Plans.xlsx - Redistributions
-            if (R.StartLock) //L
+            if (R.StartLock) //N
             {
-                if (L.EndLock) return null;
-                if (LData.HasRoom) //2
+                if (L.EndLock) return null; //8
+                if (LData.HasRoom) //2 3
                 {
-                    collision.Result = Collision.CollisionResult.PushLeft;
-                    collision.cell = "L2";
+                    if (L != LData.WeakestC) //2
+                    {
+                        collision.cell = "N2";
+                        collision.Result = Collision.CollisionResult.PushLeftWC;
+                    }
+                    else //3
+                    {
+                        collision.cell = "N3";
+                        collision.Result = Collision.CollisionResult.PushLeft;
+                    }
                 }
-                else if (LData.CanReDist) //3 4
+                else if (LData.CanReDist) //4 5
                 {
-                    if (L != LData.WeakestC) //3
+                    if (L != LData.WeakestC) //4
                     {
                         collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                        collision.cell = "L3";
+                        collision.cell = "N4";
                     }
-                    else //4
+                    else //5
                     {
                         collision.Result = Collision.CollisionResult.ReDistLeft;
-                        collision.cell = "L4";
+                        collision.cell = "N5";
                     }
                 }
-                else if (L != LData.WeakestC) //5
+                else if (L != LData.WeakestC) //6
                 {
                     collision.Result = Collision.CollisionResult.ShrinkLeftWC;
-                    collision.cell = "L5";
+                    collision.cell = "N6";
                 }
-                else //6
+                else //7
                 {
                     collision.Result = Collision.CollisionResult.ShrinkLeft;
-                    collision.cell = "L6";
+                    collision.cell = "N7";
                 }
             }
-            else if (RData.HasRoom) //B C
+            else if (RData.HasRoom) //B C D E
             {
-                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //B
+                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //B C
                 {
-                    collision.Result = Collision.CollisionResult.PushRight;
-                    collision.cell = "B";
-                }
-                else //C
-                {
-                    if (LData.HasRoom) //2
+                    if (R != RData.WeakestC) //B
                     {
-                        collision.Result = Collision.CollisionResult.PushLeft;
-                        collision.cell = "C2";
+                        collision.Result = Collision.CollisionResult.PushRightWC;
+                        collision.cell = "B";
                     }
-                    else //34567
+                    else //C
                     {
                         collision.Result = Collision.CollisionResult.PushRight;
-                        collision.cell = "C34567";
+                        collision.cell = "C";
                     }
                 }
-            }
-            else if (RData.CanReDist) //D E F G
-            {
-                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //D E
+                else //D E
                 {
                     if (R != RData.WeakestC) //D
                     {
-                        if (LData.HasRoom) //2
+                        if (LData.HasRoom)
                         {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "D2";
+                            if (L != LData.WeakestC) //2
+                            {
+                                collision.cell = "D2";
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                            }
+                            else //3
+                            {
+                                collision.cell = "D3";
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                            }
                         }
-                        else //34567
+                        else //45678
                         {
-                            collision.Result = Collision.CollisionResult.ReDistRightWC;
-                            collision.cell = "D34567";
+                            collision.cell = "D45678";
+                            collision.Result = Collision.CollisionResult.PushRightWC;
                         }
                     }
                     else //E
                     {
-                        if (LData.HasRoom) //2
+                        if (LData.HasRoom)
                         {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "E2";
+                            if (L != LData.WeakestC) //2
+                            {
+                                collision.cell = "E2";
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                            }
+                            else //3
+                            {
+                                collision.cell = "E3";
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                            }
                         }
-                        else //34567
+                        else //E45678
                         {
-                            collision.Result = Collision.CollisionResult.ReDistRight;
-                            collision.cell = "E34567";
+                            collision.cell = "E45678";
+                            collision.Result = Collision.CollisionResult.PushRight;
                         }
                     }
                 }
-                else //F G
+            }
+            else if (RData.CanReDist) //F G H I
+            {
+                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //F G
                 {
                     if (R != RData.WeakestC) //F
                     {
-                        if (LData.HasRoom) //2
+                        if (LData.HasRoom) //2 3
                         {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "F2";
+                            if (L != LData.WeakestC) //2
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "F2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "F3";
+                            }
                         }
-                        else //3 4 56 7
+                        else //45678
                         {
-                            if (L.EndLock) //7
-                            {
-                                collision.Result = Collision.CollisionResult.ReDistRightWC;
-                                collision.cell = "F7";
-                            }
-                            else if (LData.CanReDist) //3 4
-                            {
-                                if (L != LData.WeakestC) //3
-                                {
-                                    collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                                    collision.cell = "F3";
-                                }
-                                else //4
-                                {
-                                    collision.Result = Collision.CollisionResult.ReDistLeft;
-                                    collision.cell = "F4";
-                                }
-                            }
-                            else //56
-                            {
-                                collision.Result = Collision.CollisionResult.ReDistRightWC;
-                                collision.cell = "F56";
-                            }
+                            collision.Result = Collision.CollisionResult.ReDistRightWC;
+                            collision.cell = "F45678";
                         }
                     }
                     else //G
                     {
                         if (LData.HasRoom) //2
                         {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "G2";
+                            if (L != LData.WeakestC) //2
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "G2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "G3";
+                            }
                         }
-                        else //3 4 56 7
+                        else //45678
                         {
-                            if (L.EndLock)
-                            {
-                                collision.Result = Collision.CollisionResult.ReDistRight;
-                                collision.cell = "G7";
-                            }
-                            else if (LData.CanReDist)
-                            {
-                                if (L != LData.WeakestC) //3
-                                {
-                                    collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                                    collision.cell = "G3";
-                                }
-                                else //4
-                                {
-                                    collision.Result = Collision.CollisionResult.ReDistLeft;
-                                    collision.cell = "G4";
-                                }
-                            }
-                            else //56
-                            {
-                                collision.Result = Collision.CollisionResult.ReDistRight;
-                                collision.cell = "G56";
-                            }
+                            collision.Result = Collision.CollisionResult.ReDistRight;
+                            collision.cell = "G45678";
                         }
                     }
                 }
-            }
-            else //H I J K
-            {
-                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //H I
+                else //H I
                 {
                     if (R != RData.WeakestC) //H
                     {
-                        if (LData.HasRoom) //2
+                        if (LData.HasRoom) //2 3
                         {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "H2";
-                        }
-                        else //3 4 56 7
-                        {
-                            if (L.EndLock)
+                            if (L != LData.WeakestC) //2
                             {
-                                collision.Result = Collision.CollisionResult.ShrinkRightWC;
-                                collision.cell = "H7";
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "H2";
                             }
-                            else if (LData.CanReDist) //3 4
+                            else //3
                             {
-                                if (L != LData.WeakestC) //3
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "H3";
+                            }
+                        }
+                        else //4 5 67 8
+                        {
+                            if (L.EndLock) //8
+                            {
+                                collision.Result = Collision.CollisionResult.ReDistRightWC;
+                                collision.cell = "H8";
+                            }
+                            else if (LData.CanReDist) //4 5
+                            {
+                                if (L != LData.WeakestC) //4
                                 {
                                     collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                                    collision.cell = "H3";
+                                    collision.cell = "H4";
                                 }
-                                else //4
+                                else //5
                                 {
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "H4";
                                 }
                             }
-                            else //56
+                            else //67
                             {
-                                collision.Result = Collision.CollisionResult.ShrinkRightWC;
-                                collision.cell = "H56";
+                                collision.Result = Collision.CollisionResult.ReDistRightWC;
+                                collision.cell = "H67";
                             }
                         }
                     }
                     else //I
                     {
-                        if (L.EndLock)
+                        if (LData.HasRoom) //2 3
                         {
-                            collision.Result = Collision.CollisionResult.ShrinkRight;
-                            collision.cell = "I7";
-                        }
-                        else if (LData.HasRoom) //2
-                        {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "I2";
-                        }
-                        else //3 4 567
-                        {
-                            if (LData.CanReDist) //3 4
+                            if (L != LData.WeakestC) //2
                             {
-                                if (L != LData.WeakestC) //3
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "I2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "I3";
+                            }
+                        }
+                        else //4 5 67 8
+                        {
+                            if (L.EndLock) //8
+                            {
+                                collision.Result = Collision.CollisionResult.ReDistRight;
+                                collision.cell = "I8";
+                            }
+                            else if (LData.CanReDist) //4 5
+                            {
+                                if (L != LData.WeakestC) //4
                                 {
                                     collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                                    collision.cell = "I3";
+                                    collision.cell = "I4";
                                 }
-                                else //4
+                                else //5
                                 {
                                     collision.Result = Collision.CollisionResult.ReDistLeft;
-                                    collision.cell = "I4";
+                                    collision.cell = "I5";
                                 }
                             }
                             else //56
                             {
-                                collision.Result = Collision.CollisionResult.ShrinkRight;
-                                collision.cell = "I56";
+                                collision.Result = Collision.CollisionResult.ReDistRight;
+                                collision.cell = "I67";
                             }
                         }
                     }
                 }
-                else //J K
+            }
+            else //J K L M
+            {
+                if (LData.WeakestC.Priority >= RData.WeakestC.Priority) //J K
                 {
                     if (R != RData.WeakestC) //J
                     {
-                        if (L.EndLock) //7
+                        if (LData.HasRoom) //2 3
                         {
-                            collision.Result = Collision.CollisionResult.ShrinkRightWC;
-                            collision.cell = "J7";
-                        }
-                        else if (LData.HasRoom) //2
-                        {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "J2";
-                        }
-                        else //3 4 5 6 
-                        {
-                            if (LData.CanReDist) //3 4
+                            if (L != LData.WeakestC) //2
                             {
-                                if (L != LData.WeakestC) //3
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "J2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "J3";
+                            }
+                        }
+                        else //4 5 67 8
+                        {
+                            if (L.EndLock)
+                            {
+                                collision.Result = Collision.CollisionResult.ShrinkRightWC;
+                                collision.cell = "J8";
+                            }
+                            else if (LData.CanReDist) //4 5
+                            {
+                                if (L != LData.WeakestC) //4
                                 {
                                     collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                                    collision.cell = "J3";
-                                }
-                                else //4
-                                {
-                                    collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "J4";
                                 }
-                            }
-                            else //5 6
-                            {
-                                if (L != LData.WeakestC) //5
+                                else //5
                                 {
-                                    collision.Result = Collision.CollisionResult.ShrinkLeftWC;
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "J5";
                                 }
-                                else //6
-                                {
-                                    collision.Result = Collision.CollisionResult.ShrinkLeft;
-                                    collision.cell = "J6";
-                                }
+                            }
+                            else //67
+                            {
+                                collision.Result = Collision.CollisionResult.ShrinkRightWC;
+                                collision.cell = "J67";
                             }
                         }
                     }
                     else //K
                     {
-                        if (L.EndLock) //7
+                        if (LData.HasRoom) //2 3
                         {
-                            collision.Result = Collision.CollisionResult.ShrinkRight;
-                            collision.cell = "K7";
-                        }
-                        else if (LData.HasRoom) //2
-                        {
-                            collision.Result = Collision.CollisionResult.PushLeft;
-                            collision.cell = "K2";
-                        }
-                        else //3 4 5 6
-                        {
-                            if (LData.CanReDist)
+                            if (L != LData.WeakestC) //2
                             {
-                                if (L != LData.WeakestC) //3
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "K2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "K3";
+                            }
+                        }
+                        else //4 5 67 8
+                        {
+                            if (L.EndLock) //8
+                            {
+                                collision.Result = Collision.CollisionResult.ShrinkRight;
+                                collision.cell = "K8";
+                            }
+                            else if (LData.CanReDist) //4 5
+                            {
+                                if (L != LData.WeakestC) //4
                                 {
                                     collision.Result = Collision.CollisionResult.ReDistLeftWC;
-                                    collision.cell = "K3";
-                                }
-                                else //4
-                                {
-                                    collision.Result = Collision.CollisionResult.ReDistLeft;
                                     collision.cell = "K4";
                                 }
+                                else //5
+                                {
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "K5";
+                                }
                             }
-                            else //5 6
+                            else //67
+                            {
+                                collision.Result = Collision.CollisionResult.ShrinkRight;
+                                collision.cell = "K67";
+                            }
+                        }
+                    }
+                }
+                else //L M
+                {
+                    if (R != RData.WeakestC) //L
+                    {
+                        if (LData.HasRoom) //2 3
+                        {
+                            if (L != LData.WeakestC) //2
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "L2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "L3";
+                            }
+                        }
+                        else //4 5 6 7 8
+                        {
+                            if (L.EndLock) //8
+                            {
+                                collision.Result = Collision.CollisionResult.ShrinkRightWC;
+                                collision.cell = "L8";
+                            }
+                            else if (LData.CanReDist) //4 5
+                            {
+                                if (L != LData.WeakestC) //4
+                                {
+                                    collision.Result = Collision.CollisionResult.ReDistLeftWC;
+                                    collision.cell = "L4";
+                                }
+                                else //5
+                                {
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "L5";
+                                }
+                            }
+                            else //6 7
+                            {
+                                if (L != LData.WeakestC) //6
+                                {
+                                    collision.Result = Collision.CollisionResult.ShrinkLeftWC;
+                                    collision.cell = "L6";
+                                }
+                                else //7
+                                {
+                                    collision.Result = Collision.CollisionResult.ShrinkLeft;
+                                    collision.cell = "L7";
+                                }
+                            }
+                        }
+                    }
+                    else //M
+                    {
+                        if (LData.HasRoom) //2 3
+                        {
+                            if (L != LData.WeakestC) //2
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeftWC;
+                                collision.cell = "M2";
+                            }
+                            else //3
+                            {
+                                collision.Result = Collision.CollisionResult.PushLeft;
+                                collision.cell = "M3";
+                            }
+                        }
+                        else //4 5 6 7 8
+                        {
+                            if (L.EndLock) //8
+                            {
+                                collision.Result = Collision.CollisionResult.ShrinkRight;
+                                collision.cell = "M8";
+                            }
+                            else if (LData.CanReDist)
+                            {
+                                if (L != LData.WeakestC) //4
+                                {
+                                    collision.Result = Collision.CollisionResult.ReDistLeftWC;
+                                    collision.cell = "M4";
+                                }
+                                else //5
+                                {
+                                    collision.Result = Collision.CollisionResult.ReDistLeft;
+                                    collision.cell = "M5";
+                                }
+                            }
+                            else //6 7
                             {
                                 if (L != LData.WeakestC)
                                 {
                                     collision.Result = Collision.CollisionResult.ShrinkLeftWC;
-                                    collision.cell = "K5";
+                                    collision.cell = "M6";
                                 }
                                 else
                                 {
                                     collision.Result = Collision.CollisionResult.ShrinkLeft;
-                                    collision.cell = "K6";
+                                    collision.cell = "M7";
                                 }
                             }
                         }
@@ -2737,8 +2873,10 @@ namespace TimekeeperWPF
         {
             public enum CollisionResult
             {
-                PushLeft, ShrinkLeft, ReDistLeft, ReDistLeftWC, ShrinkLeftWC,
-                PushRight, ShrinkRight, ReDistRight, ReDistRightWC, ShrinkRightWC,
+                PushLeft, ShrinkLeft, ReDistLeft,
+                PushRight, ShrinkRight, ReDistRight,
+                PushLeftWC, ShrinkLeftWC, ReDistLeftWC,
+                PushRightWC, ShrinkRightWC, ReDistRightWC,
             }
             public CollisionResult Result;
             public string cell = "manual collision";

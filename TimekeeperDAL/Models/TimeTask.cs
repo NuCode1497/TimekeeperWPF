@@ -237,6 +237,7 @@ namespace TimekeeperDAL.EF
             PerZones = new Dictionary<DateTime, DateTime>();
             //Find the time allocation if it exists
             TimeAllocation = Allocations.Where(A => Resource.TimeResourceChoices.Contains(A.Resource.Name)).FirstOrDefault();
+            var offset = TimeAllocation.PerOffsetAsTimeSpan;
             if (TimeAllocation == null || TimeAllocation.Per == null)
             {
                 //if per is not defined, we will create a per zone the size of the task
@@ -247,19 +248,19 @@ namespace TimekeeperDAL.EF
             else switch (TimeAllocation?.Per?.Name)
             {
                 case "Hour":
-                    BPZPart2(dt => dt.HourStart(), dt => dt.AddHours(1));
+                    BPZPart2(dt => dt.HourStart() + offset, dt => dt.AddHours(1));
                     break;
                 case "Day":
-                    BPZPart2(dt => dt.Date, dt => dt.AddDays(1));
+                    BPZPart2(dt => dt.Date + offset, dt => dt.AddDays(1));
                     break;
                 case "Week":
-                    BPZPart2(dt => dt.WeekStart(), dt => dt.AddDays(7));
+                    BPZPart2(dt => dt.WeekStart() + offset, dt => dt.AddDays(7));
                     break;
                 case "Month":
-                    BPZPart2(dt => dt.MonthStart(), dt => dt.AddMonths(1));
+                    BPZPart2(dt => dt.MonthStart() + offset, dt => dt.AddMonths(1));
                     break;
                 case "Year":
-                    BPZPart2(dt => dt.YearStart(), dt => dt.AddYears(1));
+                    BPZPart2(dt => dt.YearStart() + offset, dt => dt.AddYears(1));
                     break;
             }
         }

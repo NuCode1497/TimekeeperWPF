@@ -67,7 +67,7 @@
             </ComboBox>
         </StackPanel>
         <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Instance Min (0 Any):"/>
+            <TextBlock Text="Instance Min (0 Any):" VerticalAlignment="Center"/>
             <wpftools:DecimalUpDown 
                 MinWidth="60" x:Name="InstanceMinTextBox"
                 Value="{Binding Path=InstanceMinimum, 
@@ -80,6 +80,33 @@
                     Converter={tools:PluralizingConverter},
                     FallbackValue='Resource'}" 
                     Margin="4,0" VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Setter Property="IsEnabled" Value="False"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=TogglePer}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Setter Property="IsEnabled" Value="True"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Margin="5,2,0,2" Text="Offset:" VerticalAlignment="Center"/>
+                <wpftools:DecimalUpDown 
+                    MinWidth="60" x:Name="PerOffsetTextBox"
+                    Value="{Binding Path=PerOffset, 
+                    Converter={tools:InvalidatingConverter},
+                    Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, 
+                    ValidatesOnDataErrors=True, ValidatesOnExceptions=True}" 
+                    VerticalAlignment="Center"/>
+                <TextBlock
+                    Text="{Binding Path=Resource.Name, 
+                    Converter={tools:PluralizingConverter},
+                    FallbackValue='Resource'}" 
+                    Margin="4,0" VerticalAlignment="Center"/>
+            </StackPanel>
             <Button ToolTip="Remove Allocation"
                 Style="{StaticResource TinyButtonDeleteStyle}"/>
         </StackPanel>
