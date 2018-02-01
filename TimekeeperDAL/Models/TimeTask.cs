@@ -87,9 +87,9 @@ namespace TimekeeperDAL.EF
                         errors = GetErrorsFromAnnotations(nameof(Priority), Priority);
                         break;
                     case nameof(Dimension):
-                        if (Dimension < 1)
+                        if (Dimension < 0)
                         {
-                            AddError(nameof(Dimension), "Dimension must be greater than 0");
+                            AddError(nameof(Dimension), "Dimension must be greater than or equal to 0");
                             hasError = true;
                         }
                         errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);

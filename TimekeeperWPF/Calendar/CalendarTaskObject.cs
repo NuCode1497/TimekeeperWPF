@@ -138,6 +138,8 @@ namespace TimekeeperWPF.Calendar
         internal bool ReDistFlag = true;
         internal bool Step1IgnoreFlag = false;
         public TimeTask TimeTask => ParentPerZone.ParentMap.TimeTask;
+        public int Dimension => TimeTask.Dimension;
+        public int DimensionCount { get; set; }
         public double Priority => TimeTask.Priority;
         public bool CanReDist => TimeTask.CanReDist && !StartLock && !EndLock;
         public bool CanFill => TimeTask.CanFill;

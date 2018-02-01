@@ -13,6 +13,9 @@ namespace TimekeeperWPF.Calendar
         }
         public Note Note { get; set; }
         public DateTime DateTime => Note.DateTime;
+        public TimeTask TimeTask => Note.TimeTask;
+        public int Dimension => TimeTask.Dimension;
+        public int DimensionCount { get; set; }
         public bool Intersects(DateTime start, DateTime end) { return start < DateTime && DateTime < end; }
         public bool Intersects(InclusionZone Z) { return Intersects(Z.Start, Z.End); }
         public bool Intersects(TimeTask T) { return Intersects(T.Start, T.End); }

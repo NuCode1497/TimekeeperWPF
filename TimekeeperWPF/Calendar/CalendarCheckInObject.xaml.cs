@@ -25,6 +25,9 @@ namespace TimekeeperWPF.Calendar
         public CheckIn CheckIn { get; set; }
         public CheckInKind Kind { get; set; }
         public DateTime DateTime => CheckIn.DateTime;
+        public TimeTask TimeTask => ParentPerZone.ParentMap.TimeTask;
+        public int Dimension => ParentPerZone.ParentMap.TimeTask.Dimension;
+        public int DimensionCount { get; set; }
         #region ParentMap
         //public CalendarTimeTaskMap ParentMap
         //{

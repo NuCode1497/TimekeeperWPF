@@ -796,7 +796,11 @@ namespace TimekeeperWPF
                 select CI;
             foreach (var CI in visibleCheckIns)
             {
-                var CCI = new CalendarCheckInObject { CheckIn = CI };
+                var CCI = new CalendarCheckInObject
+                {
+                    CheckIn = CI,
+                    DimensionCount = DimensionCount,
+                };
                 switch (CI.Text)
                 {
                     case "Start":
@@ -819,6 +823,7 @@ namespace TimekeeperWPF
         }
         private void AddNewCheckInObject(CalendarCheckInObject CIO)
         {
+            CIO.DimensionCount = DimensionCount;
             CIO.ToolTip = CIO.CheckIn;
             CalCIObjsView.AddNewItem(CIO);
             CalCIObjsView.CommitNew();
@@ -838,6 +843,7 @@ namespace TimekeeperWPF
             {
                 Note = N,
                 ToolTip = N,
+                DimensionCount = DimensionCount,
             };
             CalNoteObjsView.AddNewItem(NO);
             CalNoteObjsView.CommitNew();
@@ -846,6 +852,7 @@ namespace TimekeeperWPF
         #region TaskMaps
         // See: Plans.xlsx - Calendar Passes, States, CheckIns, Collisions, Collisions2
         public HashSet<CalendarTimeTaskMap> TaskMaps;
+        public int DimensionCount { get; private set; } = 1;
         private async Task BuildTaskMaps()
         {
             Status = "Mapping Relevant Tasks...";
@@ -3580,12 +3587,14 @@ namespace TimekeeperWPF
             Status = "Un-Zipping TaskMaps...";
             CalTaskObjsCollection = new CollectionViewSource();
             CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
+            DimensionCount = GetDimensions().Count();
             foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
                 {
                     foreach (var C in P.CalTaskObjs)
                     {
+                        C.DimensionCount = DimensionCount;
                         CalTaskObjsView.AddNewItem(C);
                         CalTaskObjsView.CommitNew();
                         AdditionalCalTaskObjSetup(C);

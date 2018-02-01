@@ -164,7 +164,7 @@ namespace TimekeeperWPF
                 Start = DateTime.Now.Date,
                 TaskType = TaskTypesSource.First(N => N.Name == "Chore"),
                 AllocationMethod = "EvenEager",
-                Dimension = 1,
+                Dimension = 0,
                 Priority = 100,
                 CanFill = false,
                 CanReDist = true,

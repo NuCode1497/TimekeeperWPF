@@ -122,16 +122,22 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarTaskObject)
                 {
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / 7d;
-                    biggestWidth = Math.Max(biggestWidth, (child.DesiredSize.Width * 7d) + TextMargin);
+                    var C = actualChild as CalendarTaskObject;
+                    var sections = 7d * C.DimensionCount;
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
+                    biggestWidth = Math.Max(biggestWidth, (child.DesiredSize.Width * sections) + TextMargin);
                 }
                 else if (actualChild is CalendarNoteObject)
                 {
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / 7d;
+                    var N = actualChild as CalendarNoteObject;
+                    var sections = 7d * N.DimensionCount;
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
                 }
                 else if (actualChild is CalendarCheckInObject)
                 {
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / 7d;
+                    var CIO = actualChild as CalendarCheckInObject;
+                    var sections = 7d * CIO.DimensionCount;
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
                 }
                 else
                 {
@@ -161,16 +167,22 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarTaskObject)
                 {
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / 7d;
-                    biggestHeight = Math.Max(biggestHeight, (actualChild.DesiredSize.Height * 7d) + TextMargin);
+                    var C = actualChild as CalendarTaskObject;
+                    var sections = 7d * C.DimensionCount;
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
+                    biggestHeight = Math.Max(biggestHeight, (actualChild.DesiredSize.Height * sections) + TextMargin);
                 }
                 else if (actualChild is CalendarNoteObject)
                 {
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / 7d;
+                    var N = actualChild as CalendarNoteObject;
+                    var sections = 7d * N.DimensionCount;
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
                 }
                 else if (actualChild is CalendarCheckInObject)
                 {
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / 7d;
+                    var CIO = actualChild as CalendarCheckInObject;
+                    var sections = 7d * CIO.DimensionCount;
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
                 }
                 else
                 {
@@ -223,14 +235,16 @@ namespace TimekeeperWPF.Calendar
                     CalendarTaskObject CalObj = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(CalObj))
                     {
+                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
-                        biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * 7d) + TextMargin);
+                        biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * sections) + TextMargin);
                         int startDayOfWeek = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, 6);
                         int currentDayOfWeek = startDayOfWeek + CalObj.DayOffset;
                         DateTime currentDate = Date.AddDays(currentDayOfWeek);
-                        x = TextMargin + (currentDayOfWeek * dayWidth);
+                        var dimensionOffset = childSize.Width * CalObj.Dimension;
+                        x = TextMargin + (currentDayOfWeek * dayWidth) + dimensionOffset;
                         y = (CalObj.Start - currentDate).TotalSeconds / Scale;
                     }
                     else
@@ -244,9 +258,11 @@ namespace TimekeeperWPF.Calendar
                     CalendarNoteObject CalObj = actualChild as CalendarNoteObject;
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
+                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
-                        x = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayWidth;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
+                        var dimensionOffset = childSize.Width * CalObj.Dimension;
+                        x = TextMargin + ((int)CalObj.DateTime.DayOfWeek * dayWidth) + dimensionOffset;
                         y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
@@ -260,9 +276,11 @@ namespace TimekeeperWPF.Calendar
                     CalendarCheckInObject CalObj = actualChild as CalendarCheckInObject;
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
+                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / 7d;
-                        x = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayWidth;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
+                        var dimensionOffset = childSize.Width * CalObj.Dimension;
+                        x = TextMargin + ((int)CalObj.DateTime.DayOfWeek * dayWidth) + dimensionOffset;
                         y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
@@ -323,14 +341,16 @@ namespace TimekeeperWPF.Calendar
                     CalendarTaskObject CalObj = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(CalObj))
                     {
+                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
+                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / sections;
                         childSize.Width = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
-                        biggestChildHeight = Math.Max(biggestChildHeight, (childSize.Height * 7d) + TextMargin);
+                        biggestChildHeight = Math.Max(biggestChildHeight, (childSize.Height * sections) + TextMargin);
                         int startDayOfWeek = Math.Max(0, Math.Min((int)(CalObj.Start.Date - Date).TotalDays, 6));
                         int currentDayofWeek = startDayOfWeek + CalObj.DayOffset;
                         DateTime currentDate = Date.AddDays(currentDayofWeek);
-                        y = currentDayofWeek * dayHeight;
+                        var dimensionOffset = childSize.Height * CalObj.Dimension;
+                        y = currentDayofWeek * dayHeight + dimensionOffset;
                         x = (CalObj.Start - currentDate).TotalSeconds / Scale;
                     }
                     else
@@ -344,9 +364,11 @@ namespace TimekeeperWPF.Calendar
                     CalendarNoteObject CalObj = actualChild as CalendarNoteObject;
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
+                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
-                        y = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayHeight;
+                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / sections;
+                        var dimensionOffset = childSize.Width * CalObj.Dimension;
+                        y = ((int)CalObj.DateTime.DayOfWeek * dayHeight) + dimensionOffset;
                         x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
@@ -360,9 +382,11 @@ namespace TimekeeperWPF.Calendar
                     CalendarCheckInObject CalObj = actualChild as CalendarCheckInObject;
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
+                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / 7d;
-                        y = TextMargin + ((int)CalObj.DateTime.DayOfWeek) * dayHeight;
+                        childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin) / sections;
+                        var dimensionOffset = childSize.Width * CalObj.Dimension;
+                        y = ((int)CalObj.DateTime.DayOfWeek * dayHeight) + dimensionOffset;
                         x = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Width / 2;
                     }
                     else
