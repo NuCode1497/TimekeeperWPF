@@ -38,11 +38,8 @@
                         <StaticResource ResourceKey="CalTaskObjs"/>
                         <StaticResource ResourceKey="CalCIObjs"/>
                         <StaticResource ResourceKey="CalNoteObjs"/>
-                        <cal:NowMarkerHorizontal 
-                            x:Name="HorizMark"
-                            IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
-                        <cal:NowMarkerVertical 
-                            x:Name="VertMark"
+                        <cal:NowMarker 
+                            x:Name="NowMark"
                             IsHitTestVisible="False" Focusable="False" IsEnabled="False"/>
                     </CompositeCollection>
                 </ItemsControl.ItemsSource>

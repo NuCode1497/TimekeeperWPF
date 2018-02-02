@@ -882,9 +882,9 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is NowMarkerHorizontal) continue;
-                else if (actualChild is NowMarkerVertical)
+                else if (actualChild is NowMarker)
                 {
+                    var NM = actualChild as NowMarker;
                     childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
                 }
                 else if (actualChild is CalendarTaskObject)
@@ -927,9 +927,9 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is NowMarkerVertical) continue;
-                else if (actualChild is NowMarkerHorizontal)
+                if (actualChild is NowMarker)
                 {
+                    var NM = actualChild as NowMarker;
                     childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
                 }
                 else if (actualChild is CalendarTaskObject)
@@ -993,12 +993,7 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is NowMarkerHorizontal)
-                {
-                    child.Visibility = Visibility.Collapsed;
-                    continue;
-                }
-                else if (actualChild is NowMarkerVertical)
+                if (actualChild is NowMarker)
                 {
                     if (IsDateToday(Date))
                     {
@@ -1099,12 +1094,7 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is NowMarkerVertical)
-                {
-                    child.Visibility = Visibility.Collapsed;
-                    continue;
-                }
-                else if (actualChild is NowMarkerHorizontal)
+                if (actualChild is NowMarker)
                 {
                     if (IsDateToday(Date))
                     {

@@ -28,8 +28,7 @@
             </ListBox.Resources>
             <ItemsControl.ItemsSource>
                 <CompositeCollection>
-                    <cal:NowMarkerHorizontal/>
-                    <cal:NowMarkerVertical/>
+                    <cal:NowMarker/>
                     <StaticResource ResourceKey="CalTaskObjs"/>
                     <StaticResource ResourceKey="CalNoteObjs"/>
                 </CompositeCollection>

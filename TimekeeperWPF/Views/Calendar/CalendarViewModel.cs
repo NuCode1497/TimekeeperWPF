@@ -281,8 +281,7 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (_SelectedItem == value) return;
-                if (value is NowMarkerHorizontal ||
-                    value is NowMarkerVertical)
+                if (value is NowMarker)
                 {
                     SelectedItem = null;
                     return;
@@ -329,8 +328,7 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (value == _CurrentEditItem) return;
-                if (value is NowMarkerHorizontal ||
-                    value is NowMarkerVertical)
+                if (value is NowMarker)
                 {
                     return;
                 }
