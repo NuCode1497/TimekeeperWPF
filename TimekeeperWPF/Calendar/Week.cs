@@ -41,6 +41,31 @@ namespace TimekeeperWPF.Calendar
         {
         }
         #endregion
+        #region Events
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (Orientation == Orientation.Vertical)
+            {
+                var pos = e.MouseDevice.GetPosition(this);
+                var xToWeekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / 7d)).Within(0, 6);
+                var xToDate = Date.AddDays(xToWeekDay);
+                var yToSeconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, 86400);
+                var yToTime = new TimeSpan(0, 0, yToSeconds);
+                var dateTime = xToDate + yToTime;
+                Position = dateTime.ToShortDateString() + ", " + dateTime.ToLongTimeString();
+            }
+            else
+            {
+                var pos = e.MouseDevice.GetPosition(this);
+                var yToWeekDay = (int)((pos.Y) / ((RenderSize.Height - TextMargin) / 7d)).Within(0, 6);
+                var yToDate = Date.AddDays(yToWeekDay);
+                var xToSeconds = (int)((pos.X + Offset.X) * Scale).Within(0, 86400);
+                var xToTime = new TimeSpan(0, 0, xToSeconds);
+                var dateTime = yToDate + xToTime;
+                Position = dateTime.ToShortDateString() + ", " + dateTime.ToLongTimeString();
+            }
+        }
+        #endregion Events
         #region Date
         [Bindable(true)]
         public int SelectedMonthOverride

@@ -51,6 +51,27 @@ namespace TimekeeperWPF.Calendar
         {
             InvalidateArrange();
         }
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (Orientation == Orientation.Vertical)
+            {
+                var pos = e.MouseDevice.GetPosition(this);
+                var xToDate = Date;
+                var yToSeconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, 86400);
+                var yToTime = new TimeSpan(0, 0, yToSeconds);
+                var dateTime = xToDate + yToTime;
+                Position = dateTime.ToShortDateString() + ", " + dateTime.ToLongTimeString();
+            }
+            else
+            {
+                var pos = e.MouseDevice.GetPosition(this);
+                var yToDate = Date;
+                var xToSeconds = (int)((pos.X + Offset.X) * Scale).Within(0, 86400);
+                var xToTime = new TimeSpan(0, 0, xToSeconds);
+                var dateTime = yToDate + xToTime;
+                Position = dateTime.ToShortDateString() + ", " + dateTime.ToLongTimeString();
+            }
+        }
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
         {
             if (e.Handled) return;
@@ -394,6 +415,17 @@ namespace TimekeeperWPF.Calendar
                 || value == Orientation.Vertical;
         }
         #endregion
+        #region Position
+        public string Position
+        {
+            get { return (string)GetValue(PositionProperty); }
+            set { SetValue(PositionProperty, value); }
+        }
+        public static readonly DependencyProperty PositionProperty =
+            DependencyProperty.Register(
+                nameof(Position), typeof(string), typeof(Day),
+                new FrameworkPropertyMetadata(""));
+        #endregion Position
         #region Scale
         // Scale is in Seconds per Pixel s/px
         protected double ScaleFactor = 0.3d;

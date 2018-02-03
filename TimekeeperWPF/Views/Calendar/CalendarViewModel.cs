@@ -32,6 +32,7 @@ namespace TimekeeperWPF
         }
         private Orientation _Orientation = Orientation.Vertical;
         private String _status = "Ready";
+        private string _Position = "";
         private bool _IsEnabled = true;
         private bool _Max = true;
         private bool _TextMargin = true;
@@ -53,6 +54,15 @@ namespace TimekeeperWPF
             {
                 if (_Orientation == value) return;
                 _Orientation = value;
+                OnPropertyChanged();
+            }
+        }
+        public virtual string Position
+        {
+            get { return _Position; }
+            set
+            {
+                _Position = value;
                 OnPropertyChanged();
             }
         }

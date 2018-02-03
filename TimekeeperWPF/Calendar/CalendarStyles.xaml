@@ -90,6 +90,7 @@
         <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
         <Setter Property="WatermarkBrush" Value="{StaticResource Day.WatermarkBrush}"/>
         <Setter Property="WatermarkFontFamily" Value="{StaticResource Ayy.FontFamily}"/>
+        <Setter Property="Position" Value="{Binding Path=Position, Mode=TwoWay}"/>
     </Style>
     <Style TargetType="cal:Week">
         <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
@@ -102,6 +103,7 @@
         <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
         <Setter Property="MonthBoundsHighlight" Value="{StaticResource Week.MonthBoundsHighlight}"/>
         <Setter Property="MonthBoundsWatermarkBrush" Value="{StaticResource Week.MonthBoundsWatermarkBrush}"/>
+        <Setter Property="Position" Value="{Binding Path=Position, Mode=TwoWay}"/>
     </Style>
     <Storyboard x:Key="MarkyRGBCycle" RepeatBehavior="Forever" SpeedRatio="3">
         <ColorAnimationUsingKeyFrames 

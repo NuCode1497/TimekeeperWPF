@@ -44,18 +44,24 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <Separator Grid.Column="1"/>
-            <Separator Grid.Column="3"/>
             <StatusBarItem Grid.Column="0">
                 <TextBlock Name="StatusTextBlock" Text="{Binding Path=CurrentView.Status, FallbackValue='Ready'}"/>
             </StatusBarItem>
+            <Separator Grid.Column="1"/>
             <StatusBarItem Grid.Column="2">
             </StatusBarItem>
+            <Separator Grid.Column="3"/>
             <StatusBarItem Grid.Column="4" HorizontalContentAlignment="Right">
+                <TextBlock Name="PositionTextBlock" Text="{Binding Path=CurrentView.Position}"/>
+            </StatusBarItem>
+            <Separator Grid.Column="5"/>
+            <StatusBarItem Grid.Column="6" HorizontalContentAlignment="Right">
                 <TextBlock Name="ClockTextBlock" Text="{Binding Path=ClockString}"/>
             </StatusBarItem>
         </StatusBar>
