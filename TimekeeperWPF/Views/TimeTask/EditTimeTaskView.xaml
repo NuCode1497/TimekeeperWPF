@@ -53,12 +53,6 @@
                         UpdateSourceTrigger=PropertyChanged,
                         ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"/>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Label Content="Allocation"  Width="80"/>
-                    <ComboBox Width="130" HorizontalAlignment="Left"
-                        SelectedItem="{Binding Path=AllocationMethod}"
-                        ItemsSource="{x:Static dal:TimeTask.AllocationMethodChoices}" />
-                </StackPanel>
             </StackPanel>
             <StackPanel Margin="5">
                 <CheckBox Content="Auto CheckIn" IsChecked="{Binding Path=AutoCheckIn}"/>

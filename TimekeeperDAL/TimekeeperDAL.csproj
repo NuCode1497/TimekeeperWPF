@@ -159,6 +159,10 @@
     <Compile Include="Migrations\201801220627288_CheckInCancel.Designer.cs">
       <DependentUpon>201801220627288_CheckInCancel.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201802022329243_AllocationMethod.cs" />
+    <Compile Include="Migrations\201802022329243_AllocationMethod.Designer.cs">
+      <DependentUpon>201802022329243_AllocationMethod.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\CheckIn.cs" />
     <Compile Include="Models\Label.cs" />
@@ -277,6 +281,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801220627288_CheckInCancel.resx">
       <DependentUpon>201801220627288_CheckInCancel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201802022329243_AllocationMethod.resx">
+      <DependentUpon>201802022329243_AllocationMethod.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

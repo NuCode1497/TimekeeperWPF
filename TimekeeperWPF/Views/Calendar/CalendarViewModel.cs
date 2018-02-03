@@ -33,7 +33,7 @@ namespace TimekeeperWPF
         private Orientation _Orientation = Orientation.Vertical;
         private String _status = "Ready";
         private bool _IsEnabled = true;
-        private bool _Max = false;
+        private bool _Max = true;
         private bool _TextMargin = true;
         private ICommand _OrientationCommand;
         public abstract string Name { get; }
@@ -1345,7 +1345,7 @@ namespace TimekeeperWPF
             foreach (var M in TaskMaps)
             {
                 if (M.TimeTask.TimeAllocation == null) continue;
-                switch (M.TimeTask.AllocationMethod)
+                switch (M.TimeTask.TimeAllocation.Method)
                 {
                     case "Eager":
                         EagerTimeAllocate(M);

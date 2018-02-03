@@ -7,6 +7,7 @@
 using TimekeeperDAL.Tools;
 using System.ComponentModel.DataAnnotations.Schema;
 using System;
+using System.Collections.Generic;
 
 namespace TimekeeperDAL.EF
 {
@@ -51,6 +52,16 @@ namespace TimekeeperDAL.EF
                         }
                         hasError = ValidateTimeSelection(hasError);
                         errors = GetErrorsFromAnnotations(nameof(Amount), Amount);
+                        break;
+                    case nameof(Method):
+                        if (!AllocationMethodChoices.Contains(Method))
+                        {
+                            AddError(nameof(Method), String.Format("{0} must be: {1}",
+                                nameof(Method),
+                                String.Join(", ", Method)));
+                            hasError = true;
+                        }
+                        errors = GetErrorsFromAnnotations(nameof(Method), Method);
                         break;
                     case nameof(InstanceMinimum):
                         if (InstanceMinimum < 0)
@@ -134,5 +145,16 @@ namespace TimekeeperDAL.EF
 
             return allocatedTime;
         }
+
+        [NotMapped]
+        public static readonly List<string> AllocationMethodChoices = new List<string>
+        {
+            "Eager",
+            "EvenEager",
+            "EvenCentered",
+            "EvenApathetic",
+            "Apathetic",
+        };
+
     }
 }

@@ -8,6 +8,8 @@
     Name="ThisControl">
     <StackPanel>
         <StackPanel Orientation="Horizontal">
+            <Button ToolTip="Remove Allocation"
+                Style="{StaticResource TinyButtonDeleteStyle}"/>
             <ToggleButton Name="LimitToggle" Width="50"
                 IsChecked="{Binding Path=Limited, Mode=TwoWay}">
                 <ToggleButton.Style>
@@ -106,8 +108,12 @@
                     FallbackValue='Resource'}" 
                     Margin="4,0" VerticalAlignment="Center"/>
             </StackPanel>
-            <Button ToolTip="Remove Allocation"
-                Style="{StaticResource TinyButtonDeleteStyle}"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <Label Content="Method: "/>
+            <ComboBox Width="130" HorizontalAlignment="Left"
+                      SelectedItem="{Binding Path=Method, Mode=TwoWay}"
+                      ItemsSource="{x:Static dal:TimeTaskAllocation.AllocationMethodChoices}" />
         </StackPanel>
     </StackPanel>
 </UserControl>

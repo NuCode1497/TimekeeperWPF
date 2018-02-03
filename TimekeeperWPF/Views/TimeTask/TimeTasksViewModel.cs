@@ -163,7 +163,6 @@ namespace TimekeeperWPF
                 End = DateTime.Now.Date.AddDays(1), //init before start
                 Start = DateTime.Now.Date,
                 TaskType = TaskTypesSource.First(N => N.Name == "Chore"),
-                AllocationMethod = "EvenEager",
                 Dimension = 0,
                 Priority = 100,
                 CanFill = false,
@@ -190,6 +189,7 @@ namespace TimekeeperWPF
                 {
                     Amount = A.Amount,
                     InstanceMinimum = A.InstanceMinimum,
+                    Method = A.Method,
                     Limited = A.Limited,
                     Per = A.Per,
                     PerId = A.PerId,
@@ -282,6 +282,7 @@ namespace TimekeeperWPF
             {
                 Amount = 1,
                 InstanceMinimum = 0,
+                Method = "Eager",
                 Limited = false,
                 TimeTask = CurrentEditItem
             });

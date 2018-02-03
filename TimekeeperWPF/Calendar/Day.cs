@@ -49,7 +49,6 @@ namespace TimekeeperWPF.Calendar
         #region Events
         private void _Timer_Tick(object sender, EventArgs e)
         {
-            //TODO: Toggle?
             InvalidateArrange();
         }
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)

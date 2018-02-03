@@ -4,6 +4,8 @@
              xmlns:dal="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
              Name="ThisControl">
     <StackPanel Orientation="Horizontal">
+        <Button ToolTip="Remove Filter"
+                Style="{StaticResource TinyButtonDeleteStyle}"/>
         <ToggleButton Name="IncludeToggle" Width="50"
             IsChecked="{Binding Path=Include, 
             ValidatesOnDataErrors=True, ValidatesOnExceptions=True}">
@@ -85,7 +87,5 @@
                 </Style>
             </ComboBox.Style>
         </ComboBox>
-        <Button ToolTip="Remove Filter"
-                Style="{StaticResource TinyButtonDeleteStyle}"/>
     </StackPanel>
 </UserControl>

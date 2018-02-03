@@ -108,7 +108,7 @@ namespace TimekeeperWPF.Calendar
                 s += String.Format("\nAlloc: {0} {2}\nRem: {1}",
                 ParentPerZone.TimeConsumption.Allocation.AmountAsTimeSpan.ShortGoodString(),
                 ParentPerZone.TimeConsumption.RemainingAsTimeSpan.ShortGoodString(),
-                ParentPerZone.ParentMap.TimeTask.AllocationMethod);
+                ParentPerZone.TimeConsumption.Allocation.Method);
             }
             if (ParentPerZone.ParentMap.TimeTask.CanFill) s += "\nCanFill";
             if (ParentPerZone.ParentMap.TimeTask.AutoCheckIn) s += "\nAutoCheckIn";
@@ -131,7 +131,7 @@ namespace TimekeeperWPF.Calendar
                 s += String.Format(" Alloc: {0} {2} Rem: {1}",
                 ParentPerZone.TimeConsumption.Allocation.AmountAsTimeSpan.ShortGoodString(),
                 ParentPerZone.TimeConsumption.RemainingAsTimeSpan.ShortGoodString(),
-                ParentPerZone.ParentMap.TimeTask.AllocationMethod);
+                ParentPerZone.TimeConsumption.Allocation.Method);
             }
             return s;
         }

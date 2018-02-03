@@ -14,6 +14,9 @@ namespace TimekeeperDAL.EF
 
         public double InstanceMinimum { get; set; }
 
+        [Required]
+        public string Method { get; set; }
+
         [Key]
         [Column(Order = 1)]
         public int TimeTask_Id { get; set; }

@@ -94,16 +94,6 @@ namespace TimekeeperDAL.EF
                         }
                         errors = GetErrorsFromAnnotations(nameof(Dimension), Dimension);
                         break;
-                    case nameof(AllocationMethod):
-                        if (!AllocationMethodChoices.Contains(AllocationMethod))
-                        {
-                            AddError(nameof(AllocationMethod), String.Format("{0} must be: {1}",
-                                nameof(AllocationMethod),
-                                String.Join(", ", AllocationMethod)));
-                            hasError = true;
-                        }
-                        errors = GetErrorsFromAnnotations(nameof(AllocationMethod), AllocationMethod);
-                        break;
                     case nameof(TaskType):
                         if (!TaskType.DefaultChoices.Contains(TaskType.Name))
                         {
@@ -125,16 +115,6 @@ namespace TimekeeperDAL.EF
             }
         }
 
-        [NotMapped]
-        public static readonly List<string> AllocationMethodChoices = new List<string>
-        {
-            "Eager",
-            "EvenEager",
-            "EvenCentered",
-            "EvenApathetic",
-            "Apathetic",
-        };
-        
         [NotMapped]
         public static TimeSpan MinimumDuration => new TimeSpan(0, 5, 0);
 
