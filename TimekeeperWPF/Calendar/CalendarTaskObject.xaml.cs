@@ -6,22 +6,24 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using TimekeeperDAL.EF;
 using TimekeeperDAL.Tools;
-using static System.Math;
 
 namespace TimekeeperWPF.Calendar
 {
-    public class CalendarTaskObject : ContentControl, IDisposable, IZone
+    /// <summary>
+    /// Interaction logic for CalendarTaskObject.xaml
+    /// </summary>
+    public partial class CalendarTaskObject : CalendarObject, IDisposable, IZone
     {
         static CalendarTaskObject()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarTaskObject), 
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(typeof(CalendarTaskObject)));
-            BackgroundProperty.OverrideMetadata(typeof(CalendarTaskObject), 
+            BackgroundProperty.OverrideMetadata(typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(
                     new SolidColorBrush() { Opacity = 0.5d, Color = Colors.Tomato }));
-            BorderBrushProperty.OverrideMetadata(typeof(CalendarTaskObject), 
+            BorderBrushProperty.OverrideMetadata(typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(Brushes.DarkSlateGray));
-            BorderThicknessProperty.OverrideMetadata(typeof(CalendarTaskObject), 
+            BorderThicknessProperty.OverrideMetadata(typeof(CalendarTaskObject),
                 new FrameworkPropertyMetadata(new Thickness(2)));
         }
         public CalendarTaskObject()
@@ -29,6 +31,7 @@ namespace TimekeeperWPF.Calendar
             Day._Timer.Tick += _Timer_Tick;
             if (ParentPerZone?.ParentMap != null)
                 ParentPerZone.ParentMap.TimeTask.PropertyChanged += OnParentEntityPropertyChanged;
+            InitializeComponent();
         }
         private void OnParentEntityPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
@@ -135,6 +138,7 @@ namespace TimekeeperWPF.Calendar
             }
             return s;
         }
+        public override string BasicString => TimeTask.BasicString;
         internal bool ReDistFlag = true;
         internal bool Step1IgnoreFlag = false;
         public TimeTask TimeTask => ParentPerZone.ParentMap.TimeTask;

@@ -10,6 +10,8 @@ namespace TimekeeperWPF.Tools
     public interface IView
     {
         string Name { get; }
+        string Status { get; }
+        string SelectionString { get; }
         ICommand SaveAsCommand { get; }
         ICommand GetDataCommand { get; }
         ICommand NewItemCommand { get; }

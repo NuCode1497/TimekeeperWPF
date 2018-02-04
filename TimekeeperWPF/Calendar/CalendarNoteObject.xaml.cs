@@ -5,12 +5,17 @@ using TimekeeperDAL.EF;
 
 namespace TimekeeperWPF.Calendar
 {
-    public partial class CalendarNoteObject : UserControl
+    public partial class CalendarNoteObject : CalendarObject
     {
         public CalendarNoteObject()
         {
             InitializeComponent();
         }
+        public override string ToString()
+        {
+            return Note.ToString();
+        }
+        public override string BasicString => Note.ToString();
         public Note Note { get; set; }
         public DateTime DateTime => Note.DateTime;
         public TimeTask TimeTask => Note.TimeTask;

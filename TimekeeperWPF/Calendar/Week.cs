@@ -42,7 +42,7 @@ namespace TimekeeperWPF.Calendar
         }
         #endregion
         #region Events
-        protected override void OnMouseMove(MouseEventArgs e)
+        protected override void DeterminePosition(MouseEventArgs e)
         {
             if (Orientation == Orientation.Vertical)
             {

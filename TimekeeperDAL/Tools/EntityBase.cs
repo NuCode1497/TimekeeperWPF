@@ -16,6 +16,9 @@ namespace TimekeeperDAL.Tools
         [Column(TypeName = "timestamp")]
         public byte[] RowVersion { get; set; }
 
+        [NotMapped]
+        public virtual string BasicString => ToString();
+
         #region Validations
         private readonly Dictionary<string, List<string>> _errors = new Dictionary<string, List<string>>();
 

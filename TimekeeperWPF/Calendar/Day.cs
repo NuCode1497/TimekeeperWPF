@@ -25,6 +25,8 @@ using System.Reflection;
 using System.Windows.Threading;
 using System.Collections;
 using TimekeeperDAL.Tools;
+using System.Collections.ObjectModel;
+using System.Windows.Data;
 
 namespace TimekeeperWPF.Calendar
 {
@@ -53,9 +55,37 @@ namespace TimekeeperWPF.Calendar
         }
         protected override void OnMouseMove(MouseEventArgs e)
         {
+            DeterminePosition(e);
+        }
+        protected override void OnPreviewMouseRightButtonDown(MouseButtonEventArgs e)
+        {
+            var pt = e.GetPosition(this);
+            ItemsUnderMouse.Clear();
+            VisualTreeHelper.HitTest(this, null,
+                new HitTestResultCallback(DetectCalendarObjects),
+                new PointHitTestParameters(pt));
+            base.OnPreviewMouseRightButtonDown(e);
+        }
+        private HitTestResultBehavior DetectCalendarObjects(HitTestResult result)
+        {
+            if (result.VisualHit is FrameworkElement)
+            {
+                var FE = result.VisualHit as FrameworkElement;
+                var DC = FE.DataContext;
+                if (DC is CalendarObject)
+                {
+                    var CO = DC as CalendarObject;
+                    if (!ItemsUnderMouse.Contains(CO))
+                        ItemsUnderMouse.Add(CO);
+                }
+            }
+            return HitTestResultBehavior.Continue;
+        }
+        protected virtual void DeterminePosition(MouseEventArgs e)
+        {
             if (Orientation == Orientation.Vertical)
             {
-                var pos = e.MouseDevice.GetPosition(this);
+                var pos = e.GetPosition(this);
                 var xToDate = Date;
                 var yToSeconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, 86400);
                 var yToTime = new TimeSpan(0, 0, yToSeconds);
@@ -64,7 +94,7 @@ namespace TimekeeperWPF.Calendar
             }
             else
             {
-                var pos = e.MouseDevice.GetPosition(this);
+                var pos = e.GetPosition(this);
                 var yToDate = Date;
                 var xToSeconds = (int)((pos.X + Offset.X) * Scale).Within(0, 86400);
                 var xToTime = new TimeSpan(0, 0, xToSeconds);
@@ -426,6 +456,17 @@ namespace TimekeeperWPF.Calendar
                 nameof(Position), typeof(string), typeof(Day),
                 new FrameworkPropertyMetadata(""));
         #endregion Position
+        #region ItemsUnderMouse
+        public ObservableCollection<CalendarObject> ItemsUnderMouse
+        {
+            get { return (ObservableCollection<CalendarObject>)GetValue(ItemsUnderMouseProperty); }
+            set { SetValue(ItemsUnderMouseProperty, value); }
+        }
+        public static readonly DependencyProperty ItemsUnderMouseProperty =
+            DependencyProperty.Register(
+                nameof(ItemsUnderMouse), typeof(ObservableCollection<CalendarObject>), typeof(Day),
+                new FrameworkPropertyMetadata(new ObservableCollection<CalendarObject>()));
+        #endregion ItemsUnderMouse
         #region Scale
         // Scale is in Seconds per Pixel s/px
         protected double ScaleFactor = 0.3d;

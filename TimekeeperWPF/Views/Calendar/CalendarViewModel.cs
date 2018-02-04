@@ -219,10 +219,11 @@ namespace TimekeeperWPF
         private TimeTasksViewModel _TimeTasksVM = new TimeTasksViewModel();
         private CheckInsViewModel _CheckInsVM = new CheckInsViewModel();
         private NotesViewModel _NotesVM = new NotesViewModel();
-        private UIElement _SelectedItem;
-        private UIElement _CurrentEditItem;
+        private CalendarObject _SelectedItem;
+        private CalendarObject _CurrentEditItem;
         private CalendarObjectTypes _SelectedItemType;
         private CalendarObjectTypes _CurrentEditItemType;
+        private string _SelectionString = "";
         private bool _IsLoading = false;
         private bool _IsEditingItem = false;
         private bool _IsAddingNew = false;
@@ -237,6 +238,7 @@ namespace TimekeeperWPF
         private ICommand _NewTimeTaskCommand;
         private ICommand _EditSelectedCommand;
         private ICommand _DeleteSelectedCommand;
+        private ICommand _SelectCommand;
         private ICommand _SaveAsCommand;
         public NotesViewModel NotesVM
         {
@@ -280,7 +282,8 @@ namespace TimekeeperWPF
             CalCIObjsCollection?.Source as ObservableCollection<CalendarCheckInObject>;
         public ListCollectionView CalCIObjsView =>
             CalCIObjsCollection?.View as ListCollectionView;
-        public UIElement SelectedItem
+        public ObservableCollection<CalendarObject> ItemsUnderMouse { get; set; } = new ObservableCollection<CalendarObject>();
+        public CalendarObject SelectedItem
         {
             get { return _SelectedItem; }
             set
@@ -291,11 +294,6 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (_SelectedItem == value) return;
-                if (value is NowMarker)
-                {
-                    SelectedItem = null;
-                    return;
-                }
                 if (value is CalendarCheckInObject)
                 {
                     SelectedItemType = CalendarObjectTypes.CheckIn;
@@ -315,19 +313,21 @@ namespace TimekeeperWPF
                     ((CalendarTaskObject)value).ParentPerZone.ParentMap.TimeTask.Id == CI.Id).FirstOrDefault();
                 }
                 _SelectedItem = value;
-                if (SelectedItem == null)
+                if (_SelectedItem == null)
                 {
                     HasSelected = false;
+                    SelectionString = "";
                 }
                 else
                 {
                     HasSelected = true;
-                    Status = SelectedItemType + " Selected";
+                    SelectionString = _SelectedItem.BasicString;
+                    Status = "Selected " + SelectedItemType;
                 }
                 OnPropertyChanged();
             }
         }
-        public UIElement CurrentEditItem
+        public CalendarObject CurrentEditItem
         {
             get { return _CurrentEditItem; }
             protected set
@@ -373,6 +373,15 @@ namespace TimekeeperWPF
             set
             {
                 _CurrentEditItemType = value;
+                OnPropertyChanged();
+            }
+        }
+        public string SelectionString
+        {
+            get { return _SelectionString; }
+            protected set
+            {
+                _SelectionString = value;
                 OnPropertyChanged();
             }
         }
@@ -449,6 +458,8 @@ namespace TimekeeperWPF
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
             ?? (_DeleteSelectedCommand = new RelayCommand(async ap => await DeleteSelected(), pp => CanDeleteSelected));
+        public ICommand SelectCommand => _SelectCommand
+            ?? (_SelectCommand = new RelayCommand(ap => Select((CalendarObject)ap), pp => CanSelect(pp)));
         public ICommand SaveAsCommand => _SaveAsCommand
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         public ICommand NewNoteCommand => _NewNoteCommand
@@ -560,6 +571,10 @@ namespace TimekeeperWPF
                 }
                 return false;
             }
+        }
+        protected virtual bool CanSelect(object pp)
+        {
+            return pp is UIElement;
         }
         protected virtual bool CanSave
         {
@@ -774,6 +789,10 @@ namespace TimekeeperWPF
             }
             SelectedItem = null;
             return success;
+        }
+        internal virtual void Select(CalendarObject item)
+        {
+            SelectedItem = item;
         }
         internal abstract void SaveAs();
         private async Task CreateCalendarObjects()

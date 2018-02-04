@@ -1,0 +1,6 @@
+﻿<cal:CalendarObject
+    x:Class="TimekeeperWPF.Calendar.CalendarTaskObject"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cal="clr-namespace:TimekeeperWPF.Calendar">
+</cal:CalendarObject>

@@ -26,7 +26,8 @@ namespace TimekeeperWPF
         protected ITimeKeeperContext Context;
         protected IComparer Sorter;
         protected static IComparer NameSorter = new NameSorter();
-        private String _status = "Ready";
+        private string _status = "Ready";
+        private string _SelectionString = "";
         private bool _IsEnabled = true;
         private bool _IsLoading = false;
         private bool _IsEditingItem = false;
@@ -45,7 +46,7 @@ namespace TimekeeperWPF
         #endregion
         #region Properties
         public abstract string Name { get; }
-        public String Status
+        public string Status
         {
             get { return _status; }
             protected set
@@ -77,11 +78,13 @@ namespace TimekeeperWPF
                 if (SelectedItem == null)
                 {
                     HasSelected = false;
+                    SelectionString = "";
                 }
                 else
                 {
                     HasSelected = true;
-                    Status = SelectedItem.GetTypeName() + " Selected";
+                    SelectionString = _SelectedItem.ToString();
+                    Status = "Selected " + SelectedItem.GetTypeName();
                 }
                 OnPropertyChanged();
             }
@@ -111,6 +114,15 @@ namespace TimekeeperWPF
         private void CurrentEditItemPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             CommandManager.InvalidateRequerySuggested();
+        }
+        public string SelectionString
+        {
+            get { return _SelectionString; }
+            protected set
+            {
+                _SelectionString = value;
+                OnPropertyChanged();
+            }
         }
         #endregion
         #region Conditions

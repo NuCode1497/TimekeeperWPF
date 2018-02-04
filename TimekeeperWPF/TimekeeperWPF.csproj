@@ -106,6 +106,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Calendar\CalendarObject.cs" />
+    <Compile Include="Calendar\CalendarTaskObject.xaml.cs">
+      <DependentUpon>CalendarTaskObject.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Resource\AllocationView.xaml.cs">
       <DependentUpon>AllocationView.xaml</DependentUpon>
     </Compile>
@@ -169,7 +173,6 @@
       <DependentUpon>MonthWeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />
-    <Compile Include="Calendar\CalendarTaskObject.cs" />
     <Compile Include="Calendar\Day.cs" />
     <Compile Include="Views\Calendar\Day\DayViewModel.cs" />
     <Compile Include="Examples\AnnoyingPanel.cs" />
@@ -249,6 +252,10 @@
       <DependentUpon>WeekView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Week\WeekViewModel.cs" />
+    <Page Include="Calendar\CalendarTaskObject.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Resource\AllocationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

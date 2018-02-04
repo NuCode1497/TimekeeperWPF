@@ -44,6 +44,19 @@ namespace TimekeeperDAL.EF
         }
 
         [NotMapped]
+        public override string BasicString
+        {
+            get
+            {
+                string s = String.Format("{0} S[{1}] E[{2}]",
+                    ToString(),
+                    Start.ToShortTimeString(),
+                    End.ToShortTimeString());
+                return s;
+            }
+        }
+
+        [NotMapped]
         public override string this[string columnName]
         {
             get

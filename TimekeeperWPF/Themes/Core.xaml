@@ -464,6 +464,23 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+    <Style x:Key="EditButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Foreground" Value="ForestGreen"/>
+        <Setter Property="Content">
+            <Setter.Value>
+                <Grid>
+                    <TextBlock Text="🖉" FontWeight="Bold" FontSize="18" Margin="-2,-2,-2,-2"/>
+                </Grid>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Command" Value="{Binding Path=EditSelectedCommand}"/>
+        <Setter Property="ToolTip" Value="Edit (Ctrl+E)"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="Gray"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
     <Style x:Key="RefreshButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Foreground" Value="Blue"/>
         <Setter Property="Content">
@@ -486,8 +503,7 @@
             <ToolBar Band="1" BandIndex="1">
                 <Button Content="New" x:Name="NewItemBtn" ToolTip="Ctrl+N" 
                         Command="{Binding Path=NewItemCommand}"/>
-                <Button Content="Edit" x:Name="EditSelectedBtn" ToolTip="Ctrl+E" 
-                        Command="{Binding Path=EditSelectedCommand}"/>
+                <Button x:Name="EditSelectedBtn" Style="{StaticResource EditButtonStyle}"/>
                 <Button x:Name="DeleteSelectedBtn" Style="{StaticResource DeleteButtonStyle}"/>
                 <Button x:Name="GetDataBtn" Style="{StaticResource RefreshButtonStyle}"/>
             </ToolBar>

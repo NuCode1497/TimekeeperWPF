@@ -9,7 +9,7 @@ namespace TimekeeperDAL.EF
     {
         public override string ToString()
         {
-            return Text + " - " + TimeTask + "\n" + DateTime.ToString();
+            return "📌" + Text + ": " + TimeTask + ": " + DateTime.ToString();
         }
 
         [NotMapped]
