@@ -51,8 +51,7 @@ namespace TimekeeperWPF.Calendar
                 var xToDate = Date.AddDays(xToWeekDay);
                 var yToSeconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, 86400);
                 var yToTime = new TimeSpan(0, 0, yToSeconds);
-                var dateTime = xToDate + yToTime;
-                Position = dateTime.ToShortDateString() + ", " + dateTime.ToLongTimeString();
+                MousePosition = xToDate + yToTime;
             }
             else
             {
@@ -61,8 +60,7 @@ namespace TimekeeperWPF.Calendar
                 var yToDate = Date.AddDays(yToWeekDay);
                 var xToSeconds = (int)((pos.X + Offset.X) * Scale).Within(0, 86400);
                 var xToTime = new TimeSpan(0, 0, xToSeconds);
-                var dateTime = yToDate + xToTime;
-                Position = dateTime.ToShortDateString() + ", " + dateTime.ToLongTimeString();
+                MousePosition = yToDate + xToTime;
             }
         }
         #endregion Events

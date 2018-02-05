@@ -154,7 +154,7 @@ namespace TimekeeperWPF
         {
             throw new NotImplementedException();
         }
-        internal override void AddNew()
+        internal override void AddNew(object ap)
         {
             CurrentEditItem = new TimeTask
             {
@@ -171,7 +171,7 @@ namespace TimekeeperWPF
             };
             View.AddNewItem(CurrentEditItem);
             BeginEdit();
-            base.AddNew();
+            base.AddNew(ap);
         }
         internal override void EditSelected()
         {

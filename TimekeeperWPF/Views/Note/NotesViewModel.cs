@@ -56,15 +56,18 @@ namespace TimekeeperWPF
             TimeTasksCollection.Source = Context.TimeTasks.Local;
             OnPropertyChanged(nameof(TimeTasksView));
         }
-        internal override void AddNew()
+        internal override void AddNew(object ap)
         {
+            var dt = DateTime.Now;
+            if (ap is DateTime)
+                dt = (DateTime)ap;
             CurrentEditItem = new Note
             {
-                DateTime = DateTime.Now.RoundDown(new TimeSpan(0, 1, 0)),
+                DateTime = dt.RoundDown(new TimeSpan(0, 1, 0)),
                 Text = "Your text here."
             };
             View.AddNewItem(CurrentEditItem);
-            base.AddNew();
+            base.AddNew(ap);
         }
         internal override void SaveAs()
         {

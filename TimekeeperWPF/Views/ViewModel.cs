@@ -206,7 +206,7 @@ namespace TimekeeperWPF
         public ICommand GetDataCommand => _GetDataCommand
             ?? (_GetDataCommand = new RelayCommand(async ap => await LoadDataAsync(), pp => CanGetData));
         public ICommand NewItemCommand => _NewItemCommand
-            ?? (_NewItemCommand = new RelayCommand(ap => AddNew(), pp => CanAddNew));
+            ?? (_NewItemCommand = new RelayCommand(ap => AddNew(ap), pp => CanAddNew(pp)));
         public ICommand EditSelectedCommand => _EditSelectedCommand
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
@@ -219,7 +219,11 @@ namespace TimekeeperWPF
         protected virtual bool CanCommit => IsNotSaving && IsEditingItemOrAddingNew && !(CurrentEditItem?.HasErrors ?? true);
         protected virtual bool CanGetData => IsNotSaving && IsNotLoading;
         private bool IsReady => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
-        protected virtual bool CanAddNew => IsReady && (View?.CanAddNew ?? false);
+        protected virtual bool CanAddNew(object pp)
+        {
+            return IsReady
+                && (View?.CanAddNew ?? false);
+        }
         protected virtual bool CanEditSelected => IsReady && HasSelected;
         protected virtual bool CanDeleteSelected => IsReady && HasSelected && (View?.CanRemove ?? false);
         protected virtual bool CanSave => IsReady;
@@ -255,7 +259,7 @@ namespace TimekeeperWPF
             IsLoading = false;
             CommandManager.InvalidateRequerySuggested();
         }
-        internal virtual void AddNew()
+        internal virtual void AddNew(object ap)
         {
             SelectedItem = null;
             IsAddingNew = true;

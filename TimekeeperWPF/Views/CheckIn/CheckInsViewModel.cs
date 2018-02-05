@@ -32,6 +32,11 @@ namespace TimekeeperWPF
         protected override bool CanSave => false;
         protected override bool CanEditSelected => false;
         protected override bool CanCommit => base.CanCommit && CurrentEditItem.TimeTask != null;
+        protected override bool CanAddNew(object pp)
+        {
+            return TimeTasksView.Count > 0
+                && base.CanAddNew(pp);
+        }
         protected override async Task GetDataAsync()
         {
             Context = new TimeKeeperContext();
@@ -43,16 +48,19 @@ namespace TimekeeperWPF
             TimeTasksCollection.Source = Context.TimeTasks.Local;
             OnPropertyChanged(nameof(TimeTasksView));
         }
-        internal override void AddNew()
+        internal override void AddNew(object ap)
         {
+            var dt = DateTime.Now;
+            if (ap is DateTime)
+                dt = (DateTime)ap;
             CurrentEditItem = new CheckIn
             {
-                DateTime = DateTime.Now.RoundDown(new TimeSpan(0,1,0)),
+                DateTime = dt.RoundDown(new TimeSpan(0, 1, 0)),
                 Text = "Start",
                 TimeTask = TimeTasksSource.FirstOrDefault(),
             };
             View.AddNewItem(CurrentEditItem);
-            base.AddNew();
+            base.AddNew(ap);
         }
         internal override void SaveAs()
         {

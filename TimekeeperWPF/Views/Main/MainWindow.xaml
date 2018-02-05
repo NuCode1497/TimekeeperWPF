@@ -64,7 +64,7 @@
             </StatusBarItem>
             <Separator Grid.Column="5"/>
             <StatusBarItem Grid.Column="6" HorizontalContentAlignment="Right">
-                <TextBlock Name="PositionTextBlock" Text="{Binding Path=CurrentView.Position}"/>
+                <TextBlock Name="PositionTextBlock" Text="{Binding Path=CurrentView.MousePosition}"/>
             </StatusBarItem>
             <Separator Grid.Column="7"/>
             <StatusBarItem Grid.Column="8" HorizontalContentAlignment="Right">

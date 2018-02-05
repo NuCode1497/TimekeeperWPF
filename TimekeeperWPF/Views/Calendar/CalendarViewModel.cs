@@ -30,14 +30,8 @@ namespace TimekeeperWPF
             _CheckInsVM.Parent = this;
             _NotesVM.Parent = this;
         }
-        private Orientation _Orientation = Orientation.Vertical;
-        private String _status = "Ready";
-        private string _Position = "";
-        private bool _IsEnabled = true;
-        private bool _Max = true;
-        private bool _TextMargin = true;
-        private ICommand _OrientationCommand;
         public abstract string Name { get; }
+        private String _status = "Ready";
         public String Status
         {
             get { return _status; }
@@ -47,9 +41,10 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
+        private Orientation _Orientation = Orientation.Vertical;
         public virtual Orientation Orientation
         {
-            get{ return _Orientation; }
+            get { return _Orientation; }
             set
             {
                 if (_Orientation == value) return;
@@ -57,15 +52,27 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        public virtual string Position
+        private DateTime _MousePosition;
+        public virtual DateTime MousePosition
         {
-            get { return _Position; }
+            get { return _MousePosition; }
             set
             {
-                _Position = value;
+                _MousePosition = value;
                 OnPropertyChanged();
             }
         }
+        private DateTime _MouseClickPosition;
+        public virtual DateTime MouseClickPosition
+        {
+            get { return _MouseClickPosition; }
+            set
+            {
+                _MouseClickPosition = value;
+                OnPropertyChanged();
+            }
+        }
+        private bool _Max = true;
         public virtual bool Max
         {
             get { return _Max; }
@@ -77,6 +84,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(CanMax));
             }
         }
+        private bool _TextMargin = true;
         public virtual bool TextMargin
         {
             get { return _TextMargin; }
@@ -88,6 +96,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(CanTextMargin));
             }
         }
+        private bool _IsEnabled = true;
         public bool IsEnabled
         {
             get { return _IsEnabled; }
@@ -99,6 +108,7 @@ namespace TimekeeperWPF
             }
         }
         public bool IsNotEnabled => !IsEnabled;
+        private ICommand _OrientationCommand;
         public ICommand OrientationCommand => _OrientationCommand
             ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
         protected virtual bool CanOrientation => true;
@@ -297,7 +307,7 @@ namespace TimekeeperWPF
                 if (value is CalendarCheckInObject)
                 {
                     SelectedItemType = CalendarObjectTypes.CheckIn;
-                    CheckInsVM.SelectedItem = CheckInsVM.Source.Where(CI => 
+                    CheckInsVM.SelectedItem = CheckInsVM.Source.Where(CI =>
                     ((CalendarCheckInObject)value).CheckIn.Id == CI.Id).FirstOrDefault();
                 }
                 else if (value is CalendarNoteObject)
@@ -452,7 +462,7 @@ namespace TimekeeperWPF
         public ICommand GetDataCommand => _GetDataCommand
             ?? (_GetDataCommand = new RelayCommand(async ap => await LoadData(), pp => CanGetData));
         public ICommand NewItemCommand => _NewItemCommand
-            ?? (_NewItemCommand = new RelayCommand(ap => AddNew((CalendarObjectTypes)ap), pp => 
+            ?? (_NewItemCommand = new RelayCommand(ap => AddNew((CalendarObjectTypes)ap), pp =>
             pp is CalendarObjectTypes && CanAddNew((CalendarObjectTypes)pp)));
         public ICommand EditSelectedCommand => _EditSelectedCommand
             ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
@@ -463,9 +473,9 @@ namespace TimekeeperWPF
         public ICommand SaveAsCommand => _SaveAsCommand
             ?? (_SaveAsCommand = new RelayCommand(ap => SaveAs(), pp => CanSave));
         public ICommand NewNoteCommand => _NewNoteCommand
-            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(), pp => CanAddNewNote));
+            ?? (_NewNoteCommand = new RelayCommand(ap => NewNote(ap), pp => CanAddNewNote(pp)));
         public ICommand NewCheckInCommand => _NewCheckInCommand
-            ?? (_NewCheckInCommand = new RelayCommand(ap => NewCheckIn(), pp => CanAddNewCheckIn));
+            ?? (_NewCheckInCommand = new RelayCommand(ap => NewCheckIn(ap), pp => CanAddNewCheckIn(pp)));
         public ICommand NewTimeTaskCommand => _NewTimeTaskCommand
             ?? (_NewTimeTaskCommand = new RelayCommand(ap => NewTimeTask(), pp => CanAddNewTimeTask));
         private bool IsReady => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
@@ -586,8 +596,16 @@ namespace TimekeeperWPF
                     && (TimeTasksVM?.SaveAsCommand?.CanExecute(null) ?? false);
             }
         }
-        protected virtual bool CanAddNewNote => IsReady && (NotesVM?.NewItemCommand?.CanExecute(null) ?? false);
-        protected virtual bool CanAddNewCheckIn => IsReady && (CheckInsVM?.NewItemCommand?.CanExecute(null) ?? false);
+        protected virtual bool CanAddNewNote(object ap)
+        {
+            return IsReady
+                && (NotesVM?.NewItemCommand?.CanExecute(ap) ?? false);
+        }
+        protected virtual bool CanAddNewCheckIn(object ap)
+        {
+            return IsReady
+                && (CheckInsVM?.NewItemCommand?.CanExecute(ap) ?? false);
+        }
         protected virtual bool CanAddNewTimeTask => IsReady && (TimeTasksVM?.NewItemCommand?.CanExecute(null) ?? false);
         internal virtual async Task LoadData()
         {
@@ -625,28 +643,28 @@ namespace TimekeeperWPF
             switch (type)
             {
                 case CalendarObjectTypes.CheckIn:
-                    NewCheckIn();
+                    NewCheckIn(DateTime.Now);
                     break;
                 case CalendarObjectTypes.Note:
-                    NewNote();
+                    NewNote(DateTime.Now);
                     break;
                 case CalendarObjectTypes.Task:
                     NewTimeTask();
                     break;
             }
         }
-        internal virtual void NewCheckIn()
+        internal virtual void NewCheckIn(object ap)
         {
             CurrentEditItemType = CalendarObjectTypes.CheckIn;
-            CheckInsVM.NewItemCommand.Execute(null);
+            CheckInsVM.NewItemCommand.Execute(ap);
             Status = "Adding new CheckIn";
             SelectedItem = null;
             IsAddingNew = true;
         }
-        internal virtual void NewNote()
+        internal virtual void NewNote(object ap)
         {
             CurrentEditItemType = CalendarObjectTypes.Note;
-            NotesVM.NewItemCommand.Execute(null);
+            NotesVM.NewItemCommand.Execute(ap);
             Status = "Adding new Note";
             SelectedItem = null;
             IsAddingNew = true;

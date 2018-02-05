@@ -90,7 +90,7 @@
         <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
         <Setter Property="WatermarkBrush" Value="{StaticResource Day.WatermarkBrush}"/>
         <Setter Property="WatermarkFontFamily" Value="{StaticResource Ayy.FontFamily}"/>
-        <Setter Property="Position" Value="{Binding Path=Position, Mode=TwoWay}"/>
+        <Setter Property="MousePosition" Value="{Binding Path=MousePosition, Mode=TwoWay}"/>
     </Style>
     <Style TargetType="cal:Week">
         <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
@@ -103,11 +103,19 @@
         <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
         <Setter Property="MonthBoundsHighlight" Value="{StaticResource Week.MonthBoundsHighlight}"/>
         <Setter Property="MonthBoundsWatermarkBrush" Value="{StaticResource Week.MonthBoundsWatermarkBrush}"/>
-        <Setter Property="Position" Value="{Binding Path=Position, Mode=OneWayToSource}"/>
+        <Setter Property="MousePosition" Value="{Binding Path=MousePosition, Mode=OneWayToSource}"/>
+        <Setter Property="MouseClickPosition" Value="{Binding Path=MouseClickPosition, Mode=OneWayToSource}"/>
         <Setter Property="ItemsUnderMouse" Value="{Binding Path=ItemsUnderMouse, Mode=OneWayToSource}"/>
         <Setter Property="ContextMenu">
             <Setter.Value>
                 <ContextMenu>
+                    <MenuItem Header="New _Note Here..."
+                              CommandParameter="{Binding Path=MouseClickPosition}"
+                              Command="{Binding Path=NewNoteCommand}"/>
+                    <MenuItem Header="New _CheckIn Here..."
+                              CommandParameter="{Binding Path=MouseClickPosition}"
+                              Command="{Binding Path=NewCheckInCommand}"/>
+                    <Separator/>
                     <MenuItem Header="_Select"
                               DisplayMemberPath="BasicString"
                               ItemsSource="{Binding Path=ItemsUnderMouse}">
@@ -299,14 +307,50 @@
                 <Button x:Name="NextButton" Style="{StaticResource NextButtonStyle}" 
                         Command="{Binding Path=NextCommand}"/>-->
                 <Button Content="📜" x:Name="NewNoteBtn"
+                        FontWeight="Bold"
                         ToolTip="New Note"
-                        Command="{Binding Path=NewNoteCommand}"/>
+                        Command="{Binding Path=NewNoteCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Foreground" Value="ForestGreen"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Foreground" Value="Silver"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <Button Content="📖" x:Name="NewTaskBtn"
+                        FontWeight="Bold"
                         ToolTip="New Task"
-                        Command="{Binding Path=NewTimeTaskCommand}"/>
+                        Command="{Binding Path=NewTimeTaskCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Foreground" Value="DarkGoldenrod"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Foreground" Value="Silver"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <Button Content="📌" x:Name="NewCIBtn"
+                        FontWeight="Bold"
                         ToolTip="New Check In"
-                        Command="{Binding Path=NewCheckInCommand}"/>
+                        Command="{Binding Path=NewCheckInCommand}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Foreground" Value="DodgerBlue"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Foreground" Value="Silver"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <Button x:Name="EditSelectedBtn" Style="{StaticResource EditButtonStyle}"/>
                 <Button x:Name="DeleteSelectedBtn" Style="{StaticResource DeleteButtonStyle}"/>
                 <Button x:Name="GetDataBtn" Style="{StaticResource RefreshButtonStyle}"/>

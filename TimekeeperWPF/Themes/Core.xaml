@@ -460,7 +460,7 @@
         <Setter Property="ToolTip" Value="Delete (Del)"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="Gray"/>
+                <Setter Property="Foreground" Value="Silver"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -477,7 +477,7 @@
         <Setter Property="ToolTip" Value="Edit (Ctrl+E)"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="Gray"/>
+                <Setter Property="Foreground" Value="Silver"/>
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -494,7 +494,7 @@
         <Setter Property="ToolTip" Value="Refresh (F5)"/>
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="Gray"/>
+                <Setter Property="Foreground" Value="Silver"/>
             </Trigger>
         </Style.Triggers>
     </Style>
