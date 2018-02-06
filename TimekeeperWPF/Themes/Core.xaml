@@ -3,6 +3,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:clr="clr-namespace:System;assembly=mscorlib"
     xmlns:tools="clr-namespace:TimekeeperWPF.Tools"
+    xmlns:tk="clr-namespace:TimekeeperWPF"
+    xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
     xmlns:wpftk="http://schemas.xceed.com/wpf/xaml/toolkit">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     <Style x:Key="WindowStyle" TargetType="Window">

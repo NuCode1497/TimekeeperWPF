@@ -130,6 +130,11 @@
                             </Style>
                         </MenuItem.ItemContainerStyle>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="_Edit"
+                              Command="{Binding Path=EditSelectedCommand}"/>
+                    <MenuItem Header="_Delete"
+                              Command="{Binding Path=DeleteSelectedCommand}"/>
                 </ContextMenu>
             </Setter.Value>
         </Setter>
@@ -228,7 +233,8 @@
         </Style.Triggers>
     </Style>
     <Style x:Key="CalObjsListBoxStyle" TargetType="ListBox">
-        <Setter Property="SelectedItem" Value="{Binding Path=SelectedCalendarObject, Mode=TwoWay}"/>
+        <Setter Property="SelectionMode" Value="Extended"/>
+        <Setter Property="SelectedItem" Value="{Binding Path=SelectedItem}"/>
         <Setter Property="ItemContainerStyle" Value="{StaticResource CalObjContainerStyle}"/>
         <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>

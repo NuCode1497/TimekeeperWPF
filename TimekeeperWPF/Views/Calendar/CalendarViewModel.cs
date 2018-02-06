@@ -26,6 +26,7 @@ namespace TimekeeperWPF
     {
         public CalendarViewModel()
         {
+            Start = DateTime.Now;
             _TimeTasksVM.Parent = this;
             _CheckInsVM.Parent = this;
             _NotesVM.Parent = this;
@@ -3632,7 +3633,7 @@ namespace TimekeeperWPF
             Status = "Un-Zipping TaskMaps...";
             CalTaskObjsCollection = new CollectionViewSource();
             CalTaskObjsCollection.Source = new ObservableCollection<CalendarTaskObject>();
-            DimensionCount = GetDimensions().Count();
+            DimensionCount = GetMaxDimension() + 1;
             foreach (var M in TaskMaps)
             {
                 foreach (var P in M.PerZones)
@@ -3653,6 +3654,12 @@ namespace TimekeeperWPF
         {
             return (from M in TaskMaps
                     select M.TimeTask.Dimension).Distinct();
+        }
+        private int GetMaxDimension()
+        {
+            var dims = GetDimensions();
+            var count = dims.Count();
+            return count > 0 ? dims.Max() : 0;
         }
         private HashSet<CalendarTaskObject> GetCalObjsUnOrdered(int dimension)
         {

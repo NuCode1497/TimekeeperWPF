@@ -20,10 +20,6 @@ namespace TimekeeperWPF
     public class WeekViewModel : CalendarViewModel
     {
         private int _SelectedMonthOverride = DateTime.Now.Month;
-        public WeekViewModel() : base()
-        {
-            Start = DateTime.Now;
-        }
         public override string Name => "Week View";
         public override DateTime Start
         {

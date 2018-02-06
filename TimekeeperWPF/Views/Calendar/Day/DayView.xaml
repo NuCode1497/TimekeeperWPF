@@ -3,59 +3,114 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TimekeeperWPF"
+             xmlns:tk="clr-namespace:TimekeeperWPF"
              xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
-             xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="600" Background="LimeGreen">
-    <Grid x:Name="ContentGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="9*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="80*"/>
-        </Grid.RowDefinitions>
-        <ListBox x:Name="CalendarObjectsIC" Grid.Row="2"
-                 Style="{StaticResource CalObjsListBoxStyle}">
-            <ListBox.Resources>
-                <CollectionContainer 
-                    x:Key="CalTaskObjs"
-                    Collection="{Binding DataContext.CalTaskObjsView, 
-                    Source={x:Reference CalendarObjectsIC}}"/>
-                <CollectionContainer 
-                    x:Key="CalNoteObjs"
-                    Collection="{Binding DataContext.CalNoteObjsView, 
-                    Source={x:Reference CalendarObjectsIC}}"/>
-            </ListBox.Resources>
-            <ItemsControl.ItemsSource>
-                <CompositeCollection>
-                    <cal:NowMarker/>
-                    <StaticResource ResourceKey="CalTaskObjs"/>
-                    <StaticResource ResourceKey="CalNoteObjs"/>
-                </CompositeCollection>
-            </ItemsControl.ItemsSource>
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <cal:Day/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-        </ListBox>
-        <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
-                        Template="{StaticResource CalendarTitleBarTemplate}">
-            <Grid Width="410">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="{Binding Path=DayLongString, FallbackValue='QQQQQQQQQ, QQQQQQQQQ 88 8888'}" 
-                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
-                </StackPanel>
-            </Grid>
-        </ContentControl>
-        <ContentControl 
-            x:Name="CommandsToolbar" Grid.Row="0" 
-            Template="{StaticResource CalendarViewControlsTemplate}"/>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="3"/>
+    <Grid x:Name="DayViewGrid">
+        <Grid x:Name="ContentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ListBox 
+                x:Name="CalendarObjectsIC" Grid.Row="2"
+                Style="{StaticResource CalObjsListBoxStyle}">
+                <ListBox.Resources>
+                    <CollectionContainer 
+                        x:Key="CalCIObjs"
+                        Collection="{Binding DataContext.CalCIObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                    <CollectionContainer 
+                        x:Key="CalTaskObjs"
+                        Collection="{Binding DataContext.CalTaskObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                    <CollectionContainer 
+                        x:Key="CalNoteObjs"
+                        Collection="{Binding DataContext.CalNoteObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                </ListBox.Resources>
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <cal:Day x:Name="DayPanel"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemsSource>
+                    <CompositeCollection>
+                        <StaticResource ResourceKey="CalTaskObjs"/>
+                        <StaticResource ResourceKey="CalCIObjs"/>
+                        <StaticResource ResourceKey="CalNoteObjs"/>
+                        <cal:NowMarker 
+                            x:Name="NowMark"
+                            IsHitTestVisible="False" 
+                            Focusable="False" 
+                            IsEnabled="False"/>
+                    </CompositeCollection>
+                </ListBox.ItemsSource>
+            </ListBox>
+            <ContentControl 
+                x:Name="CalendarTitleBar" Grid.Row="1" 
+                Template="{StaticResource CalendarTitleBarTemplate}">
+                <Grid Width="410">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="{Binding Path=DayLongString, 
+                            FallbackValue='QQQQQQQQQ, QQQQQQQQQ 88 8888'}" 
+                            Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </ContentControl>
+            <ContentControl 
+                x:Name="CommandsToolbar" Grid.Row="0" 
+                Template="{StaticResource CalendarViewControlsTemplate}"/>
+        </Grid>
+        <!--Common Calendar Controls-->
+        <Grid DataContext="{Binding Path=NotesVM}">
+            <ContentControl 
+                x:Name="EditNotePopUp"
+                IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <tk:EditNoteView 
+                x:Name="NoteEditor" 
+                DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <Grid x:Name="CheckInViewGrid" 
+              DataContext="{Binding Path=CheckInsVM}">
+            <ContentControl 
+                x:Name="EditCheckInPopUp"
+                IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <tk:EditCheckInView 
+                    x:Name="CheckInEditor" 
+                    DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <Grid x:Name="TaskViewGrid" 
+              DataContext="{Binding Path=TimeTasksVM}">
+            <ContentControl 
+                x:Name="EditTimeTaskPopUp"
+                IsVisibleChanged="EditTimeTaskPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <tk:EditTimeTaskView 
+                    x:Name="TimeTaskEditor"
+                    DataContext="{Binding CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <tk:LoadingView/>
     </Grid>
 </UserControl>
