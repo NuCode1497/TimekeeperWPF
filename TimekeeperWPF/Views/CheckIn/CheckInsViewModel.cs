@@ -34,11 +34,12 @@ namespace TimekeeperWPF
         protected override bool CanCommit => base.CanCommit && CurrentEditItem.TimeTask != null;
         protected override bool CanAddNew(object pp)
         {
-            return TimeTasksView.Count > 0
+            return TimeTasksView?.Count > 0
                 && base.CanAddNew(pp);
         }
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.CheckIns.LoadAsync();
             Items.Source = Context.CheckIns.Local;

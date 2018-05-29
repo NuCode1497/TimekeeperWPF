@@ -8,10 +8,10 @@ using System.Reflection;
 namespace TimekeeperDAL.Tools
 {
     /// <summary>
-    ///These functions are used in a collection that implements IEditableObject for change tracking.
-    ///For example, a CollectionView wrapper on the entity collection.
+    /// Contains the implementation of IEditableObject for change tracking by containers like CollectionView. 
+    /// Also implements the Memento pattern for undo/redo change tracking lists.
     /// </summary>
-    public abstract class EditableObject : ObservableObject, IEditableObject
+    public abstract class EditableObject : ObservableObject, IEditableObject, IOriginator
     {
         private object ShadowClone;
         //Setting this flag from the VM because only the VM should handle change tracking. Not DataGrids.
@@ -46,7 +46,7 @@ namespace TimekeeperDAL.Tools
             IsChanged = false;
         }
         //Mapped properties are those without the [NotMapped] annotation
-        private void CopyMappedProperties(object source, object target)
+        public static void CopyMappedProperties(object source, object target)
         {
             if (source.GetType() != target.GetType())
                 throw new ArgumentException("Objects must be the same type.");
@@ -60,5 +60,25 @@ namespace TimekeeperDAL.Tools
                 p.SetValue(target, p.GetValue(source));
             }
         }
+
+        #region Memento
+        //Memento Pattern implemented with CopyMappedProperties()
+        private class Memento : IMemento
+        {
+            private readonly EditableObject Originator;
+            private readonly object ShadowClone;
+            public Memento(EditableObject originator)
+            {
+                Originator = originator;
+                ShadowClone = Activator.CreateInstance(originator.GetType());
+                CopyMappedProperties(originator, ShadowClone);
+            }
+            public void RestoreState()
+            {
+                CopyMappedProperties(ShadowClone, Originator);
+            }
+        }
+        public IMemento State => new Memento(this);
+        #endregion
     }
 }

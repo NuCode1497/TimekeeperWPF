@@ -22,14 +22,17 @@ namespace TimekeeperWPF
     public enum CalendarObjectTypes
     { CheckIn, Note, Task }
 
-    public abstract class CalendarViewModel : ObservableObject, IView, IDisposable, IZone
+    public abstract class CalendarViewModel : EditableObject, IView, IDisposable, IZone
     {
         public CalendarViewModel()
         {
             Start = DateTime.Now;
             _TimeTasksVM.Parent = this;
+            _TimeTasksVM.Managed = true;
             _CheckInsVM.Parent = this;
+            _CheckInsVM.Managed = true;
             _NotesVM.Parent = this;
+            _NotesVM.Managed = true;
         }
         public abstract string Name { get; }
         private String _status = "Ready";
@@ -122,6 +125,59 @@ namespace TimekeeperWPF
             else
                 Orientation = Orientation.Horizontal;
         }
+        #region Memento
+        private Stack<IEnumerable<IMemento>> UndoStack = new Stack<IEnumerable<IMemento>>();
+        private Stack<IEnumerable<IMemento>> RedoStack = new Stack<IEnumerable<IMemento>>();
+        private ICommand _UndoCommand;
+        private ICommand _RedoCommand;
+        public ICommand UndoCommand => _UndoCommand
+            ?? (_UndoCommand = new RelayCommand(ap => Undo(), pp => CanUndo));
+        public ICommand RedoCommand => _RedoCommand
+            ?? (_RedoCommand = new RelayCommand(ap => Redo(), pp => CanRedo));
+        protected bool CanUndo => IsReady && UndoStack.Count > 0;
+        protected bool CanRedo => IsReady && RedoStack.Count > 0;
+        public virtual IEnumerable<IMemento> SaveStates()
+        {
+            List<IMemento> states = new List<IMemento>();
+            states.Add(State);
+            var taskStates = TimeTasksVM.SaveStates();
+            var checkInStates = CheckInsVM.SaveStates();
+            var notesStates = NotesVM.SaveStates();
+            states.AddRange(taskStates);
+            states.AddRange(checkInStates);
+            states.AddRange(notesStates);
+            return states;
+        }
+        public bool Managed { get; set; } = false;
+        //Add this function to the beginning of commands to enable undo/redo
+        protected void NewChange()
+        {
+            if (Managed) return;
+            UndoStack.Push(SaveStates());
+            RedoStack.Clear();
+        }
+        protected void ClearUndos()
+        {
+            UndoStack.Clear();
+            RedoStack.Clear();
+        }
+        protected void Undo()
+        {
+            //save current state to RedoStack
+            RedoStack.Push(SaveStates());
+            //get previous state from UndoStack
+            var states = UndoStack.Pop();
+            foreach (IMemento state in states) state.RestoreState();
+        }
+        protected void Redo()
+        {
+            //save current state to UndoStack
+            UndoStack.Push(SaveStates());
+            //get next state from RedoStack
+            var states = RedoStack.Pop();
+            foreach (IMemento state in states) state.RestoreState();
+        }
+        #endregion
         #region Navigate
         private ICommand _PreviousCommand;
         private ICommand _NextCommand;
@@ -697,7 +753,7 @@ namespace TimekeeperWPF
             }
             Status = "Editing " + CurrentEditItemType;
         }
-        protected virtual void EndEdit()
+        protected virtual void FinishEdit()
         {
             IsEditingItem = false;
             IsAddingNew = false;
@@ -712,7 +768,7 @@ namespace TimekeeperWPF
             NotesVM?.Cancel();
             TimeTasksVM?.Cancel();
             Status = "Canceled";
-            EndEdit();
+            FinishEdit();
         }
         internal virtual async Task<bool> Commit()
         {
@@ -777,7 +833,7 @@ namespace TimekeeperWPF
                     CreateCheckInObjects();
                     break;
             }
-            EndEdit();
+            FinishEdit();
             return success;
         }
         internal virtual async Task<bool> DeleteSelected()

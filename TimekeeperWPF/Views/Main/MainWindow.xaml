@@ -12,6 +12,8 @@
         <KeyBinding Command="{Binding Path=CurrentView.NewItemCommand}" Gesture="CTRL+N"/>
         <KeyBinding Command="{Binding Path=CurrentView.EditSelectedCommand}" Gesture="CTRL+E"/>
         <KeyBinding Command="{Binding Path=CurrentView.DeleteSelectedCommand}" Key="Delete"/>
+        <KeyBinding Command="{Binding Path=CurrentView.UndoCommand}" Gesture="CTRL+Z"/>
+        <KeyBinding Command="{Binding Path=CurrentView.RedoCommand}" Gesture="CTRL+Y"/>
         <KeyBinding Command="{Binding Path=CurrentView.GetDataCommand}" Key="F5"/>
         <KeyBinding Command="{Binding Path=CurrentView.PreviousCommand}" Key="Left"/>
         <KeyBinding Command="{Binding Path=CurrentView.NextCommand}" Key="Right"/>

@@ -47,6 +47,7 @@ namespace TimekeeperWPF
         protected override bool CanCommit => base.CanCommit && (HasTimeTask ? CurrentEditItem.TimeTask != null : true);
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.Notes.LoadAsync();
             Items.Source = Context.Notes.Local;

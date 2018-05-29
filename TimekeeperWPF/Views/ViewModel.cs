@@ -1,7 +1,9 @@
 ﻿// Copyright 2017 (C) Cody Neuburger  All rights reserved.
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
@@ -18,7 +20,7 @@ namespace TimekeeperWPF
     /// Generic ViewModel handles CRUD logic for Views. Bind a collection control's ItemsSource to View.
     /// </summary>
     /// <typeparam name="ModelType">EntityBase type</typeparam>
-    public abstract class ViewModel<ModelType> : ObservableObject, IView, IDisposable 
+    public abstract class ViewModel<ModelType> : EditableObject, IView, IDisposable 
         where ModelType: EntityBase, new() 
     {
         #region Fields
@@ -44,8 +46,57 @@ namespace TimekeeperWPF
         private ICommand _DeleteSelectedCommand;
         private ICommand _SaveAsCommand;
         #endregion
+        #region Memento
+        private Stack<IEnumerable<IMemento>> UndoStack = new Stack<IEnumerable<IMemento>>();
+        private Stack<IEnumerable<IMemento>> RedoStack = new Stack<IEnumerable<IMemento>>();
+        private ICommand _UndoCommand;
+        private ICommand _RedoCommand;
+        public ICommand UndoCommand => _UndoCommand
+            ?? (_UndoCommand = new RelayCommand(ap => Undo(), pp => CanUndo));
+        public ICommand RedoCommand => _RedoCommand
+            ?? (_RedoCommand = new RelayCommand(ap => Redo(), pp => CanRedo));
+        protected bool CanUndo => IsReady && UndoStack.Count > 0;
+        protected bool CanRedo => IsReady && RedoStack.Count > 0;
+        public virtual IEnumerable<IMemento> SaveStates()
+        {
+            List<IMemento> states = new List<IMemento>();
+            states.Add(State);
+            foreach (var item in Source) states.Add(item.State);
+            return states;
+        }
+        public bool Managed { get; set; } = false;
+        //Add this function to the beginning of commands to enable undo/redo
+        protected void NewChange()
+        {
+            if (Managed) return;
+            UndoStack.Push(SaveStates());
+            RedoStack.Clear();
+        }
+        protected void ClearUndos()
+        {
+            UndoStack.Clear();
+            RedoStack.Clear();
+        }
+        protected void Undo()
+        {
+            //save current state to RedoStack
+            RedoStack.Push(SaveStates());
+            //get previous state from UndoStack
+            var states = UndoStack.Pop();
+            foreach (IMemento state in states) state.RestoreState();
+        }
+        protected void Redo()
+        {
+            //save current state to UndoStack
+            UndoStack.Push(SaveStates());
+            //get next state from RedoStack
+            var states = RedoStack.Pop();
+            foreach (IMemento state in states) state.RestoreState();
+        }
+        #endregion
         #region Properties
         public abstract string Name { get; }
+        [NotMapped]
         public string Status
         {
             get { return _status; }
@@ -74,6 +125,7 @@ namespace TimekeeperWPF
                 }
                 //Item must not be itself and must be in Source
                 if ((value == _SelectedItem) || (value != null && (!Source?.Contains(value) ?? false))) return;
+                NewChange();
                 _SelectedItem = value;
                 if (SelectedItem == null)
                 {
@@ -197,6 +249,7 @@ namespace TimekeeperWPF
         public bool IsNotAddingNew => !IsAddingNew;
         public bool IsNotSaving => !IsSaving;
         public bool HasNotSelected => !HasSelected;
+        private bool IsReady => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
         #endregion
         #region Commands
         public ICommand CancelCommand => _CancelCommand
@@ -218,7 +271,6 @@ namespace TimekeeperWPF
         protected virtual bool CanCancel => IsAddingNew || (IsEditingItem && (View?.CanCancelEdit ?? false)); //CanCancelEdit requires IEditableItem on model
         protected virtual bool CanCommit => IsNotSaving && IsEditingItemOrAddingNew && !(CurrentEditItem?.HasErrors ?? true);
         protected virtual bool CanGetData => IsNotSaving && IsNotLoading;
-        private bool IsReady => IsNotSaving && IsEnabled && IsNotLoading && IsNotEditingItemOrAddingNew;
         protected virtual bool CanAddNew(object pp)
         {
             return IsReady
@@ -233,6 +285,7 @@ namespace TimekeeperWPF
         internal abstract void SaveAs();
         internal virtual async Task LoadDataAsync()
         {
+            ClearUndos();
             IsEnabled = false;
             IsLoading = true;
             Cancel();
@@ -274,7 +327,7 @@ namespace TimekeeperWPF
             CurrentEditItem.IsEditing = true; //after view.edit
             Status = "Editing " + CurrentEditItem.GetTypeName();
         }
-        protected virtual void EndEdit()
+        protected virtual void FinishEdit()
         {
             IsEditingItem = false;
             IsAddingNew = false;
@@ -296,10 +349,11 @@ namespace TimekeeperWPF
                 View?.CancelNew();
                 Status = "Canceled";
             }
-            EndEdit();
+            FinishEdit();
         }
         internal virtual async Task<bool> Commit()
         {
+            NewChange();
             bool success = await SaveChangesAsync();
             if (success)
             {
@@ -313,12 +367,13 @@ namespace TimekeeperWPF
                     Status = CurrentEditItem.GetTypeName() + " Modified";
                     View.CommitEdit();
                 }
-                EndEdit();
+                FinishEdit();
             }
             return success;
         }
         internal virtual async Task<bool> DeleteSelected()
         {
+            NewChange();
             string status = SelectedItem.GetTypeName() + " Deleted";
             View.Remove(SelectedItem);
             bool success = await SaveChangesAsync();

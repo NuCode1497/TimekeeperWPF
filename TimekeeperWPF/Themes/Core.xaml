@@ -500,6 +500,49 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+    <Style x:Key="UndoButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Foreground" Value="Blue"/>
+        <Setter Property="Content">
+            <Setter.Value>
+                <Grid>
+                    <TextBlock Text="⤺" FontWeight="Bold" FontSize="18" Margin="-2,-2,-2,-2"/>
+                </Grid>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Command" Value="{Binding Path=UndoCommand}"/>
+        <Setter Property="ToolTip" Value="Undo (Ctrl+Z)"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="Silver"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style x:Key="RedoButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Foreground" Value="Blue"/>
+        <Setter Property="Content">
+            <Setter.Value>
+                <Grid>
+                    <TextBlock Text="⤺" FontWeight="Bold" FontSize="18" Margin="-2,-2,-2,-2" RenderTransformOrigin="0.5,0.5">
+                        <TextBlock.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform ScaleY="1" ScaleX="-1"/>
+                                <SkewTransform AngleY="0" AngleX="0"/>
+                                <RotateTransform Angle="0"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
+                </Grid>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Command" Value="{Binding Path=RedoCommand}"/>
+        <Setter Property="ToolTip" Value="Redo (Ctrl+Y)"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="Silver"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
     <ControlTemplate x:Key="TableViewControlsTemplate" TargetType="ContentControl">
         <ToolBarTray>
             <ToolBar Band="1" BandIndex="1">
@@ -508,6 +551,8 @@
                 <Button x:Name="EditSelectedBtn" Style="{StaticResource EditButtonStyle}"/>
                 <Button x:Name="DeleteSelectedBtn" Style="{StaticResource DeleteButtonStyle}"/>
                 <Button x:Name="GetDataBtn" Style="{StaticResource RefreshButtonStyle}"/>
+                <Button x:Name="UndoBtn" Style="{StaticResource UndoButtonStyle}"/>
+                <Button x:Name="RedoBtn" Style="{StaticResource RedoButtonStyle}"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>

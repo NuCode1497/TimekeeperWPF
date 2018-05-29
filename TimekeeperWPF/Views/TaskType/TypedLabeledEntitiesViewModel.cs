@@ -29,6 +29,7 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             await Context.TaskTypes.LoadAsync();
             await base.GetDataAsync();
 

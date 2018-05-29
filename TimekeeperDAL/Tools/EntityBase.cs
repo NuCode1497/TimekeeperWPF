@@ -9,6 +9,9 @@ using System.Linq;
 
 namespace TimekeeperDAL.Tools
 {
+    /// <summary>
+    /// Contains common features of entities and implements validation.
+    /// </summary>
     public abstract class EntityBase : EditableObject, IDataErrorInfo, INotifyDataErrorInfo
     {
         [Timestamp]

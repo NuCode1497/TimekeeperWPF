@@ -7,7 +7,6 @@ namespace TimekeeperDAL.Migrations
     {
         public override void Up()
         {
-            AddColumn("dbo.TimeTasks", "AutoCheckIn", c => c.Boolean(nullable: false));
             DropColumn("dbo.TimeTasks", "RaiseOnReschedule");
             DropColumn("dbo.TimeTasks", "AsksForReschedule");
             DropColumn("dbo.TimeTasks", "CanReschedule");
@@ -18,10 +17,12 @@ namespace TimekeeperDAL.Migrations
             DropColumn("dbo.TimeTasks", "CanBeEarly");
             DropColumn("dbo.TimeTasks", "CanBeLate");
             DropColumn("dbo.TimeTasks", "PowerLevel");
+            AddColumn("dbo.TimeTasks", "AutoCheckIn", c => c.Boolean(nullable: false));
         }
         
         public override void Down()
         {
+            DropColumn("dbo.TimeTasks", "AutoCheckIn");
             AddColumn("dbo.TimeTasks", "PowerLevel", c => c.Int(nullable: false));
             AddColumn("dbo.TimeTasks", "CanBeLate", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "CanBeEarly", c => c.Boolean(nullable: false));
@@ -32,7 +33,6 @@ namespace TimekeeperDAL.Migrations
             AddColumn("dbo.TimeTasks", "CanReschedule", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "AsksForReschedule", c => c.Boolean(nullable: false));
             AddColumn("dbo.TimeTasks", "RaiseOnReschedule", c => c.Boolean(nullable: false));
-            DropColumn("dbo.TimeTasks", "AutoCheckIn");
         }
     }
 }

@@ -32,6 +32,7 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.TimePatterns.LoadAsync();
             Items.Source = Context.TimePatterns.Local;
@@ -66,10 +67,10 @@ namespace TimekeeperWPF
                 new ObservableCollection<TimePatternClause>(CurrentEditItem.Query);
             OnPropertyChanged(nameof(ClausesView));
         }
-        protected override void EndEdit()
+        protected override void FinishEdit()
         {
             ClausesCollection = null;
-            base.EndEdit();
+            base.FinishEdit();
         }
         internal override async Task<bool> Commit()
         {

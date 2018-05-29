@@ -360,6 +360,9 @@
                 <Button x:Name="EditSelectedBtn" Style="{StaticResource EditButtonStyle}"/>
                 <Button x:Name="DeleteSelectedBtn" Style="{StaticResource DeleteButtonStyle}"/>
                 <Button x:Name="GetDataBtn" Style="{StaticResource RefreshButtonStyle}"/>
+                <Button x:Name="UndoBtn" Style="{StaticResource UndoButtonStyle}"/>
+                <Button x:Name="RedoBtn" Style="{StaticResource RedoButtonStyle}"/>
+                <Separator/>
                 <Button x:Name="OrientationButton" ToolTip="Orientation" 
                         Command="{Binding Path=OrientationCommand}">
                     <Button.Content>

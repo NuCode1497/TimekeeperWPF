@@ -14,6 +14,7 @@ namespace TimekeeperWPF
         public override string Name => "Fake " + base.Name;
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             await Task.Delay(0);
             Context = new FakeTimeKeeperContext();
             Items.Source = Context.Notes.Local;

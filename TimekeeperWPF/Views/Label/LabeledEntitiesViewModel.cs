@@ -84,6 +84,7 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             await Context.Labels.LoadAsync();
             await Context.Labellings.LoadAsync();
 
@@ -113,11 +114,11 @@ namespace TimekeeperWPF
             CurrentEntityLabelsCollection.Source = new ObservableCollection<Label>(labels);
             UpdateViews();
         }
-        protected override void EndEdit()
+        protected override void FinishEdit()
         {
             if (LabelsView != null) LabelsView.Filter = null;
             CurrentEntityLabelsCollection = null;
-            base.EndEdit();
+            base.FinishEdit();
         }
         internal override async Task<bool> Commit()
         {

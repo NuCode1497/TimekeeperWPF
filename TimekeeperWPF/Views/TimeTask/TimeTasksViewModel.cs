@@ -107,6 +107,7 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
+            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.TimeTasks.LoadAsync();
             await Context.Resources.LoadAsync();
@@ -246,12 +247,12 @@ namespace TimekeeperWPF
                 F.OnPropertyChanged(nameof(F.Filterable));
             }
         }
-        protected override void EndEdit()
+        protected override void FinishEdit()
         {
             if (ResourcesView != null) ResourcesView.Filter = null;
             AllocationsCollection = null;
             FiltersCollection = null;
-            base.EndEdit();
+            base.FinishEdit();
         }
         internal override async Task<bool> Commit()
         {

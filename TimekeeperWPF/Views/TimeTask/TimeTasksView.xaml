@@ -45,7 +45,7 @@
             <ContentControl 
                 Grid.Row="0" Grid.RowSpan="2" x:Name="EditTaskPopUp"
                 IsVisibleChanged="EditTaskPopUp_IsVisibleChanged"
-                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, FallbackValue=Hidden,
                 Converter={StaticResource BooleanToVisibilityConverter}}"
                 Template="{StaticResource EditPopUpTemplate}">
                 <local:EditTimeTaskView 

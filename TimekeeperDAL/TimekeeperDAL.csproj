@@ -163,6 +163,10 @@
     <Compile Include="Migrations\201802022329243_AllocationMethod.Designer.cs">
       <DependentUpon>201802022329243_AllocationMethod.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201805292020496_noteIDisKey.cs" />
+    <Compile Include="Migrations\201805292020496_noteIDisKey.Designer.cs">
+      <DependentUpon>201805292020496_noteIDisKey.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\CheckIn.cs" />
     <Compile Include="Models\Label.cs" />
@@ -175,10 +179,12 @@
     <Compile Include="Models\TimePatternClause.cs" />
     <Compile Include="Tools\EditableObject.cs" />
     <Compile Include="Tools\Extensions.cs" />
+    <Compile Include="Tools\IMemento.cs" />
     <Compile Include="Tools\INamedObject.cs" />
     <Compile Include="EF\Resource.cs" />
     <Compile Include="EF\TimeTask.cs" />
     <Compile Include="Models\TimeTaskAllocation.cs" />
+    <Compile Include="Tools\IOriginator.cs" />
     <Compile Include="Tools\IZone.cs" />
     <Compile Include="Tools\ObservableObject.cs" />
     <Compile Include="EF\TimePattern.cs" />
@@ -284,6 +290,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201802022329243_AllocationMethod.resx">
       <DependentUpon>201802022329243_AllocationMethod.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201805292020496_noteIDisKey.resx">
+      <DependentUpon>201805292020496_noteIDisKey.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
