@@ -126,57 +126,71 @@ namespace TimekeeperWPF
                 Orientation = Orientation.Horizontal;
         }
         #region Memento
-        private Stack<IEnumerable<IMemento>> UndoStack = new Stack<IEnumerable<IMemento>>();
-        private Stack<IEnumerable<IMemento>> RedoStack = new Stack<IEnumerable<IMemento>>();
-        private ICommand _UndoCommand;
-        private ICommand _RedoCommand;
-        public ICommand UndoCommand => _UndoCommand
-            ?? (_UndoCommand = new RelayCommand(ap => Undo(), pp => CanUndo));
-        public ICommand RedoCommand => _RedoCommand
-            ?? (_RedoCommand = new RelayCommand(ap => Redo(), pp => CanRedo));
-        protected bool CanUndo => IsReady && UndoStack.Count > 0;
-        protected bool CanRedo => IsReady && RedoStack.Count > 0;
-        public virtual IEnumerable<IMemento> SaveStates()
+        private class VMMemento : IMemento
         {
-            List<IMemento> states = new List<IMemento>();
-            states.Add(State);
-            var taskStates = TimeTasksVM.SaveStates();
-            var checkInStates = CheckInsVM.SaveStates();
-            var notesStates = NotesVM.SaveStates();
-            states.AddRange(taskStates);
-            states.AddRange(checkInStates);
-            states.AddRange(notesStates);
-            return states;
+            private readonly IMemento TaskMemo;
+            private readonly IMemento NoteMemo;
+            private readonly IMemento CheckInMemo;
+            public VMMemento(CalendarViewModel originator)
+            {
+                TaskMemo = originator.TimeTasksVM.State;
+                NoteMemo = originator.NotesVM.State;
+                CheckInMemo = originator.CheckInsVM.State;
+            }
+            public void RestoreState()
+            {
+                TaskMemo.RestoreState();
+                NoteMemo.RestoreState();
+                CheckInMemo.RestoreState();
+            }
         }
-        public bool Managed { get; set; } = false;
-        //Add this function to the beginning of commands to enable undo/redo
-        protected void NewChange()
-        {
-            if (Managed) return;
-            UndoStack.Push(SaveStates());
-            RedoStack.Clear();
-        }
-        protected void ClearUndos()
-        {
-            UndoStack.Clear();
-            RedoStack.Clear();
-        }
-        protected void Undo()
-        {
-            //save current state to RedoStack
-            RedoStack.Push(SaveStates());
-            //get previous state from UndoStack
-            var states = UndoStack.Pop();
-            foreach (IMemento state in states) state.RestoreState();
-        }
-        protected void Redo()
-        {
-            //save current state to UndoStack
-            UndoStack.Push(SaveStates());
-            //get next state from RedoStack
-            var states = RedoStack.Pop();
-            foreach (IMemento state in states) state.RestoreState();
-        }
+        public override IMemento State => new VMMemento(this);
+        private Stack<IMemento> UndoStack = new Stack<IMemento>();
+        private Stack<IMemento> RedoStack = new Stack<IMemento>();
+        //private ICommand _UndoCommand;
+        //private ICommand _RedoCommand;
+        //public ICommand UndoCommand => _UndoCommand
+        //    ?? (_UndoCommand = new RelayCommand(async ap => await Undo(), pp => CanUndo));
+        //public ICommand RedoCommand => _RedoCommand
+        //    ?? (_RedoCommand = new RelayCommand(async ap => await Redo(), pp => CanRedo));
+        //protected bool CanUndo => IsReady && UndoStack.Count > 0;
+        //protected bool CanRedo => IsReady && RedoStack.Count > 0;
+        ////Disables change tracking when true.
+        //public bool Managed { get; set; } = false;
+        ////Add this function to the beginning of commands to enable change tracking.
+        //protected void NewChange()
+        //{
+        //    if (Managed) return;
+        //    UndoStack.Push(State);
+        //    RedoStack.Clear();
+        //}
+        //protected void ClearUndos()
+        //{
+        //    UndoStack.Clear();
+        //    RedoStack.Clear();
+        //}
+        //protected async Task<bool> Undo()
+        //{
+        //    //save current state to RedoStack
+        //    RedoStack.Push(State);
+        //    //get previous state from UndoStack
+        //    var prevState = UndoStack.Pop();
+        //    prevState.RestoreState();
+        //    bool success = await SaveChangesAsync();
+        //    OnPropertyChanged(nameof(View));
+        //    return success;
+        //}
+        //protected async Task<bool> Redo()
+        //{
+        //    //save current state to UndoStack
+        //    UndoStack.Push(State);
+        //    //get next state from RedoStack
+        //    var nextState = RedoStack.Pop();
+        //    nextState.RestoreState();
+        //    bool success = await SaveChangesAsync();
+        //    OnPropertyChanged(nameof(View));
+        //    return success;
+        //}
         #endregion
         #region Navigate
         private ICommand _PreviousCommand;
@@ -405,10 +419,6 @@ namespace TimekeeperWPF
                     return;
                 }
                 if (value == _CurrentEditItem) return;
-                if (value is NowMarker)
-                {
-                    return;
-                }
                 if (value is CalendarCheckInObject)
                 {
                     CurrentEditItemType = CalendarObjectTypes.CheckIn;

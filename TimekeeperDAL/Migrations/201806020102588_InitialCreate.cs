@@ -13,13 +13,17 @@ namespace TimekeeperDAL.Migrations
                     {
                         TimeTask_Id = c.Int(nullable: false),
                         Resource_Id = c.Int(nullable: false),
-                        Amount = c.Long(nullable: false),
+                        Amount = c.Double(nullable: false),
+                        PerOffset = c.Double(nullable: false),
+                        Limited = c.Boolean(nullable: false),
+                        InstanceMinimum = c.Double(nullable: false),
+                        Method = c.String(nullable: false),
                         PerId = c.Int(),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
                     })
                 .PrimaryKey(t => new { t.TimeTask_Id, t.Resource_Id })
+                .ForeignKey("dbo.Resources", t => t.Resource_Id, cascadeDelete:true)
                 .ForeignKey("dbo.Resources", t => t.PerId)
-                .ForeignKey("dbo.Resources", t => t.Resource_Id, cascadeDelete: true)
                 .ForeignKey("dbo.TimeTasks", t => t.TimeTask_Id)
                 .Index(t => t.TimeTask_Id)
                 .Index(t => t.Resource_Id)
@@ -34,6 +38,20 @@ namespace TimekeeperDAL.Migrations
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
                     })
                 .PrimaryKey(t => t.Id);
+            
+            CreateTable(
+                "dbo.CheckIns",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        DateTime = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
+                        Text = c.String(nullable: false),
+                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
+                        TimeTask_Id = c.Int(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.TimeTasks", t => t.TimeTask_Id)
+                .Index(t => t.TimeTask_Id);
             
             CreateTable(
                 "dbo.TimeTaskFilters",
@@ -69,15 +87,29 @@ namespace TimekeeperDAL.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
+                        TimePattern_Id = c.Int(nullable: false),
                         TimeProperty = c.String(nullable: false),
                         Equivalency = c.String(nullable: false),
                         TimePropertyValue = c.String(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
-                        TimePattern_Id = c.Int(nullable: false),
                     })
-                .PrimaryKey(t => t.Id)
+                .PrimaryKey(t => new { t.Id, t.TimePattern_Id })
                 .ForeignKey("dbo.TimePatterns", t => t.TimePattern_Id)
                 .Index(t => t.TimePattern_Id);
+            
+            CreateTable(
+                "dbo.Notes",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        DateTime = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
+                        Text = c.String(nullable: false, maxLength: 150),
+                        RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "timestamp"),
+                        TimeTask_Id = c.Int(),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.TimeTasks", t => t.TimeTask_Id)
+                .Index(t => t.TimeTask_Id);
             
             CreateTable(
                 "dbo.LabelledEntities",
@@ -97,31 +129,6 @@ namespace TimekeeperDAL.Migrations
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.Filterables", t => t.Id)
-                .Index(t => t.Id);
-            
-            CreateTable(
-                "dbo.TypedLabeledEntities",
-                c => new
-                    {
-                        Id = c.Int(nullable: false),
-                        TaskTypeId = c.Int(nullable: false),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.LabelledEntities", t => t.Id)
-                .ForeignKey("dbo.TaskTypes", t => t.TaskTypeId)
-                .Index(t => t.Id)
-                .Index(t => t.TaskTypeId);
-            
-            CreateTable(
-                "dbo.Notes",
-                c => new
-                    {
-                        Id = c.Int(nullable: false),
-                        DateTime = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
-                        Text = c.String(nullable: false, maxLength: 150),
-                    })
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.TypedLabeledEntities", t => t.Id)
                 .Index(t => t.Id);
             
             CreateTable(
@@ -149,10 +156,24 @@ namespace TimekeeperDAL.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false),
+                        Any = c.Boolean(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.LabelledEntities", t => t.Id)
                 .Index(t => t.Id);
+            
+            CreateTable(
+                "dbo.TypedLabeledEntities",
+                c => new
+                    {
+                        Id = c.Int(nullable: false),
+                        TaskType_Id = c.Int(),
+                    })
+                .PrimaryKey(t => t.Id)
+                .ForeignKey("dbo.LabelledEntities", t => t.Id)
+                .ForeignKey("dbo.TaskTypes", t => t.TaskType_Id)
+                .Index(t => t.Id)
+                .Index(t => t.TaskType_Id);
             
             CreateTable(
                 "dbo.TimeTasks",
@@ -162,19 +183,12 @@ namespace TimekeeperDAL.Migrations
                         Start = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
                         End = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
                         Description = c.String(maxLength: 150),
-                        Priority = c.Int(nullable: false),
-                        RaiseOnReschedule = c.Boolean(nullable: false),
-                        AsksForReschedule = c.Boolean(nullable: false),
-                        CanReschedule = c.Boolean(nullable: false),
+                        Priority = c.Double(nullable: false),
                         AutoCheckIn = c.Boolean(nullable: false),
-                        CanBePushed = c.Boolean(nullable: false),
-                        CanInflate = c.Boolean(nullable: false),
-                        CanDeflate = c.Boolean(nullable: false),
                         CanFill = c.Boolean(nullable: false),
-                        CanBeEarly = c.Boolean(nullable: false),
-                        CanBeLate = c.Boolean(nullable: false),
                         Dimension = c.Int(nullable: false),
-                        PowerLevel = c.Int(nullable: false),
+                        CanReDist = c.Boolean(nullable: false),
+                        CanSplit = c.Boolean(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.TypedLabeledEntities", t => t.Id)
@@ -185,50 +199,53 @@ namespace TimekeeperDAL.Migrations
         public override void Down()
         {
             DropForeignKey("dbo.TimeTasks", "Id", "dbo.TypedLabeledEntities");
+            DropForeignKey("dbo.TypedLabeledEntities", "TaskType_Id", "dbo.TaskTypes");
+            DropForeignKey("dbo.TypedLabeledEntities", "Id", "dbo.LabelledEntities");
             DropForeignKey("dbo.TimePatterns", "Id", "dbo.LabelledEntities");
             DropForeignKey("dbo.TaskTypes", "Id", "dbo.Filterables");
             DropForeignKey("dbo.Resources", "Id", "dbo.Filterables");
-            DropForeignKey("dbo.Notes", "Id", "dbo.TypedLabeledEntities");
-            DropForeignKey("dbo.TypedLabeledEntities", "TaskTypeId", "dbo.TaskTypes");
-            DropForeignKey("dbo.TypedLabeledEntities", "Id", "dbo.LabelledEntities");
             DropForeignKey("dbo.Labels", "Id", "dbo.Filterables");
             DropForeignKey("dbo.LabelledEntities", "Id", "dbo.Filterables");
             DropForeignKey("dbo.TimeTaskAllocations", "TimeTask_Id", "dbo.TimeTasks");
+            DropForeignKey("dbo.Notes", "TimeTask_Id", "dbo.TimeTasks");
             DropForeignKey("dbo.TimeTaskFilters", "TimeTask_Id", "dbo.TimeTasks");
             DropForeignKey("dbo.TimeTaskFilters", "Filterable_Id", "dbo.Filterables");
-            DropForeignKey("dbo.TimePatternClauses", "TimePattern_Id", "dbo.TimePatterns");
             DropForeignKey("dbo.Labellings", "LabeledEntity_Id", "dbo.LabelledEntities");
+            DropForeignKey("dbo.TimePatternClauses", "TimePattern_Id", "dbo.TimePatterns");
             DropForeignKey("dbo.Labellings", "Label_Id", "dbo.Labels");
-            DropForeignKey("dbo.TimeTaskAllocations", "Resource_Id", "dbo.Resources");
+            DropForeignKey("dbo.CheckIns", "TimeTask_Id", "dbo.TimeTasks");
             DropForeignKey("dbo.TimeTaskAllocations", "PerId", "dbo.Resources");
+            DropForeignKey("dbo.TimeTaskAllocations", "Resource_Id", "dbo.Resources");
             DropIndex("dbo.TimeTasks", new[] { "Id" });
+            DropIndex("dbo.TypedLabeledEntities", new[] { "TaskType_Id" });
+            DropIndex("dbo.TypedLabeledEntities", new[] { "Id" });
             DropIndex("dbo.TimePatterns", new[] { "Id" });
             DropIndex("dbo.TaskTypes", new[] { "Id" });
             DropIndex("dbo.Resources", new[] { "Id" });
-            DropIndex("dbo.Notes", new[] { "Id" });
-            DropIndex("dbo.TypedLabeledEntities", new[] { "TaskTypeId" });
-            DropIndex("dbo.TypedLabeledEntities", new[] { "Id" });
             DropIndex("dbo.Labels", new[] { "Id" });
             DropIndex("dbo.LabelledEntities", new[] { "Id" });
+            DropIndex("dbo.Notes", new[] { "TimeTask_Id" });
             DropIndex("dbo.TimePatternClauses", new[] { "TimePattern_Id" });
             DropIndex("dbo.Labellings", new[] { "Label_Id" });
             DropIndex("dbo.Labellings", new[] { "LabeledEntity_Id" });
             DropIndex("dbo.TimeTaskFilters", new[] { "Filterable_Id" });
             DropIndex("dbo.TimeTaskFilters", new[] { "TimeTask_Id" });
+            DropIndex("dbo.CheckIns", new[] { "TimeTask_Id" });
             DropIndex("dbo.TimeTaskAllocations", new[] { "PerId" });
             DropIndex("dbo.TimeTaskAllocations", new[] { "Resource_Id" });
             DropIndex("dbo.TimeTaskAllocations", new[] { "TimeTask_Id" });
             DropTable("dbo.TimeTasks");
+            DropTable("dbo.TypedLabeledEntities");
             DropTable("dbo.TimePatterns");
             DropTable("dbo.TaskTypes");
             DropTable("dbo.Resources");
-            DropTable("dbo.Notes");
-            DropTable("dbo.TypedLabeledEntities");
             DropTable("dbo.Labels");
             DropTable("dbo.LabelledEntities");
+            DropTable("dbo.Notes");
             DropTable("dbo.TimePatternClauses");
             DropTable("dbo.Labellings");
             DropTable("dbo.TimeTaskFilters");
+            DropTable("dbo.CheckIns");
             DropTable("dbo.Filterables");
             DropTable("dbo.TimeTaskAllocations");
         }

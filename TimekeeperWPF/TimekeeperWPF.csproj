@@ -110,6 +110,7 @@
     <Compile Include="Calendar\CalendarTaskObject.xaml.cs">
       <DependentUpon>CalendarTaskObject.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\ObservableRangeCollection.cs" />
     <Compile Include="Views\Resource\AllocationView.xaml.cs">
       <DependentUpon>AllocationView.xaml</DependentUpon>
     </Compile>

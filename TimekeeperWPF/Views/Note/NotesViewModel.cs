@@ -1,19 +1,10 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Data.Entity;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Data;
-using System.Windows.Input;
 using TimekeeperDAL.EF;
 using TimekeeperDAL.Tools;
-using TimekeeperWPF.Tools;
 
 namespace TimekeeperWPF
 {
@@ -47,7 +38,6 @@ namespace TimekeeperWPF
         protected override bool CanCommit => base.CanCommit && (HasTimeTask ? CurrentEditItem.TimeTask != null : true);
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.Notes.LoadAsync();
             Items.Source = Context.Notes.Local;

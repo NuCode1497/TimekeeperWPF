@@ -39,7 +39,6 @@ namespace TimekeeperWPF
         }
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.CheckIns.LoadAsync();
             Items.Source = Context.CheckIns.Local;

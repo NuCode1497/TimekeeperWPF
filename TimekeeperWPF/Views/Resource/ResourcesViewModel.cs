@@ -30,7 +30,6 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.Resources.LoadAsync();
             Items.Source = Context.Resources.Local;

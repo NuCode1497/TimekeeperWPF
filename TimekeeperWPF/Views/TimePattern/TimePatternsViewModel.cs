@@ -32,7 +32,6 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.TimePatterns.LoadAsync();
             Items.Source = Context.TimePatterns.Local;
@@ -51,16 +50,16 @@ namespace TimekeeperWPF
                 Any = false
             };
             View.AddNewItem(CurrentEditItem);
-            BeginEdit();
+            StartEdit();
             AddClause();
             base.AddNew(ap);
         }
         internal override void EditSelected()
         {
             base.EditSelected();
-            BeginEdit();
+            StartEdit();
         }
-        private void BeginEdit()
+        private void StartEdit()
         {
             ClausesCollection = new CollectionViewSource();
             ClausesCollection.Source = 

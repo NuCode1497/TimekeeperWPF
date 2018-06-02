@@ -46,15 +46,17 @@ namespace TimekeeperDAL.Tools
             IsChanged = false;
         }
         //Mapped properties are those without the [NotMapped] annotation
+        //Note: This only does a shallow copy of reference types
         public static void CopyMappedProperties(object source, object target)
         {
             if (source.GetType() != target.GetType())
                 throw new ArgumentException("Objects must be the same type.");
             //Get mapped public properties
-            var properties = from p in source.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                             where p.GetCustomAttributes(typeof(NotMappedAttribute), false).Length == 0
-                             && p.CanWrite
-                             select p;
+            var properties = 
+                from p in source.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                where p.GetCustomAttributes(typeof(NotMappedAttribute), false).Length == 0
+                && p.CanWrite
+                select p;
             foreach (var p in properties)
             {
                 p.SetValue(target, p.GetValue(source));
@@ -78,7 +80,7 @@ namespace TimekeeperDAL.Tools
                 CopyMappedProperties(ShadowClone, Originator);
             }
         }
-        public IMemento State => new Memento(this);
+        public virtual IMemento State => new Memento(this);
         #endregion
     }
 }

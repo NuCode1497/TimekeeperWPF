@@ -84,7 +84,6 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             await Context.Labels.LoadAsync();
             await Context.Labellings.LoadAsync();
 
@@ -95,15 +94,15 @@ namespace TimekeeperWPF
         }
         internal override void AddNew(object ap)
         {
-            BeginEdit();
+            StartEdit();
             base.AddNew(ap);
         }
         internal override void EditSelected()
         {
             base.EditSelected();
-            BeginEdit();
+            StartEdit();
         }
-        private void BeginEdit()
+        private void StartEdit()
         {
             CurrentEntityLabelsCollection = new CollectionViewSource();
             HashSet<Label> labels = new HashSet<Label>();

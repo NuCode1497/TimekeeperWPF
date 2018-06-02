@@ -107,7 +107,6 @@ namespace TimekeeperWPF
         #region Actions
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.TimeTasks.LoadAsync();
             await Context.Resources.LoadAsync();
@@ -171,15 +170,15 @@ namespace TimekeeperWPF
                 CanSplit = true,
             };
             View.AddNewItem(CurrentEditItem);
-            BeginEdit();
+            StartEdit();
             base.AddNew(ap);
         }
         internal override void EditSelected()
         {
             base.EditSelected();
-            BeginEdit();
+            StartEdit();
         }
-        private void BeginEdit()
+        private void StartEdit()
         {
             AllocationsCollection = new CollectionViewSource();
             AllocationsCollection.Source = new ObservableCollection<TimeTaskAllocation>();

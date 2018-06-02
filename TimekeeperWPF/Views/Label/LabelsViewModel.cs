@@ -22,7 +22,6 @@ namespace TimekeeperWPF
         protected override bool CanSave => false;
         protected override async Task GetDataAsync()
         {
-            ClearUndos();
             Context = new TimeKeeperContext();
             await Context.Labels.LoadAsync();
             Items.Source = Context.Labels.Local;
