@@ -128,11 +128,13 @@ namespace TimekeeperWPF
         #region Memento
         private class VMMemento : IMemento
         {
+            private readonly CalendarViewModel Originator;
             private readonly IMemento TaskMemo;
             private readonly IMemento NoteMemo;
             private readonly IMemento CheckInMemo;
             public VMMemento(CalendarViewModel originator)
             {
+                Originator = originator;
                 TaskMemo = originator.TimeTasksVM.State;
                 NoteMemo = originator.NotesVM.State;
                 CheckInMemo = originator.CheckInsVM.State;
@@ -147,50 +149,49 @@ namespace TimekeeperWPF
         public override IMemento State => new VMMemento(this);
         private Stack<IMemento> UndoStack = new Stack<IMemento>();
         private Stack<IMemento> RedoStack = new Stack<IMemento>();
-        //private ICommand _UndoCommand;
-        //private ICommand _RedoCommand;
-        //public ICommand UndoCommand => _UndoCommand
-        //    ?? (_UndoCommand = new RelayCommand(async ap => await Undo(), pp => CanUndo));
-        //public ICommand RedoCommand => _RedoCommand
-        //    ?? (_RedoCommand = new RelayCommand(async ap => await Redo(), pp => CanRedo));
-        //protected bool CanUndo => IsReady && UndoStack.Count > 0;
-        //protected bool CanRedo => IsReady && RedoStack.Count > 0;
-        ////Disables change tracking when true.
-        //public bool Managed { get; set; } = false;
-        ////Add this function to the beginning of commands to enable change tracking.
-        //protected void NewChange()
-        //{
-        //    if (Managed) return;
-        //    UndoStack.Push(State);
-        //    RedoStack.Clear();
-        //}
-        //protected void ClearUndos()
-        //{
-        //    UndoStack.Clear();
-        //    RedoStack.Clear();
-        //}
-        //protected async Task<bool> Undo()
-        //{
-        //    //save current state to RedoStack
-        //    RedoStack.Push(State);
-        //    //get previous state from UndoStack
-        //    var prevState = UndoStack.Pop();
-        //    prevState.RestoreState();
-        //    bool success = await SaveChangesAsync();
-        //    OnPropertyChanged(nameof(View));
-        //    return success;
-        //}
-        //protected async Task<bool> Redo()
-        //{
-        //    //save current state to UndoStack
-        //    UndoStack.Push(State);
-        //    //get next state from RedoStack
-        //    var nextState = RedoStack.Pop();
-        //    nextState.RestoreState();
-        //    bool success = await SaveChangesAsync();
-        //    OnPropertyChanged(nameof(View));
-        //    return success;
-        //}
+        private Stack<IMemento> TempStack = new Stack<IMemento>();
+        private ICommand _UndoCommand;
+        private ICommand _RedoCommand;
+        public ICommand UndoCommand => _UndoCommand
+            ?? (_UndoCommand = new RelayCommand(async ap => await Undo(), pp => CanUndo));
+        public ICommand RedoCommand => _RedoCommand
+            ?? (_RedoCommand = new RelayCommand(async ap => await Redo(), pp => CanRedo));
+        protected bool CanUndo => IsReady && UndoStack.Count > 0;
+        protected bool CanRedo => IsReady && RedoStack.Count > 0;
+        //Disables change tracking when true.
+        public bool Managed { get; set; } = false;
+        //Add this function to the beginning of commands to enable change tracking.
+        protected void NewChange()
+        {
+            if (Managed) return;
+            UndoStack.Push(State);
+            TempStack = RedoStack;
+            RedoStack = new Stack<IMemento>();
+        }
+        protected void ClearUndos()
+        {
+            UndoStack.Clear();
+            RedoStack.Clear();
+            TempStack.Clear();
+        }
+        protected async Task Undo()
+        {
+            //save current state to RedoStack
+            RedoStack.Push(State);
+            //get previous state from UndoStack
+            var prevState = UndoStack.Pop();
+            prevState.RestoreState();
+            await ReCreateAsync();
+        }
+        protected async Task Redo()
+        {
+            //save current state to UndoStack
+            UndoStack.Push(State);
+            //get next state from RedoStack
+            var nextState = RedoStack.Pop();
+            nextState.RestoreState();
+            await ReCreateAsync();
+        }
         #endregion
         #region Navigate
         private ICommand _PreviousCommand;
@@ -230,17 +231,13 @@ namespace TimekeeperWPF
         { OnRequestViewChange(new RequestViewChangeEventArgs(CalendarViewType.Day, Start)); }
         protected virtual async Task PreviousAsync()
         {
-            IsLoading = true;
-            await CreateCalendarObjects();
-            IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
+            ClearUndos();
+            await ReCreateAsync();
         }
         protected virtual async Task NextAsync()
         {
-            IsLoading = true;
-            await CreateCalendarObjects();
-            IsLoading = false;
-            CommandManager.InvalidateRequerySuggested();
+            ClearUndos();
+            await ReCreateAsync();
         }
         #endregion Navigate
         #region Scale
@@ -676,6 +673,7 @@ namespace TimekeeperWPF
         protected virtual bool CanAddNewTimeTask => IsReady && (TimeTasksVM?.NewItemCommand?.CanExecute(null) ?? false);
         internal virtual async Task LoadData()
         {
+            ClearUndos();
             IsEnabled = false;
             IsLoading = true;
             Cancel();
@@ -705,8 +703,23 @@ namespace TimekeeperWPF
             await TimeTasksVM.LoadDataAsync();
             await CreateCalendarObjects();
         }
+        private async Task ReCreateAsync()
+        {
+            IsLoading = true;
+            await CreateCalendarObjects();
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
+        private async Task ReGetAsync()
+        {
+            IsLoading = true;
+            await GetDataAsync();
+            IsLoading = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
         internal virtual void AddNew(CalendarObjectTypes type)
         {
+            NewChange();
             switch (type)
             {
                 case CalendarObjectTypes.CheckIn:
@@ -722,6 +735,7 @@ namespace TimekeeperWPF
         }
         internal virtual void NewCheckIn(object ap)
         {
+            NewChange();
             CurrentEditItemType = CalendarObjectTypes.CheckIn;
             CheckInsVM.NewItemCommand.Execute(ap);
             Status = "Adding new CheckIn";
@@ -730,6 +744,7 @@ namespace TimekeeperWPF
         }
         internal virtual void NewNote(object ap)
         {
+            NewChange();
             CurrentEditItemType = CalendarObjectTypes.Note;
             NotesVM.NewItemCommand.Execute(ap);
             Status = "Adding new Note";
@@ -738,6 +753,7 @@ namespace TimekeeperWPF
         }
         internal virtual void NewTimeTask()
         {
+            NewChange();
             CurrentEditItemType = CalendarObjectTypes.Task;
             TimeTasksVM.NewItemCommand.Execute(null);
             Status = "Adding new Task";
@@ -746,6 +762,7 @@ namespace TimekeeperWPF
         }
         internal virtual void EditSelected()
         {
+            NewChange();
             CurrentEditItem = SelectedItem;
             SelectedItem = null;
             IsEditingItem = true;
@@ -772,13 +789,15 @@ namespace TimekeeperWPF
             //Refresh all of the buttons
             CommandManager.InvalidateRequerySuggested();
         }
-        internal virtual void Cancel()
+        internal virtual async Task Cancel()
         {
-            CheckInsVM?.Cancel();
-            NotesVM?.Cancel();
-            TimeTasksVM?.Cancel();
+            await CheckInsVM?.Cancel();
+            await NotesVM?.Cancel();
+            await TimeTasksVM?.Cancel();
             Status = "Canceled";
             FinishEdit();
+            if (CanUndo) await Undo();
+            RedoStack = TempStack;
         }
         internal virtual async Task<bool> Commit()
         {
@@ -848,13 +867,14 @@ namespace TimekeeperWPF
         }
         internal virtual async Task<bool> DeleteSelected()
         {
+            NewChange();
             bool success = false;
             switch (SelectedItemType)
             {
                 case CalendarObjectTypes.CheckIn:
                     success = await CheckInsVM.DeleteSelected();
                     if (!success) break;
-                    await GetDataAsync();
+                    await ReGetAsync();
                     Status = CalendarObjectTypes.CheckIn + " Deleted";
                     break;
                 case CalendarObjectTypes.Note:
@@ -868,7 +888,7 @@ namespace TimekeeperWPF
                 case CalendarObjectTypes.Task:
                     success = await TimeTasksVM.DeleteSelected();
                     if (!success) break;
-                    await GetDataAsync();
+                    await ReGetAsync();
                     Status = CalendarObjectTypes.Task + " Deleted";
                     break;
             }

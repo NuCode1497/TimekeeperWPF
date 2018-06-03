@@ -72,11 +72,13 @@ namespace TimekeeperWPF
                 foreach (var ro in remObjs) Originator.Source.Add(ro);
                 //Restore states of existing objects
                 foreach (var memo in Memos) memo.RestoreState();
+                Originator.SaveChangesAsync();
             }
         }
         public override IMemento State => new VMMemento(this);
         private Stack<IMemento> UndoStack = new Stack<IMemento>();
         private Stack<IMemento> RedoStack = new Stack<IMemento>();
+        private Stack<IMemento> TempStack = new Stack<IMemento>();
         private ICommand _UndoCommand;
         private ICommand _RedoCommand;
         public ICommand UndoCommand => _UndoCommand
@@ -92,12 +94,14 @@ namespace TimekeeperWPF
         {
             if (Managed) return;
             UndoStack.Push(State);
-            RedoStack.Clear();
+            TempStack = RedoStack;
+            RedoStack = new Stack<IMemento>();
         }
         protected void ClearUndos()
         {
             UndoStack.Clear();
             RedoStack.Clear();
+            TempStack.Clear();
         }
         protected async Task<bool> Undo()
         {
@@ -273,7 +277,7 @@ namespace TimekeeperWPF
         #endregion
         #region Commands
         public ICommand CancelCommand => _CancelCommand
-            ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
+            ?? (_CancelCommand = new RelayCommand(async ap => await Cancel(), pp => CanCancel));
         public ICommand CommitCommand => _CommitCommand
             ?? (_CommitCommand = new RelayCommand(async ap => await Commit(), pp => CanCommit));
         public ICommand GetDataCommand => _GetDataCommand
@@ -309,7 +313,7 @@ namespace TimekeeperWPF
             ClearUndos();
             IsEnabled = false;
             IsLoading = true;
-            Cancel();
+            await Cancel();
             SelectedItem = null;
             Status = "Loading Data...";
             Items = new CollectionViewSource();
@@ -364,7 +368,7 @@ namespace TimekeeperWPF
             //Refresh all of the buttons
             CommandManager.InvalidateRequerySuggested();
         }
-        internal virtual void Cancel()
+        internal virtual async Task Cancel()
         {
             if (IsEditingItem)
             {
@@ -377,6 +381,8 @@ namespace TimekeeperWPF
                 Status = "Canceled";
             }
             FinishEdit();
+            if (CanUndo) await Undo();
+            RedoStack = TempStack;
         }
         internal virtual async Task<bool> Commit()
         {
