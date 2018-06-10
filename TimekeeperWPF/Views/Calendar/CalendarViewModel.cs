@@ -76,6 +76,21 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
+        private int _ExtentFactor = 3;
+        /// <summary>
+        /// Sets the max number of recursions of FindPerSet(). 
+        /// 3 is default. 1 loads pers only in the current view. 0 for infinite. 
+        /// This can greatly affect performance.
+        /// </summary>
+        public virtual int ExtentFactor
+        {
+            get { return _ExtentFactor; }
+            set
+            {
+                _ExtentFactor = value;
+                OnPropertyChanged();
+            }
+        }
         private bool _Max = true;
         public virtual bool Max
         {
@@ -1020,10 +1035,10 @@ namespace TimekeeperWPF
         private async Task InitTaskMaps(int dimension, IEnumerable<TimeTask> RelevantTasks)
         {
             //This function is more intensive than others, it will be called once on load.
-            //Create Maps with all PerZones; we will reduce this set later.
             var maps = new HashSet<CalendarTimeTaskMap>();
             foreach (var T in RelevantTasks)
             {
+                //Create Maps with all PerZones; we will reduce this set later.
                 await T.BuildPerZonesAsync(Start, End);
                 var M = new CalendarTimeTaskMap
                 {
@@ -1042,12 +1057,16 @@ namespace TimekeeperWPF
                 }
                 maps.Add(M);
             }
-            var RelevantPerZones = FindPerSet(maps, new HashSet<PerZone>(), Start, End);
+            var RelevantPerZones = FindPerSet(maps, new HashSet<PerZone>(), Start, End, ExtentFactor);
             foreach (var M in maps)
             {
                 //Reduce the PerZone set.
                 M.PerZones = new HashSet<PerZone>(M.PerZones.Intersect(RelevantPerZones));
 
+            }
+            //Select the maps that have relevant PerZones and build them.
+            foreach (var M in maps.Where(M => M.PerZones.Count > 0))
+            {
                 //Build InclusionZones with the reduced PerZone set.
                 var pers = new Dictionary<DateTime, DateTime>();
                 foreach (var P in M.PerZones)
@@ -1068,36 +1087,50 @@ namespace TimekeeperWPF
                         P.InclusionZones.Add(zone);
                     }
                 }
-            }
-            foreach (var M in maps)
                 TaskMaps.Add(M);
+            }
         }
-        private IEnumerable<TimeTask> FindTaskSet(IEnumerable<TimeTask> tasks, IEnumerable<TimeTask> accumulatedFinds, DateTime start, DateTime end)
+        private IEnumerable<TimeTask> FindTaskSet(IEnumerable<TimeTask> tasks, 
+            IEnumerable<TimeTask> accumulatedFinds, DateTime start, DateTime end)
         {
             //Recursively select the set of Tasks that intersect the calendar view or previously added tasks.
             var foundTasks = (from T in tasks
                               where T.Intersects(start, end)
                               select T).Except(accumulatedFinds);
             if (foundTasks.Count() == 0) return accumulatedFinds;
-            accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(foundTasks));
+            accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds
+                .Union(foundTasks));
             foreach (var T in foundTasks)
             {
-                accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds.Union(FindTaskSet(tasks, accumulatedFinds, T.Start, T.End)));
+                accumulatedFinds = new HashSet<TimeTask>(accumulatedFinds
+                    .Union(FindTaskSet(tasks, accumulatedFinds, T.Start, T.End)));
             }
             return accumulatedFinds;
         }
-        private IEnumerable<PerZone> FindPerSet(IEnumerable<CalendarTimeTaskMap> maps, IEnumerable<PerZone> accumulatedFinds, DateTime start, DateTime end)
+        private IEnumerable<PerZone> FindPerSet(IEnumerable<CalendarTimeTaskMap> maps, 
+            IEnumerable<PerZone> accumulatedFinds, DateTime start, DateTime end, int extentFactor)
         {
-            //Recursively select the set of PerZones that intersect the calendar view or previously added PerZones.
+            //Recursively select the set of PerZones that intersect the calendar view 
+            //or PerZones that are marked critical and intersect any previously added PerZones.
+
+            //Find the PerZones that are within the given range.
             var foundPers = (from M in maps
                              from P in M.PerZones
                              where P.Intersects(start, end)
                              select P).Except(accumulatedFinds);
+            //Stop recursion if there are no more new PerZones.
             if (foundPers.Count() == 0) return accumulatedFinds;
-            accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(foundPers));
+            accumulatedFinds = new HashSet<PerZone>(accumulatedFinds
+                .Union(foundPers));
+
+            //Stop recursion based on the ExtentFactor. 0 for infinite.
+            if (--extentFactor == 0) return accumulatedFinds;
+
+            //Find additional PerZones intersecting the found PerZones.
             foreach (var P in foundPers)
             {
-                accumulatedFinds = new HashSet<PerZone>(accumulatedFinds.Union(FindPerSet(maps, accumulatedFinds, P.Start, P.End)));
+                accumulatedFinds = new HashSet<PerZone>(accumulatedFinds
+                    .Union(FindPerSet(maps, accumulatedFinds, P.Start, P.End, extentFactor)));
             }
             return accumulatedFinds;
         }

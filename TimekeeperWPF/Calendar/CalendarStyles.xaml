@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
     xmlns:EF="clr-namespace:TimekeeperDAL.EF;assembly=TimekeeperDAL"
+    xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:clr="clr-namespace:System;assembly=mscorlib">
 
 
@@ -405,6 +406,7 @@
                         </Grid>
                     </CheckBox.Content>
                 </CheckBox>
+                <Separator/>
                 <Button x:Name="MonthButton" ToolTip="Month"
                         Command="{Binding Path=SelectMonthCommand}">
                     <Button.Content>
@@ -430,6 +432,12 @@
                     </Button.Content>
                 </Button>
                 <DatePicker SelectedDate="{Binding Path=Start, Mode=TwoWay}"/>
+                <Separator/>
+                <wpftools:IntegerUpDown 
+                    Value="{Binding Path=ExtentFactor, Mode=TwoWay}"
+                    ToolTip="Extent Factor: Max number of cascading PerZones to include on load. 0 for infinite. This greatly affects performance."
+                    Minimum="0"
+                    Maximum="1000"/>
             </ToolBar>
         </ToolBarTray>
     </ControlTemplate>

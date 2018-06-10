@@ -22,6 +22,12 @@ namespace TimekeeperDAL.Tools
         [NotMapped]
         public virtual string BasicString => ToString();
 
+        [NotMapped]
+        private string _Pluralized;
+        [NotMapped]
+        public string Pluralized => _Pluralized
+            ?? (_Pluralized = ToString().Pluralize());
+
         #region Validations
         private readonly Dictionary<string, List<string>> _errors = new Dictionary<string, List<string>>();
 

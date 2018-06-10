@@ -19,7 +19,7 @@ namespace TimekeeperDAL.EF
             if (Amount == 1)
                 s = Amount + " " + Resource;
             else
-                s = Amount + " " + Resource.ToString().Pluralize();
+                s = Amount + " " + Resource.Pluralized;
             if (Per != null)
                 s += " Per " + Per.ToString();
             return s;
