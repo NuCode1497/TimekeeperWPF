@@ -254,6 +254,8 @@ namespace TimekeeperWPF.Calendar
                     if (IsCalObjRelevant(CalObj))
                     {
                         var sections = 7d * CalObj.DimensionCount;
+                        if (sections == 0)
+                            continue;
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);

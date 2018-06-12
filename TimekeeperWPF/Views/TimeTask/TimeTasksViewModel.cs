@@ -197,6 +197,7 @@ namespace TimekeeperWPF
                     Resource_Id = A.Resource_Id,
                     TimeTask = A.TimeTask,
                     TimeTask_Id = A.TimeTask_Id,
+                    PerOffset = A.PerOffset,
                 };
                 newA.TogglePer = newA.Per == null ? false : true;
                 AllocationsSource.Add(newA);

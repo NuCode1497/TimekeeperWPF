@@ -34,6 +34,7 @@ namespace TimekeeperWPF
             _NotesVM.Parent = this;
             _NotesVM.Managed = true;
         }
+        #region Interface
         public abstract string Name { get; }
         private String _status = "Ready";
         public String Status
@@ -140,6 +141,7 @@ namespace TimekeeperWPF
             else
                 Orientation = Orientation.Horizontal;
         }
+        #endregion
         #region Memento
         private class VMMemento : IMemento
         {
@@ -259,6 +261,9 @@ namespace TimekeeperWPF
         private int _ScaleSudoCommand;
         private ICommand _ScaleUpCommand;
         private ICommand _ScaleDownCommand;
+        /// <summary>
+        /// This is used to send a message to the CalendarView panel via databinds to trigger the panel's Scale commands.
+        /// </summary>
         public int ScaleSudoCommand
         {
             get { return _ScaleSudoCommand; }
@@ -535,7 +540,7 @@ namespace TimekeeperWPF
         public bool IsNotSaving => !IsSaving;
         public bool HasNotSelected => !HasSelected;
         public ICommand CancelCommand => _CancelCommand
-            ?? (_CancelCommand = new RelayCommand(ap => Cancel(), pp => CanCancel));
+            ?? (_CancelCommand = new RelayCommand(async ap => await Cancel(), pp => CanCancel));
         public ICommand CommitCommand => _CommitCommand
             ?? (_CommitCommand = new RelayCommand(async ap => await Commit(), pp => CanCommit));
         public ICommand GetDataCommand => _GetDataCommand
@@ -544,7 +549,7 @@ namespace TimekeeperWPF
             ?? (_NewItemCommand = new RelayCommand(ap => AddNew((CalendarObjectTypes)ap), pp =>
             pp is CalendarObjectTypes && CanAddNew((CalendarObjectTypes)pp)));
         public ICommand EditSelectedCommand => _EditSelectedCommand
-            ?? (_EditSelectedCommand = new RelayCommand(ap => EditSelected(), pp => CanEditSelected));
+            ?? (_EditSelectedCommand = new RelayCommand(async ap => await EditSelected(), pp => CanEditSelected));
         public ICommand DeleteSelectedCommand => _DeleteSelectedCommand
             ?? (_DeleteSelectedCommand = new RelayCommand(async ap => await DeleteSelected(), pp => CanDeleteSelected));
         public ICommand SelectCommand => _SelectCommand
@@ -691,7 +696,7 @@ namespace TimekeeperWPF
             ClearUndos();
             IsEnabled = false;
             IsLoading = true;
-            Cancel();
+            await Cancel();
             SelectedItem = null;
             Status = "Loading Data...";
             Dispose();
@@ -775,7 +780,7 @@ namespace TimekeeperWPF
             SelectedItem = null;
             IsAddingNew = true;
         }
-        internal virtual void EditSelected()
+        internal virtual async Task EditSelected()
         {
             NewChange();
             CurrentEditItem = SelectedItem;
@@ -784,7 +789,7 @@ namespace TimekeeperWPF
             switch (SelectedItemType)
             {
                 case CalendarObjectTypes.CheckIn:
-                    Cancel();
+                    await Cancel();
                     break;
                 case CalendarObjectTypes.Note:
                     NotesVM.EditSelectedCommand.Execute(null);
@@ -1626,63 +1631,89 @@ namespace TimekeeperWPF
                 //Fill zones evenly, but centered
                 if (P.InclusionZones.Count == 0) continue;
                 P.InclusionZones.Sort(new InclusionSorterAsc());
-                var minAlloc = new TimeSpan(Max(
-                    TimeTask.MinimumDuration.Ticks,
-                    M.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
-                //First loop that creates CalendarObjects
+                EvenCenteredInitialize(P);
+                EvenCenteredExpand(P);
+            }
+        }
+        private static void EvenCenteredInitialize(PerZone P)
+        {
+            var minAlloc = new TimeSpan(Max(
+                TimeTask.MinimumDuration.Ticks,
+                P.ParentMap.TimeTask.TimeAllocation.InstanceMinimumAsTimeSpan.Ticks));
+            foreach (var Z in P.InclusionZones)
+            {
+                if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
+                if (Z.Duration < minAlloc) continue;
+                bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
+                if (hasCalObj) continue;
+                DateTime MDT = new DateTime(Z.Start.Ticks + (Z.Duration.Ticks - minAlloc.Ticks) / 2).RoundDown(TimeTask.MinimumDuration);
+                CalendarTaskObject CalObj = new CalendarTaskObject
+                {
+                    Start = MDT,
+                    End = MDT + minAlloc,
+                    ParentInclusionZone = Z,
+                    ParentPerZone = P,
+                };
+                P.CalTaskObjs.Add(CalObj);
+                P.TimeConsumption.Remaining -= minAlloc.Ticks;
+                Z.SeedTaskObj = CalObj;
+            }
+        }
+        private static void EvenCenteredExpand(PerZone P)
+        {
+            foreach (var Z in P.InclusionZones)
+                Z.EvCenAllocFlag = false;
+            bool full = false;
+            while (!full && (P.TimeConsumption.Remaining > 0))
+            {
+                full = true;
+                //add time to each CalObj until they are full or out of allocated time
                 foreach (var Z in P.InclusionZones)
                 {
-                    if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
-                    if (Z.Duration < minAlloc) continue;
-                    bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
-                    if (hasCalObj) continue;
-                    DateTime MDT = new DateTime(Z.Start.Ticks + Z.Duration.Ticks / 2).RoundDown(minAlloc);
-                    CalendarTaskObject CalObj = new CalendarTaskObject
+                    bool allocated = false;
+                    if (!P.TimeConsumption.CanAllocate(TimeTask.MinimumDuration.Ticks)) break;
+                    if (Z.SeedTaskObj == null) continue;
+                    //using EvCenAllocFlag to toggle between left and right each iteration
+                    if (Z.EvCenAllocFlag)
                     {
-                        Start = MDT,
-                        End = MDT + minAlloc,
-                        ParentInclusionZone = Z,
-                        ParentPerZone = P,
-                    };
-                    Z.SeedTaskObj = CalObj;
-                    P.TimeConsumption.Remaining -= minAlloc.Ticks;
-                    P.CalTaskObjs.Add(CalObj);
-                }
-                //Second loop that adds more time to CalendarObjects
-                minAlloc = TimeTask.MinimumDuration;
-                bool full = false;
-                while (!full && (P.TimeConsumption.Remaining > 0))
-                {
-                    full = true;
-                    foreach (var Z in P.InclusionZones)
-                        Z.EvCenAllocFlag = false;
-                    //add time to each CalObj until they are full or out of allocated time
-                    foreach (var Z in P.InclusionZones)
-                    {
-                        if (Z.EvCenAllocFlag)
-                        {
-                            //Add some time to the left
-                            if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
-                            if (Z.SeedTaskObj == null) continue;
-                            if (Z.SeedTaskObj.Start - minAlloc < Z.Start) continue;
-                            Z.SeedTaskObj.Start -= minAlloc;
-                            P.TimeConsumption.Remaining -= minAlloc.Ticks;
-                            full = false;
-                        }
-                        else
-                        {
-                            //Add some time to the right
-                            if (!P.TimeConsumption.CanAllocate(minAlloc.Ticks)) break;
-                            if (Z.SeedTaskObj == null) continue;
-                            if ((Z.SeedTaskObj.End + minAlloc) >= Z.End) continue;
-                            Z.SeedTaskObj.End += minAlloc;
-                            P.TimeConsumption.Remaining -= minAlloc.Ticks;
-                            full = false;
-                        }
-                        Z.EvCenAllocFlag = !Z.EvCenAllocFlag;
+                        //try to add to the left first, else try to add to the right
+                        allocated = EvenCenteredTryAddTimeLeft(P, Z);
+                        if (!allocated) allocated = EvenCenteredTryAddTimeRight(P, Z);
                     }
+                    else
+                    {
+                        //try to add to the right first, else try to add to the left
+                        allocated = EvenCenteredTryAddTimeRight(P, Z);
+                        if (!allocated) allocated = EvenCenteredTryAddTimeLeft(P, Z);
+                    }
+                    full = !allocated;
+                    Z.EvCenAllocFlag = !Z.EvCenAllocFlag;
                 }
             }
+        }
+        private static bool EvenCenteredTryAddTimeRight(PerZone P, InclusionZone Z)
+        {
+            bool allocated = false;
+            if ((Z.SeedTaskObj.End + TimeTask.MinimumDuration) < Z.End)
+            {
+                //Add some time to the right
+                Z.SeedTaskObj.End += TimeTask.MinimumDuration;
+                P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                allocated = true;
+            }
+            return allocated;
+        }
+        private static bool EvenCenteredTryAddTimeLeft(PerZone P, InclusionZone Z)
+        {
+            bool allocated = false;
+            if (Z.SeedTaskObj.Start - TimeTask.MinimumDuration >= Z.Start)
+            {
+                //Add some time to the left
+                Z.SeedTaskObj.Start -= TimeTask.MinimumDuration;
+                P.TimeConsumption.Remaining -= TimeTask.MinimumDuration.Ticks;
+                allocated = true;
+            }
+            return allocated;
         }
         private void EvenApatheticTimeAllocate(CalendarTimeTaskMap M)
         {
@@ -1736,7 +1767,7 @@ namespace TimekeeperWPF
             foreach (var P in M.PerZones)
             {
                 // Fill the latest zones first
-                if (P.InclusionZones.Count == 0) return;
+                if (P.InclusionZones.Count == 0) continue;
                 P.InclusionZones.Sort(new InclusionSorterDesc());
                 var minAlloc = new TimeSpan(Max(
                     TimeTask.MinimumDuration.Ticks,
@@ -1747,13 +1778,13 @@ namespace TimekeeperWPF
                     if (Z.Duration < minAlloc) continue;
                     bool hasCalObj = P.CalTaskObjs.Count(C => C.Intersects(Z)) > 0;
                     if (hasCalObj) continue;
-                    var alloc = new TimeSpan((long)Z.Duration.Ticks
+                    var alloc = new TimeSpan(Z.Duration.Ticks
                         .Within(minAlloc.Ticks, P.TimeConsumption.Remaining))
                         .RoundUp(TimeTask.MinimumDuration);
                     var calObj = new CalendarTaskObject
                     {
-                        Start = Z.Start - alloc,
-                        End = Z.Start,
+                        Start = Z.End - alloc,
+                        End = Z.End,
                         ParentInclusionZone = Z,
                         ParentPerZone = P,
                     };
@@ -3650,7 +3681,7 @@ namespace TimekeeperWPF
                                         C.ParentInclusionZone = null;
                                         C.State = CalendarTaskObject.States.Unscheduled;
                                     }
-                                    if (C.ParentInclusionZone.Cancelled)
+                                    else if (C.ParentInclusionZone.Cancelled)
                                         C.State = CalendarTaskObject.States.Unscheduled;
                                 }
                             }

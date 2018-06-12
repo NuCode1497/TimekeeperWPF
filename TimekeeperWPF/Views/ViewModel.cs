@@ -72,7 +72,6 @@ namespace TimekeeperWPF
                 foreach (var ro in remObjs) Originator.Source.Add(ro);
                 //Restore states of existing objects
                 foreach (var memo in Memos) memo.RestoreState();
-                Originator.SaveChangesAsync();
             }
         }
         public override IMemento State => new VMMemento(this);

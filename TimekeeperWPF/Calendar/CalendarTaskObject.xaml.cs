@@ -372,6 +372,7 @@ namespace TimekeeperWPF.Calendar
             StateLock = CalObj.StateLock;
             ParentPerZone = CalObj.ParentPerZone;
             ParentInclusionZone = CalObj.ParentInclusionZone;
+            DimensionCount = CalObj.DimensionCount;
             IsMimicking = false;
             PropagateMimicry();
         }
