@@ -339,9 +339,8 @@ namespace TimekeeperWPF.Calendar
         // into the next day even though the days are visually split.
 
         /// <summary>
-        ///This is configured such that CalendarObjects that normally span across more than 
-        ///one day shall have additional copies for each day it occupies in this week, up to 7.
-        ///DayOffset indicates the copy number and offsets by that number of days.
+        /// CalendarObjects that span across multiple days will have shadow clones that mimic the original. 
+        /// DayOffset is the clone number and tells the panel to draw the clone offset by this many days.
         /// </summary>
         public int DayOffset { get; set; } = 0;
         public bool IsPropagatingMimicry { get; private set; }

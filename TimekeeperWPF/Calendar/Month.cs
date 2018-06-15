@@ -23,23 +23,36 @@ using TimekeeperDAL.Tools;
 
 namespace TimekeeperWPF.Calendar
 {
-    public class Week : Day
+    public class Month : Week
     {
         #region Constructor
-        static Week()
+        static Month()
         {
-            DateProperty.OverrideMetadata(typeof(Week),
-                new FrameworkPropertyMetadata(DateTime.Now.WeekStart(),
+            DateProperty.OverrideMetadata(typeof(Month),
+                new FrameworkPropertyMetadata(DateTime.Now.MonthStart(),
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault |
                     FrameworkPropertyMetadataOptions.AffectsRender |
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange,
                     new PropertyChangedCallback(OnDateChanged),
                     new CoerceValueCallback(OnCoerceDate)));
+            //Force ForceMaxScale permanently on
+            ForceMaxScaleProperty.OverrideMetadata(typeof(Month),
+                new FrameworkPropertyMetadata(true,
+                    null,
+                    new CoerceValueCallback((d, v) => true)));
+            //Disable TextMargin permanently
+            ShowTextMarginProperty.OverrideMetadata(typeof(Month),
+                new FrameworkPropertyMetadata(false,
+                    null,
+                    new CoerceValueCallback((d, v) => false)));
+            TextMarginProperty.OverrideMetadata(typeof(Month),
+                new FrameworkPropertyMetadata(0,
+                    null,
+                    new CoerceValueCallback((d, v) => 0)));
         }
-        public Week() : base()
+        public Month() : base()
         {
-            _VisibleColumns = 7;
         }
         #endregion
         #region Events
@@ -49,83 +62,41 @@ namespace TimekeeperWPF.Calendar
             {
                 var pos = e.MouseDevice.GetPosition(this);
                 var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / 7d)).Within(0, 6);
-                var date = Date.AddDays(weekDay);
-                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _DAY_SECONDS);
+                var monthWeek = (int)(pos.Y / (RenderSize.Height / MonthWeeks)).Within(0, MonthWeeks - 1);
+                var date = Date.WeekStart().AddDays(weekDay + monthWeek * 7);
+                var seconds = (int)(pos.Y * Scale - monthWeek * _DAY_SECONDS).Within(0,_DAY_SECONDS);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }
             else
             {
-                var pos = e.MouseDevice.GetPosition(this);
-                var weekDay = (int)((pos.Y) / ((RenderSize.Height - TextMargin) / 7d)).Within(0, 6);
-                var date = Date.AddDays(weekDay);
-                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _DAY_SECONDS);
-                var time = new TimeSpan(0, 0, seconds);
-                MousePosition = date + time;
             }
         }
         #endregion Events
         #region Date
-        [Bindable(true)]
-        public int SelectedMonthOverride
-        {
-            get { return (int)GetValue(SelectedMonthOverrideProperty); }
-            set { SetValue(SelectedMonthOverrideProperty, value); }
-        }
-        public static readonly DependencyProperty SelectedMonthOverrideProperty =
-            DependencyProperty.Register(
-                nameof(SelectedMonthOverride), typeof(int), typeof(Week),
-                new FrameworkPropertyMetadata(DateTime.Now.Month,
-                    FrameworkPropertyMetadataOptions.AffectsRender));
         private static void OnDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-
+            Month month = d as Month;
+            month.MonthWeeks = month.Date.MonthWeeks();
+            month.MonthWeekStart = month.Date.WeekStart();
         }
+        private int MonthWeeks;
+        private DateTime MonthWeekStart;
         private static object OnCoerceDate(DependencyObject d, object value)
         {
             DateTime newValue = (DateTime)value;
-            newValue = newValue.WeekStart();
+            newValue = newValue.MonthStart();
             return newValue;
         }
-        protected override bool IsDateTimeRelevant(DateTime d) { return d.WeekStart() == Date; }
-        #endregion
-        #region Highlight
-        [Bindable(true), Category("Appearance")]
-        public bool ShowMonthBoundsHighlight
-        {
-            get { return (bool)GetValue(ShowMonthBoundsHighlightProperty); }
-            set { SetValue(ShowMonthBoundsHighlightProperty, value); }
-        }
-        public static readonly DependencyProperty ShowMonthBoundsHighlightProperty =
-            DependencyProperty.Register(
-                nameof(ShowMonthBoundsHighlight), typeof(bool), typeof(Week),
-                new FrameworkPropertyMetadata(false,
-                    FrameworkPropertyMetadataOptions.AffectsRender));
-        [Bindable(true), Category("Appearance")]
-        public Brush MonthBoundsHighlight
-        {
-            get { return (Brush)GetValue(MonthBoundsHighlightProperty); }
-            set { SetValue(MonthBoundsHighlightProperty, value); }
-        }
-        public static readonly DependencyProperty MonthBoundsHighlightProperty =
-            DependencyProperty.Register(
-                nameof(MonthBoundsHighlight), typeof(Brush), typeof(Week),
-                new FrameworkPropertyMetadata(Brushes.LightGray,
-                    FrameworkPropertyMetadataOptions.AffectsRender));
-        [Bindable(true), Category("Appearance")]
-        public Brush MonthBoundsWatermarkBrush
-        {
-            get { return (Brush)GetValue(MonthBoundsWatermarkBrushProperty); }
-            set { SetValue(MonthBoundsWatermarkBrushProperty, value); }
-        }
-        public static readonly DependencyProperty MonthBoundsWatermarkBrushProperty =
-            DependencyProperty.Register(
-                nameof(MonthBoundsWatermarkBrush), typeof(Brush), typeof(Week),
-                new FrameworkPropertyMetadata(Brushes.MintCream,
-                    FrameworkPropertyMetadataOptions.AffectsRender));
+        protected override bool IsDateTimeRelevant(DateTime d) { return d.MonthStart() == Date; }
         #endregion
         #region Layout
         protected override int NowColumn => (int)DateTime.Now.DayOfWeek;
+        protected override int NowRow => GetMonthRow(DateTime.Now);
+        private int GetMonthRow(DateTime date)
+        {
+            return ((int)(date.Date - Date).TotalDays.Within(0, Date.MonthDays() - 1) + (int)Date.DayOfWeek) / MonthWeeks;
+        }
         protected override Size ArrangeVertically(Size arrangeSize, Size extent)
         {
             Size cellSize = arrangeSize;
@@ -166,11 +137,11 @@ namespace TimekeeperWPF.Calendar
                         childSize.Width = cellSize.Width / CalObj.DimensionCount;
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
                         //Position
-                        var startDayOfWeek = (int)(CalObj.Start.Date - Date.WeekStart()).TotalDays.Within(0, 6);
-                        var currentDayOfWeek = startDayOfWeek + CalObj.DayOffset;
-                        var currentDate = Date.AddDays(currentDayOfWeek);
-                        var column = currentDayOfWeek;
-                        var row = 0;
+                        var startDayOfMonth = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, Date.MonthDays() - 1);
+                        var currentDayOfMonth = startDayOfMonth + CalObj.DayOffset;
+                        var currentDate = Date.AddDays(currentDayOfMonth);
+                        var column = (int)currentDate.DayOfWeek;
+                        var row = GetMonthRow(currentDate);
                         var cellX = column * cellSize.Width;
                         var cellY = row * cellSize.Height;
                         var dimensionOffset = childSize.Width * CalObj.Dimension;
@@ -182,9 +153,9 @@ namespace TimekeeperWPF.Calendar
                             childSize.Height += y;
                             y = 0;
                         }
-                        else if (y + childSize.Height > cellY + cellSize.Height) //TODO: Fix: cellY maybe needs to go by Scale
+                        else if (y + childSize.Height > cellY + cellSize.Height)
                         {
-                            //childSize.Height = (y + childSize.Height) - (cellY + cellSize.Height);
+                            childSize.Height = y + childSize.Height - cellY + cellSize.Height;
                         }
                     }
                     else
@@ -239,7 +210,7 @@ namespace TimekeeperWPF.Calendar
             return extent;
         }
         protected override Size ArrangeHorizontally(Size arrangeSize, Size extent)
-        {   
+        {
             //Width will be unbound. Height will be bound to UI space.
             double biggestChildHeight = TextMargin;
             double dayHeight = (arrangeSize.Height - TextMargin) / 7d;

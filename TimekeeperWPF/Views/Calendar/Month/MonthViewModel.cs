@@ -19,167 +19,58 @@ namespace TimekeeperWPF
 {
     public class MonthViewModel : CalendarViewModel
     {
-        private MonthWeekViewModel _SelectedWeek;
-        private bool _HasSelectedWeek = false;
-        #region Properties
         public override string Name => "Month View";
-        public CollectionViewSource MonthWeeksCollection { get; set; }
-        public ObservableCollection<MonthWeekViewModel> MonthWeeksSource => MonthWeeksCollection.Source as ObservableCollection<MonthWeekViewModel>;
-        public ListCollectionView MonthWeeksView => MonthWeeksCollection.View as ListCollectionView;
         public override DateTime Start
         {
-            get { return base.Start; }
-            set
-            {
-                DateTime newValue = value.MonthStart();
-                base.Start = newValue;
-            }
+            get => base.Start;
+            set { base.Start = value.MonthStart(); }
         }
         public override DateTime End
         {
-            get
-            {
-                return Start.AddMonths(1);
-            }
-            set
-            {
-            }
+            get => Start.AddMonths(1);
+            set { }
         }
-        public MonthWeekViewModel SelectedWeek
-        {
-            get { return _SelectedWeek; }
-            set
-            {
-                if (_SelectedWeek == value) return;
-                _SelectedWeek = value;
-                if (SelectedWeek == null)
-                {
-                    HasSelectedWeek = false;
-                }
-                else
-                {
-                    HasSelectedWeek = true;
-                    Status = "Double Click to view week.";
-                }
-                OnPropertyChanged();
-            }
-        }
-        public override bool TextMargin
-        {
-            get => base.TextMargin;
-            set
-            {
-                base.TextMargin = value;
-                SetTextMargin();
-            }
-        }
-        #endregion
-        #region Conditions
-        public bool HasSelectedWeek
-        {
-            get
-            {
-                return _HasSelectedWeek;
-            }
-            protected set
-            {
-                _HasSelectedWeek = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(HasNotSelectedWeek));
-            }
-        }
-        public bool HasNotSelectedWeek => !HasSelectedWeek;
-        #endregion
-        #region Predicates
-        protected override bool CanAddNew(CalendarObjectTypes CO) { return false; }
-        protected override bool CanCancel => false;
-        protected override bool CanCommit => false;
-        protected override bool CanEditSelected => false;
-        protected override bool CanDeleteSelected => false;
         protected override bool CanSave => false;
-        protected override bool CanOrientation => false;
         public override bool CanMax => false;
-        protected override bool CanScaleDown => false;
-        protected override bool CanScaleUp => false;
+        protected override bool CanOrientation => true;
         protected override bool CanSelectMonth => false;
-        #endregion
-        #region Actions
-        protected override void SelectWeek()
-        {
-            DateTime selectedDate = Start;
-            if (HasSelectedWeek) selectedDate = SelectedWeek.Start;
-            RequestViewChangeEventArgs e = new RequestViewChangeEventArgs(
-                CalendarViewType.Week, selectedDate);
-            OnRequestViewChange(e);
-        }
-        protected void SetTextMargin()
-        {
-            foreach (var w in MonthWeeksView)
-            {
-                MonthWeekViewModel mwVM = w as MonthWeekViewModel;
-                mwVM.TextMargin = TextMargin;
-            }
-        }
-        internal override async Task LoadData()
-        {
-            IsEnabled = false;
-            IsLoading = true;
-            Status = "Loading Data...";
-            try
-            {
-                await GetDataAsync();
-                IsEnabled = true;
-                Status = "Ready";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, String.Format("Error Loading {0} Data", Name), MessageBoxButton.OK, MessageBoxImage.Error);
-                Status = "Failed to get data!";
-            }
-            IsLoading = false;
-        }
-        protected override async Task GetDataAsync()
-        {
-            await Task.Delay(0);
-            await SetUpCalendarObjects();
-        }
-        protected override async Task PreviousAsync()
-        {
-            DateTime previousMonth = Start.AddMonths(-1);
-            Start = previousMonth;
-            await LoadData();
-        }
-        protected override async Task NextAsync()
-        {
-            DateTime nextMonth = Start.AddMonths(1);
-            Start = nextMonth;
-            await LoadData();
-        }
-        private async Task SetUpCalendarObjects()
-        {
-            await Task.Delay(0);
-            MonthWeeksCollection = new CollectionViewSource();
-            MonthWeeksCollection.Source = new ObservableCollection<MonthWeekViewModel>();
-            int numWeeks = Start.MonthWeeks();
-            DateTime firstDay = new DateTime(Year, Month, 1);
-            for (int i = 0; i < numWeeks; i++)
-            {
-                //TODO: any way to make this more efficient? This is creating up to 6 copies of
-                //DbContexts for each month. Are these getting disposed?
-                MonthWeekViewModel week = new MonthWeekViewModel();
-                week.GetDataCommand.Execute(null);
-                week.Start = firstDay.AddDays(7 * i);
-                week.SelectedMonthOverride = Month;
-                week.TextMargin = TextMargin;
-                MonthWeeksView.AddNewItem(week);
-                MonthWeeksView.CommitNew();
-            }
-            OnPropertyChanged(nameof(MonthWeeksView));
-        }
         internal override void SaveAs()
         {
             throw new NotImplementedException();
         }
-        #endregion
+        protected override void AdditionalCalTaskObjSetup(CalendarTaskObject CalObj)
+        {
+            ShadowClone(CalObj);
+        }
+        private void ShadowClone(CalendarTaskObject CalObj)
+        {
+            if (CalObj.Start.Date != CalObj.End.Date)
+            {
+                //CalObj covers more than one day, so we need to make copies and set
+                //the DayOffset property to help Week panel, otherwise it will not be
+                //displayed properly and only show up on one day.
+                int startDayOfMonth = (int)(CalObj.Start.Date - Start).TotalDays.Within(0, Start.MonthDays() - 1);
+                int endDayOfMonth = (int)(CalObj.End.Date - Start).TotalDays.Within(0, Start.MonthDays() - 1);
+                int numExtraDays = endDayOfMonth - startDayOfMonth;
+                CalObj.DayOffset = 0;
+                for (int i = 1; i <= numExtraDays; i++)
+                {
+                    CalendarTaskObject shadowClone = CalObj.ShadowClone();
+                    shadowClone.DayOffset = i;
+                    CalTaskObjsView.AddNewItem(shadowClone);
+                    CalTaskObjsView.CommitNew();
+                }
+            }
+        }
+        protected override async Task PreviousAsync()
+        {
+            Start = Start.AddMonths(-1);
+            await base.PreviousAsync();
+        }
+        protected override async Task NextAsync()
+        {
+            Start = Start.AddMonths(1);
+            await base.NextAsync();
+        }
     }
 }

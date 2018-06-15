@@ -70,8 +70,8 @@ namespace TimekeeperWPF
                 //CalObj covers more than one day, so we need to make copies and set
                 //the DayOffset property to help Week panel, otherwise it will not be
                 //displayed properly and only show up on one day.
-                int startDayOfWeek = (int)(CalObj.Start.Date - Start.WeekStart()).TotalDays.Within(0, 6);
-                int endDayOfWeek = (int)(CalObj.End.Date - Start.WeekStart()).TotalDays.Within(0, 6);
+                int startDayOfWeek = (int)(CalObj.Start.Date - Start).TotalDays.Within(0, 6);
+                int endDayOfWeek = (int)(CalObj.End.Date - Start).TotalDays.Within(0, 6);
                 int numExtraDays = endDayOfWeek - startDayOfWeek;
                 CalObj.DayOffset = 0;
                 for (int i = 1; i <= numExtraDays; i++)

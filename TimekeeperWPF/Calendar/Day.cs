@@ -32,6 +32,7 @@ namespace TimekeeperWPF.Calendar
 {
     public class Day : Panel, IScrollInfo
     {
+        internal const int _DAY_SECONDS = 86400;
         #region Constructor
         static Day()
         {
@@ -87,18 +88,18 @@ namespace TimekeeperWPF.Calendar
             if (Orientation == Orientation.Vertical)
             {
                 var pos = e.GetPosition(this);
-                var xToDate = Date;
-                var yToSeconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, 86400);
-                var yToTime = new TimeSpan(0, 0, yToSeconds);
-                MousePosition = xToDate + yToTime;
+                var date = Date;
+                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _DAY_SECONDS);
+                var time = new TimeSpan(0, 0, seconds);
+                MousePosition = date + time;
             }
             else
             {
                 var pos = e.GetPosition(this);
-                var yToDate = Date;
-                var xToSeconds = (int)((pos.X + Offset.X) * Scale).Within(0, 86400);
-                var xToTime = new TimeSpan(0, 0, xToSeconds);
-                MousePosition = yToDate + xToTime;
+                var date = Date;
+                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _DAY_SECONDS);
+                var time = new TimeSpan(0, 0, seconds);
+                MousePosition = date + time;
             }
         }
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
@@ -157,7 +158,6 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsRender |
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
-        protected bool IsDateToday(DateTime d) { return d.Date == DateTime.Now.Date; }
         protected virtual bool IsDateTimeRelevant(DateTime d) { return d.Date == Date; }
         protected bool IsCalObjRelevant(CalendarTaskObject CalObj)
         { return IsDateTimeRelevant(CalObj.Start) || IsDateTimeRelevant(CalObj.End); }
@@ -627,7 +627,7 @@ namespace TimekeeperWPF.Calendar
             get { return (bool)GetValue(ShowTextMarginProperty); }
             set { SetValue(ShowTextMarginProperty, value); }
         }
-        private static readonly DependencyProperty ShowTextMarginProperty =
+        public static readonly DependencyProperty ShowTextMarginProperty =
             DependencyProperty.Register(
                 nameof(ShowTextMargin), typeof(bool), typeof(Day),
                 new FrameworkPropertyMetadata(true,
@@ -643,13 +643,13 @@ namespace TimekeeperWPF.Calendar
             get { return (double)GetValue(TextMarginProperty); }
             set { SetValue(TextMarginProperty, value); }
         }
-        private static readonly DependencyProperty TextMarginProperty =
+        public static readonly DependencyProperty TextMarginProperty =
             DependencyProperty.Register(
                 nameof(TextMargin), typeof(double), typeof(Day),
                 new FrameworkPropertyMetadata(0d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender));
-        protected void UpdateTextMargin()
+        private void UpdateTextMargin()
         {
             if (ShowTextMargin)
             {
@@ -772,6 +772,10 @@ namespace TimekeeperWPF.Calendar
         public Point _TextOffset { get; set; } = new Point(-4, 0); //TODO: dep prop
         public double _TextRotation { get; set; } = 0d; //TODO: dep prop
         protected double _ScreenInterval;
+        protected double _VisibleColumns = 1;
+        protected double _VisibleRows = 1;
+        protected virtual int NowColumn => 0;
+        protected virtual int NowRow => 0;
         protected int MaxIntervals(DateTime d) { return (int)(Date.DaySeconds() / _GridData.SecondsInterval); }
         protected double DaySize(DateTime d) { return d.DaySeconds() / Scale; }
         protected virtual void InitializeGridData()
@@ -905,7 +909,7 @@ namespace TimekeeperWPF.Calendar
                 {
                     //Last
                     ScaleCutoff = double.PositiveInfinity,
-                    SecondsInterval = 86400d, //24h
+                    SecondsInterval = _DAY_SECONDS, //24h
                     RegularSkip = 1,
                     MinorGridLines = false,
                     RegularGridLines = true,
@@ -960,33 +964,33 @@ namespace TimekeeperWPF.Calendar
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
-                else if (actualChild is NowMarker)
+                if (actualChild is NowMarker)
                 {
                     var NM = actualChild as NowMarker;
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin);
+                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / _VisibleColumns;
                 }
                 else if (actualChild is CalendarTaskObject)
                 {
                     var C = actualChild as CalendarTaskObject;
-                    var sections = C.DimensionCount;
+                    var sections = _VisibleColumns * C.DimensionCount;
                     childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
                     biggestWidth = Math.Max(biggestWidth, (child.DesiredSize.Width * sections) + TextMargin);
                 }
                 else if (actualChild is CalendarNoteObject)
                 {
                     var N = actualChild as CalendarNoteObject;
-                    var sections = N.DimensionCount;
+                    var sections = _VisibleColumns * N.DimensionCount;
                     childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
                 }
                 else if (actualChild is CalendarCheckInObject)
                 {
                     var CIO = actualChild as CalendarCheckInObject;
-                    var sections = CIO.DimensionCount;
+                    var sections = _VisibleColumns * CIO.DimensionCount;
                     childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
                 }
                 else
                 {
-                    biggestWidth = Math.Max(biggestWidth, actualChild.DesiredSize.Width);
+                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width);
                 }
                 child.Measure(childSize);
             }
@@ -1008,30 +1012,30 @@ namespace TimekeeperWPF.Calendar
                 if (actualChild is NowMarker)
                 {
                     var NM = actualChild as NowMarker;
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin);
+                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / _VisibleColumns;
                 }
                 else if (actualChild is CalendarTaskObject)
                 {
                     var C = actualChild as CalendarTaskObject;
-                    var sections = C.DimensionCount;
+                    var sections = _VisibleColumns * C.DimensionCount;
                     childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
                     biggestHeight = Math.Max(biggestHeight, (actualChild.DesiredSize.Height * sections) + TextMargin);
                 }
                 else if (actualChild is CalendarNoteObject)
                 {
                     var N = actualChild as CalendarNoteObject;
-                    var sections = N.DimensionCount;
+                    var sections = _VisibleColumns * N.DimensionCount;
                     childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
                 }
                 else if (actualChild is CalendarCheckInObject)
                 {
                     var CIO = actualChild as CalendarCheckInObject;
-                    var sections = CIO.DimensionCount;
+                    var sections = _VisibleColumns * CIO.DimensionCount;
                     childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
                 }
                 else
                 {
-                    biggestHeight = Math.Max(biggestHeight, actualChild.DesiredSize.Height);
+                    biggestHeight = Math.Max(biggestHeight, child.DesiredSize.Height);
                 }
                 child.Measure(childSize);
             }
@@ -1057,10 +1061,11 @@ namespace TimekeeperWPF.Calendar
         }
         protected virtual Size ArrangeVertically(Size arrangeSize, Size extent)
         {
-
-            //Height will be unbound. Width will be bound to UI space.
             double biggestChildWidth = TextMargin;
-            //
+            double biggestChildHeight = 0;
+            Size cellSize = arrangeSize;
+            cellSize.Width = (arrangeSize.Width - TextMargin) / _VisibleColumns;
+            cellSize.Height = arrangeSize.Height / _VisibleRows;
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
@@ -1073,12 +1078,12 @@ namespace TimekeeperWPF.Calendar
                     actualChild = (UIElement)((ContentControl)child).Content;
                 if (actualChild is NowMarker)
                 {
-                    if (IsDateToday(Date))
+                    if (IsDateTimeRelevant(DateTime.Today))
                     {
                         child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
-                        x = TextMargin;
-                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Height / 2;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / _VisibleColumns;
+                        x = TextMargin + NowColumn * cellSize.Width;
+                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Height / 2 + NowRow * cellSize.Height;
                     }
                     else
                     {
@@ -1091,14 +1096,15 @@ namespace TimekeeperWPF.Calendar
                     CalendarTaskObject CalObj = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(CalObj))
                     {
-                        var sections = CalObj.DimensionCount;
+                        var columns = _VisibleColumns * CalObj.DimensionCount;
+                        var rows = _VisibleRows;
                         child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
+                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin);
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
-                        biggestChildWidth = Math.Max(biggestChildWidth, (childSize.Width * sections) + TextMargin);
-
-
-
+                        biggestChildWidth = Math.Max(biggestChildWidth, childSize.Width + TextMargin);
+                        biggestChildHeight = Math.Max(biggestChildHeight, childSize.Height);
+                        childSize.Width /= columns;
+                        childSize.Height /= rows;
                         var dimensionOffset = childSize.Width * CalObj.Dimension;
                         x = TextMargin + dimensionOffset;
                         y = (CalObj.Start - Date).TotalSeconds / Scale;
@@ -1174,7 +1180,7 @@ namespace TimekeeperWPF.Calendar
                     actualChild = (UIElement)((ContentControl)child).Content;
                 if (actualChild is NowMarker)
                 {
-                    if (IsDateToday(Date))
+                    if (IsDateTimeRelevant(DateTime.Today))
                     {
                         child.Visibility = Visibility.Visible;
                         childSize.Height = Math.Max(0, arrangeSize.Height - TextMargin);
@@ -1281,7 +1287,7 @@ namespace TimekeeperWPF.Calendar
         }
         protected virtual void DrawHighlightVertically(DrawingContext dc)
         {
-            if (IsDateToday(Date)) dc.DrawRectangle(Highlight, null, new Rect(RenderSize));
+            if (IsDateTimeRelevant(DateTime.Today)) dc.DrawRectangle(Highlight, null, new Rect(RenderSize));
         }
         protected virtual void DrawHighlightHorizontally(DrawingContext dc)
         {
