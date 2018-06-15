@@ -53,6 +53,7 @@ namespace TimekeeperWPF.Calendar
         }
         public Month() : base()
         {
+            _VisibleRows = DateTime.Now.MonthWeeks();
         }
         #endregion
         #region Events
@@ -62,7 +63,7 @@ namespace TimekeeperWPF.Calendar
             {
                 var pos = e.MouseDevice.GetPosition(this);
                 var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / 7d)).Within(0, 6);
-                var monthWeek = (int)(pos.Y / (RenderSize.Height / MonthWeeks)).Within(0, MonthWeeks - 1);
+                var monthWeek = (int)(pos.Y / (RenderSize.Height / _VisibleRows)).Within(0, _VisibleRows - 1);
                 var date = Date.WeekStart().AddDays(weekDay + monthWeek * 7);
                 var seconds = (int)(pos.Y * Scale - monthWeek * _DAY_SECONDS).Within(0,_DAY_SECONDS);
                 var time = new TimeSpan(0, 0, seconds);
@@ -74,14 +75,13 @@ namespace TimekeeperWPF.Calendar
         }
         #endregion Events
         #region Date
+        private DateTime MonthWeekStart;
         private static void OnDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Month month = d as Month;
-            month.MonthWeeks = month.Date.MonthWeeks();
+            month._VisibleRows = month.Date.MonthWeeks();
             month.MonthWeekStart = month.Date.WeekStart();
         }
-        private int MonthWeeks;
-        private DateTime MonthWeekStart;
         private static object OnCoerceDate(DependencyObject d, object value)
         {
             DateTime newValue = (DateTime)value;
@@ -91,11 +91,10 @@ namespace TimekeeperWPF.Calendar
         protected override bool IsDateTimeRelevant(DateTime d) { return d.MonthStart() == Date; }
         #endregion
         #region Layout
-        protected override int NowColumn => (int)DateTime.Now.DayOfWeek;
-        protected override int NowRow => GetMonthRow(DateTime.Now);
-        private int GetMonthRow(DateTime date)
+        protected override int Days => Date.MonthDays();
+        protected override int GetRow(DateTime date)
         {
-            return ((int)(date.Date - Date).TotalDays.Within(0, Date.MonthDays() - 1) + (int)Date.DayOfWeek) / MonthWeeks;
+            return ((int)(date.Date - Date).TotalDays.Within(0, Days - 1) + (int)Date.DayOfWeek) / (int)_VisibleRows;
         }
         protected override Size ArrangeVertically(Size arrangeSize, Size extent)
         {
@@ -118,8 +117,8 @@ namespace TimekeeperWPF.Calendar
                     {
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / _VisibleColumns;
-                        x = TextMargin + NowColumn * cellSize.Width;
-                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Height / 2 + NowRow * cellSize.Height;
+                        x = TextMargin + GetColumn(DateTime.Now) * cellSize.Width;
+                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Height / 2 + GetRow(DateTime.Now) * cellSize.Height;
                     }
                     else
                     {
@@ -137,25 +136,26 @@ namespace TimekeeperWPF.Calendar
                         childSize.Width = cellSize.Width / CalObj.DimensionCount;
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
                         //Position
-                        var startDayOfMonth = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, Date.MonthDays() - 1);
-                        var currentDayOfMonth = startDayOfMonth + CalObj.DayOffset;
-                        var currentDate = Date.AddDays(currentDayOfMonth);
-                        var column = (int)currentDate.DayOfWeek;
-                        var row = GetMonthRow(currentDate);
+                        var startDay = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, Days - 1);
+                        var currentDay = startDay + CalObj.DayOffset;
+                        var currentDate = Date.AddDays(currentDay);
+                        var column = GetColumn(currentDate);
+                        var row = GetRow(currentDate);
                         var cellX = column * cellSize.Width;
                         var cellY = row * cellSize.Height;
                         var dimensionOffset = childSize.Width * CalObj.Dimension;
                         x = TextMargin + cellX + dimensionOffset;
                         y = cellY + (CalObj.Start - currentDate).TotalSeconds / Scale;
                         //Cut off excess
-                        if (y < cellY)
+                        var end = y + childSize.Height;
+                        if (y < 0)
                         {
-                            childSize.Height += y;
+                            childSize.Height = end;
                             y = 0;
                         }
-                        else if (y + childSize.Height > cellY + cellSize.Height)
+                        else if (end > _DaySize)
                         {
-                            childSize.Height = y + childSize.Height - cellY + cellSize.Height;
+                            childSize.Height -= end - _DaySize;
                         }
                     }
                     else

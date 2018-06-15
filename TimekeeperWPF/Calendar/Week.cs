@@ -124,7 +124,8 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
         #region Layout
-        protected override int NowColumn => (int)DateTime.Now.DayOfWeek;
+        protected override int Days => 7;
+        protected override int GetColumn(DateTime date) { return (int)date.DayOfWeek; }
         protected override Size ArrangeVertically(Size arrangeSize, Size extent)
         {
             Size cellSize = arrangeSize;
@@ -146,8 +147,9 @@ namespace TimekeeperWPF.Calendar
                     {
                         child.Visibility = Visibility.Visible;
                         childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / _VisibleColumns;
-                        x = TextMargin + NowColumn * cellSize.Width;
-                        y = (DateTime.Now - DateTime.Now.Date).TotalSeconds / Scale - childSize.Height / 2 + NowRow * cellSize.Height;
+                        var cell = getCellPos(DateTime.Now, cellSize);
+                        x = TextMargin + cell.X * cellSize.Width;
+                        y = cell.Y + DateTime.Now.TimeOfDay.TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
@@ -161,20 +163,15 @@ namespace TimekeeperWPF.Calendar
                     if (IsCalObjRelevant(CalObj))
                     {
                         child.Visibility = Visibility.Visible;
-                        //Size
                         childSize.Width = cellSize.Width / CalObj.DimensionCount;
                         childSize.Height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
-                        //Position
-                        var startDayOfWeek = (int)(CalObj.Start.Date - Date.WeekStart()).TotalDays.Within(0, 6);
-                        var currentDayOfWeek = startDayOfWeek + CalObj.DayOffset;
-                        var currentDate = Date.AddDays(currentDayOfWeek);
-                        var column = currentDayOfWeek;
-                        var row = 0;
-                        var cellX = column * cellSize.Width;
-                        var cellY = row * cellSize.Height;
+                        var startDay = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, Days - 1);
+                        var currentDay = startDay + CalObj.DayOffset;
+                        var currentDate = Date.AddDays(currentDay);
+                        var cell = getCellPos(currentDate, cellSize);
                         var dimensionOffset = childSize.Width * CalObj.Dimension;
-                        x = TextMargin + cellX + dimensionOffset;
-                        y = cellY + (CalObj.Start - currentDate).TotalSeconds / Scale;
+                        x = TextMargin + cell.X + dimensionOffset;
+                        y = cell.Y + (CalObj.Start - currentDate).TotalSeconds / Scale;
                         //Cut off excess
                         var end = y + childSize.Height;
                         if (y < 0)
@@ -193,50 +190,33 @@ namespace TimekeeperWPF.Calendar
                         continue;
                     }
                 }
-                else if (actualChild is CalendarNoteObject)
+                else if (actualChild is CalendarFlairObject)
                 {
-                    CalendarNoteObject CalObj = actualChild as CalendarNoteObject;
+                    CalendarFlairObject CalObj = actualChild as CalendarFlairObject;
                     if (IsDateTimeRelevant(CalObj.DateTime))
                     {
-                        var sections = 7d * CalObj.DimensionCount;
                         child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
+                        childSize.Width = cellSize.Width / CalObj.DimensionCount;
+                        var cell = getCellPos(CalObj.DateTime, cellSize);
                         var dimensionOffset = childSize.Width * CalObj.Dimension;
-                        x = TextMargin + ((int)CalObj.DateTime.DayOfWeek * cellSize.Width) + dimensionOffset;
-                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
+                        x = TextMargin + cell.X + dimensionOffset;
+                        y = cell.Y + CalObj.DateTime.TimeOfDay.TotalSeconds / Scale - childSize.Height / 2;
                     }
                     else
                     {
                         child.Visibility = Visibility.Collapsed;
                         continue;
                     }
-                }
-                else if (actualChild is CalendarCheckInObject)
-                {
-                    CalendarCheckInObject CalObj = actualChild as CalendarCheckInObject;
-                    if (IsDateTimeRelevant(CalObj.DateTime))
-                    {
-                        var sections = 7d * CalObj.DimensionCount;
-                        child.Visibility = Visibility.Visible;
-                        childSize.Width = Math.Max(0, arrangeSize.Width - TextMargin) / sections;
-                        var dimensionOffset = childSize.Width * CalObj.Dimension;
-                        x = TextMargin + ((int)CalObj.DateTime.DayOfWeek * cellSize.Width) + dimensionOffset;
-                        y = (CalObj.DateTime.TimeOfDay).TotalSeconds / Scale - childSize.Height / 2;
-                    }
-                    else
-                    {
-                        child.Visibility = Visibility.Collapsed;
-                        continue;
-                    }
-                }
-                else
-                {
                 }
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
             extent.Width = arrangeSize.Width;
             extent.Height = _DaySize;
             return extent;
+        }
+        private Point getCellPos(DateTime d, Size cellSize)
+        {
+            return new Point(GetColumn(d) * cellSize.Width, GetRow(d) * cellSize.Height);
         }
         protected override Size ArrangeHorizontally(Size arrangeSize, Size extent)
         {   

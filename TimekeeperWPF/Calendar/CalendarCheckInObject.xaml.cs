@@ -12,7 +12,7 @@ namespace TimekeeperWPF.Calendar
         PerZoneStart, InclusionZoneStart, Cancel, EventStart,
         EventEnd, InclusionZoneEnd, PerZoneEnd,
     }
-    public partial class CalendarCheckInObject : CalendarObject
+    public partial class CalendarCheckInObject : CalendarFlairObject
     {
         public CalendarCheckInObject()
         {
@@ -23,13 +23,11 @@ namespace TimekeeperWPF.Calendar
             return Kind + " \n" + CheckIn;
         }
         public override string BasicString => CheckIn.ToString();
+        public override DateTime DateTime => CheckIn.DateTime;
+        public override int Dimension => TimeTask?.Dimension ?? 0;
         public CheckIn CheckIn { get; set; }
         public CheckInKind Kind { get; set; }
-        public Orientation Orientation { get; set; }
-        public DateTime DateTime => CheckIn.DateTime;
         public TimeTask TimeTask => ParentPerZone?.ParentMap?.TimeTask;
-        public int Dimension => TimeTask?.Dimension ?? 0;
-        public int DimensionCount { get; set; }
         #region ParentMap
         //public CalendarTimeTaskMap ParentMap
         //{

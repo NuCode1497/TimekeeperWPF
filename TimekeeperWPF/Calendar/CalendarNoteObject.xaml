@@ -1,4 +1,4 @@
-﻿<cal:CalendarObject 
+﻿<cal:CalendarFlairObject 
     x:Class="TimekeeperWPF.Calendar.CalendarNoteObject"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -47,4 +47,4 @@
             </Style.Triggers>
         </Style>
     </UserControl.Style>
-</cal:CalendarObject>
+</cal:CalendarFlairObject>

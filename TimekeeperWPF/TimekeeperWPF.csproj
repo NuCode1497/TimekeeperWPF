@@ -106,6 +106,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Calendar\CalendarFlairObject.cs" />
     <Compile Include="Calendar\CalendarObject.cs" />
     <Compile Include="Calendar\CalendarTaskObject.xaml.cs">
       <DependentUpon>CalendarTaskObject.xaml</DependentUpon>
