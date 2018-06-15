@@ -79,7 +79,6 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsRender));
         private static void OnDateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-
         }
         private static object OnCoerceDate(DependencyObject d, object value)
         {
@@ -177,14 +176,15 @@ namespace TimekeeperWPF.Calendar
                         x = TextMargin + cellX + dimensionOffset;
                         y = cellY + (CalObj.Start - currentDate).TotalSeconds / Scale;
                         //Cut off excess
-                        if (y < cellY)
+                        var end = y + childSize.Height;
+                        if (y < 0)
                         {
-                            childSize.Height += y;
+                            childSize.Height = end;
                             y = 0;
                         }
-                        else if (y + childSize.Height > cellY + cellSize.Height) //TODO: Fix: cellY maybe needs to go by Scale
+                        else if (end > _DaySize)
                         {
-                            //childSize.Height = (y + childSize.Height) - (cellY + cellSize.Height);
+                            childSize.Height -= end - _DaySize;
                         }
                     }
                     else
@@ -235,7 +235,7 @@ namespace TimekeeperWPF.Calendar
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
             extent.Width = arrangeSize.Width;
-            extent.Height = DaySize(Date);
+            extent.Height = _DaySize;
             return extent;
         }
         protected override Size ArrangeHorizontally(Size arrangeSize, Size extent)
@@ -336,7 +336,7 @@ namespace TimekeeperWPF.Calendar
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
             extent.Height = biggestChildHeight;
-            extent.Width = DaySize(Date);
+            extent.Width = _DaySize;
             return extent;
         }
         protected override void OnRender(DrawingContext dc)

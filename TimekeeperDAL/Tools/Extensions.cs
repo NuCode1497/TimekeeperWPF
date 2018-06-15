@@ -91,16 +91,6 @@ namespace TimekeeperDAL.Tools
         public static DateTime MonthStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind); }
         public static DateTime YearStart(this DateTime dt) { return new DateTime(dt.Year, 1, 1, 0, 0, 0, dt.Kind); }
         public static DateTime HourStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, 0, 0, dt.Kind); }
-        public static int DaySeconds(this DateTime dt)
-        {
-            DateTime date = dt.Date;
-            return (int)(date.AddDays(1) - date).TotalSeconds;
-        }
-        public static int WeekSeconds(this DateTime dt)
-        {
-            DateTime weekStart = dt.WeekStart();
-            return (int)(weekStart.AddDays(7) - weekStart).TotalSeconds;
-        }
         public static int MonthDays(this DateTime dt)
         {
             DateTime monthStart = dt.MonthStart();

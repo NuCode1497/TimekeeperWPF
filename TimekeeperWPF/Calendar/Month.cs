@@ -206,7 +206,7 @@ namespace TimekeeperWPF.Calendar
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
             extent.Width = arrangeSize.Width;
-            extent.Height = DaySize(Date);
+            extent.Height = _DaySize;
             return extent;
         }
         protected override Size ArrangeHorizontally(Size arrangeSize, Size extent)
@@ -307,7 +307,7 @@ namespace TimekeeperWPF.Calendar
                 child.Arrange(new Rect(new Point(x - Offset.X, y - Offset.Y), childSize));
             }
             extent.Height = biggestChildHeight;
-            extent.Width = DaySize(Date);
+            extent.Width = _DaySize;
             return extent;
         }
         protected override void OnRender(DrawingContext dc)
@@ -415,39 +415,6 @@ namespace TimekeeperWPF.Calendar
                 else
                 {
                     DrawWatermarkText(dc, textSize, x, y, text);
-                }
-            }
-        }
-        protected virtual void DrawMonthBoundsWatermarkText(DrawingContext dc, double textSize, double x, double y, string text)
-        {
-            FormattedText lineText = new FormattedText(text,
-                System.Globalization.CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                new Typeface(WatermarkFontFamily, FontStyles.Normal,
-                FontWeights.Bold, FontStretches.Normal),
-                textSize, MonthBoundsWatermarkBrush, null,
-                VisualTreeHelper.GetDpi(this).PixelsPerDip);
-            lineText.TextAlignment = TextAlignment.Center;
-            dc.DrawText(lineText, new Point(x, y - lineText.Height / 2d));
-        }
-        protected virtual void DrawSeparators(DrawingContext dc)
-        {
-            if (Orientation == Orientation.Vertical)
-            {
-                for (int i = 0; i < 7; i++)
-                {
-                    double dayWidth = (RenderSize.Width - TextMargin) / 7d;
-                    double x = TextMargin + (i * dayWidth);
-                    dc.DrawLine(GridRegularPen, new Point(x, 0), new Point(x, RenderSize.Height));
-                }
-            }
-            else
-            {
-                for (int i = 0; i < 7; i++)
-                {
-                    double dayHeight = (RenderSize.Height - TextMargin) / 7d;
-                    double y = i * dayHeight;
-                    dc.DrawLine(GridRegularPen, new Point(0, y), new Point(RenderSize.Width, y));
                 }
             }
         }
