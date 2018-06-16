@@ -943,136 +943,93 @@ namespace TimekeeperWPF.Calendar
         {
             return new Point(GetColumn(d) * cellSize.Width, GetRow(d) * cellSize.Height);
         }
-        protected override Size MeasureOverride(Size availableSize)
-        {
-            Size extent = new Size(0, 0);
-            switch (Orientation)
-            {
-                case Orientation.Vertical:
-                    extent = MeasureVertically(availableSize, extent);
-                    VerifyVerticalScrollData(availableSize, extent);
-                    break;
-                case Orientation.Horizontal:
-                    extent = MeasureHorizontally(availableSize, extent);
-                    VerifyHorizontalScrollData(availableSize, extent);
-                    break;
-            }
-            return _Viewport;
-        }
-        protected virtual Size MeasureVertically(Size availableSize, Size extent)
-        {
-            //Height will be unbound. Width will be bound to UI space.
-            double biggestWidth = TextMargin;
-            foreach (UIElement child in InternalChildren)
-            {
-                if (child == null) { continue; }
-                UIElement actualChild = child;
-                Size childSize = new Size(availableSize.Width, double.PositiveInfinity);
-                //unbox the child element
-                if ((child as ContentControl)?.Content is UIElement)
-                    actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is NowMarker)
-                {
-                    var NM = actualChild as NowMarker;
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / _VisibleColumns;
-                }
-                else if (actualChild is CalendarTaskObject)
-                {
-                    var C = actualChild as CalendarTaskObject;
-                    var sections = _VisibleColumns * C.DimensionCount;
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
-                    biggestWidth = Math.Max(biggestWidth, (child.DesiredSize.Width * sections) + TextMargin);
-                }
-                else if (actualChild is CalendarNoteObject)
-                {
-                    var N = actualChild as CalendarNoteObject;
-                    var sections = _VisibleColumns * N.DimensionCount;
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
-                }
-                else if (actualChild is CalendarCheckInObject)
-                {
-                    var CIO = actualChild as CalendarCheckInObject;
-                    var sections = _VisibleColumns * CIO.DimensionCount;
-                    childSize.Width = Math.Max(0, availableSize.Width - TextMargin) / sections;
-                }
-                else
-                {
-                    biggestWidth = Math.Max(biggestWidth, child.DesiredSize.Width);
-                }
-                child.Measure(childSize);
-            }
-            extent.Width = biggestWidth;
-            extent.Height = _DaySize;
-            return extent;
-        }
-        protected virtual Size MeasureHorizontally(Size availableSize, Size extent)
-        {   //Width will be unbound. Height will be bound to UI space.
-            double biggestHeight = TextMargin;
-            foreach (UIElement child in InternalChildren)
-            {
-                if (child == null) { continue; }
-                UIElement actualChild = child;
-                Size childSize = new Size(double.PositiveInfinity, availableSize.Height);
-                //unbox the child element
-                if ((child as ContentControl)?.Content is UIElement)
-                    actualChild = (UIElement)((ContentControl)child).Content;
-                if (actualChild is NowMarker)
-                {
-                    var NM = actualChild as NowMarker;
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / _VisibleColumns;
-                }
-                else if (actualChild is CalendarTaskObject)
-                {
-                    var C = actualChild as CalendarTaskObject;
-                    var sections = _VisibleColumns * C.DimensionCount;
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
-                    biggestHeight = Math.Max(biggestHeight, (actualChild.DesiredSize.Height * sections) + TextMargin);
-                }
-                else if (actualChild is CalendarNoteObject)
-                {
-                    var N = actualChild as CalendarNoteObject;
-                    var sections = _VisibleColumns * N.DimensionCount;
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
-                }
-                else if (actualChild is CalendarCheckInObject)
-                {
-                    var CIO = actualChild as CalendarCheckInObject;
-                    var sections = _VisibleColumns * CIO.DimensionCount;
-                    childSize.Height = Math.Max(0, availableSize.Height - TextMargin) / sections;
-                }
-                else
-                {
-                    biggestHeight = Math.Max(biggestHeight, child.DesiredSize.Height);
-                }
-                child.Measure(childSize);
-            }
-            extent.Height = biggestHeight;
-            extent.Width = _DaySize;
-            return extent;
-        }
+        //private delegate Size Measurer(double w, double h);
+        //protected override Size MeasureOverride(Size availableSize)
+        //{
+        //    Measurer measurer;
+        //    Size size;
+        //    switch (Orientation)
+        //    {
+        //        case Orientation.Vertical:
+        //            measurer = (w, h) => new Size(w, h);
+        //            size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
+        //            VerifyVerticalScrollData(availableSize, size);
+        //            break;
+        //        case Orientation.Horizontal:
+        //            measurer = (w, h) => new Size(h, w);
+        //            size = MeasureStuff(measurer, new Size(availableSize.Height, double.PositiveInfinity));
+        //            VerifyHorizontalScrollData(availableSize, new Size(size.Height, size.Width));
+        //            break;
+        //    }
+        //    return _Viewport;
+        //}
+        //private Size MeasureStuff(Measurer measurer, Size availableSize)
+        //{
+        //    double cellWidth = (availableSize.Width - TextMargin) / _VisibleColumns;
+        //    double width = availableSize.Width;
+        //    double height = availableSize.Height;
+        //    foreach (UIElement child in InternalChildren)
+        //    {
+        //        if (child == null) { continue; }
+        //        UIElement actualChild = child;
+        //        //unbox the child element
+        //        if ((child as ContentControl)?.Content is UIElement)
+        //            actualChild = (UIElement)((ContentControl)child).Content;
+        //        if (actualChild is NowMarker)
+        //        {
+        //            if (IsDateTimeRelevant(DateTime.Today))
+        //            {
+        //                width = cellWidth;
+        //            }
+        //            else continue;
+        //        }
+        //        else if (actualChild is CalendarTaskObject)
+        //        {
+        //            var C = actualChild as CalendarTaskObject;
+        //            if (IsCalObjRelevant(C))
+        //            {
+        //                width = cellWidth / C.DimensionCount;
+        //            }
+        //            else continue;
+        //        }
+        //        else if (actualChild is CalendarFlairObject)
+        //        {
+        //            var C = actualChild as CalendarNoteObject;
+        //            if (IsDateTimeRelevant(C.DateTime))
+        //            {
+        //                width = cellWidth / C.DimensionCount;
+        //            }
+        //            else continue;
+        //        }
+        //        child.Measure(measurer(width, height));
+        //    }
+        //    return new Size(availableSize.Width, _DaySize);
+        //}
+        private delegate Rect Arranger(double x, double y, double w, double h);
         protected override Size ArrangeOverride(Size arrangeSize)
         {
-            double w = 0;
-            double h = 0;
+            Arranger arranger;
+            Size size;
             switch (Orientation)
             {
                 case Orientation.Vertical:
-                    Arrange(Orientation, arrangeSize.Width, arrangeSize.Height, TextMargin, 0, out w, out h);
-                    VerifyVerticalScrollData(arrangeSize, new Size(w, h));
+                    arranger = (x, y, w, h) => new Rect(x - Offset.X, y - Offset.Y, w, h);
+                    size = ArrangeStuff(arranger, arrangeSize, TextMargin, 0);
+                    VerifyVerticalScrollData(arrangeSize, size);
                     break;
                 case Orientation.Horizontal:
-                    Arrange(Orientation, arrangeSize.Height, arrangeSize.Width, 0, 0, out h, out w);
-                    VerifyHorizontalScrollData(arrangeSize, new Size(w, h));
+                    arranger = (x, y, w, h) => new Rect(y - Offset.X, x - Offset.Y, h, w);
+                    size = ArrangeStuff(arranger, new Size(arrangeSize.Height, arrangeSize.Width), 0, 0);
+                    VerifyHorizontalScrollData(arrangeSize, new Size(size.Height, size.Width));
                     break;
             }
             return arrangeSize;
         }
-        protected virtual void Arrange(Orientation orientation, double relativeArrangeWidth, double relativeArrangeHeight, double xMargin, double yMargin, out double w, out double h)
+        private Size ArrangeStuff(Arranger arranger, Size arrangeSize, double xMargin, double yMargin)
         {
-
             Size cellSize = new Size();
-            cellSize.Width = (relativeArrangeWidth - TextMargin) / _VisibleColumns;
-            cellSize.Height = relativeArrangeHeight / _VisibleRows;
+            cellSize.Width = (arrangeSize.Width - TextMargin) / _VisibleColumns;
+            cellSize.Height = arrangeSize.Height / _VisibleRows;
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
@@ -1102,19 +1059,19 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarTaskObject)
                 {
-                    CalendarTaskObject CalObj = actualChild as CalendarTaskObject;
-                    if (IsCalObjRelevant(CalObj))
+                    var C = actualChild as CalendarTaskObject;
+                    if (IsCalObjRelevant(C))
                     {
                         child.Visibility = Visibility.Visible;
-                        width = cellSize.Width / CalObj.DimensionCount;
-                        height = Math.Max(0, (CalObj.End - CalObj.Start).TotalSeconds / Scale);
-                        var startDay = (int)(CalObj.Start.Date - Date).TotalDays.Within(0, Days - 1);
-                        var currentDay = startDay + CalObj.DayOffset;
+                        width = cellSize.Width / C.DimensionCount;
+                        height = Math.Max(0, (C.End - C.Start).TotalSeconds / Scale);
+                        var startDay = (int)(C.Start.Date - Date).TotalDays.Within(0, Days - 1);
+                        var currentDay = startDay + C.DayOffset;
                         var currentDate = Date.AddDays(currentDay);
                         var cell = getCellPos(currentDate, cellSize);
-                        var dimensionOffset = width * CalObj.Dimension;
+                        var dimensionOffset = width * C.Dimension;
                         x = xMargin + cell.X + dimensionOffset;
-                        y = yMargin + cell.Y + (CalObj.Start - currentDate).TotalSeconds / Scale;
+                        y = yMargin + cell.Y + (C.Start - currentDate).TotalSeconds / Scale;
                         //Cut off excess
                         var end = y + height;
                         if (y < 0)
@@ -1135,15 +1092,15 @@ namespace TimekeeperWPF.Calendar
                 }
                 else if (actualChild is CalendarFlairObject)
                 {
-                    CalendarFlairObject CalObj = actualChild as CalendarFlairObject;
-                    if (IsDateTimeRelevant(CalObj.DateTime))
+                    CalendarFlairObject C = actualChild as CalendarFlairObject;
+                    if (IsDateTimeRelevant(C.DateTime))
                     {
                         child.Visibility = Visibility.Visible;
-                        width = cellSize.Width / CalObj.DimensionCount;
-                        var cell = getCellPos(CalObj.DateTime, cellSize);
-                        var dimensionOffset = width * CalObj.Dimension;
+                        width = cellSize.Width / C.DimensionCount;
+                        var cell = getCellPos(C.DateTime, cellSize);
+                        var dimensionOffset = width * C.Dimension;
                         x = xMargin + cell.X + dimensionOffset;
-                        y = yMargin + cell.Y + CalObj.DateTime.TimeOfDay.TotalSeconds / Scale - height / 2;
+                        y = yMargin + cell.Y + C.DateTime.TimeOfDay.TotalSeconds / Scale - height / 2;
                     }
                     else
                     {
@@ -1151,18 +1108,9 @@ namespace TimekeeperWPF.Calendar
                         continue;
                     }
                 }
-                switch(orientation)
-                {
-                    case Orientation.Vertical:
-                        child.Arrange(new Rect(x - Offset.X, y - Offset.Y, width, height));
-                        break;
-                    case Orientation.Horizontal:
-                        child.Arrange(new Rect(y - Offset.X, x - Offset.Y, height, width));
-                        break;
-                }
+                child.Arrange(arranger(x, y, width, height));
             }
-            w = relativeArrangeWidth;
-            h = _DaySize;
+            return new Size(arrangeSize.Width, _DaySize);
         }
         protected override void OnRender(DrawingContext dc)
         {
