@@ -157,6 +157,17 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsRender |
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
+        [Bindable(true)]
+        public int SelectedMonthOverride
+        {
+            get { return (int)GetValue(SelectedMonthOverrideProperty); }
+            set { SetValue(SelectedMonthOverrideProperty, value); }
+        }
+        public static readonly DependencyProperty SelectedMonthOverrideProperty =
+            DependencyProperty.Register(
+                nameof(SelectedMonthOverride), typeof(int), typeof(Week),
+                new FrameworkPropertyMetadata(DateTime.Now.Month,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
         protected virtual bool IsDateTimeRelevant(DateTime d) { return d.Date == Date; }
         protected bool IsCalObjRelevant(CalendarTaskObject CalObj)
         { return IsDateTimeRelevant(CalObj.Start) || IsDateTimeRelevant(CalObj.End); }
@@ -729,13 +740,56 @@ namespace TimekeeperWPF.Calendar
                 nameof(WatermarkFontFamily), typeof(FontFamily), typeof(Day),
                 new FrameworkPropertyMetadata(new FontFamily("Segoe UI"),
                     FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public bool ShowMonthBoundsHighlight
+        {
+            get { return (bool)GetValue(ShowMonthBoundsHighlightProperty); }
+            set { SetValue(ShowMonthBoundsHighlightProperty, value); }
+        }
+        public static readonly DependencyProperty ShowMonthBoundsHighlightProperty =
+            DependencyProperty.Register(
+                nameof(ShowMonthBoundsHighlight), typeof(bool), typeof(Week),
+                new FrameworkPropertyMetadata(false,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public Brush MonthBoundsHighlight
+        {
+            get { return (Brush)GetValue(MonthBoundsHighlightProperty); }
+            set { SetValue(MonthBoundsHighlightProperty, value); }
+        }
+        public static readonly DependencyProperty MonthBoundsHighlightProperty =
+            DependencyProperty.Register(
+                nameof(MonthBoundsHighlight), typeof(Brush), typeof(Week),
+                new FrameworkPropertyMetadata(Brushes.LightGray,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public Brush MonthBoundsWatermarkBrush
+        {
+            get { return (Brush)GetValue(MonthBoundsWatermarkBrushProperty); }
+            set { SetValue(MonthBoundsWatermarkBrushProperty, value); }
+        }
+        public static readonly DependencyProperty MonthBoundsWatermarkBrushProperty =
+            DependencyProperty.Register(
+                nameof(MonthBoundsWatermarkBrush), typeof(Brush), typeof(Week),
+                new FrameworkPropertyMetadata(Brushes.MintCream,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
         #endregion Features
         #region Layout
+        public bool ShowGrid { get; set; } = true; //TODO: dep prop
+        public Point _TextOffset { get; set; } = new Point(-4, 0); //TODO: dep prop
+        public double _TextRotation { get; set; } = 0d; //TODO: dep prop
+        public bool ShowDateLines { get; set; } = true; //TODO: dep prop
+        protected double _VisibleColumns = 1;
+        protected double _VisibleRows = 1;
+        protected virtual DateTime _FirstVisibleDay => Date;
+        protected virtual int Days => 1;
+        protected virtual int GetColumn(DateTime date) { return 0; }
+        protected virtual int GetRow(DateTime date) { return 0; }
         internal const int _DAY_SECONDS = 86400;
-        protected double _DaySize = 86400d / 60d;
-        protected enum GridTextFormat { Long, Medium, Short, Hide }
-        protected class GridData : IComparable
+        private double _DaySize = 86400d / 60d;
+        private enum GridTextFormat { Long, Medium, Short, Hide }
+        private class GridData : IComparable
         {
             //See: InitializeGridData()
             //This GridData is used below this cutoff
@@ -768,21 +822,12 @@ namespace TimekeeperWPF.Calendar
                 else return 0;
             }
         }
-        protected GridData _GridData;
-        protected List<GridData> _ListOfGridDatas;
-        public bool ShowGrid { get; set; } = true; //TODO: dep prop
-        public Point _TextOffset { get; set; } = new Point(-4, 0); //TODO: dep prop
-        public double _TextRotation { get; set; } = 0d; //TODO: dep prop
-        public bool ShowCellLines { get; set; } = true; //TODO: dep prop
+        private GridData _GridData;
+        private List<GridData> _ListOfGridDatas;
         //Number of pixels between each line
-        protected double _ScreenInterval;
-        protected int _MaxIntervals => (int)(_DAY_SECONDS / _GridData.SecondsInterval);
-        protected double _VisibleColumns = 1;
-        protected double _VisibleRows = 1;
-        protected virtual int Days => 1;
-        protected virtual int GetColumn(DateTime date) { return 0; }
-        protected virtual int GetRow(DateTime date) { return 0; }
-        protected virtual void InitializeGridData()
+        private double _ScreenInterval;
+        private int _MaxIntervals => (int)(_DAY_SECONDS / _GridData.SecondsInterval);
+        private void InitializeGridData()
         {
             _ListOfGridDatas = new List<GridData>()
             {
@@ -924,7 +969,7 @@ namespace TimekeeperWPF.Calendar
                 },
             };
         }
-        protected virtual void FindGridData()
+        private void FindGridData()
         {
             if (_ListOfGridDatas == null)
             {
@@ -1060,13 +1105,15 @@ namespace TimekeeperWPF.Calendar
         }
         private delegate void RectDrawer(Brush brush, double x, double y, double w, double h);
         private delegate void LineDrawer(Pen pen, Point p1, Point p2);
-        private delegate void TextDrawer(string text, double x1, double x2, double y);
-        protected virtual void DrawGrid(DrawingContext dc)
+        private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
+        private void DrawGrid(DrawingContext dc)
         {
             Rect area;
             RectDrawer RD;
             LineDrawer LD;
-            TextDrawer TD;
+            TextDrawer TDmargin;
+            TextDrawer TDwatermark;
+            TextDrawer TDOOBwatermark;
             double x1M;
             double x2M;
             double yM;
@@ -1076,7 +1123,9 @@ namespace TimekeeperWPF.Calendar
                 area = new Rect(new Point(Offset.X, Offset.Y), RenderSize);
                 RD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(x, y, w, h));
                 LD = (pen, p1, p2) => dc.DrawLine(pen, p1, p2);
-                TD = (s, x1, x2, y) => DrawMarginText(dc, s, 0, x1, y);
+                TDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, 0, x1, y);
+                TDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, x1, y);
+                TDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, x1, y);
                 x1M = TextMargin;
                 x2M = 0;
                 yM = 0;
@@ -1090,7 +1139,9 @@ namespace TimekeeperWPF.Calendar
                 area = new Rect(new Point(Offset.Y, Offset.X), new Size(RenderSize.Height, RenderSize.Width));
                 RD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(y, x, h, w));
                 LD = (pen, p1, p2) => dc.DrawLine(pen, new Point(p1.Y, p1.X), new Point(p2.Y, p2.X));
-                TD = (s, x1, x2, y) => DrawMarginText(dc, s, -90d, y, x2);
+                TDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, -90d, y, x2);
+                TDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, y, x1);
+                TDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, y, x1);
                 x1M = 0;
                 x2M = TextMargin;
                 yM = 0;
@@ -1102,55 +1153,21 @@ namespace TimekeeperWPF.Calendar
             }
 
             Size cellSize = new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
-            if (ShowHighlight && IsDateTimeRelevant(DateTime.Today))
-            {
-                var cell = GetCellPos(DateTime.Now, cellSize);
-                RD(Highlight, x1M + cell.X, yM + cell.Y, cellSize.Width, cellSize.Height);
-            }
-            if (ShowWatermark)
-            {
-                var textSize = Math.Max(12d, Math.Min(cellSize.Width / 4d, cellSize.Height / 4d));
-                var day = Date;
-                for (var i = 0; i < _VisibleColumns; i++)
-                {
-                    for (var j = 0; j < _VisibleRows; j++)
-                    {
-                        day = Date.AddDays(i + j);
-                        var x = 
-                    }
-                }
-            }
-            if (ShowGrid && _GridData.DrawGrid)
-            {
-                for (var j = 0; j < _VisibleRows; j++)
-                {
-                    Rect r = new Rect(area.X, area.Y + cellSize.Height * j, area.Width, cellSize.Height);
-                    DrawHourLines(r, x1M, x2M, LD, TD);
-                }
-            }
-            if (ShowCellLines) DrawCells(area, x1M, x2M, LD);
+            DrawHighlight(x1M, yM, RD, cellSize);
+            DrawWatermark(TDwatermark, TDOOBwatermark, x1M, yM, cellSize);
+            DrawTimeLines(area, x1M, x2M, LD, TDmargin, cellSize);
+            DrawDateLines(area, x1M, x2M, yM, LD, cellSize);
         }
-        protected virtual void DrawWatermark(DrawingContext dc)
+        private void DrawTimeLines(Rect area, double x1M, double x2M, LineDrawer LD, TextDrawer TDmargin, Size cellSize)
         {
-            double textSize = Math.Max(12d, Math.Min(RenderSize.Width / 4d, RenderSize.Height / 4d));
-            double x = RenderSize.Width / 2d;
-            double y = RenderSize.Height / 2d;
-            string text = Date.ToString(WatermarkFormat);
-            DrawWatermarkText(dc, textSize, x, y, text);
+            if (!(ShowGrid && _GridData.DrawGrid)) return;
+            for (var j = 0; j < _VisibleRows; j++)
+            {
+                Rect r = new Rect(area.X, area.Y + cellSize.Height * j, area.Width, cellSize.Height);
+                DrawTimeLinesPart2(r, x1M, x2M, LD, TDmargin);
+            }
         }
-        protected virtual void DrawWatermarkText(DrawingContext dc, double textSize, double x, double y, string text)
-        {
-            FormattedText lineText = new FormattedText(text,
-                System.Globalization.CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight,
-                new Typeface(WatermarkFontFamily, FontStyles.Normal,
-                FontWeights.Bold, FontStretches.Normal),
-                textSize, WatermarkBrush, null,
-                VisualTreeHelper.GetDpi(this).PixelsPerDip);
-            lineText.TextAlignment = TextAlignment.Center;
-            dc.DrawText(lineText, new Point(x, y - lineText.Height / 2d));
-        }
-        private void DrawHourLines(Rect area, double x1M, double x2M, LineDrawer LD, TextDrawer TD)
+        private void DrawTimeLinesPart2(Rect area, double x1M, double x2M, LineDrawer LD, TextDrawer TD)
         {
 
             Pen currentPen = GridRegularPen;
@@ -1186,20 +1203,87 @@ namespace TimekeeperWPF.Calendar
                 if ((ShowTextMargin || _ShowTextMarginPrevious) && timeFormat != "")
                 {
                     string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
-                    TD(text, finalX1, finalX2, finalY);
+                    TD(text, 0, finalX1, finalX2, finalY);
                 }
             }
         }
-        private void DrawCells(Rect area, double x1M, double x2M, LineDrawer LD)
+        private void DrawDateLines(Rect area, double x1M, double x2M, double yM, LineDrawer LD, Size cellSize)
         {
+            if (!ShowDateLines) return;
             for (int i = 0; i < _VisibleColumns; i++)
             {
-                double dayWidth = (area.Width - x1M - x2M) / _VisibleColumns;
-                double x = x1M + (i * dayWidth);
-                LD(GridRegularPen, new Point(x, 0), new Point(x, area.Height));
+                double x = x1M + (i * cellSize.Width);
+                double y1 = yM;
+                double y2 = area.Height;
+                LD(GridRegularPen, new Point(x, y1), new Point(x, y2));
+            }
+            for (var j = 0; j < _VisibleRows; j++)
+            {
+                double y = yM + (j * cellSize.Height);
+                double x1 = x1M;
+                double x2 = area.Width - x2M;
+                LD(GridRegularPen, new Point(x1, y), new Point(x2, y));
             }
         }
-        protected void DrawMarginText(DrawingContext dc, string text, double r, double x, double y)
+        private void DrawHighlight(double x1M, double yM, RectDrawer RD, Size cellSize)
+        {
+            if (ShowHighlight && IsDateTimeRelevant(DateTime.Today))
+            {
+                var cell = GetCellPos(DateTime.Now, cellSize);
+                RD(Highlight, x1M + cell.X, yM + cell.Y, cellSize.Width, cellSize.Height);
+            }
+            if (ShowMonthBoundsHighlight)
+            {
+                var day = _FirstVisibleDay;
+                for (var i = 0; i < _VisibleColumns; i++)
+                {
+                    for (var j = 0; j < _VisibleRows; j++)
+                    {
+                        day = Date.AddDays(i + j);
+                        if (day.Month != SelectedMonthOverride)
+                        {
+                            var cell = GetCellPos(day, cellSize);
+                            RD(MonthBoundsHighlight, x1M + cell.X, yM + cell.Y, cellSize.Width, cellSize.Height);
+                        }
+                    }
+                }
+            }
+        }
+        private void DrawWatermark(TextDrawer TDwatermark, TextDrawer TDOOB, double x1M, double yM, Size cellSize)
+        {
+            if (!ShowWatermark) return;
+            var textSize = Math.Max(12d, Math.Min(cellSize.Width / 4d, cellSize.Height / 4d));
+            var day = _FirstVisibleDay;
+            var xc = cellSize.Width / 2;
+            var yc = cellSize.Height / 2;
+            for (var i = 0; i < _VisibleColumns; i++)
+            {
+                for (var j = 0; j < _VisibleRows; j++)
+                {
+                    day = Date.AddDays(i + j);
+                    var x = x1M + i * cellSize.Width + xc;
+                    var y = yM + j * cellSize.Height + yc;
+                    var text = day.ToString(WatermarkFormat);
+                    if (day.Month != SelectedMonthOverride)
+                        TDOOB(text, textSize, x, 0, y);
+                    else
+                        TDwatermark(text, textSize, x, 0, y);
+                }
+            }
+        }
+        private void DrawWatermarkText(DrawingContext dc, Brush brush, string text, double textSize, double x, double y)
+        {
+            FormattedText lineText = new FormattedText(text,
+                System.Globalization.CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight,
+                new Typeface(WatermarkFontFamily, FontStyles.Normal,
+                FontWeights.Bold, FontStretches.Normal),
+                textSize, brush, null,
+                VisualTreeHelper.GetDpi(this).PixelsPerDip);
+            lineText.TextAlignment = TextAlignment.Center;
+            dc.DrawText(lineText, new Point(x, y - lineText.Height / 2d));
+        }
+        private void DrawMarginText(DrawingContext dc, string text, double r, double x, double y)
         {
             FormattedText lineText = new FormattedText(text,
                 System.Globalization.CultureInfo.CurrentCulture,
