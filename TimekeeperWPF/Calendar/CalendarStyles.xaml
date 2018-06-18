@@ -98,12 +98,9 @@
         <Setter Property="Background" Value="{StaticResource Day.Background}"/>
         <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
         <Setter Property="Date" Value="{Binding Path=Start, Mode=TwoWay}"/>
-        <Setter Property="SelectedMonthOverride" Value="{Binding Path=SelectedMonthOverride, Mode=OneWay}"/>
         <Setter Property="Orientation" Value="{Binding Path=Orientation, Mode=TwoWay}"/>
         <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
         <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
-        <Setter Property="MonthBoundsHighlight" Value="{StaticResource Week.MonthBoundsHighlight}"/>
-        <Setter Property="MonthBoundsWatermarkBrush" Value="{StaticResource Week.MonthBoundsWatermarkBrush}"/>
         <Setter Property="MousePosition" Value="{Binding Path=MousePosition, Mode=OneWayToSource}"/>
         <Setter Property="MouseClickPosition" Value="{Binding Path=MouseClickPosition, Mode=OneWayToSource}"/>
         <Setter Property="ItemsUnderMouse" Value="{Binding Path=ItemsUnderMouse, Mode=OneWayToSource}"/>

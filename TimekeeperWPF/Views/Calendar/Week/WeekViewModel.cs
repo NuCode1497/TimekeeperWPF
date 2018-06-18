@@ -19,37 +19,16 @@ namespace TimekeeperWPF
 {
     public class WeekViewModel : CalendarViewModel
     {
-        private int _SelectedMonthOverride = DateTime.Now.Month;
         public override string Name => "Week View";
         public override DateTime Start
         {
             get => base.Start;
-            set
-            {
-                //Here we intercept and set the date to the first of the week
-                base.Start = value.WeekStart();
-                SelectedMonthOverride = value.Month;
-            }
+            set { base.Start = value.WeekStart(); }
         }
         public override DateTime End
         {
-            get
-            {
-                return Start.AddDays(7);
-            }
-            set
-            {
-            }
-        }
-        public int SelectedMonthOverride
-        {
-            get { return _SelectedMonthOverride; }
-            set
-            {
-                if (_SelectedMonthOverride == value) return;
-                _SelectedMonthOverride = value;
-                OnPropertyChanged();
-            }
+            get => Start.AddDays(7); 
+            set { }
         }
         protected override bool CanSave => false;
         public override bool CanMax => true;

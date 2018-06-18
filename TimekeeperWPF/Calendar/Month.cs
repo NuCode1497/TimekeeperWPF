@@ -90,12 +90,125 @@ namespace TimekeeperWPF.Calendar
         }
         protected override bool IsDateTimeRelevant(DateTime d) { return d.MonthStart() == Date; }
         #endregion
+        #region Highlight
+        [Bindable(true), Category("Appearance")]
+        public bool ShowMonthBoundsHighlight
+        {
+            get { return (bool)GetValue(ShowMonthBoundsHighlightProperty); }
+            set { SetValue(ShowMonthBoundsHighlightProperty, value); }
+        }
+        public static readonly DependencyProperty ShowMonthBoundsHighlightProperty =
+            DependencyProperty.Register(
+                nameof(ShowMonthBoundsHighlight), typeof(bool), typeof(Week),
+                new FrameworkPropertyMetadata(false,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public Brush MonthBoundsHighlight
+        {
+            get { return (Brush)GetValue(MonthBoundsHighlightProperty); }
+            set { SetValue(MonthBoundsHighlightProperty, value); }
+        }
+        public static readonly DependencyProperty MonthBoundsHighlightProperty =
+            DependencyProperty.Register(
+                nameof(MonthBoundsHighlight), typeof(Brush), typeof(Week),
+                new FrameworkPropertyMetadata(Brushes.LightGray,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        [Bindable(true), Category("Appearance")]
+        public Brush MonthBoundsWatermarkBrush
+        {
+            get { return (Brush)GetValue(MonthBoundsWatermarkBrushProperty); }
+            set { SetValue(MonthBoundsWatermarkBrushProperty, value); }
+        }
+        public static readonly DependencyProperty MonthBoundsWatermarkBrushProperty =
+            DependencyProperty.Register(
+                nameof(MonthBoundsWatermarkBrush), typeof(Brush), typeof(Week),
+                new FrameworkPropertyMetadata(Brushes.MintCream,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
         #region Layout
         protected override int Days => Date.MonthDays();
         protected override int GetRow(DateTime date)
         {
             return ((int)(date.Date - Date).TotalDays.Within(0, Days - 1) + (int)Date.DayOfWeek) / (int)_VisibleRows;
         }
+        //private void DrawMonthBoundsHighlight()
+        //{
+        //    var day = Date.WeekStart();
+        //    if (ShowMonthBoundsHighlight)
+        //    {
+        //        for (int i = 0; i < _VisibleColumns; i++)
+        //        {
+        //            for (int j = 0; j < _VisibleRows; j++)
+        //            {
+        //                day = day.AddDays(i);
+        //                if (day.Month != SelectedMonthOverride)
+        //                {
+        //                    double x = TextMargin + (i * cellSize.Width);
+        //                    double y =
+        //                    Point point = new Point(x, 0);
+        //                    Rect rect = new Rect(point, cellSize);
+        //                    dc.DrawRectangle(MonthBoundsHighlight, null, rect);
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+        protected override void DrawWatermarkVertically(DrawingContext dc)
+        {
+
+            Size daySize = new Size((RenderSize.Width - TextMargin) / 7d, RenderSize.Height);
+            double textSize = Math.Max(12d, Math.Min(daySize.Width / 4d, daySize.Height / 4d));
+            for (int i = 0; i < 7; i++)
+            {
+                DateTime day = Date.AddDays(i);
+                double x = TextMargin + i * daySize.Width + daySize.Width / 2d;
+                double y = daySize.Height / 2d;
+                string text = day.ToString(WatermarkFormat);
+                if (ShowMonthBoundsHighlight && day.Month != SelectedMonthOverride)
+                {
+                    DrawMonthBoundsWatermarkText(dc, textSize, x, y, text);
+                }
+                else
+                {
+                    DrawWatermarkText(dc, textSize, x, y, text);
+                }
+            }
+        }
+        protected override void DrawWatermarkHorizontally(DrawingContext dc)
+        {
+            Size daySize = new Size(RenderSize.Width, (RenderSize.Height - TextMargin) / 7d);
+            double textSize = Math.Max(12d, Math.Min(daySize.Width / 4d, daySize.Height / 4d));
+            for (int i = 0; i < 7; i++)
+            {
+                DateTime day = Date.AddDays(i);
+                double y = i * daySize.Height + daySize.Height / 2d;
+                double x = daySize.Width / 2d;
+                string text = day.ToString(WatermarkFormat);
+                if (ShowMonthBoundsHighlight && day.Month != SelectedMonthOverride)
+                {
+                    Brush temp = WatermarkBrush;
+                    WatermarkBrush = MonthBoundsWatermarkBrush;
+                    DrawWatermarkText(dc, textSize, x, y, text);
+                    WatermarkBrush = temp;
+                }
+                else
+                {
+                    DrawWatermarkText(dc, textSize, x, y, text);
+                }
+            }
+        }
+        //protected virtual void DrawMonthBoundsWatermarkText(DrawingContext dc, double textSize, double x, double y, string text)
+        //{
+        //    FormattedText lineText = new FormattedText(text,
+        //        System.Globalization.CultureInfo.CurrentCulture,
+        //        FlowDirection.LeftToRight,
+        //        new Typeface(WatermarkFontFamily, FontStyles.Normal,
+        //        FontWeights.Bold, FontStretches.Normal),
+        //        textSize, MonthBoundsWatermarkBrush, null,
+        //        VisualTreeHelper.GetDpi(this).PixelsPerDip);
+        //    lineText.TextAlignment = TextAlignment.Center;
+        //    dc.DrawText(lineText, new Point(x, y - lineText.Height / 2d));
+        //}
         #endregion
     }
 }

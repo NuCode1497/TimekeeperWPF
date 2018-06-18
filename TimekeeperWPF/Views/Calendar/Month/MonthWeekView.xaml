@@ -26,8 +26,7 @@
             </ItemsControl.ItemsSource>
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <cal:Week ForceMaxScale="True" 
-                              ShowMonthBoundsHighlight="True"/>
+                    <cal:Week ForceMaxScale="True" />
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
         </ListBox>
