@@ -157,17 +157,6 @@ namespace TimekeeperWPF.Calendar
                     FrameworkPropertyMetadataOptions.AffectsRender |
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange));
-        [Bindable(true)]
-        public int SelectedMonthOverride
-        {
-            get { return (int)GetValue(SelectedMonthOverrideProperty); }
-            set { SetValue(SelectedMonthOverrideProperty, value); }
-        }
-        public static readonly DependencyProperty SelectedMonthOverrideProperty =
-            DependencyProperty.Register(
-                nameof(SelectedMonthOverride), typeof(int), typeof(Week),
-                new FrameworkPropertyMetadata(DateTime.Now.Month,
-                    FrameworkPropertyMetadataOptions.AffectsRender));
         protected virtual bool IsDateTimeRelevant(DateTime d) { return d.Date == Date; }
         protected bool IsCalObjRelevant(CalendarTaskObject CalObj)
         { return IsDateTimeRelevant(CalObj.Start) || IsDateTimeRelevant(CalObj.End); }
@@ -1240,7 +1229,7 @@ namespace TimekeeperWPF.Calendar
                     for (var j = 0; j < _VisibleRows; j++)
                     {
                         day = Date.AddDays(i + j);
-                        if (day.Month != SelectedMonthOverride)
+                        if (!IsDateTimeRelevant(day))
                         {
                             var cell = GetCellPos(day, cellSize);
                             RD(MonthBoundsHighlight, x1M + cell.X, yM + cell.Y, cellSize.Width, cellSize.Height);
@@ -1264,7 +1253,7 @@ namespace TimekeeperWPF.Calendar
                     var x = x1M + i * cellSize.Width + xc;
                     var y = yM + j * cellSize.Height + yc;
                     var text = day.ToString(WatermarkFormat);
-                    if (day.Month != SelectedMonthOverride)
+                    if (!IsDateTimeRelevant(day))
                         TDOOB(text, textSize, x, 0, y);
                     else
                         TDwatermark(text, textSize, x, 0, y);

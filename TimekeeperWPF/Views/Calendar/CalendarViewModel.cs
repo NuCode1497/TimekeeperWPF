@@ -310,7 +310,7 @@ namespace TimekeeperWPF
         public int Day => Start.Day;
         public string DayLongString => Start.ToLongDateString();
         public string YearString => Start.ToString("yyy");
-        public string MonthString => Start.ToString("MMMM");
+        public string MonthString => Start.ToString("MMMM yyy");
         public string WeekString => Start.ToString("MMMM dd, yyy");
         #endregion Zone
         #region CRUDS

@@ -46,10 +46,6 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(false,
                     null,
                     new CoerceValueCallback((d, v) => false)));
-            TextMarginProperty.OverrideMetadata(typeof(Month),
-                new FrameworkPropertyMetadata(0,
-                    null,
-                    new CoerceValueCallback((d, v) => 0)));
             ShowMonthBoundsHighlightProperty.OverrideMetadata(typeof(Month),
                 new FrameworkPropertyMetadata(true,
                     FrameworkPropertyMetadataOptions.AffectsRender));
@@ -92,8 +88,6 @@ namespace TimekeeperWPF.Calendar
             return newValue;
         }
         protected override bool IsDateTimeRelevant(DateTime d) { return d.MonthStart() == Date; }
-        #endregion
-        #region Highlight
         #endregion
         #region Layout
         protected override int Days => Date.MonthDays();

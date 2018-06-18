@@ -80,7 +80,35 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-    <Style TargetType="cal:Day">
+    <ContextMenu x:Key="CalendarContextMenu">
+        <MenuItem Header="New _Note Here..."
+                              CommandParameter="{Binding Path=MouseClickPosition}"
+                              Command="{Binding Path=NewNoteCommand}"/>
+        <MenuItem Header="New _CheckIn Here..."
+                              CommandParameter="{Binding Path=MouseClickPosition}"
+                              Command="{Binding Path=NewCheckInCommand}"/>
+        <Separator/>
+        <MenuItem Header="_Select"
+                              DisplayMemberPath="BasicString"
+                              ItemsSource="{Binding Path=ItemsUnderMouse}">
+            <MenuItem.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Command" 
+                                        Value="{Binding Path=DataContext.SelectCommand,
+                                        RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ContextMenu}}"/>
+                    <Setter Property="CommandParameter" 
+                                        Value="{Binding Path=DataContext, 
+                                        RelativeSource={RelativeSource Self}}"/>
+                </Style>
+            </MenuItem.ItemContainerStyle>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Header="_Edit"
+                              Command="{Binding Path=EditSelectedCommand}"/>
+        <MenuItem Header="_Delete"
+                              Command="{Binding Path=DeleteSelectedCommand}"/>
+    </ContextMenu>
+    <Style x:Key="DayStyle" TargetType="cal:Day">
         <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
         <Setter Property="Background" Value="{StaticResource Day.Background}"/>
         <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
@@ -91,52 +119,13 @@
         <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
         <Setter Property="WatermarkBrush" Value="{StaticResource Day.WatermarkBrush}"/>
         <Setter Property="WatermarkFontFamily" Value="{StaticResource Ayy.FontFamily}"/>
-        <Setter Property="MousePosition" Value="{Binding Path=MousePosition, Mode=TwoWay}"/>
-    </Style>
-    <Style TargetType="cal:Week">
-        <Setter Property="Highlight" Value="{StaticResource Day.Highlight}"/>
-        <Setter Property="Background" Value="{StaticResource Day.Background}"/>
-        <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
-        <Setter Property="Date" Value="{Binding Path=Start, Mode=TwoWay}"/>
-        <Setter Property="Orientation" Value="{Binding Path=Orientation, Mode=TwoWay}"/>
-        <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
-        <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
         <Setter Property="MousePosition" Value="{Binding Path=MousePosition, Mode=OneWayToSource}"/>
         <Setter Property="MouseClickPosition" Value="{Binding Path=MouseClickPosition, Mode=OneWayToSource}"/>
         <Setter Property="ItemsUnderMouse" Value="{Binding Path=ItemsUnderMouse, Mode=OneWayToSource}"/>
-        <Setter Property="ContextMenu">
-            <Setter.Value>
-                <ContextMenu>
-                    <MenuItem Header="New _Note Here..."
-                              CommandParameter="{Binding Path=MouseClickPosition}"
-                              Command="{Binding Path=NewNoteCommand}"/>
-                    <MenuItem Header="New _CheckIn Here..."
-                              CommandParameter="{Binding Path=MouseClickPosition}"
-                              Command="{Binding Path=NewCheckInCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="_Select"
-                              DisplayMemberPath="BasicString"
-                              ItemsSource="{Binding Path=ItemsUnderMouse}">
-                        <MenuItem.ItemContainerStyle>
-                            <Style TargetType="MenuItem">
-                                <Setter Property="Command" 
-                                        Value="{Binding Path=DataContext.SelectCommand,
-                                        RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ContextMenu}}"/>
-                                <Setter Property="CommandParameter" 
-                                        Value="{Binding Path=DataContext, 
-                                        RelativeSource={RelativeSource Self}}"/>
-                            </Style>
-                        </MenuItem.ItemContainerStyle>
-                    </MenuItem>
-                    <Separator/>
-                    <MenuItem Header="_Edit"
-                              Command="{Binding Path=EditSelectedCommand}"/>
-                    <MenuItem Header="_Delete"
-                              Command="{Binding Path=DeleteSelectedCommand}"/>
-                </ContextMenu>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=CalendarContextMenu}"/>
     </Style>
+    <Style TargetType="cal:Week" BasedOn="{StaticResource DayStyle}"/>
+    <Style TargetType="cal:Month" BasedOn="{StaticResource DayStyle}"/>
     <Storyboard x:Key="MarkyRGBCycle" RepeatBehavior="Forever" SpeedRatio="3">
         <ColorAnimationUsingKeyFrames 
             Storyboard.TargetProperty="(Shape.Stroke).(GradientBrush.GradientStops)[0].(GradientStop.Color)" 

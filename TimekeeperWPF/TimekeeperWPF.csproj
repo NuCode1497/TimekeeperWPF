@@ -169,15 +169,11 @@
     <Compile Include="Examples\Window1VM.cs" />
     <Compile Include="Tools\RequestViewChangeEventArgs.cs" />
     <Compile Include="Tools\ResourceFinder.cs" />
-    <Compile Include="Views\Calendar\Month\MonthWeekViewModel.cs" />
     <Compile Include="Views\Calendar\Day\FakeDayViewModel.cs" />
     <Compile Include="Views\Calendar\Month\MonthView.xaml.cs">
       <DependentUpon>MonthView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Calendar\Month\MonthViewModel.cs" />
-    <Compile Include="Views\Calendar\Month\MonthWeekView.xaml.cs">
-      <DependentUpon>MonthWeekView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Calendar\CalendarViewModel.cs" />
     <Compile Include="Calendar\Day.cs" />
     <Compile Include="Views\Calendar\Day\DayViewModel.cs" />
@@ -319,10 +315,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Calendar\Month\MonthView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Calendar\Month\MonthWeekView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

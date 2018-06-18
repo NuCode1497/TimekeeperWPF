@@ -1,59 +1,116 @@
-﻿<UserControl 
-    x:Class="TimekeeperWPF.MonthView"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-    xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
-    xmlns:local="clr-namespace:TimekeeperWPF"
-    mc:Ignorable="d" 
-    d:DesignHeight="600" d:DesignWidth="800">
-    <Grid x:Name="ContentGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        <ListBox x:Name="WeeksIC"  Grid.Row="2"
-                 VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                 SelectedItem="{Binding Path=SelectedWeek}"
-                 ItemsSource="{Binding Path=MonthWeeksView}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="1"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid x:Name="WeekICTemplateGrid">
-                        <Grid.InputBindings>
-                            <MouseBinding Gesture="LeftDoubleClick" 
-                                          Command="{Binding ElementName=WeeksIC, Path=DataContext.SelectWeekCommand}"/>
-                        </Grid.InputBindings>
-                        <local:MonthWeekView/>
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ListBox>
-        <ContentControl x:Name="CalendarTitleBar" Grid.Row="1" 
-                        Template="{StaticResource CalendarTitleBarTemplate}">
-            <Grid Width="220">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="{Binding Path=MonthString, FallbackValue=QQQQQQQQQ}" 
-                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
-                    <TextBlock Text="{Binding Path=YearString, FallbackValue=7777}" 
-                           Style="{StaticResource CalendarTitleBarTextStyle}"/>
-                </StackPanel>
-            </Grid>
-        </ContentControl>
-        <ContentControl 
-            x:Name="CommandsToolbar" Grid.Row="0" 
-            Template="{StaticResource CalendarViewControlsTemplate}"/>
-        <local:LoadingView Grid.Row="0" Grid.RowSpan="3"/>
+﻿<UserControl x:Class="TimekeeperWPF.MonthView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:tk="clr-namespace:TimekeeperWPF"
+             xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="600" Background="LimeGreen">
+    <Grid x:Name="MonthViewGrid">
+        <Grid x:Name="ContentGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ListBox 
+                x:Name="CalendarObjectsIC" Grid.Row="2"
+                Style="{StaticResource CalObjsListBoxStyle}">
+                <ListBox.Resources>
+                    <CollectionContainer 
+                        x:Key="CalCIObjs"
+                        Collection="{Binding DataContext.CalCIObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                    <CollectionContainer 
+                        x:Key="CalTaskObjs"
+                        Collection="{Binding DataContext.CalTaskObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                    <CollectionContainer 
+                        x:Key="CalNoteObjs"
+                        Collection="{Binding DataContext.CalNoteObjsView, 
+                        Source={x:Reference CalendarObjectsIC}}"/>
+                </ListBox.Resources>
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <cal:Month x:Name="MonthPanel"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemsSource>
+                    <CompositeCollection>
+                        <StaticResource ResourceKey="CalTaskObjs"/>
+                        <StaticResource ResourceKey="CalCIObjs"/>
+                        <StaticResource ResourceKey="CalNoteObjs"/>
+                        <cal:NowMarker 
+                            x:Name="NowMark"
+                            IsHitTestVisible="False" 
+                            Focusable="False" 
+                            IsEnabled="False"/>
+                    </CompositeCollection>
+                </ListBox.ItemsSource>
+            </ListBox>
+            <ContentControl
+                x:Name="CalendarTitleBar" Grid.Row="1" 
+                Template="{StaticResource CalendarTitleBarTemplate}">
+                <Grid Width="360">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBlock Text="{Binding Path=MonthString, 
+                            FallbackValue='QQQQQQQQQ 7777'}" 
+                            Style="{StaticResource CalendarTitleBarTextStyle}"/>
+                    </StackPanel>
+                </Grid>
+            </ContentControl>
+            <ContentControl
+                x:Name="CommandsToolbar" Grid.Row="0" 
+                Template="{StaticResource CalendarViewControlsTemplate}"/>
+        </Grid>
+        <!--Common Calendar Controls-->
+        <Grid DataContext="{Binding Path=NotesVM}">
+            <ContentControl 
+                x:Name="EditNotePopUp"
+                IsVisibleChanged="EditNotePopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <tk:EditNoteView 
+                x:Name="NoteEditor" 
+                DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <Grid x:Name="CheckInViewGrid" 
+              DataContext="{Binding Path=CheckInsVM}">
+            <ContentControl 
+                x:Name="EditCheckInPopUp"
+                IsVisibleChanged="EditCheckInPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <tk:EditCheckInView 
+                    x:Name="CheckInEditor" 
+                    DataContext="{Binding Path=CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <Grid x:Name="TaskViewGrid" 
+              DataContext="{Binding Path=TimeTasksVM}">
+            <ContentControl 
+                x:Name="EditTimeTaskPopUp"
+                IsVisibleChanged="EditTimeTaskPopUp_IsVisibleChanged"
+                Visibility="{Binding Path=IsEditingItemOrAddingNew, 
+                FallbackValue=Collapsed,
+                Converter={StaticResource BooleanToVisibilityConverter}}"
+                Template="{StaticResource EditPopUpTemplate}">
+                <tk:EditTimeTaskView 
+                    x:Name="TimeTaskEditor"
+                    DataContext="{Binding CurrentEditItem}"/>
+            </ContentControl>
+        </Grid>
+        <tk:LoadingView/>
     </Grid>
 </UserControl>
