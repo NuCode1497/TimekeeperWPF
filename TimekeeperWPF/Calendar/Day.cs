@@ -512,7 +512,14 @@ namespace TimekeeperWPF.Calendar
         {
             Day day = d as Day;
             Double newValue = (Double)value;
-            if (day.ForceMaxScale || newValue > day.GetMaxScale()) newValue = day.GetMaxScale();
+            if (day.ForceMaxScale || newValue > day.GetMaxScale())
+            {
+                newValue = day.GetMaxScale();
+            }
+            else
+            {
+                newValue /= day._VisibleRows;
+            }
             if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
             if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
             if (Double.IsNaN(newValue)) return DependencyProperty.UnsetValue;
@@ -521,9 +528,9 @@ namespace TimekeeperWPF.Calendar
         public virtual double GetMaxScale()
         {
             if (Orientation == Orientation.Vertical) 
-                return _DAY_SECONDS / RenderSize.Height;
+                return _DAY_SECONDS / RenderSize.Height * _VisibleRows;
             else 
-                return _DAY_SECONDS / RenderSize.Width;
+                return _DAY_SECONDS / RenderSize.Width * _VisibleRows;
         }
         internal static bool IsValidScale(object value)
         {
@@ -983,6 +990,36 @@ namespace TimekeeperWPF.Calendar
             Size cellSize = new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
             return cellSize;
         }
+        private delegate Size Measurer(double w, double h);
+        protected override Size MeasureOverride(Size availableSize)
+        {
+            Measurer measurer;
+            Size size;
+            switch (Orientation)
+            {
+                case Orientation.Vertical:
+                    measurer = (w, h) => new Size(w, h);
+                    size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
+                    VerifyVerticalScrollData(availableSize, size);
+                    break;
+                case Orientation.Horizontal:
+                    measurer = (w, h) => new Size(h, w);
+                    size = MeasureStuff(measurer, new Size(availableSize.Height, double.PositiveInfinity));
+                    VerifyHorizontalScrollData(availableSize, new Size(size.Height, size.Width));
+                    break;
+            }
+            return _Viewport;
+        }
+        private Size MeasureStuff(Measurer measurer, Size availableSize)
+        {
+            double width = availableSize.Width;
+            double height = availableSize.Height;
+            foreach (UIElement child in InternalChildren)
+            {
+                child.Measure(measurer(width, height));
+            }
+            return new Size(availableSize.Width, _DaySize);
+        }
         private delegate Rect RectCustomizer(double x, double y, double w, double h);
         protected override Size ArrangeOverride(Size arrangeSize)
         {
@@ -1022,9 +1059,11 @@ namespace TimekeeperWPF.Calendar
                     {
                         child.Visibility = Visibility.Visible;
                         width = cellSize.Width;
+                        var relX = xM;
+                        var relY = yM + DateTime.Now.TimeOfDay.TotalSeconds / Scale - height / 2;
                         var cell = GetCellPos(DateTime.Now, cellSize);
-                        x = xM + cell.X * cellSize.Width;
-                        y = yM + cell.Y + DateTime.Now.TimeOfDay.TotalSeconds / Scale - height / 2;
+                        x = relX + cell.X;
+                        y = relY + cell.Y;
                     }
                     else
                     {
@@ -1039,25 +1078,32 @@ namespace TimekeeperWPF.Calendar
                     {
                         child.Visibility = Visibility.Visible;
                         width = cellSize.Width / C.DimensionCount;
-                        height = Math.Max(0, (C.End - C.Start).TotalSeconds / Scale);
+                        height = (C.End - C.Start).TotalSeconds / Scale;
+                        //wrangle within bounds
                         var startDay = (int)(C.Start.Date - Date).TotalDays.Within(0, Days - 1);
+                        //shadow clone offset
                         var currentDay = startDay + C.DayOffset;
                         var currentDate = Date.AddDays(currentDay);
-                        var cell = GetCellPos(currentDate, cellSize);
                         var dimensionOffset = width * C.Dimension;
-                        x = xM + cell.X + dimensionOffset;
-                        y = yM + cell.Y + (C.Start - currentDate).TotalSeconds / Scale;
+                        //get relative position within cell
+                        var relX = xM + dimensionOffset;
+                        var relY = yM + (C.Start - currentDate).TotalSeconds / Scale;
                         //Cut off excess
-                        var end = y + height;
-                        if (y < 0)
+                        var end = relY + height;
+                        if (relY < 0)
                         {
                             height = end;
-                            y = 0;
+                            relY = 0;
                         }
                         else if (end > _DaySize)
                         {
                             height -= end - _DaySize;
                         }
+                        if (height <= 0) continue;
+                        //get screen position
+                        var cell = GetCellPos(currentDate, cellSize);
+                        x = relX + cell.X;
+                        y = relY + cell.Y;
                     }
                     else
                     {
@@ -1072,10 +1118,12 @@ namespace TimekeeperWPF.Calendar
                     {
                         child.Visibility = Visibility.Visible;
                         width = cellSize.Width / C.DimensionCount;
-                        var cell = GetCellPos(C.DateTime, cellSize);
                         var dimensionOffset = width * C.Dimension;
-                        x = xM + cell.X + dimensionOffset;
-                        y = yM + cell.Y + C.DateTime.TimeOfDay.TotalSeconds / Scale - height / 2;
+                        var relX = xM + dimensionOffset;
+                        var relY = yM + C.DateTime.TimeOfDay.TotalSeconds / Scale - height / 2;
+                        var cell = GetCellPos(C.DateTime, cellSize);
+                        x = relX + cell.X;
+                        y = relY + cell.Y;
                     }
                     else
                     {
@@ -1097,7 +1145,7 @@ namespace TimekeeperWPF.Calendar
         private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
         private void DrawGrid(DrawingContext dc)
         {
-            Rect area;
+            Rect renderArea;
             RectDrawer RD;
             LineDrawer LD;
             TextDrawer TDmargin;
@@ -1109,7 +1157,7 @@ namespace TimekeeperWPF.Calendar
             if (_GridData == null) FindGridData();
             if (Orientation == Orientation.Vertical)
             {
-                area = new Rect(new Point(Offset.X, Offset.Y), RenderSize);
+                renderArea = new Rect(new Point(Offset.X, Offset.Y), RenderSize);
                 RD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(x, y, w, h));
                 LD = (pen, p1, p2) => dc.DrawLine(pen, p1, p2);
                 TDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, 0, x1, y);
@@ -1125,7 +1173,7 @@ namespace TimekeeperWPF.Calendar
             }
             else
             {
-                area = new Rect(new Point(Offset.Y, Offset.X), new Size(RenderSize.Height, RenderSize.Width));
+                renderArea = new Rect(new Point(Offset.Y, Offset.X), new Size(RenderSize.Height, RenderSize.Width));
                 RD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(y, x, h, w));
                 LD = (pen, p1, p2) => dc.DrawLine(pen, new Point(p1.Y, p1.X), new Point(p2.Y, p2.X));
                 TDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, -90d, y, x2);
@@ -1141,77 +1189,71 @@ namespace TimekeeperWPF.Calendar
                     new Point(RenderSize.Width, mY));
             }
 
-            Size cellSize = new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
+            Size cellSize = new Size((renderArea.Width - TextMargin) / _VisibleColumns, renderArea.Height / _VisibleRows);
             DrawHighlight(x1M, yM, RD, cellSize);
             DrawWatermark(TDwatermark, TDOOBwatermark, x1M, yM, cellSize);
-            DrawTimeLines(area, x1M, x2M, LD, TDmargin, cellSize);
-            DrawDateLines(area, x1M, x2M, yM, LD, cellSize);
+            DrawTimeLines(renderArea, x1M, x2M, LD, TDmargin, cellSize);
+            DrawDateLines(renderArea, x1M, x2M, yM, LD, cellSize);
         }
-        private void DrawTimeLines(Rect area, double x1M, double x2M, LineDrawer LD, TextDrawer TDmargin, Size cellSize)
+        private void DrawTimeLines(Rect renderArea, double x1M, double x2M, LineDrawer LD, TextDrawer TDmargin, Size cellSize)
         {
             if (!(ShowGrid && _GridData.DrawGrid)) return;
             for (var j = 0; j < _VisibleRows; j++)
             {
-                Rect r = new Rect(area.X, area.Y + cellSize.Height * j, area.Width, cellSize.Height);
-                DrawTimeLinesPart2(r, x1M, x2M, LD, TDmargin);
-            }
-        }
-        private void DrawTimeLinesPart2(Rect area, double x1M, double x2M, LineDrawer LD, TextDrawer TD)
-        {
-
-            Pen currentPen = GridRegularPen;
-            string timeFormat = "";
-            //restrict number of draws to within area
-            int iStart = (int)(area.Y / _ScreenInterval).Within(0, _MaxIntervals);
-            int iEnd = (int)((area.Y + area.Height) / _ScreenInterval + 2).Within(0, _MaxIntervals);
-            double finalX1 = x1M;
-            double finalX2 = area.Width - x2M;
-            for (int i = iStart; i < iEnd; i++)
-            {
-                //choose a pen
-                if (_GridData.MajorGridLines && i % _GridData.MajorSkip == 0)
+                Pen currentPen = GridRegularPen;
+                string timeFormat = "";
+                //restrict number of draws to within area
+                int iStart = (int)(renderArea.Y / _ScreenInterval).Within(0, _MaxIntervals);
+                int iEnd = (int)((renderArea.Y + cellSize.Height) / _ScreenInterval + 1).Within(0, _MaxIntervals);
+                double finalX1 = x1M;
+                double finalX2 = renderArea.Width - x2M;
+                for (int i = iStart; i <= iEnd; i++)
                 {
-                    currentPen = GridMajorPen;
-                    timeFormat = _GridData.MajorFormat;
-                }
-                else if (_GridData.RegularGridLines && i % _GridData.RegularSkip == 0)
-                {
-                    currentPen = GridRegularPen;
-                    timeFormat = _GridData.RegularFormat;
-                }
-                else if (_GridData.MinorGridLines)
-                {
-                    currentPen = GridMinorPen;
-                    timeFormat = _GridData.MinorFormat;
-                }
-                else continue;
-                double y = i * _ScreenInterval;
-                double finalY = y - area.Y;
-                //Draw a horizontal grid line
-                LD(currentPen, new Point(finalX1, finalY), new Point(finalX2, finalY));
-                if ((ShowTextMargin || _ShowTextMarginPrevious) && timeFormat != "")
-                {
-                    string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
-                    TD(text, 0, finalX1, finalX2, finalY);
+                    //choose a pen
+                    if (_GridData.MajorGridLines && i % _GridData.MajorSkip == 0)
+                    {
+                        currentPen = GridMajorPen;
+                        timeFormat = _GridData.MajorFormat;
+                    }
+                    else if (_GridData.RegularGridLines && i % _GridData.RegularSkip == 0)
+                    {
+                        currentPen = GridRegularPen;
+                        timeFormat = _GridData.RegularFormat;
+                    }
+                    else if (_GridData.MinorGridLines)
+                    {
+                        currentPen = GridMinorPen;
+                        timeFormat = _GridData.MinorFormat;
+                    }
+                    else continue;
+                    double y = i * _ScreenInterval;
+                    double finalY = y - renderArea.Y + cellSize.Height * j;
+                    //Draw a horizontal grid line
+                    LD(currentPen, new Point(finalX1, finalY), new Point(finalX2, finalY));
+                    if ((ShowTextMargin || _ShowTextMarginPrevious) && timeFormat != "")
+                    {
+                        string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
+                        TDmargin(text, 0, finalX1, finalX2, finalY);
+                    }
                 }
             }
         }
-        private void DrawDateLines(Rect area, double x1M, double x2M, double yM, LineDrawer LD, Size cellSize)
+        private void DrawDateLines(Rect renderArea, double x1M, double x2M, double yM, LineDrawer LD, Size cellSize)
         {
             if (!ShowDateLines) return;
             for (int i = 0; i < _VisibleColumns; i++)
             {
                 double x = x1M + (i * cellSize.Width);
                 double y1 = yM;
-                double y2 = area.Height;
-                LD(GridRegularPen, new Point(x, y1), new Point(x, y2));
+                double y2 = renderArea.Height;
+                LD(GridMajorPen, new Point(x, y1), new Point(x, y2));
             }
             for (var j = 0; j < _VisibleRows; j++)
             {
                 double y = yM + (j * cellSize.Height);
                 double x1 = x1M;
-                double x2 = area.Width - x2M;
-                LD(GridRegularPen, new Point(x1, y), new Point(x2, y));
+                double x2 = renderArea.Width - x2M;
+                LD(GridMajorPen, new Point(x1, y), new Point(x2, y));
             }
         }
         private void DrawHighlight(double x1M, double yM, RectDrawer RD, Size cellSize)
@@ -1224,16 +1266,17 @@ namespace TimekeeperWPF.Calendar
             if (ShowMonthBoundsHighlight)
             {
                 var day = _FirstVisibleDay;
-                for (var i = 0; i < _VisibleColumns; i++)
+                for (var j = 0; j < _VisibleRows; j++)
                 {
-                    for (var j = 0; j < _VisibleRows; j++)
+                    for (var i = 0; i < _VisibleColumns; i++)
                     {
-                        day = Date.AddDays(i + j);
                         if (!IsDateTimeRelevant(day))
                         {
-                            var cell = GetCellPos(day, cellSize);
-                            RD(MonthBoundsHighlight, x1M + cell.X, yM + cell.Y, cellSize.Width, cellSize.Height);
+                            var x = x1M + i * cellSize.Width;
+                            var y = yM + j * cellSize.Height;
+                            RD(MonthBoundsHighlight, x, y, cellSize.Width, cellSize.Height);
                         }
+                        day = day.AddDays(1);
                     }
                 }
             }
@@ -1245,11 +1288,10 @@ namespace TimekeeperWPF.Calendar
             var day = _FirstVisibleDay;
             var xc = cellSize.Width / 2;
             var yc = cellSize.Height / 2;
-            for (var i = 0; i < _VisibleColumns; i++)
+            for (var j = 0; j < _VisibleRows; j++)
             {
-                for (var j = 0; j < _VisibleRows; j++)
+                for (var i = 0; i < _VisibleColumns; i++)
                 {
-                    day = Date.AddDays(i + j);
                     var x = x1M + i * cellSize.Width + xc;
                     var y = yM + j * cellSize.Height + yc;
                     var text = day.ToString(WatermarkFormat);
@@ -1257,6 +1299,7 @@ namespace TimekeeperWPF.Calendar
                         TDOOB(text, textSize, x, 0, y);
                     else
                         TDwatermark(text, textSize, x, 0, y);
+                    day = day.AddDays(1);
                 }
             }
         }

@@ -77,7 +77,7 @@ namespace TimekeeperWPF
                 OnPropertyChanged();
             }
         }
-        private int _ExtentFactor = 3;
+        private int _ExtentFactor = 1;
         /// <summary>
         /// Sets the max number of recursions of FindPerSet(). 
         /// 3 is default. 1 loads pers only in the current view. 0 for infinite. 

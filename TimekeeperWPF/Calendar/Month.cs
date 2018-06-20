@@ -41,11 +41,6 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(true,
                     null,
                     new CoerceValueCallback((d, v) => true)));
-            //Disable TextMargin permanently
-            ShowTextMarginProperty.OverrideMetadata(typeof(Month),
-                new FrameworkPropertyMetadata(false,
-                    null,
-                    new CoerceValueCallback((d, v) => false)));
             ShowMonthBoundsHighlightProperty.OverrideMetadata(typeof(Month),
                 new FrameworkPropertyMetadata(true,
                     FrameworkPropertyMetadataOptions.AffectsRender));
@@ -94,7 +89,8 @@ namespace TimekeeperWPF.Calendar
         protected override DateTime _FirstVisibleDay => Date.WeekStart();
         protected override int GetRow(DateTime date)
         {
-            return ((int)(date.Date - Date).TotalDays.Within(0, Days - 1) + (int)Date.DayOfWeek) / (int)_VisibleRows;
+            var r =  (int)((date - _FirstVisibleDay).TotalDays.Within(0, Days + (int)Date.DayOfWeek) / _VisibleColumns);
+            return r;
         }
         #endregion
     }
