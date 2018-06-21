@@ -59,7 +59,7 @@ namespace TimekeeperWPF.Calendar
                 var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / 7d)).Within(0, 6);
                 var monthWeek = (int)(pos.Y / (RenderSize.Height / _VisibleRows)).Within(0, _VisibleRows - 1);
                 var date = Date.WeekStart().AddDays(weekDay + monthWeek * 7);
-                var seconds = (int)(pos.Y * Scale - monthWeek * _DAY_SECONDS).Within(0,_DAY_SECONDS);
+                var seconds = (int)(pos.Y * Scale - monthWeek * _Range).Within(0,_Range);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }

@@ -50,7 +50,7 @@ namespace TimekeeperWPF.Calendar
                 var pos = e.MouseDevice.GetPosition(this);
                 var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / 7d)).Within(0, 6);
                 var date = Date.AddDays(weekDay);
-                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _DAY_SECONDS);
+                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _Range);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }
@@ -59,7 +59,7 @@ namespace TimekeeperWPF.Calendar
                 var pos = e.MouseDevice.GetPosition(this);
                 var weekDay = (int)((pos.Y) / ((RenderSize.Height - TextMargin) / 7d)).Within(0, 6);
                 var date = Date.AddDays(weekDay);
-                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _DAY_SECONDS);
+                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _Range);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }

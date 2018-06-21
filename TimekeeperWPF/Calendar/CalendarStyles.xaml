@@ -6,8 +6,7 @@
     xmlns:wpftools="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:clr="clr-namespace:System;assembly=mscorlib">
 
-
-    <Style TargetType="cal:CalendarTaskObject">
+    <Style x:Key="CalendarObjectBorderedStyle" TargetType="cal:CalendarTaskObject">
         <Setter Property="BorderThickness" Value="5"/>
         <Setter Property="Opacity" Value="0.75"/>
         <Setter Property="Template">
@@ -80,6 +79,25 @@
             </Trigger>
         </Style.Triggers>
     </Style>
+    <Style x:Key="CalendarObjectFlagStyle" TargetType="cal:CalendarTaskObject" BasedOn="{StaticResource CalendarObjectBorderedStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type cal:CalendarTaskObject}">
+                    <Border BorderBrush="Black" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="8*"/>
+                            </Grid.ColumnDefinitions>
+                            <Rectangle Fill="{TemplateBinding BorderBrush}"/>
+                            <Rectangle Grid.Column="1" Fill="{TemplateBinding Background}"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style TargetType="cal:CalendarTaskObject" BasedOn="{StaticResource CalendarObjectFlagStyle}"/>
     <ContextMenu x:Key="CalendarContextMenu">
         <MenuItem Header="New _Note Here..."
                               CommandParameter="{Binding Path=MouseClickPosition}"
@@ -124,6 +142,7 @@
         <Setter Property="ItemsUnderMouse" Value="{Binding Path=ItemsUnderMouse, Mode=OneWayToSource}"/>
         <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=CalendarContextMenu}"/>
     </Style>
+    <Style TargetType="cal:Day" BasedOn="{StaticResource DayStyle}"/>
     <Style TargetType="cal:Week" BasedOn="{StaticResource DayStyle}"/>
     <Style TargetType="cal:Month" BasedOn="{StaticResource DayStyle}"/>
     <Storyboard x:Key="MarkyRGBCycle" RepeatBehavior="Forever" SpeedRatio="3">
@@ -226,6 +245,7 @@
         <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="Padding" Value="-1"/>
     </Style>
     <ControlTemplate x:Key="NakedButtonTemplate" TargetType="Button">
         <ContentPresenter/>

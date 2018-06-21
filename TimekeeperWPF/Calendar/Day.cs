@@ -88,7 +88,7 @@ namespace TimekeeperWPF.Calendar
             {
                 var pos = e.GetPosition(this);
                 var date = Date;
-                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _DAY_SECONDS);
+                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _Range);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }
@@ -96,7 +96,7 @@ namespace TimekeeperWPF.Calendar
             {
                 var pos = e.GetPosition(this);
                 var date = Date;
-                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _DAY_SECONDS);
+                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _Range);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }
@@ -506,7 +506,7 @@ namespace TimekeeperWPF.Calendar
             day.FindGridData();
             day.BeginAnimation(OffsetProperty, null);
             day._Offset = day.Offset = (day.PreScaleRelativeOffSetInSeconds / day.Scale) - day.RelativeScalingVector;
-            day._DaySize = _DAY_SECONDS / day.Scale;
+            day._RangeSize = day._Range / day.Scale;
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
@@ -528,9 +528,9 @@ namespace TimekeeperWPF.Calendar
         public virtual double GetMaxScale()
         {
             if (Orientation == Orientation.Vertical) 
-                return _DAY_SECONDS / RenderSize.Height * _VisibleRows;
+                return _Range / RenderSize.Height * _VisibleRows;
             else 
-                return _DAY_SECONDS / RenderSize.Width * _VisibleRows;
+                return _Range / RenderSize.Width * _VisibleRows;
         }
         internal static bool IsValidScale(object value)
         {
@@ -772,18 +772,18 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #endregion Features
         #region Layout
-        public bool ShowGrid { get; set; } = true; //TODO: dep prop
+        public bool ShowDateLines { get; set; } = true; //TODO: dep prop
+        public bool ShowTimeLines { get; set; } = true; //TODO: dep prop
         public Point _TextOffset { get; set; } = new Point(-4, 0); //TODO: dep prop
         public double _TextRotation { get; set; } = 0d; //TODO: dep prop
-        public bool ShowDateLines { get; set; } = true; //TODO: dep prop
         protected double _VisibleColumns = 1;
         protected double _VisibleRows = 1;
         protected virtual DateTime _FirstVisibleDay => Date;
         protected virtual int Days => 1;
         protected virtual int GetColumn(DateTime date) { return 0; }
         protected virtual int GetRow(DateTime date) { return 0; }
-        internal const int _DAY_SECONDS = 86400;
-        private double _DaySize = 86400d / 60d;
+        protected double _Range = TimeSpan.FromDays(1).TotalSeconds;
+        private double _RangeSize;
         private enum GridTextFormat { Long, Medium, Short, Hide }
         private class GridData : IComparable
         {
@@ -820,9 +820,8 @@ namespace TimekeeperWPF.Calendar
         }
         private GridData _GridData;
         private List<GridData> _ListOfGridDatas;
-        //Number of pixels between each line
-        private double _ScreenInterval;
-        private int _MaxIntervals => (int)(_DAY_SECONDS / _GridData.SecondsInterval);
+        private double _ScreenInterval; //Number of pixels between each line
+        private int _MaxIntervals => (int)(_Range / _GridData.SecondsInterval);
         private void InitializeGridData()
         {
             _ListOfGridDatas = new List<GridData>()
@@ -874,8 +873,8 @@ namespace TimekeeperWPF.Calendar
                 },
                 new GridData()
                 {
-                    ScaleCutoff = 24d,
-                    SecondsInterval = 900d, //15m
+                    ScaleCutoff = 24,
+                    SecondsInterval = 900, //15m
                     RegularSkip = 2, //30m
                     MajorSkip = 4, //1h
                     MinorGridLines = true,
@@ -889,9 +888,9 @@ namespace TimekeeperWPF.Calendar
                 },
                 new GridData()
                 {
-                    ScaleCutoff = 60d,
+                    ScaleCutoff = 60,
                     //if scale < 60s/px, 1m/px, 1h/60px, 24h/1440px
-                    SecondsInterval = 1800d, //30m
+                    SecondsInterval = 1800, //30m
                     RegularSkip = 2, //1h
                     MajorSkip = 12, //6h
                     MinorGridLines = true,
@@ -905,9 +904,9 @@ namespace TimekeeperWPF.Calendar
                 },
                 new GridData()
                 {
-                    ScaleCutoff = 240d,
+                    ScaleCutoff = 240,
                     //if scale < 240s/px, 4m/px, 1h/15px, 24h/360px
-                    SecondsInterval = 3600d, //1h
+                    SecondsInterval = 3600, //1h
                     RegularSkip = 3, //3h
                     MajorSkip = 12, //12h
                     MinorGridLines = true,
@@ -921,8 +920,8 @@ namespace TimekeeperWPF.Calendar
                 },
                 new GridData()
                 {
-                    ScaleCutoff = 600d,
-                    SecondsInterval = 10800d, //3h
+                    ScaleCutoff = 600,
+                    SecondsInterval = 10800, //3h
                     RegularSkip = 2, //6h
                     MajorSkip = 4, //24h
                     MinorGridLines = true,
@@ -938,7 +937,7 @@ namespace TimekeeperWPF.Calendar
                 {
                     ScaleCutoff = 900d,
                     //if scale < 900s/px, 15m/px, 1h/4px, 24h/96px
-                    SecondsInterval = 21600d, //6h
+                    SecondsInterval = 21600, //6h
                     RegularSkip = 2, //12h
                     MajorSkip = 4, //24h
                     MinorGridLines = true,
@@ -954,7 +953,7 @@ namespace TimekeeperWPF.Calendar
                 {
                     //Last
                     ScaleCutoff = double.PositiveInfinity,
-                    SecondsInterval = _DAY_SECONDS, //24h
+                    SecondsInterval = 86400, //24h
                     RegularSkip = 1,
                     MinorGridLines = false,
                     RegularGridLines = true,
@@ -1018,7 +1017,7 @@ namespace TimekeeperWPF.Calendar
             {
                 child.Measure(measurer(width, height));
             }
-            return new Size(availableSize.Width, _DaySize);
+            return new Size(availableSize.Width, _RangeSize);
         }
         private delegate Rect RectCustomizer(double x, double y, double w, double h);
         protected override Size ArrangeOverride(Size arrangeSize)
@@ -1095,9 +1094,9 @@ namespace TimekeeperWPF.Calendar
                             height = end;
                             relY = 0;
                         }
-                        else if (end > _DaySize)
+                        else if (end > _RangeSize)
                         {
-                            height -= end - _DaySize;
+                            height -= end - _RangeSize;
                         }
                         if (height <= 0) continue;
                         //get screen position
@@ -1133,7 +1132,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 child.Arrange(RC(x, y, width, height));
             }
-            return new Size(arrangeSize.Width, _DaySize);
+            return new Size(arrangeSize.Width, _RangeSize);
         }
         protected override void OnRender(DrawingContext dc)
         {
@@ -1197,7 +1196,7 @@ namespace TimekeeperWPF.Calendar
         }
         private void DrawTimeLines(Rect renderArea, double x1M, double x2M, LineDrawer LD, TextDrawer TDmargin, Size cellSize)
         {
-            if (!(ShowGrid && _GridData.DrawGrid)) return;
+            if (!(ShowTimeLines && _GridData.DrawGrid)) return;
             for (var j = 0; j < _VisibleRows; j++)
             {
                 Pen currentPen = GridRegularPen;

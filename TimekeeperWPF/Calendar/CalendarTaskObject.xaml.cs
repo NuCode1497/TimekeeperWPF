@@ -87,6 +87,12 @@ namespace TimekeeperWPF.Calendar
         }
         private void BuildToolTip()
         {
+            if (ParentPerZone is null)
+            {
+                //this seems to happen when playing with the GUI xaml at runtime?
+                Dispose();
+                return;
+            }
             string s = String.Format("D[{0}] {1} - {2}\nP[{3}] {4}\nDur: {5:g}" +
                 "\nS  [{7}]{6}\nE  [{9}]{8}\nPS [{10}]\nPE [{11}]\nZS [{12}]\nZE [{13}]\nAs: {14}\nFs: {15}\nLs: {16}",
                 ParentPerZone.ParentMap.TimeTask.Dimension,
