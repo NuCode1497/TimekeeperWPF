@@ -96,6 +96,26 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Horizontal">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type cal:CalendarTaskObject}">
+                            <Border BorderBrush="Black" BorderThickness="1">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="8*"/>
+                                        <RowDefinition Height="2*"/>
+                                    </Grid.RowDefinitions>
+                                    <Rectangle Fill="{TemplateBinding Background}"/>
+                                    <Rectangle Grid.Row="1" Fill="{TemplateBinding BorderBrush}"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style TargetType="cal:CalendarTaskObject" BasedOn="{StaticResource CalendarObjectFlagStyle}"/>
     <ContextMenu x:Key="CalendarContextMenu">
@@ -132,6 +152,7 @@
         <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
         <Setter Property="Date" Value="{Binding Path=Start, Mode=TwoWay}"/>
         <Setter Property="Orientation" Value="{Binding Path=Orientation, Mode=TwoWay}"/>
+        <Setter Property="SecondaryOrientation" Value="{Binding Path=SecondaryOrientation, Mode=TwoWay}"/>
         <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
         <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
         <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
@@ -370,8 +391,16 @@
                 <Button x:Name="UndoBtn" Style="{StaticResource UndoButtonStyle}"/>
                 <Button x:Name="RedoBtn" Style="{StaticResource RedoButtonStyle}"/>
                 <Separator/>
-                <Button x:Name="OrientationButton" ToolTip="Orientation" 
+                <Button x:Name="OrientationButton" ToolTip="Time Orientation" 
                         Command="{Binding Path=OrientationCommand}">
+                    <Button.Content>
+                        <Grid>
+                            <TextBlock Text="⤹" FontSize="22" Margin="2,-8,2,-3"/>
+                        </Grid>
+                    </Button.Content>
+                </Button>
+                <Button x:Name="SecondaryOrientationButton" ToolTip="Date Orientation" 
+                        Command="{Binding Path=SecondaryOrientationCommand}">
                     <Button.Content>
                         <Grid>
                             <TextBlock Text="⤹" FontSize="22" Margin="2,-8,2,-3"/>
@@ -439,7 +468,7 @@
                 </Button>
                 <DatePicker SelectedDate="{Binding Path=Start, Mode=TwoWay}"/>
                 <Separator/>
-                <wpftools:IntegerUpDown 
+                <wpftools:IntegerUpDown x:Name="ExtentFactorSpinner"
                     Value="{Binding Path=ExtentFactor, Mode=TwoWay}"
                     ToolTip="Extent Factor: Max number of cascading PerZones to include on load. 0 for infinite. This greatly affects performance."
                     Minimum="0"

@@ -11,7 +11,6 @@ namespace TimekeeperWPF.Calendar
     public abstract class CalendarFlairObject : CalendarObject
     {
         public abstract DateTime DateTime { get; }
-        public Orientation Orientation { get; set; }
         public int DimensionCount { get; set; }
         public abstract int Dimension { get; }
     }

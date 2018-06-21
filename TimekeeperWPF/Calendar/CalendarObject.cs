@@ -16,5 +16,17 @@ namespace TimekeeperWPF.Calendar
         {
             return BasicString.Equals(other.BasicString);
         }
+        #region Orientation
+        public Orientation Orientation
+        {
+            get { return (Orientation)GetValue(OrientationProperty); }
+            set { SetValue(OrientationProperty, value); }
+        }
+        public static readonly DependencyProperty OrientationProperty =
+            DependencyProperty.Register(
+                nameof(Orientation), typeof(Orientation), typeof(CalendarObject),
+                new FrameworkPropertyMetadata(Orientation.Vertical,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
     }
 }

@@ -46,6 +46,8 @@ namespace TimekeeperWPF.Calendar
         public Day() : base()
         {
             _Timer.Tick += _Timer_Tick;
+            _VisibleColumns = DefaultVisibleColumns;
+            _VisibleRows = DefaultVisibleRows;
         }
         #endregion
         #region Events
@@ -430,9 +432,8 @@ namespace TimekeeperWPF.Calendar
         private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Day day = d as Day;
+            day.SetRange();
             day.ResetScrolling();
-            day.CoerceValue(OffsetProperty);
-            day.CoerceValue(ScaleProperty);
         }
         protected override bool HasLogicalOrientation => true;
         protected override Orientation LogicalOrientation => Orientation;
@@ -441,6 +442,41 @@ namespace TimekeeperWPF.Calendar
             Orientation value = (Orientation)o;
             return value == Orientation.Horizontal
                 || value == Orientation.Vertical;
+        }
+        public Orientation SecondaryOrientation
+        {
+            get { return (Orientation)GetValue(SecondaryOrientationProperty); }
+            set { SetValue(SecondaryOrientationProperty, value); }
+        }
+        public static readonly DependencyProperty SecondaryOrientationProperty =
+            DependencyProperty.Register(
+                nameof(SecondaryOrientation), typeof(Orientation), typeof(Day),
+                new FrameworkPropertyMetadata(Orientation.Horizontal,
+                    FrameworkPropertyMetadataOptions.AffectsMeasure |
+                    FrameworkPropertyMetadataOptions.AffectsArrange |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnSecondaryOrientationChanged)),
+                new ValidateValueCallback(IsValidOrientation));
+        public static void OnSecondaryOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+            day.SetRange();
+            day.ResetScrolling();
+        }
+        protected virtual void SetRange()
+        {
+            if (SecondaryOrientation == Orientation.Vertical)
+            {
+                _VisibleColumns = 1;
+                _Range = TimeSpan.FromDays(1).TotalSeconds;
+                ForceMaxScale = false;
+            }
+            else
+            {
+                _VisibleColumns = DefaultVisibleColumns;
+                _Range = TimeSpan.FromDays(_VisibleColumns).TotalSeconds;
+                ForceMaxScale = true;
+            }
         }
         #endregion
         #region MousePosition
@@ -623,6 +659,30 @@ namespace TimekeeperWPF.Calendar
             _IsCancellingScaleAnimation = false;
         }
         #endregion
+        #region ShowDateLines
+        public bool ShowDateLines
+        {
+            get { return (bool)GetValue(ShowDateLinesProperty); }
+            set { SetValue(ShowDateLinesProperty, value); }
+        }
+        public static readonly DependencyProperty ShowDateLinesProperty =
+            DependencyProperty.Register(
+                nameof(ShowDateLines), typeof(bool), typeof(Day),
+                new FrameworkPropertyMetadata(true,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        #region ShowTimeLines
+        public bool ShowTimeLines
+        {
+            get { return (bool)GetValue(ShowTimeLinesProperty); }
+            set { SetValue(ShowTimeLinesProperty, value); }
+        }
+        public static readonly DependencyProperty ShowTimeLinesProperty =
+            DependencyProperty.Register(
+                nameof(ShowTimeLines), typeof(bool), typeof(Day),
+                new FrameworkPropertyMetadata(true,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
         #region TextMargin
         private bool _ShowTextMarginPrevious = true;
         /// <summary>
@@ -676,7 +736,7 @@ namespace TimekeeperWPF.Calendar
                     new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
                     FontSize, Foreground,
                     VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                _TextMargin = lineText.Width - _TextOffset.X - _TextOffset.X;
+                _TextMargin = lineText.Width - TextOffset.X - TextOffset.X;
                 AnimateTextMargin();
             }
             else
@@ -699,6 +759,30 @@ namespace TimekeeperWPF.Calendar
         {
             _ShowTextMarginPrevious = ShowTextMargin;
         }
+        #endregion
+        #region TextOffset
+        public Point TextOffset
+        {
+            get { return (Point)GetValue(TextOffsetProperty); }
+            set { SetValue(TextOffsetProperty, value); }
+        }
+        public static readonly DependencyProperty TextOffsetProperty =
+            DependencyProperty.Register(
+                nameof(TextOffset), typeof(Point), typeof(Day),
+                new FrameworkPropertyMetadata(new Point(-4, 0),
+                    FrameworkPropertyMetadataOptions.AffectsRender));
+        #endregion
+        #region TextRotation
+        public double TextRotation
+        {
+            get { return (double)GetValue(TextRotationProperty); }
+            set { SetValue(TextRotationProperty, value); }
+        }
+        public static readonly DependencyProperty TextRotationProperty =
+            DependencyProperty.Register(
+                nameof(TextRotation), typeof(double), typeof(Day),
+                new FrameworkPropertyMetadata(0d,
+                    FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
         #region Watermark
         public bool ShowWatermark { get; set; } = true;
@@ -772,17 +856,15 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #endregion Features
         #region Layout
-        public bool ShowDateLines { get; set; } = true; //TODO: dep prop
-        public bool ShowTimeLines { get; set; } = true; //TODO: dep prop
-        public Point _TextOffset { get; set; } = new Point(-4, 0); //TODO: dep prop
-        public double _TextRotation { get; set; } = 0d; //TODO: dep prop
-        protected double _VisibleColumns = 1;
-        protected double _VisibleRows = 1;
+        protected virtual int DefaultVisibleColumns => 1;
+        protected virtual int DefaultVisibleRows => 1;
         protected virtual DateTime _FirstVisibleDay => Date;
         protected virtual int Days => 1;
         protected virtual int GetColumn(DateTime date) { return 0; }
         protected virtual int GetRow(DateTime date) { return 0; }
         protected double _Range = TimeSpan.FromDays(1).TotalSeconds;
+        protected int _VisibleColumns;
+        protected int _VisibleRows;
         private double _RangeSize;
         private enum GridTextFormat { Long, Medium, Short, Hide }
         private class GridData : IComparable
@@ -992,20 +1074,17 @@ namespace TimekeeperWPF.Calendar
         private delegate Size Measurer(double w, double h);
         protected override Size MeasureOverride(Size availableSize)
         {
-            Measurer measurer;
-            Size size;
-            switch (Orientation)
+            if (Orientation == Orientation.Vertical)
             {
-                case Orientation.Vertical:
-                    measurer = (w, h) => new Size(w, h);
-                    size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
-                    VerifyVerticalScrollData(availableSize, size);
-                    break;
-                case Orientation.Horizontal:
-                    measurer = (w, h) => new Size(h, w);
-                    size = MeasureStuff(measurer, new Size(availableSize.Height, double.PositiveInfinity));
-                    VerifyHorizontalScrollData(availableSize, new Size(size.Height, size.Width));
-                    break;
+                Measurer measurer = (w, h) => new Size(w, h);
+                Size size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
+                VerifyVerticalScrollData(availableSize, size);
+            }
+            else
+            {
+                Measurer measurer = (w, h) => new Size(h, w);
+                Size size = MeasureStuff(measurer, new Size(availableSize.Height, double.PositiveInfinity));
+                VerifyHorizontalScrollData(availableSize, new Size(size.Height, size.Width));
             }
             return _Viewport;
         }
@@ -1075,6 +1154,7 @@ namespace TimekeeperWPF.Calendar
                     var C = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(C))
                     {
+                        C.Orientation = Orientation;
                         child.Visibility = Visibility.Visible;
                         width = cellSize.Width / C.DimensionCount;
                         height = (C.End - C.Start).TotalSeconds / Scale;
@@ -1115,6 +1195,7 @@ namespace TimekeeperWPF.Calendar
                     CalendarFlairObject C = actualChild as CalendarFlairObject;
                     if (IsDateTimeRelevant(C.DateTime))
                     {
+                        C.Orientation = Orientation;
                         child.Visibility = Visibility.Visible;
                         width = cellSize.Width / C.DimensionCount;
                         var dimensionOffset = width * C.Dimension;
@@ -1323,13 +1404,13 @@ namespace TimekeeperWPF.Calendar
                 FontSize, Foreground,
                 VisualTreeHelper.GetDpi(this).PixelsPerDip);
             lineText.TextAlignment = TextAlignment.Right;
-            TranslateTransform offset = new TranslateTransform(_TextOffset.X, _TextOffset.Y - lineText.Height / 2);
-            RotateTransform rudeboi = new RotateTransform(_TextRotation + r);
+            TranslateTransform offset = new TranslateTransform(TextOffset.X, TextOffset.Y - lineText.Height / 2);
+            RotateTransform rudeboi = new RotateTransform(TextRotation + r);
             TranslateTransform position = new TranslateTransform(x, y);
             dc.PushTransform(position);
             dc.PushTransform(rudeboi);
             dc.PushTransform(offset);
-            dc.DrawText(lineText, _TextOffset);
+            dc.DrawText(lineText, TextOffset);
             dc.Pop();
             dc.Pop();
             dc.Pop();

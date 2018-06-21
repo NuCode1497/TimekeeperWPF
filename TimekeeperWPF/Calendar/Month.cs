@@ -47,7 +47,6 @@ namespace TimekeeperWPF.Calendar
         }
         public Month() : base()
         {
-            _VisibleRows = DateTime.Now.MonthWeeks();
         }
         #endregion
         #region Events
@@ -56,9 +55,9 @@ namespace TimekeeperWPF.Calendar
             if (Orientation == Orientation.Vertical)
             {
                 var pos = e.MouseDevice.GetPosition(this);
-                var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / 7d)).Within(0, 6);
+                var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / _VisibleColumns)).Within(0, _VisibleRows - 1);
                 var monthWeek = (int)(pos.Y / (RenderSize.Height / _VisibleRows)).Within(0, _VisibleRows - 1);
-                var date = Date.WeekStart().AddDays(weekDay + monthWeek * 7);
+                var date = Date.WeekStart().AddDays(weekDay + monthWeek * _VisibleColumns);
                 var seconds = (int)(pos.Y * Scale - monthWeek * _Range).Within(0,_Range);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
@@ -85,6 +84,7 @@ namespace TimekeeperWPF.Calendar
         protected override bool IsDateTimeRelevant(DateTime d) { return d.MonthStart() == Date; }
         #endregion
         #region Layout
+        protected override int DefaultVisibleRows => DateTime.Now.MonthWeeks();
         protected override int Days => Date.MonthDays();
         protected override DateTime _FirstVisibleDay => Date.WeekStart();
         protected override int GetRow(DateTime date)
