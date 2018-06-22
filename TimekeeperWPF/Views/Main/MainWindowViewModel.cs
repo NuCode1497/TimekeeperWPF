@@ -38,8 +38,8 @@ namespace TimekeeperWPF
             _WeekVM.RequestViewChange += OnRequestViewChange;
             _DayVM.RequestViewChange += OnRequestViewChange;
 
-            Views.Add(_MonthVM);
             Views.Add(_WeekVM);
+            Views.Add(_MonthVM);
             Views.Add(_DayVM);
             Views.Add(new NotesViewModel());
             Views.Add(new TimeTasksViewModel());

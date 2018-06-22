@@ -434,6 +434,8 @@ namespace TimekeeperWPF.Calendar
             Day day = d as Day;
             day.SetRange();
             day.ResetScrolling();
+            day.CoerceValue(OffsetProperty);
+            day.CoerceValue(ScaleProperty);
         }
         protected override bool HasLogicalOrientation => true;
         protected override Orientation LogicalOrientation => Orientation;
@@ -462,20 +464,21 @@ namespace TimekeeperWPF.Calendar
             Day day = d as Day;
             day.SetRange();
             day.ResetScrolling();
+            day.CoerceValue(OffsetProperty);
+            day.CoerceValue(ScaleProperty);
         }
         protected virtual void SetRange()
         {
             if (SecondaryOrientation == Orientation.Vertical)
             {
                 _VisibleColumns = 1;
-                _Range = TimeSpan.FromDays(1).TotalSeconds;
-                ForceMaxScale = false;
+                _Range = TimeSpan.FromDays(DefaultVisibleColumns).TotalSeconds;
+                ForceMaxScale = true;
             }
             else
             {
                 _VisibleColumns = DefaultVisibleColumns;
-                _Range = TimeSpan.FromDays(_VisibleColumns).TotalSeconds;
-                ForceMaxScale = true;
+                _Range = TimeSpan.FromDays(1).TotalSeconds;
             }
         }
         #endregion
@@ -548,7 +551,7 @@ namespace TimekeeperWPF.Calendar
         {
             Day day = d as Day;
             Double newValue = (Double)value;
-            if (day.ForceMaxScale || newValue > day.GetMaxScale())
+            if (day.ForceMaxScale || newValue > day.GetMaxScale() || day.SecondaryOrientation == Orientation.Vertical)
             {
                 newValue = day.GetMaxScale();
             }
@@ -1033,6 +1036,20 @@ namespace TimekeeperWPF.Calendar
                 },
                 new GridData()
                 {
+                    ScaleCutoff = 1800d,
+                    SecondsInterval = 43200, //12h
+                    MajorSkip = 2, //24h
+                    MinorGridLines = true,
+                    RegularGridLines = false,
+                    MajorGridLines = true,
+                    MinorFormat = "",
+                    RegularFormat = "tt h",
+                    MajorFormat = "tt h",
+                    GridTextFormat = GridTextFormat.Short,
+                    DrawGrid = true,
+                },
+                new GridData()
+                {
                     //Last
                     ScaleCutoff = double.PositiveInfinity,
                     SecondsInterval = 86400, //24h
@@ -1042,7 +1059,7 @@ namespace TimekeeperWPF.Calendar
                     MajorGridLines = false,
                     RegularFormat = "",
                     GridTextFormat = GridTextFormat.Hide,
-                    DrawGrid = false,
+                    DrawGrid = true,
                 },
             };
         }
@@ -1225,27 +1242,41 @@ namespace TimekeeperWPF.Calendar
         private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
         private void DrawGrid(DrawingContext dc)
         {
-            Rect renderArea;
-            RectDrawer RD;
-            LineDrawer LD;
-            TextDrawer TDmargin;
-            TextDrawer TDwatermark;
-            TextDrawer TDOOBwatermark;
-            double x1M;
-            double x2M;
-            double yM;
             if (_GridData == null) FindGridData();
+            Rect VrenderArea = new Rect(new Point(Offset.X, Offset.Y), RenderSize);
+            RectDrawer VRD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(x, y, w, h));
+            LineDrawer VLD = (pen, p1, p2) => dc.DrawLine(pen, p1, p2);
+            TextDrawer VTDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, 0, x1, y);
+            TextDrawer VTDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, x1, y);
+            TextDrawer VTDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, x1, y);
+            double Vx1M = TextMargin;
+            double Vx2M = 0;
+            double VyM = 0;
+            Rect HrenderArea = new Rect(new Point(Offset.Y, Offset.X), new Size(RenderSize.Height, RenderSize.Width));
+            RectDrawer HRD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(y, x, h, w));
+            LineDrawer HLD = (pen, p1, p2) => dc.DrawLine(pen, new Point(p1.Y, p1.X), new Point(p2.Y, p2.X));
+            TextDrawer HTDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, -90d, y, x2);
+            TextDrawer HTDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, y, x1);
+            TextDrawer HTDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, y, x1);
+            double Hx1M = 0;
+            double Hx2M = TextMargin;
+            double HyM = 0;
             if (Orientation == Orientation.Vertical)
             {
-                renderArea = new Rect(new Point(Offset.X, Offset.Y), RenderSize);
-                RD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(x, y, w, h));
-                LD = (pen, p1, p2) => dc.DrawLine(pen, p1, p2);
-                TDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, 0, x1, y);
-                TDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, x1, y);
-                TDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, x1, y);
-                x1M = TextMargin;
-                x2M = 0;
-                yM = 0;
+                Size VcellSize = new Size((VrenderArea.Width - TextMargin) / _VisibleColumns, VrenderArea.Height / _VisibleRows);
+                if (SecondaryOrientation == Orientation.Horizontal)
+                {
+                    DrawHighlight(Vx1M, VyM, VRD, VcellSize);
+                    DrawWatermark(VTDwatermark, VTDOOBwatermark, Vx1M, VyM, VcellSize);
+                }
+                else
+                {
+                    Size HcellSize = new Size((VrenderArea.Height) / DefaultVisibleColumns, (HrenderArea.Height + TextMargin) / _VisibleRows);
+                    DrawHighlight(Hx1M, Vx1M, HRD, HcellSize);
+                    DrawWatermark(HTDwatermark, HTDOOBwatermark, Hx1M, HyM, HcellSize);
+                }
+                DrawTimeLines(VrenderArea, Vx1M, Vx2M, VLD, VTDmargin, VcellSize);
+                DrawDateLines(VrenderArea, Vx1M, Vx2M, VyM, VLD, VcellSize);
 
                 dc.DrawLine(GridRegularPen,
                     new Point(TextMargin, 0),
@@ -1253,27 +1284,26 @@ namespace TimekeeperWPF.Calendar
             }
             else
             {
-                renderArea = new Rect(new Point(Offset.Y, Offset.X), new Size(RenderSize.Height, RenderSize.Width));
-                RD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(y, x, h, w));
-                LD = (pen, p1, p2) => dc.DrawLine(pen, new Point(p1.Y, p1.X), new Point(p2.Y, p2.X));
-                TDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, -90d, y, x2);
-                TDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, y, x1);
-                TDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, y, x1);
-                x1M = 0;
-                x2M = TextMargin;
-                yM = 0;
+                Size HcellSize = new Size((HrenderArea.Width - TextMargin) / _VisibleColumns, HrenderArea.Height / _VisibleRows);
+                if (SecondaryOrientation == Orientation.Horizontal)
+                {
+                    DrawHighlight(Hx1M, HyM, HRD, HcellSize);
+                    DrawWatermark(HTDwatermark, HTDOOBwatermark, Hx1M, HyM, HcellSize);
+                }
+                else
+                {
+                    Size VcellSize = new Size((VrenderArea.Width) / DefaultVisibleColumns, (VrenderArea.Height - TextMargin) / _VisibleRows);
+                    DrawHighlight(HyM, Hx1M, VRD, VcellSize);
+                    DrawWatermark(VTDwatermark, VTDOOBwatermark, HyM, Hx1M, VcellSize);
+                }
+                DrawTimeLines(HrenderArea, Hx1M, Hx2M, HLD, HTDmargin, HcellSize);
+                DrawDateLines(HrenderArea, Hx1M, Hx2M, HyM, HLD, HcellSize);
 
                 var mY = RenderSize.Height - TextMargin;
                 dc.DrawLine(GridRegularPen,
                     new Point(0, mY),
                     new Point(RenderSize.Width, mY));
             }
-
-            Size cellSize = new Size((renderArea.Width - TextMargin) / _VisibleColumns, renderArea.Height / _VisibleRows);
-            DrawHighlight(x1M, yM, RD, cellSize);
-            DrawWatermark(TDwatermark, TDOOBwatermark, x1M, yM, cellSize);
-            DrawTimeLines(renderArea, x1M, x2M, LD, TDmargin, cellSize);
-            DrawDateLines(renderArea, x1M, x2M, yM, LD, cellSize);
         }
         private void DrawTimeLines(Rect renderArea, double x1M, double x2M, LineDrawer LD, TextDrawer TDmargin, Size cellSize)
         {
@@ -1368,9 +1398,9 @@ namespace TimekeeperWPF.Calendar
             var day = _FirstVisibleDay;
             var xc = cellSize.Width / 2;
             var yc = cellSize.Height / 2;
-            for (var j = 0; j < _VisibleRows; j++)
+            for (var j = 0; j < DefaultVisibleRows; j++)
             {
-                for (var i = 0; i < _VisibleColumns; i++)
+                for (var i = 0; i < DefaultVisibleColumns; i++)
                 {
                     var x = x1M + i * cellSize.Width + xc;
                     var y = yM + j * cellSize.Height + yc;
