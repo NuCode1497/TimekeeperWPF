@@ -413,7 +413,10 @@ namespace TimekeeperWPF.Calendar
                 {
                     // TODO: dispose managed state (managed objects).
                     Day._Timer.Tick -= _Timer_Tick;
-                    ParentPerZone.ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
+                    if(ParentPerZone != null)
+                    {
+                        ParentPerZone.ParentMap.TimeTask.PropertyChanged -= OnParentEntityPropertyChanged;
+                    }
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

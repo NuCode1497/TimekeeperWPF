@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              x:Name="ThisControl"
-             d:DesignHeight="30" d:DesignWidth="200">
+             d:DesignHeight="200" d:DesignWidth="200">
     <UserControl.Resources>
         <ControlTemplate x:Key="HorizontalTemplate">
             <ControlTemplate.Triggers>
@@ -18,12 +18,16 @@
                     </DataTrigger.EnterActions>
                 </DataTrigger>
             </ControlTemplate.Triggers>
-            <Grid Width="11" HorizontalAlignment="Center">
-                <Path x:Name="MarkyMcMarkFace" Data="M2.5,1.4902204 L2.5,98.50978" 
-                      StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
-                      Stretch="Fill" HorizontalAlignment="Center" >
+            <Grid>
+                <Path x:Name="Centa" Data="M0,0 L0,1" 
+                      StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
+                      Stretch="Fill" Stroke="DarkSlateGray" Opacity="0.75" />
+                <Path x:Name="MarkyMcMarkFace" Data="M0,0 L0,1" 
+                       Margin="2" Opacity="0.75"
+                      StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
+                      Stretch="Fill">
                     <Path.Stroke>
-                        <LinearGradientBrush x:Name="MarkyBrush" EndPoint="0.5,1" StartPoint="0.5,0" Opacity="0.5">
+                        <LinearGradientBrush x:Name="MarkyBrush" EndPoint="0.5,1" StartPoint="0.5,0">
                             <GradientStop x:Name="FirstColor" Color="Red" Offset="0"/>
                             <GradientStop Color="Cyan" Offset="1"/>
                             <GradientStop Color="Yellow" Offset="0.33"/>
@@ -31,9 +35,6 @@
                         </LinearGradientBrush>
                     </Path.Stroke>
                 </Path>
-                <Path x:Name="Centa" Data="M2.5,1.4902204 L2.5,98.50978" 
-                      StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
-                      Stretch="Fill" Stroke="DarkSlateGray" />
             </Grid>
         </ControlTemplate>
         <ControlTemplate x:Key="VerticalTemplate">
@@ -47,12 +48,17 @@
                     </DataTrigger.EnterActions>
                 </DataTrigger>
             </ControlTemplate.Triggers>
-            <Grid Height="11" VerticalAlignment="Center">
-                <Path x:Name="MarkyMcMarkFace" Data="M1.5,2.5 L-100,2.5" 
-                    StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
-                    Stretch="Fill" VerticalAlignment="Center" >
+            <Grid>
+                <Path x:Name="Centa" 
+                      Data="M0,0 L-1,0" 
+                      StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
+                      Stretch="Fill" Stroke="DarkSlateGray" Opacity="0.75" />
+                <Path x:Name="MarkyMcMarkFace" Data="M0,0 L-1,0" 
+                      Margin="2" Opacity="0.75"
+                      StrokeThickness="6" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
+                      Stretch="Fill">
                     <Path.Stroke>
-                        <LinearGradientBrush x:Name="MarkyBrush" EndPoint="0,0.5" StartPoint="1,0.5" Opacity="0.5">
+                        <LinearGradientBrush x:Name="MarkyBrush" EndPoint="0,0.5" StartPoint="1,0.5">
                             <GradientStop x:Name="FirstColor" Color="Red" Offset="0"/>
                             <GradientStop Color="Cyan" Offset="1"/>
                             <GradientStop Color="Yellow" Offset="0.33"/>
@@ -60,15 +66,12 @@
                         </LinearGradientBrush>
                     </Path.Stroke>
                 </Path>
-                <Path x:Name="Centa" Data="M1.4902204,2.5 L-98.50978,2.5" 
-                StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Triangle" 
-                VerticalAlignment="Center"
-                Stretch="Fill" Stroke="DarkSlateGray" />
             </Grid>
         </ControlTemplate>
     </UserControl.Resources>
     <UserControl.Style>
         <Style TargetType="UserControl">
+            <Setter Property="Template" Value="{StaticResource VerticalTemplate}"/>
             <Style.Triggers>
                 <DataTrigger 
                     Binding="{Binding Path=DataContext.Orientation, 

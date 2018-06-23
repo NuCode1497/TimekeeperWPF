@@ -15,9 +15,12 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <ListBox 
+                HorizontalContentAlignment="Stretch"
                 x:Name="CalendarObjectsIC" Grid.Row="2"
                 Style="{StaticResource CalObjsListBoxStyle}">
                 <ListBox.Resources>
+                    <Style TargetType="ScrollViewer">
+                    </Style>
                     <CollectionContainer 
                         x:Key="CalCIObjs"
                         Collection="{Binding DataContext.CalCIObjsView, 

@@ -718,6 +718,7 @@ namespace TimekeeperWPF.Calendar
                 nameof(TextMargin), typeof(double), typeof(Day),
                 new FrameworkPropertyMetadata(0d,
                     FrameworkPropertyMetadataOptions.AffectsArrange |
+                    FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsRender));
         private void UpdateTextMargin()
         {
@@ -1088,51 +1089,88 @@ namespace TimekeeperWPF.Calendar
             Size cellSize = new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
             return cellSize;
         }
-        private delegate Size Measurer(double w, double h);
+        private delegate Size Sizer(double w, double h);
+        private delegate Rect Recter(double x, double y, double w, double h);
+        private delegate void RectDrawer(Brush brush, double x, double y, double w, double h);
+        private delegate void LineDrawer(Pen pen, Point p1, Point p2);
+        private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
         protected override Size MeasureOverride(Size availableSize)
         {
             if (Orientation == Orientation.Vertical)
             {
-                Measurer measurer = (w, h) => new Size(w, h);
+                Sizer measurer = (w, h) => new Size(w, h);
                 Size size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
                 VerifyVerticalScrollData(availableSize, size);
             }
             else
             {
-                Measurer measurer = (w, h) => new Size(h, w);
+                Sizer measurer = (w, h) => new Size(h, w);
                 Size size = MeasureStuff(measurer, new Size(availableSize.Height, double.PositiveInfinity));
                 VerifyHorizontalScrollData(availableSize, new Size(size.Height, size.Width));
             }
             return _Viewport;
         }
-        private Size MeasureStuff(Measurer measurer, Size availableSize)
+        private Size MeasureStuff(Sizer sizer, Size availableSize)
         {
+            double cellWidth = (availableSize.Width - TextMargin) / _VisibleColumns;
             double width = availableSize.Width;
             double height = availableSize.Height;
             foreach (UIElement child in InternalChildren)
             {
-                child.Measure(measurer(width, height));
+                if (child == null) { continue; }
+                UIElement actualChild = child;
+                //unbox the child element
+                if ((child as ContentControl)?.Content is UIElement)
+                    actualChild = (UIElement)((ContentControl)child).Content;
+                if (actualChild is NowMarker)
+                {
+                    if (IsDateTimeRelevant(DateTime.Today))
+                    {
+                        width = cellWidth;
+                    }
+                    else continue;
+                }
+                else if (actualChild is CalendarTaskObject)
+                {
+                    var C = actualChild as CalendarTaskObject;
+                    if (IsCalObjRelevant(C))
+                    {
+                        width = cellWidth / C.DimensionCount;
+                    }
+                    else continue;
+                }
+                else if (actualChild is CalendarFlairObject)
+                {
+                    var C = actualChild as CalendarNoteObject;
+                    if (IsDateTimeRelevant(C.DateTime))
+                    {
+                        width = cellWidth / C.DimensionCount;
+                    }
+                    else continue;
+                }
+                child.Measure(sizer(width, height));
             }
             return new Size(availableSize.Width, _RangeSize);
         }
-        private delegate Rect RectCustomizer(double x, double y, double w, double h);
         protected override Size ArrangeOverride(Size arrangeSize)
         {
             if (Orientation == Orientation.Vertical)
             {
-                RectCustomizer RC = (x, y, w, h) => new Rect(x - Offset.X, y - Offset.Y, w, h);
-                Size size = ArrangeStuff(RC, arrangeSize, TextMargin, 0);
+                Recter RC = (x, y, w, h) => new Rect(x - Offset.X, y - Offset.Y, w, h);
+                Sizer sizer = (w, h) => new Size(w, h);
+                Size size = ArrangeStuff(sizer, RC, arrangeSize, TextMargin, 0);
                 VerifyVerticalScrollData(arrangeSize, size);
             }
             else
             {
-                RectCustomizer RC = (x, y, w, h) => new Rect(y - Offset.X, x - Offset.Y, h, w);
-                Size size = ArrangeStuff(RC, new Size(arrangeSize.Height, arrangeSize.Width), 0, 0);
+                Recter RC = (x, y, w, h) => new Rect(y - Offset.X, x - Offset.Y, h, w);
+                Sizer sizer = (w, h) => new Size(h, w);
+                Size size = ArrangeStuff(sizer, RC, new Size(arrangeSize.Height, arrangeSize.Width), 0, 0);
                 VerifyHorizontalScrollData(arrangeSize, new Size(size.Height, size.Width));
             }
             return arrangeSize;
         }
-        private Size ArrangeStuff(RectCustomizer RC, Size arrangeSize, double xM, double yM)
+        private Size ArrangeStuff(Sizer sizer, Recter recter, Size arrangeSize, double xM, double yM)
         {
             Size cellSize = new Size();
             cellSize.Width = (arrangeSize.Width - TextMargin) / _VisibleColumns;
@@ -1143,8 +1181,9 @@ namespace TimekeeperWPF.Calendar
                 UIElement actualChild = child;
                 double x = 0;
                 double y = 0;
-                double width = child.DesiredSize.Width;
-                double height = child.DesiredSize.Height;
+                Size childDesiredSize = sizer(child.DesiredSize.Width, child.DesiredSize.Height);
+                double width = childDesiredSize.Width;
+                double height = childDesiredSize.Height;
                 //unbox the child element
                 if ((child as ContentControl)?.Content is UIElement)
                     actualChild = (UIElement)((ContentControl)child).Content;
@@ -1228,7 +1267,7 @@ namespace TimekeeperWPF.Calendar
                         continue;
                     }
                 }
-                child.Arrange(RC(x, y, width, height));
+                child.Arrange(recter(x, y, width, height));
             }
             return new Size(arrangeSize.Width, _RangeSize);
         }
@@ -1237,9 +1276,6 @@ namespace TimekeeperWPF.Calendar
             base.OnRender(dc);
             DrawGrid(dc);
         }
-        private delegate void RectDrawer(Brush brush, double x, double y, double w, double h);
-        private delegate void LineDrawer(Pen pen, Point p1, Point p2);
-        private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
         private void DrawGrid(DrawingContext dc)
         {
             if (_GridData == null) FindGridData();
@@ -1351,14 +1387,14 @@ namespace TimekeeperWPF.Calendar
         private void DrawDateLines(Rect renderArea, double x1M, double x2M, double yM, LineDrawer LD, Size cellSize)
         {
             if (!ShowDateLines) return;
-            for (int i = 0; i < _VisibleColumns; i++)
+            for (int i = 0; i <= _VisibleColumns; i++)
             {
                 double x = x1M + (i * cellSize.Width);
                 double y1 = yM;
                 double y2 = renderArea.Height;
                 LD(GridMajorPen, new Point(x, y1), new Point(x, y2));
             }
-            for (var j = 0; j < _VisibleRows; j++)
+            for (var j = 0; j <= _VisibleRows; j++)
             {
                 double y = yM + (j * cellSize.Height);
                 double x1 = x1M;
