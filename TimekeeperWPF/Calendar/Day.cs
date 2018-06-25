@@ -46,8 +46,8 @@ namespace TimekeeperWPF.Calendar
         public Day() : base()
         {
             _Timer.Tick += _Timer_Tick;
-            _VisibleColumns = DefaultVisibleColumns;
-            _VisibleRows = DefaultVisibleRows;
+            _VisibleColumns = _DefaultVisibleColumns;
+            _VisibleRows = _DefaultVisibleRows;
         }
         #endregion
         #region Events
@@ -90,7 +90,7 @@ namespace TimekeeperWPF.Calendar
             {
                 var pos = e.GetPosition(this);
                 var date = Date;
-                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _Range);
+                var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _CellRange);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }
@@ -98,7 +98,7 @@ namespace TimekeeperWPF.Calendar
             {
                 var pos = e.GetPosition(this);
                 var date = Date;
-                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _Range);
+                var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _CellRange);
                 var time = new TimeSpan(0, 0, seconds);
                 MousePosition = date + time;
             }
@@ -467,22 +467,23 @@ namespace TimekeeperWPF.Calendar
             day.CoerceValue(OffsetProperty);
             day.CoerceValue(ScaleProperty);
         }
-        protected virtual void SetRange()
+        private void SetRange()
         {
             if (SecondaryOrientation == Orientation.Vertical)
             {
                 _VisibleColumns = 1;
-                _Range = TimeSpan.FromDays(DefaultVisibleColumns).TotalSeconds;
+                _DaysPerCell = _DefaultVisibleColumns;
                 ForceMaxScale = true;
             }
             else
             {
-                _VisibleColumns = DefaultVisibleColumns;
-                _Range = TimeSpan.FromDays(1).TotalSeconds;
+                _VisibleColumns = _DefaultVisibleColumns;
+                _DaysPerCell = 1;
             }
+            _CellRange = TimeSpan.FromDays(_DaysPerCell).TotalSeconds;
         }
         #endregion
-        #region MousePosition
+        #region Mouse
         public DateTime MousePosition
         {
             get { return (DateTime)GetValue(MousePositionProperty); }
@@ -499,8 +500,6 @@ namespace TimekeeperWPF.Calendar
         public static readonly DependencyProperty MouseClickPositionProperty =
             DependencyProperty.Register(
                 nameof(MouseClickPosition), typeof(DateTime), typeof(Day));
-        #endregion MousePosition
-        #region ItemsUnderMouse
         public ObservableCollection<CalendarObject> ItemsUnderMouse
         {
             get { return (ObservableCollection<CalendarObject>)GetValue(ItemsUnderMouseProperty); }
@@ -510,7 +509,7 @@ namespace TimekeeperWPF.Calendar
             DependencyProperty.Register(
                 nameof(ItemsUnderMouse), typeof(ObservableCollection<CalendarObject>), typeof(Day),
                 new FrameworkPropertyMetadata(new ObservableCollection<CalendarObject>()));
-        #endregion ItemsUnderMouse
+        #endregion Mouse
         #region Scale
         // Scale is in Seconds per Pixel s/px
         protected double ScaleFactor = 0.3d;
@@ -545,7 +544,7 @@ namespace TimekeeperWPF.Calendar
             day.FindGridData();
             day.BeginAnimation(OffsetProperty, null);
             day._Offset = day.Offset = (day.PreScaleRelativeOffSetInSeconds / day.Scale) - day.RelativeScalingVector;
-            day._RangeSize = day._Range / day.Scale;
+            day._CellRangeSize = day._CellRange / day.Scale;
         }
         private static object OnCoerceScale(DependencyObject d, object value)
         {
@@ -567,9 +566,9 @@ namespace TimekeeperWPF.Calendar
         public virtual double GetMaxScale()
         {
             if (Orientation == Orientation.Vertical) 
-                return _Range / RenderSize.Height * _VisibleRows;
+                return _CellRange / RenderSize.Height * _VisibleRows;
             else 
-                return _Range / RenderSize.Width * _VisibleRows;
+                return _CellRange / RenderSize.Width * _VisibleRows;
         }
         internal static bool IsValidScale(object value)
         {
@@ -860,16 +859,18 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #endregion Features
         #region Layout
-        protected virtual int DefaultVisibleColumns => 1;
-        protected virtual int DefaultVisibleRows => 1;
+        public const int _DAY_SECONDS = 86400;
+        protected virtual int _DefaultVisibleColumns => 1;
+        protected virtual int _DefaultVisibleRows => 1;
         protected virtual DateTime _FirstVisibleDay => Date;
-        protected virtual int Days => 1;
-        protected virtual int GetColumn(DateTime date) { return 0; }
-        protected virtual int GetRow(DateTime date) { return 0; }
-        protected double _Range = TimeSpan.FromDays(1).TotalSeconds;
+        protected virtual DateTime _LastVisibleDay => Date;
+        protected virtual int _Days => 1;
         protected int _VisibleColumns;
         protected int _VisibleRows;
-        private double _RangeSize;
+        protected double _CellRange = _DAY_SECONDS;
+        private int _DaysPerCell = 1;
+        private int _Cells => _VisibleColumns * _VisibleRows;
+        private double _CellRangeSize;
         private enum GridTextFormat { Long, Medium, Short, Hide }
         private class GridData : IComparable
         {
@@ -907,7 +908,7 @@ namespace TimekeeperWPF.Calendar
         private GridData _GridData;
         private List<GridData> _ListOfGridDatas;
         private double _ScreenInterval; //Number of pixels between each line
-        private int _MaxIntervals => (int)(_Range / _GridData.SecondsInterval);
+        private int _MaxIntervals => (int)(_CellRange / _GridData.SecondsInterval);
         private void InitializeGridData()
         {
             _ListOfGridDatas = new List<GridData>()
@@ -1080,15 +1081,19 @@ namespace TimekeeperWPF.Calendar
             _ScreenInterval = _GridData.SecondsInterval / Scale;
             UpdateTextMargin(); //because format length could've changed
         }
-        private Point GetCellPos(DateTime d, Size cellSize)
+        private int GetCellNumber(DateTime d) => (int)((d - _FirstVisibleDay).TotalSeconds / _CellRange).Within(0, _Cells - 1);
+        private Point GetCellPos(int cellNum, Size cellSize)
         {
-            return new Point(GetColumn(d) * cellSize.Width, GetRow(d) * cellSize.Height);
+            var C = (int)Math.Floor((double)cellNum % _VisibleColumns);
+            var R = (int)Math.Floor((double)cellNum / _VisibleColumns);
+            return new Point(C * cellSize.Width, R * cellSize.Height);
         }
-        private Size GetCellSize(Size area)
+        private DateTime GetCellDateTime(int cellNum)
         {
-            Size cellSize = new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
-            return cellSize;
+            var t = new TimeSpan(0, 0, (int)(_CellRange * cellNum));
+            return _FirstVisibleDay + t;
         }
+        private Size GetCellSize(Size area) => new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
         private delegate Size Sizer(double w, double h);
         private delegate Rect Recter(double x, double y, double w, double h);
         private delegate void RectDrawer(Brush brush, double x, double y, double w, double h);
@@ -1150,7 +1155,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 child.Measure(sizer(width, height));
             }
-            return new Size(availableSize.Width, _RangeSize);
+            return new Size(availableSize.Width, _CellRangeSize);
         }
         protected override Size ArrangeOverride(Size arrangeSize)
         {
@@ -1172,9 +1177,7 @@ namespace TimekeeperWPF.Calendar
         }
         private Size ArrangeStuff(Sizer sizer, Recter recter, Size arrangeSize, double xM, double yM)
         {
-            Size cellSize = new Size();
-            cellSize.Width = (arrangeSize.Width - TextMargin) / _VisibleColumns;
-            cellSize.Height = arrangeSize.Height / _VisibleRows;
+            Size cellSize = GetCellSize(arrangeSize);
             foreach (UIElement child in InternalChildren)
             {
                 if (child == null) { continue; }
@@ -1189,15 +1192,17 @@ namespace TimekeeperWPF.Calendar
                     actualChild = (UIElement)((ContentControl)child).Content;
                 if (actualChild is NowMarker)
                 {
-                    if (IsDateTimeRelevant(DateTime.Today))
+                    if (IsDateTimeRelevant(DateTime.Now))
                     {
-                        child.Visibility = Visibility.Visible;
                         width = cellSize.Width;
+                        var cellNum = GetCellNumber(DateTime.Now);
+                        var cellDate = GetCellDateTime(cellNum);
+                        var cellPos = GetCellPos(cellNum, cellSize);
                         var relX = xM;
-                        var relY = yM + DateTime.Now.TimeOfDay.TotalSeconds / Scale - height / 2;
-                        var cell = GetCellPos(DateTime.Now, cellSize);
-                        x = relX + cell.X;
-                        y = relY + cell.Y;
+                        var relY = yM + (DateTime.Now - cellDate).TotalSeconds / Scale - height / 2;
+                        x = relX + cellPos.X;
+                        y = relY + cellPos.Y;
+                        child.Visibility = Visibility.Visible;
                     }
                     else
                     {
@@ -1210,19 +1215,34 @@ namespace TimekeeperWPF.Calendar
                     var C = actualChild as CalendarTaskObject;
                     if (IsCalObjRelevant(C))
                     {
-                        C.Orientation = Orientation;
-                        child.Visibility = Visibility.Visible;
+                        //wrangle within bounds
+                        var startDay = (int)(C.Start.Date - Date).TotalDays.Within(0, _Days - 1);
+                        var currentDay = startDay;
+                        //shadow clone offset
+                        if (C.DayOffset > 0)
+                        {
+                            var startDate = Date.AddDays(startDay);
+                            var startCell = GetCellNumber(startDate);
+                            var startCellDate = GetCellDateTime(startCell);
+                            //only draw this shadowclone if it is the first in a cell
+                            if (((startDate - startCellDate).TotalDays + C.DayOffset) % _DaysPerCell != 0)
+                            {
+                                child.Visibility = Visibility.Collapsed;
+                                continue;
+                            }
+                            currentDay += C.DayOffset;
+                        }
+                        var currentDate = Date.AddDays(currentDay);
+                        var currentCellNum = GetCellNumber(currentDate);
+                        var currentCellDate = GetCellDateTime(currentCellNum);
+                        var currentCellPos = GetCellPos(currentCellNum, cellSize);
+
                         width = cellSize.Width / C.DimensionCount;
                         height = (C.End - C.Start).TotalSeconds / Scale;
-                        //wrangle within bounds
-                        var startDay = (int)(C.Start.Date - Date).TotalDays.Within(0, Days - 1);
-                        //shadow clone offset
-                        var currentDay = startDay + C.DayOffset;
-                        var currentDate = Date.AddDays(currentDay);
-                        var dimensionOffset = width * C.Dimension;
                         //get relative position within cell
+                        var dimensionOffset = width * C.Dimension;
                         var relX = xM + dimensionOffset;
-                        var relY = yM + (C.Start - currentDate).TotalSeconds / Scale;
+                        var relY = yM + (C.Start - currentCellDate).TotalSeconds / Scale;
                         //Cut off excess
                         var end = relY + height;
                         if (relY < 0)
@@ -1230,15 +1250,19 @@ namespace TimekeeperWPF.Calendar
                             height = end;
                             relY = 0;
                         }
-                        else if (end > _RangeSize)
+                        else if (end > _CellRangeSize)
                         {
-                            height -= end - _RangeSize;
+                            height -= end - _CellRangeSize;
                         }
-                        if (height <= 0) continue;
-                        //get screen position
-                        var cell = GetCellPos(currentDate, cellSize);
-                        x = relX + cell.X;
-                        y = relY + cell.Y;
+                        if (height <= 0)
+                        {
+                            child.Visibility = Visibility.Collapsed;
+                            continue;
+                        }
+                        x = relX + currentCellPos.X;
+                        y = relY + currentCellPos.Y;
+                        C.Orientation = Orientation;
+                        child.Visibility = Visibility.Visible;
                     }
                     else
                     {
@@ -1251,15 +1275,16 @@ namespace TimekeeperWPF.Calendar
                     CalendarFlairObject C = actualChild as CalendarFlairObject;
                     if (IsDateTimeRelevant(C.DateTime))
                     {
-                        C.Orientation = Orientation;
-                        child.Visibility = Visibility.Visible;
                         width = cellSize.Width / C.DimensionCount;
+                        var cellNum = GetCellNumber(DateTime.Now);
+                        var cellPos = GetCellPos(cellNum, cellSize);
                         var dimensionOffset = width * C.Dimension;
                         var relX = xM + dimensionOffset;
                         var relY = yM + C.DateTime.TimeOfDay.TotalSeconds / Scale - height / 2;
-                        var cell = GetCellPos(C.DateTime, cellSize);
-                        x = relX + cell.X;
-                        y = relY + cell.Y;
+                        x = relX + cellPos.X;
+                        y = relY + cellPos.Y;
+                        C.Orientation = Orientation;
+                        child.Visibility = Visibility.Visible;
                     }
                     else
                     {
@@ -1269,7 +1294,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 child.Arrange(recter(x, y, width, height));
             }
-            return new Size(arrangeSize.Width, _RangeSize);
+            return new Size(arrangeSize.Width, _CellRangeSize);
         }
         protected override void OnRender(DrawingContext dc)
         {
@@ -1307,7 +1332,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 else
                 {
-                    Size HcellSize = new Size((VrenderArea.Height) / DefaultVisibleColumns, (HrenderArea.Height + TextMargin) / _VisibleRows);
+                    Size HcellSize = new Size((VrenderArea.Height) / _DefaultVisibleColumns, (HrenderArea.Height + TextMargin) / _VisibleRows);
                     DrawHighlight(Hx1M, Vx1M, HRD, HcellSize);
                     DrawWatermark(HTDwatermark, HTDOOBwatermark, Hx1M, HyM, HcellSize);
                 }
@@ -1328,7 +1353,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 else
                 {
-                    Size VcellSize = new Size((VrenderArea.Width) / DefaultVisibleColumns, (VrenderArea.Height - TextMargin) / _VisibleRows);
+                    Size VcellSize = new Size((VrenderArea.Width) / _DefaultVisibleColumns, (VrenderArea.Height - TextMargin) / _VisibleRows);
                     DrawHighlight(HyM, Hx1M, VRD, VcellSize);
                     DrawWatermark(VTDwatermark, VTDOOBwatermark, HyM, Hx1M, VcellSize);
                 }
@@ -1406,8 +1431,9 @@ namespace TimekeeperWPF.Calendar
         {
             if (ShowHighlight && IsDateTimeRelevant(DateTime.Today))
             {
-                var cell = GetCellPos(DateTime.Now, cellSize);
-                RD(Highlight, x1M + cell.X, yM + cell.Y, cellSize.Width, cellSize.Height);
+                var cellNum = GetCellNumber(DateTime.Now);
+                var cellPos = GetCellPos(cellNum, cellSize);
+                RD(Highlight, x1M + cellPos.X, yM + cellPos.Y, cellSize.Width, cellSize.Height);
             }
             if (ShowMonthBoundsHighlight)
             {
@@ -1434,9 +1460,9 @@ namespace TimekeeperWPF.Calendar
             var day = _FirstVisibleDay;
             var xc = cellSize.Width / 2;
             var yc = cellSize.Height / 2;
-            for (var j = 0; j < DefaultVisibleRows; j++)
+            for (var j = 0; j < _DefaultVisibleRows; j++)
             {
-                for (var i = 0; i < DefaultVisibleColumns; i++)
+                for (var i = 0; i < _DefaultVisibleColumns; i++)
                 {
                     var x = x1M + i * cellSize.Width + xc;
                     var y = yM + j * cellSize.Height + yc;

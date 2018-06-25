@@ -47,7 +47,7 @@ namespace TimekeeperWPF
             }
         }
         private DateTime _MousePosition;
-        public virtual DateTime MousePosition
+        public DateTime MousePosition
         {
             get { return _MousePosition; }
             set
@@ -57,7 +57,7 @@ namespace TimekeeperWPF
             }
         }
         private DateTime _MouseClickPosition;
-        public virtual DateTime MouseClickPosition
+        public DateTime MouseClickPosition
         {
             get { return _MouseClickPosition; }
             set
@@ -119,52 +119,6 @@ namespace TimekeeperWPF
         public bool IsNotEnabled => !IsEnabled;
         public virtual bool CanMax => true;
         public virtual bool CanTextMargin => true;
-        #region Orientation
-        private Orientation _Orientation = Orientation.Vertical;
-        public virtual Orientation Orientation
-        {
-            get { return _Orientation; }
-            set
-            {
-                if (_Orientation == value) return;
-                _Orientation = value;
-                OnPropertyChanged();
-            }
-        }
-        private ICommand _OrientationCommand;
-        public ICommand OrientationCommand => _OrientationCommand
-            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
-        protected virtual bool CanOrientation => true;
-        protected virtual void ToggleOrientation()
-        {
-            if (Orientation == Orientation.Horizontal)
-                Orientation = Orientation.Vertical;
-            else
-                Orientation = Orientation.Horizontal;
-        }
-        private Orientation _SecondaryOrientation = Orientation.Horizontal;
-        public virtual Orientation SecondaryOrientation
-        {
-            get { return _SecondaryOrientation; }
-            set
-            {
-                if (_SecondaryOrientation == value) return;
-                _SecondaryOrientation = value;
-                OnPropertyChanged();
-            }
-        }
-        private ICommand _SecondaryOrientationCommand;
-        public ICommand SecondaryOrientationCommand => _SecondaryOrientationCommand
-            ?? (_SecondaryOrientationCommand = new RelayCommand(ap => ToggleSecondaryOrientation(), pp => CanSecondaryOrientation));
-        protected virtual bool CanSecondaryOrientation => true;
-        protected virtual void ToggleSecondaryOrientation()
-        {
-            if (SecondaryOrientation == Orientation.Horizontal)
-                SecondaryOrientation = Orientation.Vertical;
-            else
-                SecondaryOrientation = Orientation.Horizontal;
-        }
-        #endregion
         #endregion
         #region Memento
         private class VMMemento : IMemento
@@ -281,6 +235,52 @@ namespace TimekeeperWPF
             await ReCreateAsync();
         }
         #endregion Navigate
+        #region Orientation
+        private Orientation _Orientation = Orientation.Vertical;
+        public virtual Orientation Orientation
+        {
+            get { return _Orientation; }
+            set
+            {
+                if (_Orientation == value) return;
+                _Orientation = value;
+                OnPropertyChanged();
+            }
+        }
+        private ICommand _OrientationCommand;
+        public ICommand OrientationCommand => _OrientationCommand
+            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
+        protected virtual bool CanOrientation => true;
+        protected virtual void ToggleOrientation()
+        {
+            if (Orientation == Orientation.Horizontal)
+                Orientation = Orientation.Vertical;
+            else
+                Orientation = Orientation.Horizontal;
+        }
+        private Orientation _SecondaryOrientation = Orientation.Horizontal;
+        public virtual Orientation SecondaryOrientation
+        {
+            get { return _SecondaryOrientation; }
+            set
+            {
+                if (_SecondaryOrientation == value) return;
+                _SecondaryOrientation = value;
+                OnPropertyChanged();
+            }
+        }
+        private ICommand _SecondaryOrientationCommand;
+        public ICommand SecondaryOrientationCommand => _SecondaryOrientationCommand
+            ?? (_SecondaryOrientationCommand = new RelayCommand(ap => ToggleSecondaryOrientation(), pp => CanSecondaryOrientation));
+        protected virtual bool CanSecondaryOrientation => true;
+        protected virtual void ToggleSecondaryOrientation()
+        {
+            if (SecondaryOrientation == Orientation.Horizontal)
+                SecondaryOrientation = Orientation.Vertical;
+            else
+                SecondaryOrientation = Orientation.Horizontal;
+        }
+        #endregion
         #region Scale
         private int _ScaleSudoCommand;
         private ICommand _ScaleUpCommand;

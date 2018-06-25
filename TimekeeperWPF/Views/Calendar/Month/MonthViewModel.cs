@@ -47,7 +47,7 @@ namespace TimekeeperWPF
             if (CalObj.Start.Date != CalObj.End.Date)
             {
                 //CalObj covers more than one day, so we need to make copies and set
-                //the DayOffset property to help Week panel, otherwise it will not be
+                //the DayOffset property to help Month panel, otherwise it will not be
                 //displayed properly and only show up on one day.
                 int startDayOfMonth = (int)(CalObj.Start.Date - Start).TotalDays.Within(0, Start.MonthDays() - 1);
                 int endDayOfMonth = (int)(CalObj.End.Date - Start).TotalDays.Within(0, Start.MonthDays() - 1);

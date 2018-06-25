@@ -85,7 +85,8 @@ namespace TimekeeperDAL.Tools
         }
         
         public static double Within(this double d, double min, double max) { return Math.Max(min, Math.Min(d, max)); }
-        public static long Within(this long d, double min, double max) { return (long)Math.Max(min, Math.Min(d, max)); }
+        public static long Within(this long d, double min, double max) { return (long)((double)d).Within(min, max); }
+        public static int Within(this int d, int min, int max) { return (int)((double)d).Within(min, max); }
 
         public static DateTime WeekStart(this DateTime dt) { return dt.Date.AddDays(-(int)dt.DayOfWeek).Date; }
         public static DateTime MonthStart(this DateTime dt) { return new DateTime(dt.Year, dt.Month, 1, 0, 0, 0, dt.Kind); }
