@@ -86,7 +86,7 @@ namespace TimekeeperWPF.Calendar
         }
         protected virtual void DeterminePosition(MouseEventArgs e)
         {
-            if (Orientation == Orientation.Vertical)
+            if (TimeOrientation == Orientation.Vertical)
             {
                 var pos = e.GetPosition(this);
                 var date = Date;
@@ -114,7 +114,7 @@ namespace TimekeeperWPF.Calendar
             }
             else
             {
-                if (Orientation == Orientation.Vertical)
+                if (TimeOrientation == Orientation.Vertical)
                 {
                     e.Handled = true;
                     if (e.Delta < 0) MouseWheelDown();
@@ -390,7 +390,7 @@ namespace TimekeeperWPF.Calendar
             Day day = d as Day;
             Vector newValue = (Vector)value;
             if (day.ForceMaxScale) return new Vector();
-            if (day.Orientation == Orientation.Vertical)
+            if (day.TimeOrientation == Orientation.Vertical)
             {
                 newValue.X = newValue.X.Within(0, day.ExtentWidth - day.ViewportWidth);
                 newValue.Y = newValue.Y.Within(0, day.ExtentHeight - day.ViewportHeight);
@@ -415,21 +415,21 @@ namespace TimekeeperWPF.Calendar
         }
         #endregion Offset
         #region Orientation
-        public Orientation Orientation
+        public Orientation TimeOrientation
         {
-            get { return (Orientation)GetValue(OrientationProperty); }
-            set { SetValue(OrientationProperty, value); }
+            get { return (Orientation)GetValue(TimeOrientationProperty); }
+            set { SetValue(TimeOrientationProperty, value); }
         }
-        public static readonly DependencyProperty OrientationProperty =
+        public static readonly DependencyProperty TimeOrientationProperty =
             DependencyProperty.Register(
-                nameof(Orientation), typeof(Orientation), typeof(Day),
+                nameof(TimeOrientation), typeof(Orientation), typeof(Day),
                 new FrameworkPropertyMetadata(Orientation.Vertical,
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender,
-                    new PropertyChangedCallback(OnOrientationChanged)),
+                    new PropertyChangedCallback(OnTimeOrientationChanged)),
                 new ValidateValueCallback(IsValidOrientation));
-        private static void OnOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnTimeOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Day day = d as Day;
             day.SetRange();
@@ -438,28 +438,28 @@ namespace TimekeeperWPF.Calendar
             day.CoerceValue(ScaleProperty);
         }
         protected override bool HasLogicalOrientation => true;
-        protected override Orientation LogicalOrientation => Orientation;
+        protected override Orientation LogicalOrientation => TimeOrientation;
         internal static bool IsValidOrientation(object o)
         {
             Orientation value = (Orientation)o;
             return value == Orientation.Horizontal
                 || value == Orientation.Vertical;
         }
-        public Orientation SecondaryOrientation
+        public Orientation DateOrientation
         {
-            get { return (Orientation)GetValue(SecondaryOrientationProperty); }
-            set { SetValue(SecondaryOrientationProperty, value); }
+            get { return (Orientation)GetValue(DateOrientationProperty); }
+            set { SetValue(DateOrientationProperty, value); }
         }
-        public static readonly DependencyProperty SecondaryOrientationProperty =
+        public static readonly DependencyProperty DateOrientationProperty =
             DependencyProperty.Register(
-                nameof(SecondaryOrientation), typeof(Orientation), typeof(Day),
+                nameof(DateOrientation), typeof(Orientation), typeof(Day),
                 new FrameworkPropertyMetadata(Orientation.Horizontal,
                     FrameworkPropertyMetadataOptions.AffectsMeasure |
                     FrameworkPropertyMetadataOptions.AffectsArrange |
                     FrameworkPropertyMetadataOptions.AffectsRender,
-                    new PropertyChangedCallback(OnSecondaryOrientationChanged)),
+                    new PropertyChangedCallback(OnDateOrientationChanged)),
                 new ValidateValueCallback(IsValidOrientation));
-        public static void OnSecondaryOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        public static void OnDateOrientationChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             Day day = d as Day;
             day.SetRange();
@@ -469,7 +469,7 @@ namespace TimekeeperWPF.Calendar
         }
         private void SetRange()
         {
-            if (SecondaryOrientation == Orientation.Vertical)
+            if (DateOrientation == Orientation.Vertical)
             {
                 _VisibleColumns = 1;
                 _DaysPerCell = _DefaultVisibleColumns;
@@ -550,7 +550,7 @@ namespace TimekeeperWPF.Calendar
         {
             Day day = d as Day;
             Double newValue = (Double)value;
-            if (day.ForceMaxScale || newValue > day.GetMaxScale() || day.SecondaryOrientation == Orientation.Vertical)
+            if (day.ForceMaxScale || newValue > day.GetMaxScale() || day.DateOrientation == Orientation.Vertical)
             {
                 newValue = day.GetMaxScale();
             }
@@ -565,7 +565,7 @@ namespace TimekeeperWPF.Calendar
         }
         public virtual double GetMaxScale()
         {
-            if (Orientation == Orientation.Vertical) 
+            if (TimeOrientation == Orientation.Vertical) 
                 return _CellRange / RenderSize.Height * _VisibleRows;
             else 
                 return _CellRange / RenderSize.Width * _VisibleRows;
@@ -619,7 +619,7 @@ namespace TimekeeperWPF.Calendar
         private void SetRelativeScalingVector(Point p)
         {
             Vector v = new Vector();
-            if (Orientation == Orientation.Vertical)
+            if (TimeOrientation == Orientation.Vertical)
                 v.Y = p.Y;
             else
                 v.X = p.X;
@@ -1101,7 +1101,7 @@ namespace TimekeeperWPF.Calendar
         private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
         protected override Size MeasureOverride(Size availableSize)
         {
-            if (Orientation == Orientation.Vertical)
+            if (TimeOrientation == Orientation.Vertical)
             {
                 Sizer measurer = (w, h) => new Size(w, h);
                 Size size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
@@ -1159,7 +1159,7 @@ namespace TimekeeperWPF.Calendar
         }
         protected override Size ArrangeOverride(Size arrangeSize)
         {
-            if (Orientation == Orientation.Vertical)
+            if (TimeOrientation == Orientation.Vertical)
             {
                 Recter RC = (x, y, w, h) => new Rect(x - Offset.X, y - Offset.Y, w, h);
                 Sizer sizer = (w, h) => new Size(w, h);
@@ -1261,7 +1261,7 @@ namespace TimekeeperWPF.Calendar
                         }
                         x = relX + currentCellPos.X;
                         y = relY + currentCellPos.Y;
-                        C.Orientation = Orientation;
+                        C.Orientation = TimeOrientation;
                         child.Visibility = Visibility.Visible;
                     }
                     else
@@ -1283,7 +1283,7 @@ namespace TimekeeperWPF.Calendar
                         var relY = yM + C.DateTime.TimeOfDay.TotalSeconds / Scale - height / 2;
                         x = relX + cellPos.X;
                         y = relY + cellPos.Y;
-                        C.Orientation = Orientation;
+                        C.Orientation = TimeOrientation;
                         child.Visibility = Visibility.Visible;
                     }
                     else
@@ -1322,10 +1322,10 @@ namespace TimekeeperWPF.Calendar
             double Hx1M = 0;
             double Hx2M = TextMargin;
             double HyM = 0;
-            if (Orientation == Orientation.Vertical)
+            if (TimeOrientation == Orientation.Vertical)
             {
                 Size VcellSize = new Size((VrenderArea.Width - TextMargin) / _VisibleColumns, VrenderArea.Height / _VisibleRows);
-                if (SecondaryOrientation == Orientation.Horizontal)
+                if (DateOrientation == Orientation.Horizontal)
                 {
                     DrawHighlight(Vx1M, VyM, VRD, VcellSize);
                     DrawWatermark(VTDwatermark, VTDOOBwatermark, Vx1M, VyM, VcellSize);
@@ -1346,7 +1346,7 @@ namespace TimekeeperWPF.Calendar
             else
             {
                 Size HcellSize = new Size((HrenderArea.Width - TextMargin) / _VisibleColumns, HrenderArea.Height / _VisibleRows);
-                if (SecondaryOrientation == Orientation.Horizontal)
+                if (DateOrientation == Orientation.Horizontal)
                 {
                     DrawHighlight(Hx1M, HyM, HRD, HcellSize);
                     DrawWatermark(HTDwatermark, HTDOOBwatermark, Hx1M, HyM, HcellSize);

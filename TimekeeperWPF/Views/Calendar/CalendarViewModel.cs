@@ -236,49 +236,49 @@ namespace TimekeeperWPF
         }
         #endregion Navigate
         #region Orientation
-        private Orientation _Orientation = Orientation.Vertical;
-        public virtual Orientation Orientation
+        private Orientation _TimeOrientation = Orientation.Vertical;
+        public virtual Orientation TimeOrientation
         {
-            get { return _Orientation; }
+            get { return _TimeOrientation; }
             set
             {
-                if (_Orientation == value) return;
-                _Orientation = value;
+                if (_TimeOrientation == value) return;
+                _TimeOrientation = value;
                 OnPropertyChanged();
             }
         }
-        private ICommand _OrientationCommand;
-        public ICommand OrientationCommand => _OrientationCommand
-            ?? (_OrientationCommand = new RelayCommand(ap => ToggleOrientation(), pp => CanOrientation));
-        protected virtual bool CanOrientation => true;
-        protected virtual void ToggleOrientation()
+        private ICommand _TimeOrientationCommand;
+        public ICommand TimeOrientationCommand => _TimeOrientationCommand
+            ?? (_TimeOrientationCommand = new RelayCommand(ap => ToggleTimeOrientation(), pp => CanTimeOrientation));
+        protected virtual bool CanTimeOrientation => true;
+        protected virtual void ToggleTimeOrientation()
         {
-            if (Orientation == Orientation.Horizontal)
-                Orientation = Orientation.Vertical;
+            if (TimeOrientation == Orientation.Horizontal)
+                TimeOrientation = Orientation.Vertical;
             else
-                Orientation = Orientation.Horizontal;
+                TimeOrientation = Orientation.Horizontal;
         }
-        private Orientation _SecondaryOrientation = Orientation.Horizontal;
-        public virtual Orientation SecondaryOrientation
+        private Orientation _DateOrientation = Orientation.Horizontal;
+        public virtual Orientation DateOrientation
         {
-            get { return _SecondaryOrientation; }
+            get { return _DateOrientation; }
             set
             {
-                if (_SecondaryOrientation == value) return;
-                _SecondaryOrientation = value;
+                if (_DateOrientation == value) return;
+                _DateOrientation = value;
                 OnPropertyChanged();
             }
         }
-        private ICommand _SecondaryOrientationCommand;
-        public ICommand SecondaryOrientationCommand => _SecondaryOrientationCommand
-            ?? (_SecondaryOrientationCommand = new RelayCommand(ap => ToggleSecondaryOrientation(), pp => CanSecondaryOrientation));
-        protected virtual bool CanSecondaryOrientation => true;
-        protected virtual void ToggleSecondaryOrientation()
+        private ICommand _DateOrientationCommand;
+        public ICommand DateOrientationCommand => _DateOrientationCommand
+            ?? (_DateOrientationCommand = new RelayCommand(ap => ToggleDateOrientation(), pp => CanDateOrientation));
+        protected virtual bool CanDateOrientation => true;
+        protected virtual void ToggleDateOrientation()
         {
-            if (SecondaryOrientation == Orientation.Horizontal)
-                SecondaryOrientation = Orientation.Vertical;
+            if (DateOrientation == Orientation.Horizontal)
+                DateOrientation = Orientation.Vertical;
             else
-                SecondaryOrientation = Orientation.Horizontal;
+                DateOrientation = Orientation.Horizontal;
         }
         #endregion
         #region Scale
