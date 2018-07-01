@@ -18,7 +18,7 @@ namespace TimekeeperWPF.Calendar
     /// <summary>
     /// Interaction logic for NowMarker.xaml
     /// </summary>
-    public partial class NowMarker : UserControl
+    public partial class NowMarker : CalendarObject
     {
         public NowMarker()
         {

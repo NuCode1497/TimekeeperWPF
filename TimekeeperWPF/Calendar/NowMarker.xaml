@@ -1,17 +1,17 @@
-﻿<UserControl x:Class="TimekeeperWPF.Calendar.NowMarker"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             x:Name="ThisControl"
-             d:DesignHeight="200" d:DesignWidth="200">
+﻿<cal:CalendarObject
+    x:Class="TimekeeperWPF.Calendar.NowMarker"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    mc:Ignorable="d" 
+    xmlns:cal="clr-namespace:TimekeeperWPF.Calendar"
+    d:DesignHeight="200" d:DesignWidth="200">
     <UserControl.Resources>
         <ControlTemplate x:Key="HorizontalTemplate">
             <ControlTemplate.Triggers>
                 <DataTrigger 
-                    Binding="{Binding Path=DataContext.Orientation, 
-                    RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                    Binding="{Binding Orientation}"
                     Value="Horizontal">
                     <DataTrigger.EnterActions>
                         <BeginStoryboard Storyboard="{StaticResource MarkyRGBCycle}"/>
@@ -40,8 +40,7 @@
         <ControlTemplate x:Key="VerticalTemplate">
             <ControlTemplate.Triggers>
                 <DataTrigger 
-                    Binding="{Binding Path=DataContext.Orientation, 
-                    RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                    Binding="{Binding Orientation}"
                     Value="Vertical">
                     <DataTrigger.EnterActions>
                         <BeginStoryboard Storyboard="{StaticResource MarkyRGBCycle}"/>
@@ -74,18 +73,16 @@
             <Setter Property="Template" Value="{StaticResource VerticalTemplate}"/>
             <Style.Triggers>
                 <DataTrigger 
-                    Binding="{Binding Path=DataContext.Orientation, 
-                    RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                    Binding="{Binding Orientation}"
                     Value="Horizontal">
                     <Setter Property="Template" Value="{StaticResource HorizontalTemplate}"/>
                 </DataTrigger>
                 <DataTrigger 
-                    Binding="{Binding Path=DataContext.Orientation, 
-                    RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                    Binding="{Binding Orientation}"
                     Value="Vertical">
                     <Setter Property="Template" Value="{StaticResource VerticalTemplate}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
     </UserControl.Style>
-</UserControl>
+</cal:CalendarObject>
