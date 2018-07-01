@@ -155,8 +155,8 @@
         <Setter Property="Background" Value="{StaticResource Day.Background}"/>
         <Setter Property="ScaleSudoCommand" Value="{Binding Path=ScaleSudoCommand, Mode=OneWay}"/>
         <Setter Property="Date" Value="{Binding Path=Start, Mode=TwoWay}"/>
-        <Setter Property="Orientation" Value="{Binding Path=Orientation, Mode=TwoWay}"/>
-        <Setter Property="SecondaryOrientation" Value="{Binding Path=SecondaryOrientation, Mode=TwoWay}"/>
+        <Setter Property="TimeOrientation" Value="{Binding Path=TimeOrientation, Mode=TwoWay}"/>
+        <Setter Property="DateOrientation" Value="{Binding Path=DateOrientation, Mode=TwoWay}"/>
         <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
         <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
         <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
@@ -395,16 +395,16 @@
                 <Button x:Name="UndoBtn" Style="{StaticResource UndoButtonStyle}"/>
                 <Button x:Name="RedoBtn" Style="{StaticResource RedoButtonStyle}"/>
                 <Separator/>
-                <Button x:Name="OrientationButton" ToolTip="Time Orientation" 
-                        Command="{Binding Path=OrientationCommand}">
+                <Button x:Name="TimeOrientationButton" ToolTip="Time Orientation" 
+                        Command="{Binding Path=TimeOrientationCommand}">
                     <Button.Content>
                         <Grid>
                             <TextBlock Text="⤹" FontSize="22" Margin="2,-8,2,-3"/>
                         </Grid>
                     </Button.Content>
                 </Button>
-                <Button x:Name="SecondaryOrientationButton" ToolTip="Date Orientation" 
-                        Command="{Binding Path=SecondaryOrientationCommand}">
+                <Button x:Name="DateOrientationButton" ToolTip="Date Orientation" 
+                        Command="{Binding Path=DateOrientationCommand}">
                     <Button.Content>
                         <Grid>
                             <TextBlock Text="⤹" FontSize="22" Margin="2,-8,2,-3"/>

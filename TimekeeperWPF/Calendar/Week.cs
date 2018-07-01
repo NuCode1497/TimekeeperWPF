@@ -44,7 +44,7 @@ namespace TimekeeperWPF.Calendar
         #region Events
         protected override void DeterminePosition(MouseEventArgs e)
         {
-            if (Orientation == Orientation.Vertical)
+            if (TimeOrientation == Orientation.Vertical)
             {
                 var pos = e.MouseDevice.GetPosition(this);
                 var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / _VisibleColumns)).Within(0, _VisibleColumns - 1);

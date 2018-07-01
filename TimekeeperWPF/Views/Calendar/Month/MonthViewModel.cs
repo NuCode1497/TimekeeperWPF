@@ -32,7 +32,7 @@ namespace TimekeeperWPF
         }
         protected override bool CanSave => false;
         public override bool CanMax => false;
-        protected override bool CanOrientation => false;
+        protected override bool CanTimeOrientation => true;
         protected override bool CanSelectMonth => false;
         internal override void SaveAs()
         {

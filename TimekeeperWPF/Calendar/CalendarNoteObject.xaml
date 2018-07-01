@@ -33,14 +33,12 @@
         <Style TargetType="UserControl">
             <Style.Triggers>
                 <DataTrigger 
-                    Binding="{Binding Path=DataContext.Orientation, 
-                    RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                    Binding="{Binding Orientation}"
                     Value="Horizontal">
                     <Setter Property="Template" Value="{StaticResource HorizontalTemplate}"/>
                 </DataTrigger>
                 <DataTrigger 
-                    Binding="{Binding Path=DataContext.Orientation, 
-                    RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Grid}}"
+                    Binding="{Binding Orientation}"
                     Value="Vertical">
                     <Setter Property="Template" Value="{StaticResource VerticalTemplate}"/>
                 </DataTrigger>
