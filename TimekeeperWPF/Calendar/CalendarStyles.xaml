@@ -247,7 +247,7 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         <Setter Property="VerticalContentAlignment" Value="Stretch"/>
         <Setter Property="Margin" Value="0"/>
-        <Setter Property="Padding" Value="1,0"/>
+        <Setter Property="Padding" Value="0"/>
         <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="IsEnabled" Value="{Binding IsEnabled}"/>
