@@ -93,16 +93,16 @@ namespace TimekeeperWPF
                 OnPropertyChanged(nameof(CanMax));
             }
         }
-        private bool _TextMargin = true;
-        public virtual bool TextMargin
+        private bool _ShowTimeTextMargin = true;
+        public virtual bool ShowTimeTextMargin
         {
-            get { return _TextMargin; }
+            get { return _ShowTimeTextMargin; }
             set
             {
-                if (_TextMargin == value) return;
-                _TextMargin = value;
+                if (_ShowTimeTextMargin == value) return;
+                _ShowTimeTextMargin = value;
                 OnPropertyChanged();
-                OnPropertyChanged(nameof(CanTextMargin));
+                OnPropertyChanged(nameof(CanShowTimeTextMargin));
             }
         }
         private bool _IsEnabled = true;
@@ -118,7 +118,7 @@ namespace TimekeeperWPF
         }
         public bool IsNotEnabled => !IsEnabled;
         public virtual bool CanMax => true;
-        public virtual bool CanTextMargin => true;
+        public virtual bool CanShowTimeTextMargin => true;
         #endregion
         #region Memento
         private class VMMemento : IMemento

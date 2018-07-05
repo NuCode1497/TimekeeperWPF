@@ -46,8 +46,8 @@ namespace TimekeeperWPF.Calendar
         public Day() : base()
         {
             _Timer.Tick += _Timer_Tick;
-            _VisibleColumns = _DefaultVisibleColumns;
-            _VisibleRows = _DefaultVisibleRows;
+            _RelativeColumns = _DefaultColumns;
+            _RelativeRows = _DefaultRows;
         }
         #endregion
         #region Events
@@ -215,7 +215,7 @@ namespace TimekeeperWPF.Calendar
                     new PropertyChangedCallback(OnFontFamilyChanged)));
         private static void OnFontFamilyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.CoerceValue(TextMarginProperty);
+            d.CoerceValue(TimeTextMarginProperty);
         }
         #endregion
         #region FontSize
@@ -236,7 +236,7 @@ namespace TimekeeperWPF.Calendar
                     new PropertyChangedCallback(OnFontSizeChanged)));
         private static void OnFontSizeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.CoerceValue(TextMarginProperty);
+            d.CoerceValue(TimeTextMarginProperty);
         }
         #endregion
         #region FontStretch
@@ -255,7 +255,7 @@ namespace TimekeeperWPF.Calendar
                     new PropertyChangedCallback(OnFontStretchChanged)));
         private static void OnFontStretchChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.CoerceValue(TextMarginProperty);
+            d.CoerceValue(TimeTextMarginProperty);
         }
         #endregion
         #region FontStyle
@@ -274,7 +274,7 @@ namespace TimekeeperWPF.Calendar
                     new PropertyChangedCallback(OnFontStyleChanged)));
         private static void OnFontStyleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.CoerceValue(TextMarginProperty);
+            d.CoerceValue(TimeTextMarginProperty);
         }
         #endregion
         #region FontWeight
@@ -293,7 +293,91 @@ namespace TimekeeperWPF.Calendar
                     new PropertyChangedCallback(OnFontWeightChanged)));
         private static void OnFontWeightChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            d.CoerceValue(TextMarginProperty);
+            d.CoerceValue(TimeTextMarginProperty);
+        }
+        #endregion
+        #region GridMargin
+        private Thickness _GridMargin = new Thickness();
+        private bool _ShowTimeTextMarginPrevious = true;
+        /// <summary>
+        /// Show or hide the grid time text.
+        /// </summary>
+        [Bindable(true)]
+        public bool ShowTimeTextMargin
+        {
+            get { return (bool)GetValue(ShowTimeTextMarginProperty); }
+            set { SetValue(ShowTimeTextMarginProperty, value); }
+        }
+        public static readonly DependencyProperty ShowTimeTextMarginProperty =
+            DependencyProperty.Register(
+                nameof(ShowTimeTextMargin), typeof(bool), typeof(Day),
+                new FrameworkPropertyMetadata(true,
+                    new PropertyChangedCallback(OnShowTimeTextMarginChanged)));
+        public static void OnShowTimeTextMarginChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            Day day = d as Day;
+            day.UpdateTimeTextMargin();
+        }
+        private double _TimeTextMargin = 0;
+        public double TimeTextMargin
+        {
+            get { return (double)GetValue(TimeTextMarginProperty); }
+            set { SetValue(TimeTextMarginProperty, value); }
+        }
+        public static readonly DependencyProperty TimeTextMarginProperty =
+            DependencyProperty.Register(
+                nameof(TimeTextMargin), typeof(double), typeof(Day),
+                new FrameworkPropertyMetadata(0d,
+                    FrameworkPropertyMetadataOptions.AffectsArrange |
+                    FrameworkPropertyMetadataOptions.AffectsMeasure |
+                    FrameworkPropertyMetadataOptions.AffectsRender,
+                    new PropertyChangedCallback(OnTimeTextMarginChanged)));
+        public static void OnTimeTextMarginChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+
+        }
+        private void UpdateTimeTextMargin()
+        {
+            if (ShowTimeTextMargin)
+            {
+                string format = "";
+                if (_GridData.GridTextFormat == GridTextFormat.Long) format = "00:00:00 AM";
+                else if (_GridData.GridTextFormat == GridTextFormat.Medium) format = "00:00 AM";
+                else if (_GridData.GridTextFormat == GridTextFormat.Short) format = "00 AM";
+                else
+                {
+                    _TimeTextMargin = 0;
+                    AnimateTimeTextMargin();
+                    return;
+                }
+                FormattedText lineText = new FormattedText(format,
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    FlowDirection.RightToLeft,
+                    new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
+                    FontSize, Foreground,
+                    VisualTreeHelper.GetDpi(this).PixelsPerDip);
+                _TimeTextMargin = lineText.Width - TextOffset.X - TextOffset.X;
+                AnimateTimeTextMargin();
+            }
+            else
+            {
+                _TimeTextMargin = 0;
+                AnimateTimeTextMargin();
+            }
+        }
+        private void AnimateTimeTextMargin()
+        {
+            DoubleAnimation anime = new DoubleAnimation();
+            anime.Duration = _AnimationLength;
+            anime.To = _TimeTextMargin;
+            anime.AccelerationRatio = _AccelerationRatio;
+            anime.DecelerationRatio = _DecelerationRatio;
+            anime.Completed += OnAnimateTimeTextMarginCompleted;
+            BeginAnimation(TimeTextMarginProperty, anime, HandoffBehavior.Compose);
+        }
+        private void OnAnimateTimeTextMarginCompleted(object sender, EventArgs e)
+        {
+            _ShowTimeTextMarginPrevious = ShowTimeTextMargin;
         }
         #endregion
         #region GridMinorPen
@@ -415,6 +499,8 @@ namespace TimekeeperWPF.Calendar
         }
         #endregion Offset
         #region Orientation
+        private enum DateTimeOrientation { HDHT, HDVT, VDHT, VDVT }
+        private DateTimeOrientation DTO = DateTimeOrientation.HDVT;
         public Orientation TimeOrientation
         {
             get { return (Orientation)GetValue(TimeOrientationProperty); }
@@ -469,16 +555,43 @@ namespace TimekeeperWPF.Calendar
         }
         private void SetRange()
         {
-            if (DateOrientation == Orientation.Vertical)
+            if (DateOrientation == Orientation.Horizontal)
             {
-                _VisibleColumns = 1;
-                _DaysPerCell = _DefaultVisibleColumns;
-                ForceMaxScale = true;
+                if (TimeOrientation == Orientation.Horizontal)
+                {
+                    DTO = DateTimeOrientation.HDHT;
+                }
+                else
+                {
+                    DTO = DateTimeOrientation.HDVT;
+                }
+                _RelativeColumns = _DefaultColumns;
+                _DaysPerCell = 1;
             }
             else
             {
-                _VisibleColumns = _DefaultVisibleColumns;
-                _DaysPerCell = 1;
+                if (TimeOrientation == Orientation.Horizontal)
+                {
+                    DTO = DateTimeOrientation.VDHT;
+                }
+                else
+                {
+                    DTO = DateTimeOrientation.VDVT;
+                }
+                _RelativeColumns = 1;
+                _DaysPerCell = _DefaultColumns;
+                ForceMaxScale = true;
+            }
+            switch (DTO)
+            {
+                case DateTimeOrientation.HDHT:
+                    break;
+                case DateTimeOrientation.HDVT:
+                    break;
+                case DateTimeOrientation.VDHT:
+                    break;
+                case DateTimeOrientation.VDVT:
+                    break;
             }
             _CellRange = TimeSpan.FromDays(_DaysPerCell).TotalSeconds;
         }
@@ -556,7 +669,7 @@ namespace TimekeeperWPF.Calendar
             }
             else
             {
-                newValue /= day._VisibleRows;
+                newValue /= day._RelativeRows;
             }
             if (newValue < day._ScaleLowerLimit) return day._ScaleLowerLimit;
             if (newValue > day._ScaleUpperLimit) return day._ScaleUpperLimit;
@@ -566,9 +679,9 @@ namespace TimekeeperWPF.Calendar
         public virtual double GetMaxScale()
         {
             if (TimeOrientation == Orientation.Vertical) 
-                return _CellRange / RenderSize.Height * _VisibleRows;
+                return _CellRange / RenderSize.Height * _RelativeRows;
             else 
-                return _CellRange / RenderSize.Width * _VisibleRows;
+                return _CellRange / RenderSize.Width * _RelativeRows;
         }
         internal static bool IsValidScale(object value)
         {
@@ -685,84 +798,6 @@ namespace TimekeeperWPF.Calendar
                 new FrameworkPropertyMetadata(true,
                     FrameworkPropertyMetadataOptions.AffectsRender));
         #endregion
-        #region TextMargin
-        private bool _ShowTextMarginPrevious = true;
-        /// <summary>
-        /// Show or hide the grid time text.
-        /// </summary>
-        [Bindable(true)]
-        public bool ShowTextMargin
-        {
-            get { return (bool)GetValue(ShowTextMarginProperty); }
-            set { SetValue(ShowTextMarginProperty, value); }
-        }
-        public static readonly DependencyProperty ShowTextMarginProperty =
-            DependencyProperty.Register(
-                nameof(ShowTextMargin), typeof(bool), typeof(Day),
-                new FrameworkPropertyMetadata(true,
-                    new PropertyChangedCallback(OnShowTextMarginChanged)));
-        public static void OnShowTextMarginChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            Day day = d as Day;
-            day.UpdateTextMargin();
-        }
-        private double _TextMargin = 0;
-        public double TextMargin
-        {
-            get { return (double)GetValue(TextMarginProperty); }
-            set { SetValue(TextMarginProperty, value); }
-        }
-        public static readonly DependencyProperty TextMarginProperty =
-            DependencyProperty.Register(
-                nameof(TextMargin), typeof(double), typeof(Day),
-                new FrameworkPropertyMetadata(0d,
-                    FrameworkPropertyMetadataOptions.AffectsArrange |
-                    FrameworkPropertyMetadataOptions.AffectsMeasure |
-                    FrameworkPropertyMetadataOptions.AffectsRender));
-        private void UpdateTextMargin()
-        {
-            if (ShowTextMargin)
-            {
-                string format = "";
-                if (_GridData.GridTextFormat == GridTextFormat.Long) format = "00:00:00 AM";
-                else if (_GridData.GridTextFormat == GridTextFormat.Medium) format = "00:00 AM";
-                else if (_GridData.GridTextFormat == GridTextFormat.Short) format = "00 AM";
-                else
-                {
-                    _TextMargin = 0;
-                    AnimateTextMargin();
-                    return;
-                }
-                FormattedText lineText = new FormattedText(format,
-                    System.Globalization.CultureInfo.CurrentCulture,
-                    FlowDirection.RightToLeft,
-                    new Typeface(FontFamily, FontStyle, FontWeight, FontStretch),
-                    FontSize, Foreground,
-                    VisualTreeHelper.GetDpi(this).PixelsPerDip);
-                _TextMargin = lineText.Width - TextOffset.X - TextOffset.X;
-                AnimateTextMargin();
-            }
-            else
-            {
-                _TextMargin = 0;
-                AnimateTextMargin();
-            }
-        }
-        private void AnimateTextMargin()
-        {
-            DoubleAnimation anime = new DoubleAnimation();
-            anime.Duration = _AnimationLength;
-            anime.To = _TextMargin;
-            anime.AccelerationRatio = _AccelerationRatio;
-            anime.DecelerationRatio = _DecelerationRatio;
-            anime.Completed += OnAnimateTextMarginCompleted;
-            BeginAnimation(TextMarginProperty, anime, HandoffBehavior.Compose);
-        }
-        private void OnAnimateTextMarginCompleted(object sender, EventArgs e)
-        {
-            _ShowTextMarginPrevious = ShowTextMargin;
-        }
-        #endregion
         #region TextOffset
         public Point TextOffset
         {
@@ -859,18 +894,7 @@ namespace TimekeeperWPF.Calendar
         #endregion
         #endregion Features
         #region Layout
-        public const int _DAY_SECONDS = 86400;
-        protected virtual int _DefaultVisibleColumns => 1;
-        protected virtual int _DefaultVisibleRows => 1;
-        protected virtual DateTime _FirstVisibleDay => Date;
-        protected virtual DateTime _LastVisibleDay => Date;
-        protected virtual int _Days => 1;
-        protected int _VisibleColumns;
-        protected int _VisibleRows;
-        protected double _CellRange = _DAY_SECONDS;
-        private int _DaysPerCell = 1;
-        private int _Cells => _VisibleColumns * _VisibleRows;
-        private double _CellRangeSize;
+        #region GridData
         private enum GridTextFormat { Long, Medium, Short, Hide }
         private class GridData : IComparable
         {
@@ -1079,45 +1103,55 @@ namespace TimekeeperWPF.Calendar
                 if (Scale < gd.ScaleCutoff) break;
             }
             _ScreenInterval = _GridData.SecondsInterval / Scale;
-            UpdateTextMargin(); //because format length could've changed
+            UpdateTimeTextMargin(); //because format length could've changed
         }
+        #endregion GridData
+        private delegate Size RelativeSize(double w, double h);
+        private delegate Rect RelativeRect(double x, double y, double w, double h);
+        private delegate Point RelativePoint(double x, double y);
+        private delegate void RelativeRectDrawer(Brush brush, double x, double y, double w, double h);
+        private delegate void RelativeLineDrawer(Pen pen, Point p1, Point p2);
+        private delegate void RelativeTextDrawer(string text, double size, double x1, double x2, double y);
+        public const int _DAY_SECONDS = 86400;
+        protected virtual int _DefaultColumns => 1;
+        protected virtual int _DefaultRows => 1;
+        protected virtual DateTime _FirstVisibleDay => Date;
+        protected virtual DateTime _LastVisibleDay => Date;
+        protected virtual int _Days => 1;
+        protected int _RelativeColumns;
+        protected int _RelativeRows;
+        protected double _CellRange = _DAY_SECONDS;
+        private int _DaysPerCell = 1;
+        private int _Cells => _RelativeColumns * _RelativeRows;
+        private double _CellRangeSize;
         private int GetCellNumber(DateTime d) => (int)((d - _FirstVisibleDay).TotalSeconds / _CellRange).Within(0, _Cells - 1);
         private Point GetCellPos(int cellNum, Size cellSize)
         {
-            var C = (int)Math.Floor((double)cellNum % _VisibleColumns);
-            var R = (int)Math.Floor((double)cellNum / _VisibleColumns);
+            var C = (int)Math.Floor((double)cellNum % _RelativeColumns);
+            var R = (int)Math.Floor((double)cellNum / _RelativeColumns);
             return new Point(C * cellSize.Width, R * cellSize.Height);
         }
-        private DateTime GetCellDateTime(int cellNum)
-        {
-            var t = new TimeSpan(0, 0, (int)(_CellRange * cellNum));
-            return _FirstVisibleDay + t;
-        }
-        private Size GetCellSize(Size area) => new Size((area.Width - TextMargin) / _VisibleColumns, area.Height / _VisibleRows);
-        private delegate Size Sizer(double w, double h);
-        private delegate Rect Recter(double x, double y, double w, double h);
-        private delegate void RectDrawer(Brush brush, double x, double y, double w, double h);
-        private delegate void LineDrawer(Pen pen, Point p1, Point p2);
-        private delegate void TextDrawer(string text, double size, double x1, double x2, double y);
+        private DateTime GetCellDateTime(int cellNum) => _FirstVisibleDay + new TimeSpan(0, 0, (int)(_CellRange * cellNum));
+        private Size GetCellSize(Size area) => new Size((area.Width - TimeTextMargin) / _RelativeColumns, area.Height / _RelativeRows);
         protected override Size MeasureOverride(Size availableSize)
         {
             if (TimeOrientation == Orientation.Vertical)
             {
-                Sizer measurer = (w, h) => new Size(w, h);
+                RelativeSize measurer = (w, h) => new Size(w, h);
                 Size size = MeasureStuff(measurer, new Size(availableSize.Width, double.PositiveInfinity));
                 VerifyVerticalScrollData(availableSize, size);
             }
             else
             {
-                Sizer measurer = (w, h) => new Size(h, w);
+                RelativeSize measurer = (w, h) => new Size(h, w);
                 Size size = MeasureStuff(measurer, new Size(availableSize.Height, double.PositiveInfinity));
                 VerifyHorizontalScrollData(availableSize, new Size(size.Height, size.Width));
             }
             return _Viewport;
         }
-        private Size MeasureStuff(Sizer sizer, Size availableSize)
+        private Size MeasureStuff(RelativeSize sizer, Size availableSize)
         {
-            double cellWidth = (availableSize.Width - TextMargin) / _VisibleColumns;
+            double cellWidth = (availableSize.Width - TimeTextMargin) / _RelativeColumns;
             double width = availableSize.Width;
             double height = availableSize.Height;
             foreach (UIElement child in InternalChildren)
@@ -1161,21 +1195,21 @@ namespace TimekeeperWPF.Calendar
         {
             if (TimeOrientation == Orientation.Vertical)
             {
-                Recter RC = (x, y, w, h) => new Rect(x - Offset.X, y - Offset.Y, w, h);
-                Sizer sizer = (w, h) => new Size(w, h);
-                Size size = ArrangeStuff(sizer, RC, arrangeSize, TextMargin, 0);
+                RelativeRect RC = (x, y, w, h) => new Rect(x - Offset.X, y - Offset.Y, w, h);
+                RelativeSize sizer = (w, h) => new Size(w, h);
+                Size size = ArrangeStuff(sizer, RC, arrangeSize, TimeTextMargin, 0);
                 VerifyVerticalScrollData(arrangeSize, size);
             }
             else
             {
-                Recter RC = (x, y, w, h) => new Rect(y - Offset.X, x - Offset.Y, h, w);
-                Sizer sizer = (w, h) => new Size(h, w);
+                RelativeRect RC = (x, y, w, h) => new Rect(y - Offset.X, x - Offset.Y, h, w);
+                RelativeSize sizer = (w, h) => new Size(h, w);
                 Size size = ArrangeStuff(sizer, RC, new Size(arrangeSize.Height, arrangeSize.Width), 0, 0);
                 VerifyHorizontalScrollData(arrangeSize, new Size(size.Height, size.Width));
             }
             return arrangeSize;
         }
-        private Size ArrangeStuff(Sizer sizer, Recter recter, Size arrangeSize, double xM, double yM)
+        private Size ArrangeStuff(RelativeSize sizer, RelativeRect recter, Size arrangeSize, double xM, double yM)
         {
             Size cellSize = GetCellSize(arrangeSize);
             foreach (UIElement child in InternalChildren)
@@ -1192,6 +1226,7 @@ namespace TimekeeperWPF.Calendar
                     actualChild = (UIElement)((ContentControl)child).Content;
                 if (actualChild is NowMarker)
                 {
+                    var C = actualChild as NowMarker;
                     if (IsDateTimeRelevant(DateTime.Now))
                     {
                         width = cellSize.Width;
@@ -1202,6 +1237,7 @@ namespace TimekeeperWPF.Calendar
                         var relY = yM + (DateTime.Now - cellDate).TotalSeconds / Scale - height / 2;
                         x = relX + cellPos.X;
                         y = relY + cellPos.Y;
+                        C.Orientation = TimeOrientation;
                         child.Visibility = Visibility.Visible;
                     }
                     else
@@ -1305,26 +1341,26 @@ namespace TimekeeperWPF.Calendar
         {
             if (_GridData == null) FindGridData();
             Rect VrenderArea = new Rect(new Point(Offset.X, Offset.Y), RenderSize);
-            RectDrawer VRD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(x, y, w, h));
-            LineDrawer VLD = (pen, p1, p2) => dc.DrawLine(pen, p1, p2);
-            TextDrawer VTDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, 0, x1, y);
-            TextDrawer VTDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, x1, y);
-            TextDrawer VTDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, x1, y);
-            double Vx1M = TextMargin;
+            RelativeRectDrawer VRD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(x, y, w, h));
+            RelativeLineDrawer VLD = (pen, p1, p2) => dc.DrawLine(pen, p1, p2);
+            RelativeTextDrawer VTDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, 0, x1, y);
+            RelativeTextDrawer VTDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, x1, y);
+            RelativeTextDrawer VTDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, x1, y);
+            double Vx1M = TimeTextMargin;
             double Vx2M = 0;
             double VyM = 0;
             Rect HrenderArea = new Rect(new Point(Offset.Y, Offset.X), new Size(RenderSize.Height, RenderSize.Width));
-            RectDrawer HRD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(y, x, h, w));
-            LineDrawer HLD = (pen, p1, p2) => dc.DrawLine(pen, new Point(p1.Y, p1.X), new Point(p2.Y, p2.X));
-            TextDrawer HTDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, -90d, y, x2);
-            TextDrawer HTDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, y, x1);
-            TextDrawer HTDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, y, x1);
+            RelativeRectDrawer HRD = (b, x, y, w, h) => dc.DrawRectangle(b, null, new Rect(y, x, h, w));
+            RelativeLineDrawer HLD = (pen, p1, p2) => dc.DrawLine(pen, new Point(p1.Y, p1.X), new Point(p2.Y, p2.X));
+            RelativeTextDrawer HTDmargin = (t, s, x1, x2, y) => DrawMarginText(dc, t, -90d, y, x2);
+            RelativeTextDrawer HTDwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, WatermarkBrush, t, s, y, x1);
+            RelativeTextDrawer HTDOOBwatermark = (t, s, x1, x2, y) => DrawWatermarkText(dc, MonthBoundsWatermarkBrush, t, s, y, x1);
             double Hx1M = 0;
-            double Hx2M = TextMargin;
+            double Hx2M = TimeTextMargin;
             double HyM = 0;
             if (TimeOrientation == Orientation.Vertical)
             {
-                Size VcellSize = new Size((VrenderArea.Width - TextMargin) / _VisibleColumns, VrenderArea.Height / _VisibleRows);
+                Size VcellSize = new Size((VrenderArea.Width - TimeTextMargin) / _RelativeColumns, VrenderArea.Height / _RelativeRows);
                 if (DateOrientation == Orientation.Horizontal)
                 {
                     DrawHighlight(Vx1M, VyM, VRD, VcellSize);
@@ -1332,7 +1368,7 @@ namespace TimekeeperWPF.Calendar
                 }
                 else
                 {
-                    Size HcellSize = new Size((VrenderArea.Height) / _DefaultVisibleColumns, (HrenderArea.Height + TextMargin) / _VisibleRows);
+                    Size HcellSize = new Size((VrenderArea.Height) / _DefaultColumns, (HrenderArea.Height + TimeTextMargin) / _RelativeRows);
                     DrawHighlight(Hx1M, Vx1M, HRD, HcellSize);
                     DrawWatermark(HTDwatermark, HTDOOBwatermark, Hx1M, HyM, HcellSize);
                 }
@@ -1340,12 +1376,12 @@ namespace TimekeeperWPF.Calendar
                 DrawDateLines(VrenderArea, Vx1M, Vx2M, VyM, VLD, VcellSize);
 
                 dc.DrawLine(GridRegularPen,
-                    new Point(TextMargin, 0),
-                    new Point(TextMargin, RenderSize.Height));
+                    new Point(TimeTextMargin, 0),
+                    new Point(TimeTextMargin, RenderSize.Height));
             }
             else
             {
-                Size HcellSize = new Size((HrenderArea.Width - TextMargin) / _VisibleColumns, HrenderArea.Height / _VisibleRows);
+                Size HcellSize = new Size((HrenderArea.Width - TimeTextMargin) / _RelativeColumns, HrenderArea.Height / _RelativeRows);
                 if (DateOrientation == Orientation.Horizontal)
                 {
                     DrawHighlight(Hx1M, HyM, HRD, HcellSize);
@@ -1353,23 +1389,23 @@ namespace TimekeeperWPF.Calendar
                 }
                 else
                 {
-                    Size VcellSize = new Size((VrenderArea.Width) / _DefaultVisibleColumns, (VrenderArea.Height - TextMargin) / _VisibleRows);
+                    Size VcellSize = new Size((VrenderArea.Width) / _DefaultColumns, (VrenderArea.Height - TimeTextMargin) / _RelativeRows);
                     DrawHighlight(HyM, Hx1M, VRD, VcellSize);
                     DrawWatermark(VTDwatermark, VTDOOBwatermark, HyM, Hx1M, VcellSize);
                 }
                 DrawTimeLines(HrenderArea, Hx1M, Hx2M, HLD, HTDmargin, HcellSize);
                 DrawDateLines(HrenderArea, Hx1M, Hx2M, HyM, HLD, HcellSize);
 
-                var mY = RenderSize.Height - TextMargin;
+                var mY = RenderSize.Height - TimeTextMargin;
                 dc.DrawLine(GridRegularPen,
                     new Point(0, mY),
                     new Point(RenderSize.Width, mY));
             }
         }
-        private void DrawTimeLines(Rect renderArea, double x1M, double x2M, LineDrawer LD, TextDrawer TDmargin, Size cellSize)
+        private void DrawTimeLines(Rect renderArea, double x1M, double x2M, RelativeLineDrawer LD, RelativeTextDrawer TDmargin, Size cellSize)
         {
             if (!(ShowTimeLines && _GridData.DrawGrid)) return;
-            for (var j = 0; j < _VisibleRows; j++)
+            for (var j = 0; j < _RelativeRows; j++)
             {
                 Pen currentPen = GridRegularPen;
                 string timeFormat = "";
@@ -1401,7 +1437,7 @@ namespace TimekeeperWPF.Calendar
                     double finalY = y - renderArea.Y + cellSize.Height * j;
                     //Draw a horizontal grid line
                     LD(currentPen, new Point(finalX1, finalY), new Point(finalX2, finalY));
-                    if ((ShowTextMargin || _ShowTextMarginPrevious) && timeFormat != "")
+                    if ((ShowTimeTextMargin || _ShowTimeTextMarginPrevious) && timeFormat != "")
                     {
                         string text = Date.AddSeconds(y * Scale).ToString(timeFormat);
                         TDmargin(text, 0, finalX1, finalX2, finalY);
@@ -1409,17 +1445,17 @@ namespace TimekeeperWPF.Calendar
                 }
             }
         }
-        private void DrawDateLines(Rect renderArea, double x1M, double x2M, double yM, LineDrawer LD, Size cellSize)
+        private void DrawDateLines(Rect renderArea, double x1M, double x2M, double yM, RelativeLineDrawer LD, Size cellSize)
         {
             if (!ShowDateLines) return;
-            for (int i = 0; i <= _VisibleColumns; i++)
+            for (int i = 0; i <= _RelativeColumns; i++)
             {
                 double x = x1M + (i * cellSize.Width);
                 double y1 = yM;
                 double y2 = renderArea.Height;
                 LD(GridMajorPen, new Point(x, y1), new Point(x, y2));
             }
-            for (var j = 0; j <= _VisibleRows; j++)
+            for (var j = 0; j <= _RelativeRows; j++)
             {
                 double y = yM + (j * cellSize.Height);
                 double x1 = x1M;
@@ -1427,7 +1463,7 @@ namespace TimekeeperWPF.Calendar
                 LD(GridMajorPen, new Point(x1, y), new Point(x2, y));
             }
         }
-        private void DrawHighlight(double x1M, double yM, RectDrawer RD, Size cellSize)
+        private void DrawHighlight(double x1M, double yM, RelativeRectDrawer RD, Size cellSize)
         {
             if (ShowHighlight && IsDateTimeRelevant(DateTime.Today))
             {
@@ -1438,9 +1474,9 @@ namespace TimekeeperWPF.Calendar
             if (ShowMonthBoundsHighlight)
             {
                 var day = _FirstVisibleDay;
-                for (var j = 0; j < _VisibleRows; j++)
+                for (var j = 0; j < _RelativeRows; j++)
                 {
-                    for (var i = 0; i < _VisibleColumns; i++)
+                    for (var i = 0; i < _RelativeColumns; i++)
                     {
                         if (!IsDateTimeRelevant(day))
                         {
@@ -1453,16 +1489,16 @@ namespace TimekeeperWPF.Calendar
                 }
             }
         }
-        private void DrawWatermark(TextDrawer TDwatermark, TextDrawer TDOOB, double x1M, double yM, Size cellSize)
+        private void DrawWatermark(RelativeTextDrawer TDwatermark, RelativeTextDrawer TDOOB, double x1M, double yM, Size cellSize)
         {
             if (!ShowWatermark) return;
             var textSize = Math.Max(12d, Math.Min(cellSize.Width / 4d, cellSize.Height / 4d));
             var day = _FirstVisibleDay;
             var xc = cellSize.Width / 2;
             var yc = cellSize.Height / 2;
-            for (var j = 0; j < _DefaultVisibleRows; j++)
+            for (var j = 0; j < _DefaultRows; j++)
             {
-                for (var i = 0; i < _DefaultVisibleColumns; i++)
+                for (var i = 0; i < _DefaultColumns; i++)
                 {
                     var x = x1M + i * cellSize.Width + xc;
                     var y = yM + j * cellSize.Height + yc;

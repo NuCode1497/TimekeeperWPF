@@ -47,7 +47,7 @@ namespace TimekeeperWPF.Calendar
             if (TimeOrientation == Orientation.Vertical)
             {
                 var pos = e.MouseDevice.GetPosition(this);
-                var weekDay = (int)((pos.X - TextMargin) / ((RenderSize.Width - TextMargin) / _VisibleColumns)).Within(0, _VisibleColumns - 1);
+                var weekDay = (int)((pos.X - TimeTextMargin) / ((RenderSize.Width - TimeTextMargin) / _RelativeColumns)).Within(0, _RelativeColumns - 1);
 
                 var date = Date.AddDays(weekDay);
                 var seconds = (int)((pos.Y + Offset.Y) * Scale).Within(0, _CellRange);
@@ -57,7 +57,7 @@ namespace TimekeeperWPF.Calendar
             else
             {
                 var pos = e.MouseDevice.GetPosition(this);
-                var weekDay = (int)((pos.Y) / ((RenderSize.Height - TextMargin) / _VisibleColumns)).Within(0, _VisibleColumns - 1);
+                var weekDay = (int)((pos.Y) / ((RenderSize.Height - TimeTextMargin) / _RelativeColumns)).Within(0, _RelativeColumns - 1);
                 var date = Date.AddDays(weekDay);
                 var seconds = (int)((pos.X + Offset.X) * Scale).Within(0, _CellRange);
                 var time = new TimeSpan(0, 0, seconds);
@@ -78,7 +78,7 @@ namespace TimekeeperWPF.Calendar
         protected override bool IsDateTimeRelevant(DateTime d) { return d.WeekStart() == Date; }
         #endregion
         #region Layout
-        protected override int _DefaultVisibleColumns => 7;
+        protected override int _DefaultColumns => 7;
         protected override int _Days => 7;
         protected override DateTime _LastVisibleDay => _FirstVisibleDay.AddDays(7);
         #endregion

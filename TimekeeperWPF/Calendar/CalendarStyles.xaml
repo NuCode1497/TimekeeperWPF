@@ -158,7 +158,7 @@
         <Setter Property="TimeOrientation" Value="{Binding Path=TimeOrientation, Mode=TwoWay}"/>
         <Setter Property="DateOrientation" Value="{Binding Path=DateOrientation, Mode=TwoWay}"/>
         <Setter Property="ForceMaxScale" Value="{Binding Path=Max, Mode=TwoWay}"/>
-        <Setter Property="ShowTextMargin" Value="{Binding Path=TextMargin, Mode=TwoWay}"/>
+        <Setter Property="ShowTimeTextMargin" Value="{Binding Path=ShowTimeTextMargin, Mode=TwoWay}"/>
         <Setter Property="WatermarkFormat" Value="{StaticResource Day.WatermarkFormat}"/>
         <Setter Property="WatermarkBrush" Value="{StaticResource Day.WatermarkBrush}"/>
         <Setter Property="WatermarkFontFamily" Value="{StaticResource Ayy.FontFamily}"/>
@@ -436,9 +436,9 @@
                         </Grid>
                     </CheckBox.Content>
                 </CheckBox>
-                <CheckBox x:Name="TextMarginCheckBox" ToolTip="Text Margin" 
+                <CheckBox x:Name="ShowTimeTextMarginCheckBox" ToolTip="Time Text" 
                           IsEnabled="{Binding Path=CanTextMargin}"
-                          IsChecked="{Binding Path=TextMargin, Mode=TwoWay}">
+                          IsChecked="{Binding Path=ShowTimeTextMargin, Mode=TwoWay}">
                     <CheckBox.Content>
                         <Grid>
                             <TextBlock Text="📏" FontSize="16" Margin="0,0,0,0"/>
